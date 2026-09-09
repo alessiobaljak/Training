@@ -11,7 +11,7 @@ dato, il valore è la logica che decide quando salire di livello.
 
 | Fase | Contenuto | Stato |
 |---|---|---|
-| 1 | Scaffolding, tipi, trascrizione dei dati, test del seed | fatta |
+| 1 | Scaffolding, tipi, trascrizione dei dati, test del seed | fatta, verificata contro l'Excel |
 | 2 | Motore: range, leve, avanzamento, zavorra, deload, medie | da fare |
 | 3 | Persistenza Dexie, export/import JSON, export CSV | da fare |
 | 4 | Onboarding Settimana 0 e Home | da fare |
@@ -54,6 +54,11 @@ cambia mai da solo.
 | `progressions.ts` | Le 8 scale di progressione a 6 livelli |
 | `tests.ts` | I 9 test della Settimana 0 |
 | `exercises.ts` | Anagrafica: slug, nome, cue, schema motorio, query video |
+| `method.ts` | Regole dei fogli Istruzioni e Zavorra: percentuali del range, soglie, calibrazione |
+| `reference.ts` | Valori di esempio del foglio Test_Livelli, usati come fixture di verifica |
+
+`Scheda_Calisthenics_Shadow.xlsx` sta nella root del repo: è la fonte da cui
+tutto è trascritto, tenuta lì per poter rifare la verifica.
 
 **Dati dell'utente** — IndexedDB, sul telefono, in `src/db/` (Fase 3). Log
 degli allenamenti, misure, risultati dei test, video personali, stato di
@@ -108,6 +113,53 @@ Per aggiungere un esercizio:
 Lo **slug non va mai cambiato**: è la chiave con cui lo storico degli
 allenamenti è collegato all'esercizio. Rinominare uno slug scollega i dati già
 registrati. Il campo `name` invece si può cambiare liberamente.
+
+## Verifica contro il file Excel
+
+La trascrizione è stata confrontata riga per riga con
+`Scheda_Calisthenics_Shadow.xlsx`. Le 36 righe del programma coincidono. Restano
+questi punti, tutti interni alla scheda.
+
+**Il file non contiene nessuna formula.** Nessuno dei sette fogli ha una sola
+cella calcolata: ogni valore che il foglio Istruzioni descrive come automatico
+(range di lavoro, livello di partenza, media a 7 giorni, azione correttiva) è
+testo scritto a mano. È la ragione per cui questa app esiste.
+
+**La formula del range regge, con una eccezione.** Il 55%-75% con
+arrotondamento a metà per eccesso riproduce 8 righe su 9 del foglio
+Test_Livelli. Il nordic curl no: da 4 ripetizioni massime la formula dà 2-3, la
+scheda scrive 3-5, che è la prescrizione del martedì ricopiata nel foglio dei
+test. Il motore applica la formula e non replica l'eccezione.
+
+**"range test −2" è confermato.** Il giovedì prescrive 4-6 trazioni presa larga
+contro un range test di 6-8: l'offset sposta gli estremi del range calcolato,
+non il massimale.
+
+**La colonna "Livello di partenza calcolato" si contraddice.** In quattro righe
+su nove il numero di livello dichiarato non è quello della variante descritta,
+letta sulla scala del foglio Progressioni: rematore inverso (dichiara 4,
+descrive 5), pike push-up (3 contro 2), nordic curl (2 contro 3), hollow hold
+(2 contro 3). I livelli dichiarati non sono utilizzabili come regola.
+
+**La zavorra sui rematori è in contraddizione.** Il foglio Zavorra elenca
+trazioni, chin-up, dip, push-up, split squat e step-up, e i rematori non ci
+sono. Ma il livello 6 della trazione orizzontale è "Rematore inverso zavorrato"
+e il foglio Test_Livelli suggerisce "monobraccio o zavorra" per quello schema.
+Il seed segue la whitelist, quindi quel livello 6 oggi non è raggiungibile.
+
+**Tre incongruenze minori, presenti anche nell'originale.** Il dead hang ha
+"Serie previste" 2 ma il sabato ne prescrive 3. Il calf monopodalico seduto del
+venerdì non ha "per gamba" mentre quello del martedì sì. Il mercoledì è
+intestato 40 minuti ma i suoi blocchi ne sommano da 43 a 53.
+
+**Due formulazioni per la stessa regola.** I fogli Test_Livelli e Progressioni
+dicono "chiudi il massimo del range", i fogli Istruzioni e Zavorra dicono
+"superi il massimo". Il motore adotta "chiudi", cioè `ripetizioni >= massimo`:
+è la lettura del documento di specifica ed è la più conservativa.
+
+**Escluso su richiesta.** Il foglio Misure ha una colonna "Azione suggerita" e
+il foglio Istruzioni rimanda a un piano alimentare. L'app non ha sezione dieta:
+registra peso, media a 7 giorni, girovita e delta, e si ferma lì.
 
 ## Scelte di trascrizione
 
