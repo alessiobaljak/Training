@@ -1,0 +1,187 @@
+/**
+ * Tipi di dominio trasversali.
+ *
+ * Regola generale del progetto: nessun `any` nei tipi di dominio.
+ * Le notazioni testuali (TUT, RIR) sono modellate come union di stringhe
+ * letterali, così la trascrizione della scheda resta letterale ma un refuso
+ * diventa un errore di compilazione.
+ */
+
+/** Giorni della settimana, indice ISO (1 = lunedì … 7 = domenica). */
+export type WeekdayIndex = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const WEEKDAY_LABELS: Readonly<Record<WeekdayIndex, string>> = Object.freeze({
+  1: 'Lunedì',
+  2: 'Martedì',
+  3: 'Mercoledì',
+  4: 'Giovedì',
+  5: 'Venerdì',
+  6: 'Sabato',
+  7: 'Domenica',
+});
+
+/* -------------------------------------------------------------------------- */
+/* Schemi motori                                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Gli 8 schemi motori su cui è costruita la scala di progressione a 6 livelli.
+ * Gli esercizi accessori (elastici, polpacci, core non in sospensione…) non
+ * appartengono ad alcuno schema: usano `null`.
+ */
+export type MotorPattern =
+  | 'vertical-pull'
+  | 'horizontal-pull'
+  | 'horizontal-push'
+  | 'vertical-push'
+  | 'dip'
+  | 'single-leg-squat'
+  | 'posterior-chain'
+  | 'core';
+
+export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
+  'vertical-pull',
+  'horizontal-pull',
+  'horizontal-push',
+  'vertical-push',
+  'dip',
+  'single-leg-squat',
+  'posterior-chain',
+  'core',
+] as const);
+
+export const MOTOR_PATTERN_LABELS: Readonly<Record<MotorPattern, string>> = Object.freeze({
+  'vertical-pull': 'Trazione verticale (dorsali)',
+  'horizontal-pull': 'Trazione orizzontale (spessore)',
+  'horizontal-push': 'Spinta orizzontale (petto)',
+  'vertical-push': 'Spinta verticale (spalle)',
+  dip: 'Dip (petto/tricipiti)',
+  'single-leg-squat': 'Squat monopodalico (quadricipiti)',
+  'posterior-chain': 'Catena posteriore (femorali)',
+  core: 'Core',
+});
+
+/** Livello nella scala di progressione. Sempre 1..6. */
+export type LevelIndex = 1 | 2 | 3 | 4 | 5 | 6;
+
+export const LEVEL_INDEXES: readonly LevelIndex[] = Object.freeze([1, 2, 3, 4, 5, 6] as const);
+
+/* -------------------------------------------------------------------------- */
+/* Gruppi muscolari (per il volume settimanale)                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Raggruppamento usato solo per il conteggio del volume settimanale
+ * (riferimento del metodo: 16-20 serie a settimana per gruppo).
+ */
+export type MuscleGroup =
+  | 'dorsali'
+  | 'petto'
+  | 'spalle'
+  | 'braccia'
+  | 'quadricipiti'
+  | 'femorali-glutei'
+  | 'polpacci'
+  | 'core';
+
+export const MUSCLE_GROUPS: readonly MuscleGroup[] = Object.freeze([
+  'dorsali',
+  'petto',
+  'spalle',
+  'braccia',
+  'quadricipiti',
+  'femorali-glutei',
+  'polpacci',
+  'core',
+] as const);
+
+export const MUSCLE_GROUP_LABELS: Readonly<Record<MuscleGroup, string>> = Object.freeze({
+  dorsali: 'Dorsali',
+  petto: 'Petto',
+  spalle: 'Spalle',
+  braccia: 'Braccia',
+  quadricipiti: 'Quadricipiti',
+  'femorali-glutei': 'Femorali e glutei',
+  polpacci: 'Polpacci',
+  core: 'Core',
+});
+
+/** Riferimento del metodo per il volume settimanale per gruppo muscolare. */
+export const WEEKLY_SET_TARGET: Readonly<{ min: number; max: number }> = Object.freeze({
+  min: 16,
+  max: 20,
+});
+
+/**
+ * Peso di una serie sul gruppo muscolare secondario.
+ * Una trazione è una serie piena di dorsali e mezza serie di bicipiti.
+ */
+export const SECONDARY_SET_WEIGHT = 0.5;
+
+/* -------------------------------------------------------------------------- */
+/* TUT — tempo sotto tensione                                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Notazione TUT: eccentrica - pausa in basso - concentrica - pausa in alto,
+ * in secondi. `X` = esplosivo.
+ */
+export type TempoDigit = '0' | '1' | '2' | '3' | '4' | '5' | 'X';
+
+export type TempoNotation = `${TempoDigit}-${TempoDigit}-${TempoDigit}-${TempoDigit}`;
+
+/** Valore della colonna TUT così come compare nella scheda. */
+export type TutNotation = TempoNotation | 'controllato' | 'isometrico' | '—';
+
+/** Durata di una fase del tempo: secondi, oppure esplosiva. */
+export type TempoPhase = number | 'X';
+
+export interface TempoBreakdown {
+  readonly kind: 'tempo';
+  /** Fase eccentrica (discesa/allungamento). */
+  readonly eccentric: TempoPhase;
+  /** Pausa nel punto di massimo allungamento. */
+  readonly bottomPause: TempoPhase;
+  /** Fase concentrica (risalita/accorciamento). */
+  readonly concentric: TempoPhase;
+  /** Pausa nel punto di massimo accorciamento. */
+  readonly topPause: TempoPhase;
+}
+
+export type Tut =
+  | TempoBreakdown
+  | { readonly kind: 'controlled' }
+  | { readonly kind: 'isometric' }
+  | { readonly kind: 'none' };
+
+/* -------------------------------------------------------------------------- */
+/* RIR — repetitions in reserve                                                */
+/* -------------------------------------------------------------------------- */
+
+export type RirNotation = '0' | '1' | '2' | '0-1' | '1-2' | '—';
+
+export interface RirTarget {
+  readonly min: number;
+  readonly max: number;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Misurazione e zavorra                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Come si registra una serie di questo esercizio.
+ * - `reps`     → contatore di ripetizioni
+ * - `seconds`  → cronometro (isometrie: hollow hold, dead hang, skill)
+ * - `duration` → attività a durata in minuti (zona 2, mobilità, warm-up)
+ */
+export type MeasurementKind = 'reps' | 'seconds' | 'duration';
+
+/**
+ * Politica zavorra. Il metodo elenca in modo esplicito su quali esercizi la
+ * zavorra è consentita; su tutto il resto il campo non deve nemmeno esistere.
+ */
+export type LoadPolicy = 'allowed' | 'forbidden';
+
+/** Incremento unico ammesso dal metodo. Lo stepper non propone altri valori. */
+export const LOAD_STEP_KG = 2.5;

@@ -1,0 +1,37 @@
+@import 'tailwindcss';
+
+/*
+  Mobile-first: schermo verticale, tap target grandi, contrasto alto.
+  Il tema è scuro perché l'app si usa in palestra con il telefono a terra.
+*/
+@theme {
+  --color-base: #0b0f14;
+  --color-surface: #151b23;
+  --color-surface-2: #1e2732;
+  --color-line: #2c3846;
+  --color-ink: #eef3f8;
+  --color-ink-dim: #9fb0c0;
+  --color-accent: #4cc2ff;
+  --color-in-range: #3ddc97;
+  --color-under-range: #ffb02e;
+  --color-over-range: #4cc2ff;
+}
+
+html {
+  background-color: var(--color-base);
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-base);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  overscroll-behavior-y: none;
+}
+
+/* Nessun tap highlight blu su iOS: i bottoni gestiscono il proprio stato. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
