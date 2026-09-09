@@ -1,0 +1,268 @@
+import { getExercise } from '../data/exercises.ts';
+import {
+  MUSCLE_GROUPS,
+  SECONDARY_SET_WEIGHT,
+  WEEKLY_SET_TARGET,
+} from '../types/index.ts';
+import type {
+  LoggedExercise,
+  LoggedSession,
+  MuscleGroup,
+  WaistEntry,
+  WeightEntry,
+} from '../types/index.ts';
+import { addDays, sortIsoDates, startOfWeek } from './dates.ts';
+
+/**
+ * Medie, delta, volume e aderenza. Tutto puro, tutto su dati già registrati.
+ */
+
+export interface DatedValue {
+  /** Data in formato YYYY-MM-DD. */
+  readonly date: string;
+  readonly value: number;
+}
+
+export const fromWeightEntries = (entries: readonly WeightEntry[]): DatedValue[] =>
+  entries.map((entry) => ({ date: entry.date, value: entry.kg }));
+
+export const fromWaistEntries = (entries: readonly WaistEntry[]): DatedValue[] =>
+  entries.map((entry) => ({ date: entry.date, value: entry.cm }));
+
+/* -------------------------------------------------------------------------- */
+/* Media mobile                                                                */
+/* -------------------------------------------------------------------------- */
+
+export interface MovingAveragePoint {
+  readonly date: string;
+  /** Valore registrato quel giorno. */
+  readonly value: number;
+  /** Media della finestra che termina in quel giorno. */
+  readonly average: number;
+  /** Quanti giorni della finestra hanno un dato. */
+  readonly sampleCount: number;
+  /** `true` quando la finestra è piena: la media è confrontabile. */
+  readonly complete: boolean;
+}
+
+export const DEFAULT_MOVING_AVERAGE_DAYS = 7;
+
+/**
+ * Media mobile su una finestra di giorni di calendario, non di misurazioni.
+ *
+ * Saltare due giorni non allunga la finestra all'indietro: la media resta di
+ * sette giorni e `sampleCount` dice su quanti dati è calcolata. È il numero da
+ * mostrare grande, con il dato singolo accanto in piccolo.
+ */
+export function movingAverage(
+  values: readonly DatedValue[],
+  windowDays: number = DEFAULT_MOVING_AVERAGE_DAYS,
+): MovingAveragePoint[] {
+  if (windowDays < 1) throw new Error('La finestra della media mobile deve essere di almeno un giorno.');
+
+  const byDate = new Map<string, number>();
+  for (const entry of values) byDate.set(entry.date, entry.value);
+  const dates = sortIsoDates([...byDate.keys()]);
+
+  return dates.map((date) => {
+    const windowStart = addDays(date, -(windowDays - 1));
+    const samples: number[] = [];
+    for (const candidate of dates) {
+      if (candidate >= windowStart && candidate <= date) {
+        const value = byDate.get(candidate);
+        if (value !== undefined) samples.push(value);
+      }
+    }
+    const sum = samples.reduce((total, value) => total + value, 0);
+    return {
+      date,
+      value: byDate.get(date) ?? 0,
+      average: round1(sum / samples.length),
+      sampleCount: samples.length,
+      complete: samples.length >= windowDays,
+    };
+  });
+}
+
+function round1(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Medie settimanali e delta                                                   */
+/* -------------------------------------------------------------------------- */
+
+export interface WeeklyAverage {
+  /** Lunedì della settimana. */
+  readonly weekStart: string;
+  readonly average: number;
+  readonly sampleCount: number;
+  /** Differenza rispetto alla settimana con dati che precede. `null` la prima. */
+  readonly delta: number | null;
+  /** Settimana con cui è calcolato il delta. Può non essere quella subito prima. */
+  readonly comparedTo: string | null;
+}
+
+/**
+ * Medie per settimana, con il delta rispetto alla settimana precedente **che
+ * contiene dati**. Il campo `comparedTo` lo dichiara esplicitamente, così una
+ * pausa di tre settimane non passa per un peggioramento improvviso.
+ */
+export function weeklyAverages(values: readonly DatedValue[]): WeeklyAverage[] {
+  const buckets = new Map<string, number[]>();
+  for (const entry of values) {
+    const week = startOfWeek(entry.date);
+    const bucket = buckets.get(week);
+    if (bucket === undefined) buckets.set(week, [entry.value]);
+    else bucket.push(entry.value);
+  }
+
+  const weeks = sortIsoDates([...buckets.keys()]);
+  let previous: { weekStart: string; average: number } | null = null;
+
+  return weeks.map((weekStart) => {
+    const samples = buckets.get(weekStart) ?? [];
+    const average = round1(samples.reduce((sum, value) => sum + value, 0) / samples.length);
+    const entry: WeeklyAverage = {
+      weekStart,
+      average,
+      sampleCount: samples.length,
+      delta: previous === null ? null : round1(average - previous.average),
+      comparedTo: previous?.weekStart ?? null,
+    };
+    previous = { weekStart, average };
+    return entry;
+  });
+}
+
+/* -------------------------------------------------------------------------- */
+/* Riepilogo di un esercizio                                                   */
+/* -------------------------------------------------------------------------- */
+
+export interface SetSummary {
+  readonly setIndex: number;
+  readonly left: number | null;
+  readonly right: number | null;
+  readonly bilateral: number | null;
+  /** Testo per la colonna Rip S<n> del log: "8" per i bilaterali, "8/7" per lato. */
+  readonly label: string;
+  /** Somma di quanto registrato nella serie, i due lati compresi. */
+  readonly total: number;
+}
+
+export interface ExerciseSummary {
+  /** Serie programmate, non righe registrate: i due lati sono una serie sola. */
+  readonly setCount: number;
+  readonly sets: readonly SetSummary[];
+  /** Colonna "Rip totali" del log. */
+  readonly totalValue: number;
+  /** Colonna "RIR medio" del log. `null` se non è stato registrato alcun RIR. */
+  readonly meanRir: number | null;
+  readonly maxLoadKg: number;
+}
+
+export function summarizeExercise(logged: LoggedExercise): ExerciseSummary {
+  const indexes = [...new Set(logged.sets.map((set) => set.setIndex))].sort((a, b) => a - b);
+
+  const sets = indexes.map<SetSummary>((setIndex) => {
+    const rows = logged.sets.filter((set) => set.setIndex === setIndex);
+    const left = rows.find((row) => row.side === 'left')?.value ?? null;
+    const right = rows.find((row) => row.side === 'right')?.value ?? null;
+    const bilateral = rows.find((row) => row.side === null)?.value ?? null;
+    const total = rows.reduce((sum, row) => sum + row.value, 0);
+    const label =
+      bilateral !== null
+        ? String(bilateral)
+        : `${left === null ? '—' : String(left)}/${right === null ? '—' : String(right)}`;
+    return { setIndex, left, right, bilateral, label, total };
+  });
+
+  const rirs = logged.sets.map((set) => set.rir).filter((rir): rir is number => rir !== null);
+
+  return {
+    setCount: indexes.length,
+    sets,
+    totalValue: logged.sets.reduce((sum, set) => sum + set.value, 0),
+    meanRir: rirs.length === 0 ? null : round1(rirs.reduce((sum, rir) => sum + rir, 0) / rirs.length),
+    maxLoadKg: logged.sets.reduce((max, set) => Math.max(max, set.loadKg), 0),
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Volume settimanale                                                          */
+/* -------------------------------------------------------------------------- */
+
+export type VolumeStatus = 'under' | 'in' | 'over';
+
+export interface GroupVolume {
+  readonly group: MuscleGroup;
+  /** Serie pesate: piene sui gruppi primari, a metà sui secondari. */
+  readonly sets: number;
+  readonly status: VolumeStatus;
+}
+
+/**
+ * Volume per gruppo muscolare su un insieme di sedute.
+ *
+ * Una serie per lato conta una volta sola, come nella colonna Serie della
+ * scheda: due righe di log, sinistra e destra, sono la stessa serie.
+ */
+export function volumeByGroup(sessions: readonly LoggedSession[]): GroupVolume[] {
+  const totals = new Map<MuscleGroup, number>(MUSCLE_GROUPS.map((group) => [group, 0]));
+
+  for (const session of sessions) {
+    for (const logged of session.exercises) {
+      const setCount = new Set(logged.sets.map((set) => set.setIndex)).size;
+      if (setCount === 0) continue;
+      const exercise = getExercise(logged.exercise);
+      for (const group of exercise.primaryMuscles) {
+        totals.set(group, (totals.get(group) ?? 0) + setCount);
+      }
+      for (const group of exercise.secondaryMuscles) {
+        totals.set(group, (totals.get(group) ?? 0) + setCount * SECONDARY_SET_WEIGHT);
+      }
+    }
+  }
+
+  return MUSCLE_GROUPS.map((group) => {
+    const sets = totals.get(group) ?? 0;
+    const status: VolumeStatus =
+      sets < WEEKLY_SET_TARGET.min ? 'under' : sets > WEEKLY_SET_TARGET.max ? 'over' : 'in';
+    return { group, sets, status };
+  });
+}
+
+/** Sedute della settimana che inizia nel lunedì indicato. */
+export function sessionsInWeek(
+  sessions: readonly LoggedSession[],
+  weekStart: string,
+): LoggedSession[] {
+  const weekEnd = addDays(weekStart, 6);
+  return sessions.filter((session) => session.date >= weekStart && session.date <= weekEnd);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Aderenza                                                                    */
+/* -------------------------------------------------------------------------- */
+
+export interface Adherence {
+  readonly completed: number;
+  readonly planned: number;
+  /** Percentuale intera da 0 a 100. `null` quando non c'è nulla di previsto. */
+  readonly percent: number | null;
+}
+
+export function adherence(completed: number, planned: number): Adherence {
+  if (planned <= 0) return { completed, planned: 0, percent: null };
+  return { completed, planned, percent: Math.round((completed / planned) * 100) };
+}
+
+/** Aderenza calcolata sulle sedute effettivamente chiuse. */
+export function adherenceFromSessions(
+  sessions: readonly LoggedSession[],
+  plannedPerWeek: number,
+  weeks: number,
+): Adherence {
+  const completed = sessions.filter((session) => session.status === 'completed').length;
+  return adherence(completed, plannedPerWeek * weeks);
+}

@@ -12,7 +12,7 @@ dato, il valore è la logica che decide quando salire di livello.
 | Fase | Contenuto | Stato |
 |---|---|---|
 | 1 | Scaffolding, tipi, trascrizione dei dati, test del seed | fatta, verificata contro l'Excel |
-| 2 | Motore: range, leve, avanzamento, zavorra, deload, medie | da fare |
+| 2 | Motore: range, leve, avanzamento, zavorra, deload, medie | fatta |
 | 3 | Persistenza Dexie, export/import JSON, export CSV | da fare |
 | 4 | Onboarding Settimana 0 e Home | da fare |
 | 5 | Player della sessione con timer di recupero | da fare |
@@ -63,6 +63,45 @@ tutto è trascritto, tenuta lì per poter rifare la verifica.
 **Dati dell'utente** — IndexedDB, sul telefono, in `src/db/` (Fase 3). Log
 degli allenamenti, misure, risultati dei test, video personali, stato di
 avanzamento. Non escono mai dal dispositivo.
+
+## Il motore
+
+`src/engine/` è logica pura: nessun React, nessun accesso al DOM, nessuno
+stato globale. Ogni funzione riceve dati e restituisce dati nuovi, senza
+mutare quelli in ingresso. La UI non contiene formule.
+
+| File | Cosa decide |
+|---|---|
+| `ranges.ts` | Range di lavoro dal massimale, offset, posizione della serie |
+| `progression.ts` | Quando scatta l'avanzamento e quale leva proporre |
+| `loading.ts` | Se la zavorra è ammessa, quanta, quando calibrarla |
+| `metrics.ts` | Media mobile, delta settimanali, volume, aderenza |
+| `schedule.ts` | Scarico, ritest, settimana del mesociclo |
+| `rest.ts` | Ordine delle serie e recupero da usare dopo ciascuna |
+| `notation.ts` | Lettura e scrittura di TUT e RIR |
+| `dates.ts` | Aritmetica su date, in UTC |
+
+Il motore **suggerisce, non applica**: `evaluateProgression` restituisce lo
+stato che si otterrebbe accettando, e tocca all'utente accettare o rimandare.
+
+### Un campo che la scheda non ha
+
+`LoggedExercise.tempoRespected` non esiste nel foglio Excel. La regola di
+avanzamento chiede di chiudere il massimo del range "mantenendo il tempo
+prescritto": senza registrare se il tempo è stato rispettato, quella
+condizione non è valutabile e la regola si riduce al conteggio delle
+ripetizioni. È l'unico campo che l'app aggiunge.
+
+### I test del motore
+
+Oltre ai casi normali, la suite copre i limiti richiesti: massimale a zero,
+massimale negativo, esercizio isometrico, esercizio per lato con un lato
+indietro, settimana di scarico, zavorra vietata e zavorra bloccata dalla
+settimana.
+
+I test sono stati verificati per mutazione: si rompe una regola del motore di
+proposito e si controlla che la suite se ne accorga. Due mutazioni erano
+sopravvissute e hanno prodotto una semplificazione e un test in più.
 
 ## Backup
 
@@ -131,9 +170,12 @@ Test_Livelli. Il nordic curl no: da 4 ripetizioni massime la formula dà 2-3, la
 scheda scrive 3-5, che è la prescrizione del martedì ricopiata nel foglio dei
 test. Il motore applica la formula e non replica l'eccezione.
 
-**"range test −2" è confermato.** Il giovedì prescrive 4-6 trazioni presa larga
-contro un range test di 6-8: l'offset sposta gli estremi del range calcolato,
-non il massimale.
+**"range test −2": la scheda non basta a distinguere le due letture.** Il
+giovedì prescrive 4-6 trazioni presa larga contro un range test di 6-8. Con 10
+massime, sottrarre 2 dal range e sottrarre 2 dal massimale danno lo stesso
+risultato, quindi il numero della scheda non decide. A 12 massime divergono:
+5-7 contro 6-8. Il motore adotta la lettura letterale, cioè sottrae dal range,
+ed è fissata da un test dedicato.
 
 **La colonna "Livello di partenza calcolato" si contraddice.** In quattro righe
 su nove il numero di livello dichiarato non è quello della variante descritta,
