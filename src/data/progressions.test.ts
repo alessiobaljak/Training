@@ -24,7 +24,8 @@ const EXPECTED: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
       'Rematore TRX orizzontale',
       'Piedi rialzati + pausa 1"',
       'Rematore monobraccio TRX',
-      'Rematore inverso zavorrato',
+      // Non è la dicitura della scheda: vedi il test dedicato più sotto.
+      'Rematore monobraccio piedi rialzati',
     ],
   ],
   [
@@ -116,6 +117,24 @@ describe('progressions.ts — 8 scale da 6 livelli', () => {
   it('getProgressionStep restituisce il gradino richiesto', () => {
     expect(getProgressionStep('dip', 5).name).toBe('Dip agli anelli');
     expect(getProgressionStep('core', 1).name).toBe('Plank 45"');
+  });
+
+  it('il livello 6 della trazione orizzontale non richiede zavorra', () => {
+    // La scheda scrive "Rematore inverso zavorrato", ma il foglio Zavorra non
+    // elenca i rematori tra gli esercizi zavorrabili: il gradino sarebbe
+    // irraggiungibile. Sostituito con una progressione a corpo libero.
+    const top = getProgressionStep('horizontal-pull', 6);
+    expect(top.name).toBe('Rematore monobraccio piedi rialzati');
+    expect(top.name.toLowerCase()).not.toContain('zavorr');
+  });
+
+  it('ogni gradino che nomina la zavorra appartiene a uno schema zavorrabile', () => {
+    const zavorrati = PROGRESSION_SCALES.filter((scale) =>
+      scale.steps.some((step) => step.name.toLowerCase().includes('zavorr')),
+    ).map((scale) => scale.pattern);
+    expect([...zavorrati].sort()).toEqual(
+      ['dip', 'horizontal-push', 'single-leg-squat', 'vertical-pull'].sort(),
+    );
   });
 
   it('solleva su uno schema motorio sconosciuto', () => {

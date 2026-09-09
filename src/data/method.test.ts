@@ -9,10 +9,12 @@ import {
   MORNING_DELAY_MINUTES,
   REP_RANGE_MAX_FACTOR,
   REP_RANGE_MIN_FACTOR,
+  STARTING_LEVEL_POLICY,
   WARMUP_MINUTES,
   WARMUP_RAMP_SETS,
   getLoadThreshold,
 } from './method.ts';
+import { EXERCISES } from './exercises.ts';
 
 describe('regole del metodo — foglio Istruzioni', () => {
   it('fissa il range di lavoro al 55%-75% del massimale', () => {
@@ -22,6 +24,18 @@ describe('regole del metodo — foglio Istruzioni', () => {
 
   it('colloca la soglia della resistenza a 25-30 ripetizioni', () => {
     expect(ENDURANCE_REP_THRESHOLD).toEqual({ min: 25, max: 30 });
+  });
+
+  it('prende il livello iniziale dal programma, non dalla colonna della scheda', () => {
+    expect(STARTING_LEVEL_POLICY).toBe('program-default');
+  });
+
+  it('ogni esercizio dentro una scala ha un livello di partenza utilizzabile', () => {
+    const dentroScala = EXERCISES.filter((e) => e.pattern !== null);
+    expect(dentroScala.length).toBeGreaterThan(0);
+    for (const exercise of dentroScala) {
+      expect(exercise.defaultLevel, exercise.slug).not.toBeNull();
+    }
   });
 
   it('trascrive riscaldamento e regola mattutina', () => {

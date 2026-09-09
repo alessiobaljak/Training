@@ -6,6 +6,9 @@ import { MOTOR_PATTERNS, MOTOR_PATTERN_LABELS } from '../types/index.ts';
  *
  * L'ordine dei gradini è la regola: il livello 4 delle leve del sovraccarico
  * ("variante più difficile") si limita a spostarsi di un passo qui dentro.
+ *
+ * Un solo gradino si scosta dalla scheda: il livello 6 della trazione
+ * orizzontale. Vedi il commento sul posto.
  */
 const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, string, string, string, string]>> =
   Object.freeze({
@@ -23,7 +26,11 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Rematore TRX orizzontale',
       'Piedi rialzati + pausa 1"',
       'Rematore monobraccio TRX',
-      'Rematore inverso zavorrato',
+      // Scostamento voluto dalla scheda, che qui scrive "Rematore inverso
+      // zavorrato". Il foglio Zavorra non elenca i rematori tra gli esercizi
+      // zavorrabili, quindi quel gradino sarebbe stato irraggiungibile. Al suo
+      // posto la progressione a corpo libero che segue il monobraccio.
+      'Rematore monobraccio piedi rialzati',
     ],
     'horizontal-push': [
       'Push-up su rialzo',

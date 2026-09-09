@@ -42,6 +42,28 @@ export const ENDURANCE_REP_THRESHOLD: Readonly<{ min: number; max: number }> = O
 export const ADVANCEMENT_REQUIRES_REACHING_MAX = true;
 
 /* -------------------------------------------------------------------------- */
+/* Livello di partenza                                                         */
+/* -------------------------------------------------------------------------- */
+
+export type StartingLevelPolicy = 'program-default';
+
+/**
+ * Da dove viene il livello iniziale di ogni esercizio.
+ *
+ * La scheda ha una colonna "Livello di partenza calcolato", ma è testo scritto
+ * a mano e in quattro righe su nove il numero dichiarato non è quello della
+ * variante descritta sulla propria scala. Non è una regola utilizzabile e non
+ * esiste alcuna formula da cui ricavarla.
+ *
+ * Scelta adottata: l'onboarding non calcola nulla e non chiede nulla in più.
+ * Ogni esercizio parte dal proprio `defaultLevel` in exercises.ts, cioè dal
+ * livello della variante che il programma prescrive. L'utente lo corregge a
+ * mano dalla schermata dell'esercizio, e la correzione finisce nel log come
+ * campo Variante/Livello.
+ */
+export const STARTING_LEVEL_POLICY: StartingLevelPolicy = 'program-default';
+
+/* -------------------------------------------------------------------------- */
 /* Riscaldamento e orari                                                       */
 /* -------------------------------------------------------------------------- */
 

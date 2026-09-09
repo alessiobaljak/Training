@@ -25,11 +25,13 @@ export {
   MORNING_DELAY_MINUTES,
   REP_RANGE_MAX_FACTOR,
   REP_RANGE_MIN_FACTOR,
+  STARTING_LEVEL_POLICY,
   WARMUP_MINUTES,
   WARMUP_RAMP_SETS,
   getLoadThreshold,
   type LoadStartRow,
   type LoadThreshold,
+  type StartingLevelPolicy,
 } from './method.ts';
 export {
   FIXED_RANGES_BY_BLOCK,

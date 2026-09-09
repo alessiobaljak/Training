@@ -37,7 +37,9 @@ export interface TestReferenceRow {
    * letto sulla scala del foglio Progressioni. `null` quando la descrizione
    * non identifica un gradino solo.
    *
-   * Dove i due campi divergono, la scheda contraddice la propria scala.
+   * Dove i due campi divergono, la scheda contraddice la propria scala. È il
+   * motivo per cui questa colonna non guida il livello iniziale: vedi
+   * `STARTING_LEVEL_POLICY` in method.ts.
    */
   readonly scaleLevelForNote: LevelIndex | null;
 }

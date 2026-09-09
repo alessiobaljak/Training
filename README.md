@@ -141,11 +141,22 @@ letta sulla scala del foglio Progressioni: rematore inverso (dichiara 4,
 descrive 5), pike push-up (3 contro 2), nordic curl (2 contro 3), hollow hold
 (2 contro 3). I livelli dichiarati non sono utilizzabili come regola.
 
-**La zavorra sui rematori è in contraddizione.** Il foglio Zavorra elenca
+*Risolto:* l'app non calcola il livello iniziale e non aggiunge domande
+all'onboarding. Ogni esercizio parte dal `defaultLevel` di `exercises.ts`, cioè
+dal livello della variante che il programma prescrive, e si corregge a mano
+dalla schermata dell'esercizio. Vedi `STARTING_LEVEL_POLICY` in `method.ts`.
+
+**La zavorra sui rematori era in contraddizione.** Il foglio Zavorra elenca
 trazioni, chin-up, dip, push-up, split squat e step-up, e i rematori non ci
-sono. Ma il livello 6 della trazione orizzontale è "Rematore inverso zavorrato"
-e il foglio Test_Livelli suggerisce "monobraccio o zavorra" per quello schema.
-Il seed segue la whitelist, quindi quel livello 6 oggi non è raggiungibile.
+sono. Ma il livello 6 della trazione orizzontale era "Rematore inverso
+zavorrato" e il foglio Test_Livelli suggerisce "monobraccio o zavorra" per
+quello schema.
+
+*Risolto:* la whitelist resta intatta e il gradino cambia. Il livello 6 della
+trazione orizzontale è ora **"Rematore monobraccio piedi rialzati"**, una
+progressione a corpo libero che segue il monobraccio del livello 5. È l'unico
+punto in cui il seed si scosta dalla scheda, ed è marcato nel codice e in un
+test dedicato.
 
 **Tre incongruenze minori, presenti anche nell'originale.** Il dead hang ha
 "Serie previste" 2 ma il sabato ne prescrive 3. Il calf monopodalico seduto del
@@ -179,3 +190,5 @@ nei commenti dei file interessati.
 - **Zavorra**: consentita solo sulla whitelist esplicita del metodo (trazioni,
   chin-up, dip, push-up, split squat, step-up). Su tutto il resto il campo non
   esiste.
+- **Livello iniziale**: viene dal programma, non da un calcolo. La scheda non
+  contiene la formula e la sua colonna dei livelli si contraddice.
