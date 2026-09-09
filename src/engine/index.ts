@@ -53,6 +53,15 @@ export {
   repDurationSeconds,
 } from './notation.ts';
 export {
+  YOUTUBE_SEARCH_BASE,
+  isSafeExternalUrl,
+  normalizeVideoUrl,
+  resolveVideoLink,
+  youtubeSearchUrl,
+  type VideoLink,
+  type VideoLinkKind,
+} from './media.ts';
+export {
   MAX_ECCENTRIC_SECONDS,
   MAX_ISO_PAUSE_SECONDS,
   applyLever,

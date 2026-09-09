@@ -1,4 +1,4 @@
-import { getExercise } from '../data/exercises.ts';
+import { findExercise } from '../data/exercises.ts';
 import {
   MUSCLE_GROUPS,
   SECONDARY_SET_WEIGHT,
@@ -214,7 +214,10 @@ export function volumeByGroup(sessions: readonly LoggedSession[]): GroupVolume[]
     for (const logged of session.exercises) {
       const setCount = new Set(logged.sets.map((set) => set.setIndex)).size;
       if (setCount === 0) continue;
-      const exercise = getExercise(logged.exercise);
+      // Uno slug sconosciuto può arrivare da un backup fatto con una versione
+      // precedente dei dati: la riga resta nel log, ma non conta nel volume.
+      const exercise = findExercise(logged.exercise);
+      if (exercise === undefined) continue;
       for (const group of exercise.primaryMuscles) {
         totals.set(group, (totals.get(group) ?? 0) + setCount);
       }

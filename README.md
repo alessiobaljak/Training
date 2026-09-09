@@ -13,7 +13,7 @@ dato, il valore è la logica che decide quando salire di livello.
 |---|---|---|
 | 1 | Scaffolding, tipi, trascrizione dei dati, test del seed | fatta, verificata contro l'Excel |
 | 2 | Motore: range, leve, avanzamento, zavorra, deload, medie | fatta |
-| 3 | Persistenza Dexie, export/import JSON, export CSV | da fare |
+| 3 | Persistenza Dexie, export/import JSON, export CSV | fatta |
 | 4 | Onboarding Settimana 0 e Home | da fare |
 | 5 | Player della sessione con timer di recupero | da fare |
 | 6 | Log e Progressi | da fare |
@@ -60,9 +60,22 @@ cambia mai da solo.
 `Scheda_Calisthenics_Shadow.xlsx` sta nella root del repo: è la fonte da cui
 tutto è trascritto, tenuta lì per poter rifare la verifica.
 
-**Dati dell'utente** — IndexedDB, sul telefono, in `src/db/` (Fase 3). Log
-degli allenamenti, misure, risultati dei test, video personali, stato di
-avanzamento. Non escono mai dal dispositivo.
+**Dati dell'utente** — IndexedDB, sul telefono, gestito da `src/db/`. Non
+escono mai dal dispositivo: nessuna chiamata di rete, nessun account, nessun
+cloud. L'unica via d'uscita è il backup, e parte da un gesto esplicito.
+
+| Tabella | Contenuto |
+|---|---|
+| `settings` | Riga unica: data di inizio programma, versione dei dati |
+| `sessions` | Sedute registrate, comprese quelle interrotte |
+| `testResults` | Massimali della Settimana 0 e dei ritest, con lo storico |
+| `exerciseStates` | Livello, bonus di tempo e pause, zavorra per esercizio |
+| `exerciseMedia` | Il link video che hai incollato tu |
+| `weights`, `waists` | Peso giornaliero e girovita |
+| `suggestions` | Suggerimenti di avanzamento accettati o rimandati |
+
+La UI non parla mai con Dexie: passa da `ShadowRepository`, così le validazioni
+non si possono aggirare per distrazione.
 
 ## Il motore
 
@@ -79,6 +92,7 @@ mutare quelli in ingresso. La UI non contiene formule.
 | `schedule.ts` | Scarico, ritest, settimana del mesociclo |
 | `rest.ts` | Ordine delle serie e recupero da usare dopo ciascuna |
 | `notation.ts` | Lettura e scrittura di TUT e RIR |
+| `media.ts` | Link ai video: ricerca precompilata e validazione degli URL |
 | `dates.ts` | Aritmetica su date, in UTC |
 
 Il motore **suggerisce, non applica**: `evaluateProgression` restituisce lo
@@ -105,11 +119,29 @@ sopravvissute e hanno prodotto una semplificazione e un test in più.
 
 ## Backup
 
-Da completare nella Fase 3: export e import completi in un unico file JSON, più
-export CSV del log con lo stesso schema del foglio Excel di partenza.
+I dati vivono solo nello storage del browser: disinstallare la PWA o cancellare
+i dati del sito li elimina. Il backup è manuale ed è l'unica rete di sicurezza.
 
-Finché non c'è, i dati vivono solo nello storage del browser: disinstallare la
-PWA o cancellare i dati del sito li elimina.
+**Backup completo, JSON.** Un solo file con tutte le tabelle. Il ripristino ha
+due modalità: `replace` svuota e riscrive, ed è il caso del telefono nuovo;
+`merge` sovrascrive solo le righe presenti nel file e lascia le altre.
+
+Regola di sicurezza dell'import: il file viene validato **per intero prima** di
+scrivere una sola riga, e la scrittura avviene in una transazione unica. Un
+file rotto fallisce senza aver toccato nulla, mai a metà strada. Il messaggio
+di errore indica il punto esatto, per esempio
+`data.sessions[0].exercises[0].sets[0].value: atteso un numero`.
+
+Un backup fatto con una versione precedente dei dati si ripristina lo stesso:
+uno slug di esercizio che non esiste più diventa un avviso nel rapporto, non un
+errore, e la riga viene conservata così com'è.
+
+**Export CSV del log.** Le stesse tredici colonne del foglio Log_Allenamenti,
+separatore punto e virgola e decimali con la virgola, che è quello che Excel in
+italiano si aspetta. Con `separator: ','` passa a punto e virgola invertiti. Le
+serie oltre la quarta finiscono unite nell'ultima colonna, perché aggiungere
+una colonna romperebbe la compatibilità con il foglio di partenza: succede solo
+sul cluster myo-reps del giovedì.
 
 ## Video degli esercizi
 
@@ -127,6 +159,11 @@ Ogni esercizio ha invece:
 
 `npm run check:no-video-urls` fallisce se qualcuno introduce un URL di video.
 Gira dentro `npm run verify`.
+
+Il link che incolli passa da `normalizeVideoUrl`, che accetta solo `http` e
+`https`. Quell'URL finisce nell'attributo href di un link: uno schema
+`javascript:` sarebbe codice eseguibile al tap, e il controllo va fatto prima
+di salvare, non al momento di mostrarlo.
 
 ## Come si modifica il programma quando la scheda cambia
 
