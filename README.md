@@ -54,12 +54,36 @@ e alla fine spegne anche il server di anteprima. Un service worker corretto da
 leggere e rotto all'uso è la norma, non l'eccezione: senza questa prova non c'è
 motivo di credere che l'app si apra in palestra.
 
-## Installazione sul telefono
+## Pubblicazione
 
-L'app va servita da un qualunque server statico in **HTTPS** (oppure da
-`localhost`): senza HTTPS il browser non attiva il service worker e l'offline
-non esiste. `npm run build` produce `dist/`, che è tutto quello che serve.
-I percorsi sono relativi, quindi funziona anche da una sottocartella.
+L'app va servita da un server statico in **HTTPS** (oppure da `localhost`):
+senza HTTPS il browser non attiva il service worker e l'offline non esiste.
+Un indirizzo di rete locale in HTTP fa vedere l'app e basta, che è il contrario
+di quello per cui è stata scritta.
+
+`.github/workflows/deploy.yml` fa tutto da solo a ogni push sul branch di
+default: typecheck, unit test, controllo sugli URL video, prova di fumo e prova
+offline su Chromium, poi build e pubblicazione su GitHub Pages.
+
+**Il deploy passa solo se passano anche le prove sul browser.** Non è
+pignoleria: una PWA che si apre bianca senza rete supera qualunque unit test,
+ed è già successo una volta in questo progetto.
+
+Indirizzo: `https://alessiobaljak.github.io/Training/`
+
+Prima del primo giro serve un interruttore nel repository: Settings > Pages >
+Source = «GitHub Actions». Il workflow prova ad accenderlo da solo; se il token
+non basta, si fa a mano una volta sola.
+
+GitHub Pages su un repository privato richiede un piano a pagamento. Le
+alternative gratuite che non chiedono di rendere pubblico il codice sono
+Cloudflare Pages e Netlify, entrambe con un token nei secrets del repository.
+
+Per pubblicare a mano da un altro host: `npm run build` produce `dist/`, che è
+tutto quello che serve. I percorsi sono relativi, quindi funziona anche da una
+sottocartella.
+
+## Installazione sul telefono
 
 **iPhone, Safari.** Apri l'indirizzo, tocca Condividi, poi «Aggiungi a Home».
 Deve essere Safari: da Chrome su iOS l'aggiunta non installa niente.
