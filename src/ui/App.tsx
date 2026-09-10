@@ -1,9 +1,10 @@
 import { BottomNav } from './components/BottomNav.tsx';
 import { HomeScreen } from './screens/HomeScreen.tsx';
 import { OnboardingScreen } from './screens/OnboardingScreen.tsx';
+import { ExerciseScreen } from './screens/ExerciseScreen.tsx';
+import { LibraryScreen } from './screens/LibraryScreen.tsx';
 import { LogScreen } from './screens/LogScreen.tsx';
 import { MeasuresScreen } from './screens/MeasuresScreen.tsx';
-import { PlaceholderScreen } from './screens/PlaceholderScreen.tsx';
 import { ProgressScreen } from './screens/ProgressScreen.tsx';
 import { SessionScreen } from './session/SessionScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
@@ -29,13 +30,8 @@ export function App() {
         {route.name === 'log' ? <LogScreen /> : null}
         {route.name === 'progress' ? <ProgressScreen /> : null}
         {route.name === 'measures' ? <MeasuresScreen /> : null}
-        {route.name === 'library' || route.name === 'exercise' ? (
-          <PlaceholderScreen
-            title="Esercizi"
-            phase={8}
-            what="Anagrafica con cue, illustrazione SVG, ricerca video e il campo per il tuo link."
-          />
-        ) : null}
+        {route.name === 'library' ? <LibraryScreen /> : null}
+        {route.name === 'exercise' ? <ExerciseScreen slug={route.slug} /> : null}
       </div>
       {showNav ? <BottomNav current={route} /> : null}
     </div>

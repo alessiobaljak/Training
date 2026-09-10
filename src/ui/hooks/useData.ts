@@ -3,6 +3,7 @@ import { repository } from '../../db/repository.ts';
 import type { AppSettings } from '../../db/db.ts';
 import type { TestRound } from '../../engine/ranges.ts';
 import type {
+  ExerciseSlug,
   ExerciseState,
   LoggedSession,
   TestId,
@@ -55,6 +56,14 @@ export function useSessions(): LoggedSession[] | undefined {
 
 export function useExerciseStates(): ExerciseState[] | undefined {
   return useLiveQuery(() => repository.listExerciseStates(), []);
+}
+
+export function useExerciseState(slug: ExerciseSlug): ExerciseState | undefined {
+  return useLiveQuery(() => repository.getExerciseState(slug), [slug]);
+}
+
+export function useExerciseVideo(slug: ExerciseSlug): string | null | undefined {
+  return useLiveQuery(() => repository.getExerciseVideo(slug), [slug]);
 }
 
 export function useWeights(): WeightEntry[] | undefined {

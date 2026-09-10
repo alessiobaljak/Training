@@ -274,6 +274,51 @@ try {
     'Le misure devono mostrare l’andamento del peso.',
   );
 
+  /* --------------------------- Libreria --------------------------------- */
+
+  await page.goto(`${BASE}/#/esercizi`, { waitUntil: 'load' });
+  await page.waitForTimeout(900);
+  check(
+    (await page.locator('main button').count()) > 20,
+    'La libreria deve elencare tutti gli esercizi dell’anagrafica.',
+  );
+
+  await page.goto(`${BASE}/#/esercizi/trazioni-prona-presa-media`, { waitUntil: 'load' });
+  await page.waitForTimeout(900);
+
+  check(
+    (await page.locator('figure svg').count()) === 1,
+    'La scheda dell’esercizio deve mostrare l’illustrazione.',
+  );
+  check(
+    (await page.locator('main li').count()) >= 11,
+    'La scheda deve mostrare i sei gradini della scala e i cue di esecuzione.',
+  );
+
+  const searchHref = await page.getByRole('link', { name: 'Cerca un video' }).getAttribute('href');
+  check(
+    searchHref?.startsWith('https://www.youtube.com/results?search_query=') === true,
+    `Il pulsante video deve aprire una ricerca, non un video. Letto "${String(searchHref)}".`,
+  );
+
+  const videoField = page.locator('input[type=url]');
+  await videoField.fill('javascript:alert(1)');
+  await page.getByRole('button', { name: 'Salva il link' }).click();
+  await page.waitForTimeout(500);
+  check(
+    (await page.getByRole('link', { name: 'Cerca un video' }).count()) === 1,
+    'Un link con schema pericoloso non deve sostituire la ricerca.',
+  );
+
+  await videoField.fill('https://example.com/il-mio-video');
+  await page.getByRole('button', { name: 'Salva il link' }).click();
+  await page.waitForTimeout(600);
+  const custom = await page.getByRole('link', { name: 'Apri il mio video' }).getAttribute('href');
+  check(
+    custom === 'https://example.com/il-mio-video',
+    `Salvando un link valido il pulsante deve aprirlo. Letto "${String(custom)}".`,
+  );
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();

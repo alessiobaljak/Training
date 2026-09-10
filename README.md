@@ -18,7 +18,7 @@ dato, il valore è la logica che decide quando salire di livello.
 | 5 | Player della sessione con timer di recupero | fatta |
 | 6 | Log e Progressi | fatta |
 | 7 | Misure | fatta |
-| 8 | Libreria esercizi, cue, SVG, gestione video | da fare |
+| 8 | Libreria esercizi, cue, SVG, gestione video | fatta |
 | 9 | PWA, service worker, installabilità, test offline | da fare |
 
 ## Stack
@@ -33,6 +33,7 @@ npm install
 npm run dev        # server di sviluppo
 npm run verify     # typecheck + test + controllo URL video
 npm run smoke      # build + prova end-to-end su Chromium
+npm run svg        # rigenera le illustrazioni degli esercizi
 npm run build      # build di produzione
 ```
 
@@ -109,6 +110,26 @@ Tre vincoli che attraversano tutta la UI:
 - **Le letture non scrivono mai.** `useLiveQuery` esegue in transazione di sola
   lettura: una scrittura lì dentro fa fallire l'intera schermata, senza dire
   perché.
+
+## Le illustrazioni
+
+Trentasei figure schematiche in `src/assets/exercises/`, una per esercizio, con
+due pose affiancate: inizio e fine del range. Le isometrie e le attività
+continue ne hanno una sola.
+
+**Sono generate, non disegnate a mano una per una.** `npm run svg` costruisce i
+file da archetipi di posa condivisi tra esercizi dello stesso gesto: la
+differenza tra push-up a terra e push-up declinati la fa l'appoggio, che è un
+parametro, non un disegno nuovo. A questa fedeltà una figura diversa per ogni
+variante sarebbe rumore.
+
+**Usano `currentColor` e nessuna risorsa esterna.** Seguono il tema senza
+duplicare la palette, e l'unico indirizzo che compare è il namespace SVG, che è
+una dichiarazione e non qualcosa da scaricare. L'app deve funzionare in aereo.
+
+I test verificano che ci sia esattamente un'illustrazione per esercizio, senza
+orfane, che tutte abbiano la stessa tela e un testo alternativo, e che nessuna
+contenga script o risorse remote.
 
 ## Il player della seduta
 
