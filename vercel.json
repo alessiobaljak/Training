@@ -3,6 +3,12 @@
   "framework": "vite",
   "buildCommand": "npm run verify && npm run build",
   "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/__/auth/:path*",
+      "destination": "https://training-b5ca8.firebaseapp.com/__/auth/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

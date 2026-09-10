@@ -148,24 +148,32 @@ memoria che quella pagina usa per ricordarsi dove tornare viene buttata via.
 
 La cura è far vivere quella pagina sul tuo stesso dominio. Due modifiche:
 
-**1. In `vercel.json`**, aggiungi la deviazione con il tuo id progetto:
+**1. La deviazione è già in `vercel.json`**, verso il progetto `training-b5ca8`:
 
 ```json
 "rewrites": [
   {
     "source": "/__/auth/:path*",
-    "destination": "https://<ID-PROGETTO>.firebaseapp.com/__/auth/:path*"
+    "destination": "https://training-b5ca8.firebaseapp.com/__/auth/:path*"
   }
 ]
 ```
 
-**2. Su Vercel**, cambia una sola variabile:
+Se un giorno cambi progetto Firebase, quella riga va cambiata a mano: Vercel
+non legge le variabili d'ambiente dentro `vercel.json`.
+
+**2. Su Vercel**, cambia una sola variabile, e va fatto **dopo** che la
+deviazione è online, non prima:
 
 ```
 VITE_FIREBASE_AUTH_DOMAIN = il-tuo-dominio.vercel.app
 ```
 
-Non più `<ID-PROGETTO>.firebaseapp.com`. Poi rifai il deploy.
+Non più `training-b5ca8.firebaseapp.com`. Poi rifai il deploy.
+
+Se cambi la variabile prima che la deviazione sia pubblicata, l'accesso smette
+di funzionare del tutto: la pagina di accesso verrebbe cercata sul tuo dominio,
+dove ancora non c'è.
 
 Da quel momento la pagina di accesso è servita dal tuo dominio, il browser non
 ha più niente da isolare, e funzionano sia il popup sia il redirect.
