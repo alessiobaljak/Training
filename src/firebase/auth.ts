@@ -96,6 +96,13 @@ export function describeAuthError(cause: unknown): string {
   if (code === 'auth/network-request-failed') {
     return 'Nessuna rete. L’accesso ha bisogno di connessione, una volta sola.';
   }
+  if (text.includes('redirect_uri_mismatch') || code === 'auth/invalid-oauth-client-id') {
+    return (
+      'Google non riconosce l’indirizzo a cui deve riportarti. Va aggiunto agli URI di ' +
+      'reindirizzamento autorizzati nella console Google Cloud, Credenziali: vedi il passo 7c in ' +
+      'docs/configurazione.md.'
+    );
+  }
   if (code === 'auth/unauthorized-domain') {
     return 'Questo indirizzo non è tra i domini autorizzati nella console Firebase: Authentication, Settings, Domini autorizzati.';
   }

@@ -178,6 +178,35 @@ dove ancora non c'è.
 Da quel momento la pagina di accesso è servita dal tuo dominio, il browser non
 ha più niente da isolare, e funzionano sia il popup sia il redirect.
 
+## 7c. Registrare il nuovo indirizzo di ritorno su Google
+
+**Va fatto insieme al 7b, non dopo.** Cambiare `VITE_FIREBASE_AUTH_DOMAIN`
+sposta l'indirizzo a cui Google deve riportarti, e Google riporta solo agli
+indirizzi che gli hai dichiarato.
+
+**Sintomo se salti questo passo:** arrivi fino alla schermata di Google, che
+poi risponde
+
+> Access blocked: This app's request is invalid — Error 400: redirect_uri_mismatch
+
+1. Vai su [console.cloud.google.com](https://console.cloud.google.com) e in
+   alto scegli il progetto `training-b5ca8`. È lo stesso progetto di Firebase:
+   la console di Google Cloud ne mostra la parte sotto il cofano.
+2. **API e servizi > Credenziali**.
+3. Sotto **ID client OAuth 2.0** apri quello chiamato
+   «Web client (auto created by Google Service)». Se ce n'è più di uno,
+   quello giusto ha l'id che vedi in Firebase, Authentication, Sign-in method,
+   Google, sezione «Configurazione dell'SDK web».
+4. In **Origini JavaScript autorizzate** aggiungi:
+   `https://IL-TUO-DOMINIO.vercel.app`
+5. In **URI di reindirizzamento autorizzati** aggiungi:
+   `https://IL-TUO-DOMINIO.vercel.app/__/auth/handler`
+6. Salva. Google può metterci qualche minuto a propagare la modifica: se
+   l'errore resta, aspetta e riprova prima di cercare altrove.
+
+Il vecchio indirizzo `<ID-PROGETTO>.firebaseapp.com` **non va tolto**: serve
+ancora, ed è quello verso cui punta la deviazione.
+
 ## 8. Mettere le variabili su Vercel
 
 1. Progetto su Vercel, **Settings > Environment Variables**.
@@ -223,6 +252,7 @@ Copia `.env.example` in `.env.local` e riempilo per lavorare sul progetto vero.
 | «Configurazione incompleta» con l'elenco delle variabili | Variabili non su Vercel, o deploy non rifatto dopo averle aggiunte |
 | `auth/unauthorized-domain` | Passo 7 saltato |
 | «missing initial state» dopo l'accesso | Passo 7b saltato: manca la deviazione di `/__/auth` |
+| `Error 400: redirect_uri_mismatch` | Passo 7c saltato: il nuovo dominio non è tra gli URI di ritorno su Google Cloud |
 | «Missing or insufficient permissions» | Regole non caricate: passo 5 |
 | Accesso fatto ma storico vuoto | Account diverso da quello di prima. L'app chiede sempre quale Google usare proprio per questo |
 
