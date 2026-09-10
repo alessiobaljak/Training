@@ -8,9 +8,13 @@ import {
   latestTestResults,
   resolveBlockRange,
   shiftRange,
+  latestCompleteRound,
+  openRound,
   testResultPerSide,
   testResultSingle,
+  testRounds,
 } from './ranges.ts';
+import { WEEK_ZERO_TESTS } from '../data/tests.ts';
 import { TEST_REFERENCE_ROWS } from '../data/reference.ts';
 import { getExercise } from '../data/exercises.ts';
 import { getSession } from '../data/program.ts';
@@ -253,5 +257,59 @@ describe('risoluzione del range di un blocco', () => {
       'upper-b/A1',
       'upper-b/A2',
     ]);
+  });
+});
+
+describe('giri di test', () => {
+  const round = (date: string, week: number, count: number) =>
+    WEEK_ZERO_TESTS.slice(0, count).map((test) => testResultSingle(test.id, date, week, 10));
+
+  it('raggruppa per giorno', () => {
+    const rounds = testRounds([...round('2026-09-14', 0, 9), ...round('2026-10-26', 6, 9)]);
+    expect(rounds.map((entry) => entry.date)).toEqual(['2026-09-14', '2026-10-26']);
+  });
+
+  it('un giro è completo solo con tutti e nove i test', () => {
+    expect(testRounds(round('2026-09-14', 0, 9))[0]?.complete).toBe(true);
+    expect(testRounds(round('2026-09-14', 0, 8))[0]?.complete).toBe(false);
+  });
+
+  it('elenca i test che mancano', () => {
+    const rounds = testRounds(round('2026-09-14', 0, 7));
+    expect(rounds[0]?.missing).toEqual(['hollow-hold', 'dead-hang']);
+  });
+
+  it('ordina i risultati come la tabella della scheda', () => {
+    const shuffled = [
+      testResultSingle('dead-hang', '2026-09-14', 0, 60),
+      testResultSingle('pull-up', '2026-09-14', 0, 10),
+      testResultSingle('dip', '2026-09-14', 0, 12),
+    ];
+    expect(testRounds(shuffled)[0]?.results.map((r) => r.testId)).toEqual([
+      'pull-up',
+      'dip',
+      'dead-hang',
+    ]);
+  });
+
+  it('un test saltato vale zero e non spezza il giro', () => {
+    const withSkip = [
+      ...round('2026-09-14', 0, 8),
+      testResultSingle('dead-hang', '2026-09-14', 0, 0),
+    ];
+    const rounds = testRounds(withSkip);
+    expect(rounds[0]?.complete).toBe(true);
+    expect(computeWorkRange(0)).toEqual(EMPTY_RANGE);
+  });
+
+  it('l’ultimo giro completo è quello che comanda i range', () => {
+    const all = [...round('2026-09-14', 0, 9), ...round('2026-10-26', 6, 4)];
+    expect(latestCompleteRound(all)?.date).toBe('2026-09-14');
+    expect(openRound(all)?.date).toBe('2026-10-26');
+  });
+
+  it('senza test non c’è nessun giro completo', () => {
+    expect(latestCompleteRound([])).toBeNull();
+    expect(openRound([])).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import { getExercise } from '../data/exercises.ts';
 import { initialExerciseState } from '../engine/progression.ts';
-import { latestTestResults } from '../engine/ranges.ts';
+import { latestCompleteRound, latestTestResults, openRound, testRounds } from '../engine/ranges.ts';
+import type { TestRound } from '../engine/ranges.ts';
 import { isIsoDate } from '../engine/dates.ts';
 import { normalizeVideoUrl } from '../engine/media.ts';
 import type {
@@ -36,6 +37,16 @@ function now(): string {
   return new Date().toISOString();
 }
 
+/** Valori di partenza, usati finché la riga delle impostazioni non esiste. */
+const DEFAULT_SETTINGS: AppSettings = Object.freeze({
+  id: SETTINGS_ID,
+  programStartDate: null,
+  dataVersion: DATA_VERSION,
+  lastBackupAt: null,
+  createdAt: '',
+  updatedAt: '',
+});
+
 function requireIsoDate(value: string, field: string): string {
   if (!isIsoDate(value)) {
     throw new Error(`${field}: data non valida (${value}). Formato atteso YYYY-MM-DD.`);
@@ -54,23 +65,29 @@ export class ShadowRepository {
   /* Impostazioni                                                            */
   /* ---------------------------------------------------------------------- */
 
+  /**
+   * Lettura pura, senza scrivere nulla.
+   *
+   * Serve alla UI: `useLiveQuery` esegue le query dentro una transazione di
+   * sola lettura, e una scrittura lì dentro fa fallire l'intera schermata.
+   * Quando la riga non esiste ancora restituisce i valori di partenza.
+   */
+  async readSettings(): Promise<AppSettings> {
+    return (await this.db.settings.get(SETTINGS_ID)) ?? DEFAULT_SETTINGS;
+  }
+
+  /** Come `readSettings`, ma crea la riga se manca. Solo dai percorsi di scrittura. */
   async getSettings(): Promise<AppSettings> {
     const existing = await this.db.settings.get(SETTINGS_ID);
     if (existing !== undefined) return existing;
-    const created: AppSettings = {
-      id: SETTINGS_ID,
-      programStartDate: null,
-      dataVersion: DATA_VERSION,
-      createdAt: now(),
-      updatedAt: now(),
-    };
+    const created: AppSettings = { ...DEFAULT_SETTINGS, createdAt: now(), updatedAt: now() };
     await this.db.settings.put(created);
     return created;
   }
 
   /** `null` finché la Settimana 0 non è chiusa. */
   async getProgramStartDate(): Promise<string | null> {
-    return (await this.getSettings()).programStartDate;
+    return (await this.readSettings()).programStartDate;
   }
 
   async setProgramStartDate(date: string | null): Promise<AppSettings> {
@@ -81,9 +98,35 @@ export class ShadowRepository {
     return updated;
   }
 
-  /** `true` quando esiste almeno un risultato di test: l'app può partire. */
+  /**
+   * L'app è utilizzabile solo quando esiste un giro di test completo, cioè
+   * tutti e nove nello stesso giorno. Con tre test su nove i range degli altri
+   * sei sarebbero inventati, e la Home deve restare bloccata.
+   */
   async isOnboarded(): Promise<boolean> {
-    return (await this.db.testResults.count()) > 0;
+    return latestCompleteRound(await this.db.testResults.toArray()) !== null;
+  }
+
+  /** Giri di test, dal più vecchio al più recente. Serve allo storico. */
+  async listTestRounds(): Promise<TestRound[]> {
+    return testRounds(await this.db.testResults.toArray());
+  }
+
+  async getLatestCompleteRound(): Promise<TestRound | null> {
+    return latestCompleteRound(await this.db.testResults.toArray());
+  }
+
+  /** Giro lasciato a metà, da riprendere. */
+  async getOpenRound(): Promise<TestRound | null> {
+    return openRound(await this.db.testResults.toArray());
+  }
+
+  /** Registra che il backup è stato scaricato. Lo chiama la UI dopo il salvataggio. */
+  async markBackupTaken(when: string = now()): Promise<AppSettings> {
+    const settings = await this.getSettings();
+    const updated: AppSettings = { ...settings, lastBackupAt: when, updatedAt: now() };
+    await this.db.settings.put(updated);
+    return updated;
   }
 
   /* ---------------------------------------------------------------------- */

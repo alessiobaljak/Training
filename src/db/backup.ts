@@ -215,6 +215,11 @@ function readSettings(value: unknown, path: string): AppSettings {
     id: 'app',
     programStartDate: startDate === null ? null : expectIsoDate(startDate, `${path}.programStartDate`),
     dataVersion: expectNonNegative(row['dataVersion'], `${path}.dataVersion`),
+    // Assente nei backup fatti prima che questo campo esistesse.
+    lastBackupAt:
+      row['lastBackupAt'] === undefined || row['lastBackupAt'] === null
+        ? null
+        : expectString(row['lastBackupAt'], `${path}.lastBackupAt`),
     createdAt: expectString(row['createdAt'], `${path}.createdAt`),
     updatedAt: expectString(row['updatedAt'], `${path}.updatedAt`),
   };

@@ -35,6 +35,12 @@ export interface AppSettings {
    */
   readonly programStartDate: string | null;
   readonly dataVersion: number;
+  /**
+   * Quando è stato preso l'ultimo backup, in ISO.
+   * La Home lo mostra come numero di giorni: senza quel promemoria il backup
+   * manuale non lo fa nessuno, ed è l'unica rete di sicurezza che c'è.
+   */
+  readonly lastBackupAt: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
 }

@@ -19,6 +19,20 @@ export function toIsoDate(date: Date): string {
   return iso.slice(0, 10);
 }
 
+/**
+ * Data di oggi secondo l'orologio del telefono.
+ *
+ * Non è `toIsoDate(new Date())`: quello darebbe la data UTC, e alle 00:30 di
+ * un utente a UTC+2 restituirebbe ieri. L'aritmetica interna resta in UTC,
+ * ma il "che giorno è" deve venire dal calendario locale.
+ */
+export function todayIso(now: Date = new Date()): string {
+  const year = String(now.getFullYear()).padStart(4, '0');
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function parseIsoDate(value: string): Date {
   if (!isIsoDate(value)) {
     throw new Error(`Data non valida: ${value}`);

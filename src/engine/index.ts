@@ -6,6 +6,7 @@ export {
   parseIsoDate,
   sortIsoDates,
   startOfWeek,
+  todayIso,
   toIsoDate,
 } from './dates.ts';
 export {
@@ -79,14 +80,18 @@ export {
   computeWorkRange,
   formatRange,
   isUsableRange,
+  latestCompleteRound,
   latestTestResults,
+  openRound,
   resolveBlockRange,
+  testRounds,
   shiftRange,
   testResultPerSide,
   testResultSingle,
   type RangePosition,
   type RangeResolution,
   type RangeUnit,
+  type TestRound,
   type WorkRange,
 } from './ranges.ts';
 export {

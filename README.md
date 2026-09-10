@@ -32,10 +32,18 @@ motore. Nessun framework mobile nativo.
 npm install
 npm run dev        # server di sviluppo
 npm run verify     # typecheck + test + controllo URL video
+npm run smoke      # build + prova end-to-end su Chromium
 npm run build      # build di produzione
 ```
 
-`npm run verify` è il cancello: deve passare prima di ogni commit.
+`npm run verify` è il cancello: deve passare prima di ogni commit. Non richiede
+un browser, quindi gira ovunque.
+
+`npm run smoke` percorre l'onboarding dei nove test su un browser vero e
+verifica che i range mostrati a schermo siano quelli della scheda. Serve a
+prendere quello che gli unit test non vedono: una schermata che resta nera
+perché una query scrive dentro una transazione di sola lettura non fa fallire
+nessun test del motore.
 
 ## Installazione sul telefono
 
@@ -76,6 +84,29 @@ cloud. L'unica via d'uscita è il backup, e parte da un gesto esplicito.
 
 La UI non parla mai con Dexie: passa da `ShadowRepository`, così le validazioni
 non si possono aggirare per distrazione.
+
+## L'interfaccia
+
+`src/ui/` è l'unico posto con React. Nessuna formula qui dentro: i numeri
+arrivano già calcolati dal motore.
+
+| Cartella | Contenuto |
+|---|---|
+| `screens/` | Una cartella per schermata: Home, onboarding, dati e backup |
+| `components/` | Primitive: pulsanti, card, stepper numerico, cronometri |
+| `hooks/` | Letture reattive dal database, cronometri basati sugli istanti |
+| `router.ts` | Rotte via hash, senza librerie |
+
+Tre vincoli che attraversano tutta la UI:
+
+- **Aree toccabili da 56 px in su.** Si usa con il telefono a terra e le mani
+  sudate, non con il pollice fermo su uno schermo pulito.
+- **I cronometri si calcolano dagli istanti, non dai tick.** iOS rallenta i
+  timer in secondo piano: un contatore che somma tick perderebbe secondi ogni
+  volta che blocchi lo schermo durante il recupero.
+- **Le letture non scrivono mai.** `useLiveQuery` esegue in transazione di sola
+  lettura: una scrittura lì dentro fa fallire l'intera schermata, senza dire
+  perché.
 
 ## Il motore
 

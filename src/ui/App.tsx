@@ -1,60 +1,63 @@
-import {
-  EXERCISES,
-  PROGRAM_SESSIONS,
-  PROGRESSION_SCALES,
-  WEEK_ZERO_TESTS,
-  getExercise,
-} from '../data/index.ts';
-import { WEEKDAY_LABELS } from '../types/index.ts';
+import { BottomNav } from './components/BottomNav.tsx';
+import { HomeScreen } from './screens/HomeScreen.tsx';
+import { OnboardingScreen } from './screens/OnboardingScreen.tsx';
+import { PlaceholderScreen } from './screens/PlaceholderScreen.tsx';
+import { SettingsScreen } from './screens/SettingsScreen.tsx';
+import { useRoute } from './router.ts';
 
-/**
- * Schermata di servizio della Fase 1.
- *
- * Non è la UI dell'app: serve solo a rendere ispezionabile il seed prima che
- * esistano onboarding, home e player. Verrà sostituita nella Fase 4.
- */
 export function App() {
-  const totalBlocks = PROGRAM_SESSIONS.reduce((sum, session) => sum + session.blocks.length, 0);
+  const route = useRoute();
 
+  const showNav = route.name !== 'onboarding' && route.name !== 'session';
+
+  /*
+   * Una sola colonna alta quanto lo schermo: il contenuto scorre nel mezzo e
+   * la barra in basso resta un elemento di flusso. Se fosse anch'essa sticky
+   * si sovrapporrebbe al pulsante principale della schermata.
+   */
   return (
-    <main className="mx-auto max-w-2xl px-4 pb-16 pt-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">Shadow — Calisthenics</h1>
-        <p className="mt-1 text-sm text-[var(--color-ink-dim)]">
-          Fase 1: dati caricati. {PROGRAM_SESSIONS.length} sedute, {totalBlocks} blocchi,{' '}
-          {EXERCISES.length} esercizi, {PROGRESSION_SCALES.length} scale di progressione,{' '}
-          {WEEK_ZERO_TESTS.length} test.
-        </p>
-      </header>
-
-      <div className="space-y-4">
-        {PROGRAM_SESSIONS.map((session) => (
-          <section
-            key={session.id}
-            className="rounded-2xl border border-[var(--color-line)] bg-[var(--color-surface)] p-4"
-          >
-            <h2 className="text-base font-semibold">
-              {WEEKDAY_LABELS[session.weekday]} — {session.name}
-              <span className="ml-2 text-sm font-normal text-[var(--color-ink-dim)]">
-                {session.focus} · {session.estimatedMinutes}′
-              </span>
-            </h2>
-            <ul className="mt-3 space-y-1 text-sm">
-              {session.blocks.map((block) => (
-                <li key={block.code} className="flex gap-3">
-                  <span className="w-8 shrink-0 font-mono text-[var(--color-accent)]">
-                    {block.code}
-                  </span>
-                  <span className="flex-1">{getExercise(block.exercise).name}</span>
-                  <span className="shrink-0 text-[var(--color-ink-dim)]">
-                    {block.sets}× · {block.tut}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
+    <div className="flex h-dvh flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {route.name === 'home' ? <HomeScreen /> : null}
+        {route.name === 'onboarding' ? <OnboardingScreen /> : null}
+        {route.name === 'settings' ? <SettingsScreen /> : null}
+        {route.name === 'session' ? (
+          <PlaceholderScreen
+            title="Seduta"
+            phase={5}
+            what="Il player della sessione: un blocco per schermata, logging delle serie, timer di recupero con la logica superserie."
+          />
+        ) : null}
+        {route.name === 'log' ? (
+          <PlaceholderScreen
+            title="Log"
+            phase={6}
+            what="Storico con le stesse colonne del foglio Excel, filtri per esercizio e periodo."
+          />
+        ) : null}
+        {route.name === 'progress' ? (
+          <PlaceholderScreen
+            title="Progressi"
+            phase={6}
+            what="Grafici per esercizio con i marker sui cambi di livello e di zavorra, volume settimanale, aderenza."
+          />
+        ) : null}
+        {route.name === 'measures' ? (
+          <PlaceholderScreen
+            title="Misure"
+            phase={7}
+            what="Peso a digiuno, media mobile a 7 giorni in evidenza, girovita e delta."
+          />
+        ) : null}
+        {route.name === 'library' || route.name === 'exercise' ? (
+          <PlaceholderScreen
+            title="Esercizi"
+            phase={8}
+            what="Anagrafica con cue, illustrazione SVG, ricerca video e il campo per il tuo link."
+          />
+        ) : null}
       </div>
-    </main>
+      {showNav ? <BottomNav current={route} /> : null}
+    </div>
   );
 }

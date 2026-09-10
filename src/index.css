@@ -1,37 +1,60 @@
 @import 'tailwindcss';
 
 /*
-  Mobile-first: schermo verticale, tap target grandi, contrasto alto.
-  Il tema è scuro perché l'app si usa in palestra con il telefono a terra.
+  Mobile-first, tema scuro fisso.
+  L'app si usa in palestra, con il telefono a terra e le mani sudate: contrasto
+  alto, testo grande, aree toccabili da 56 px in su.
 */
 @theme {
-  --color-base: #0b0f14;
+  --color-canvas: #0b0f14;
   --color-surface: #151b23;
-  --color-surface-2: #1e2732;
+  --color-panel: #1e2732;
   --color-line: #2c3846;
   --color-ink: #eef3f8;
-  --color-ink-dim: #9fb0c0;
+  --color-dim: #9fb0c0;
   --color-accent: #4cc2ff;
-  --color-in-range: #3ddc97;
-  --color-under-range: #ffb02e;
-  --color-over-range: #4cc2ff;
+  --color-accent-ink: #04202e;
+  --color-good: #3ddc97;
+  --color-warn: #ffb02e;
+  --color-danger: #ff6b6b;
+
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 html {
-  background-color: var(--color-base);
+  background-color: var(--color-canvas);
   color-scheme: dark;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  background-color: var(--color-base);
+  background-color: var(--color-canvas);
   color: var(--color-ink);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   overscroll-behavior-y: none;
 }
 
-/* Nessun tap highlight blu su iOS: i bottoni gestiscono il proprio stato. */
+/* Nessun bagliore blu al tocco su iOS: lo stato lo gestiscono i componenti. */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* I campi numerici non devono mostrare le frecce: si usa lo stepper. */
+input[type='number'] {
+  appearance: textfield;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+@utility safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--spacing) * 4);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
 }

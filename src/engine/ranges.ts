@@ -1,4 +1,5 @@
 import { REP_RANGE_MAX_FACTOR, REP_RANGE_MIN_FACTOR } from '../data/method.ts';
+import { WEEK_ZERO_TESTS } from '../data/tests.ts';
 import type { Exercise, ProgramBlock, TestId, TestResult } from '../types/index.ts';
 
 /**
@@ -123,6 +124,64 @@ export function latestTestResults(
     }
   }
   return latest;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Giri di test                                                                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * I test svolti nello stesso giorno formano un giro.
+ * Un giro è completo quando contiene tutti e nove i test: è la condizione che
+ * sblocca il programma. Un test saltato si registra con valore 0, così il giro
+ * resta completo e il range di quell'esercizio risulta inutilizzabile, che è
+ * l'informazione corretta.
+ */
+export interface TestRound {
+  readonly date: string;
+  readonly week: number;
+  readonly results: readonly TestResult[];
+  readonly complete: boolean;
+  readonly missing: readonly TestId[];
+}
+
+const ALL_TEST_IDS: readonly TestId[] = WEEK_ZERO_TESTS.map((test) => test.id);
+
+export function testRounds(results: readonly TestResult[]): TestRound[] {
+  const byDate = new Map<string, TestResult[]>();
+  for (const result of results) {
+    const bucket = byDate.get(result.date);
+    if (bucket === undefined) byDate.set(result.date, [result]);
+    else bucket.push(result);
+  }
+
+  return [...byDate.entries()]
+    .map(([date, bucket]) => {
+      const present = new Set(bucket.map((result) => result.testId));
+      const missing = ALL_TEST_IDS.filter((id) => !present.has(id));
+      return {
+        date,
+        week: Math.min(...bucket.map((result) => result.week)),
+        results: [...bucket].sort(
+          (a, b) => ALL_TEST_IDS.indexOf(a.testId) - ALL_TEST_IDS.indexOf(b.testId),
+        ),
+        complete: missing.length === 0,
+        missing,
+      };
+    })
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+}
+
+/** Ultimo giro completo. `null` finché la Settimana 0 non è chiusa. */
+export function latestCompleteRound(results: readonly TestResult[]): TestRound | null {
+  const complete = testRounds(results).filter((round) => round.complete);
+  return complete.at(-1) ?? null;
+}
+
+/** Giro ancora aperto, da riprendere dove è stato lasciato. */
+export function openRound(results: readonly TestResult[]): TestRound | null {
+  const open = testRounds(results).filter((round) => !round.complete);
+  return open.at(-1) ?? null;
 }
 
 /* -------------------------------------------------------------------------- */

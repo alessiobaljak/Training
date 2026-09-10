@@ -6,7 +6,13 @@ import { initialExerciseState } from '../engine/progression.ts';
 import { testResultPerSide, testResultSingle } from '../engine/ranges.ts';
 import { getExercise } from '../data/exercises.ts';
 import { loggedExercise, sets } from '../engine/__fixtures.ts';
-import type { LoggedSession } from '../types/index.ts';
+import { WEEK_ZERO_TESTS } from '../data/tests.ts';
+import type { LoggedSession, TestResult } from '../types/index.ts';
+
+/** Nove test dello stesso giorno: il giro che sblocca il programma. */
+function fullRound(date: string, week: number): TestResult[] {
+  return WEEK_ZERO_TESTS.map((test) => testResultSingle(test.id, date, week, 10));
+}
 
 let counter = 0;
 let database: ShadowDatabase;
@@ -60,10 +66,44 @@ describe('impostazioni', () => {
     await expect(repo.setProgramStartDate('14/09/2026')).rejects.toThrow(/data non valida/i);
   });
 
-  it('l’onboarding è chiuso solo quando esiste almeno un test', async () => {
+  it('l’onboarding resta aperto finché il giro di test non è completo', async () => {
     expect(await repo.isOnboarded()).toBe(false);
     await repo.saveTestResult(testResultSingle('pull-up', '2026-09-14', 0, 10));
+    expect(await repo.isOnboarded()).toBe(false);
+    await repo.saveTestResults(fullRound('2026-09-14', 0));
     expect(await repo.isOnboarded()).toBe(true);
+  });
+
+  it('registra quando è stato preso l’ultimo backup', async () => {
+    expect((await repo.getSettings()).lastBackupAt).toBeNull();
+    await repo.markBackupTaken('2026-09-14T10:00:00.000Z');
+    expect((await repo.getSettings()).lastBackupAt).toBe('2026-09-14T10:00:00.000Z');
+  });
+});
+
+describe('giri di test', () => {
+  it('un giro incompleto resta aperto e si può riprendere', async () => {
+    await repo.saveTestResults(fullRound('2026-09-14', 0).slice(0, 4));
+    const open = await repo.getOpenRound();
+    expect(open?.complete).toBe(false);
+    expect(open?.missing).toHaveLength(5);
+    expect(await repo.getLatestCompleteRound()).toBeNull();
+  });
+
+  it('un giro completo sblocca il programma', async () => {
+    await repo.saveTestResults(fullRound('2026-09-14', 0));
+    const round = await repo.getLatestCompleteRound();
+    expect(round?.complete).toBe(true);
+    expect(round?.results).toHaveLength(9);
+    expect(await repo.getOpenRound()).toBeNull();
+  });
+
+  it('tiene lo storico dei giri, per il confronto al ritest', async () => {
+    await repo.saveTestResults(fullRound('2026-09-14', 0));
+    await repo.saveTestResults(fullRound('2026-10-26', 6));
+    const rounds = await repo.listTestRounds();
+    expect(rounds.map((round) => round.date)).toEqual(['2026-09-14', '2026-10-26']);
+    expect((await repo.getLatestCompleteRound())?.date).toBe('2026-10-26');
   });
 });
 
