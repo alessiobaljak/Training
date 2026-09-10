@@ -37,13 +37,16 @@ export function buildForTests() {
  * megabyte prima di poter fare qualunque cosa. Tre minuti sono il tempo di
  * quel download su un runner lento, non un margine di sicurezza.
  */
-async function waitForPort(port, logPath, timeoutMs = 180_000) {
+async function waitForPort(port, logPath, child, timeoutMs = 180_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
       await fetch(`http://127.0.0.1:${String(port)}/`);
       return;
     } catch {
+      // Se il processo è già morto non c'è niente da aspettare: meglio
+      // fallire subito con il suo log che tre minuti dopo con lo stesso.
+      if (child !== undefined && child.exitCode !== null) break;
       await new Promise((resolve) => setTimeout(resolve, 400));
     }
   }
@@ -81,8 +84,8 @@ export async function startEmulators() {
     // fallire la prova successiva con un messaggio che non c'entra niente.
     { stdio: ['ignore', log, log], detached: true },
   );
-  await waitForPort(FIRESTORE_PORT, logPath);
-  await waitForPort(AUTH_PORT, logPath);
+  await waitForPort(FIRESTORE_PORT, logPath, child);
+  await waitForPort(AUTH_PORT, logPath, child);
   return child;
 }
 

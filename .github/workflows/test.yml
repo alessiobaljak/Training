@@ -35,6 +35,15 @@ jobs:
 
       - run: npm ci
 
+      # Gli emulatori girano su Java, e firebase-tools pretende almeno la 21.
+      # Il runner ne porta una più vecchia, quindi l'emulatore si spegneva
+      # subito dopo l'avvio.
+      - name: Java per gli emulatori
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
       # Il jar dell'emulatore Firestore pesa un centinaio di megabyte. Senza
       # cache viene riscaricato a ogni giro, e il primo tentativo scadeva
       # prima ancora di arrivare ad avviare qualcosa.
