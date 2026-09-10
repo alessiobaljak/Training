@@ -1,8 +1,9 @@
 # Shadow — Calisthenics
 
-PWA locale per eseguire il protocollo di allenamento Calisthenics Shadow.
-Nessun backend, nessun account, nessuna analytics. Funziona in palestra con lo
-smartphone in modalità aereo.
+PWA per eseguire il protocollo di allenamento Calisthenics Shadow. Accesso con
+Google o Apple, dati sincronizzati su Firebase, nessuna analytics. Funziona in
+palestra con lo smartphone in modalità aereo: dopo il primo accesso la
+sincronizzazione può aspettare, l'allenamento no.
 
 Non è un visualizzatore di tabelle: è un motore di progressione. La scheda è il
 dato, il valore è la logica che decide quando salire di livello.
@@ -20,6 +21,7 @@ dato, il valore è la logica che decide quando salire di livello.
 | 7 | Misure | fatta |
 | 8 | Libreria esercizi, cue, SVG, gestione video | fatta |
 | 9 | PWA, service worker, installabilità, test offline | fatta, provata in modalità aereo |
+| 10 | Account, accesso Google e Apple, dati su Firebase | fatta, provata con gli emulatori |
 
 ## Stack
 
@@ -36,8 +38,14 @@ npm run smoke      # build + prova end-to-end su Chromium
 npm run offline    # build + prova in modalità aereo su Chromium
 npm run svg        # rigenera le illustrazioni degli esercizi
 npm run icons      # rigenera le icone della PWA
+npm run emulators  # emulatori Firebase per lo sviluppo locale
 npm run build      # build di produzione
 ```
+
+**Configurazione:** [`docs/configurazione.md`](docs/configurazione.md) copre
+progetto Firebase, provider di accesso, regole, variabili su Vercel e domini
+autorizzati. Senza quelle sei variabili l'app mostra una schermata che dice
+quali mancano.
 
 `npm run verify && npm run build` è il comando che gira Vercel a ogni deploy.
 
@@ -50,9 +58,13 @@ prendere quello che gli unit test non vedono: una schermata che resta nera
 perché una query scrive dentro una transazione di sola lettura non fa fallire
 nessun test del motore.
 
+Entrambe girano contro gli **emulatori** Firebase, mai contro il progetto vero:
+l'id di progetto comincia con `demo-`, che è la convenzione con cui gli
+emulatori funzionano senza credenziali e non contattano Google.
+
 `npm run offline` è la prova che conta per una PWA: carica l'app una volta con
-la rete, poi spegne la rete davvero, riapre l'app, scrive una misura, riavvia,
-e alla fine spegne anche il server di anteprima. Un service worker corretto da
+la rete, entra, poi spegne la rete davvero, riapre l'app, scrive una misura,
+riavvia, e alla fine spegne anche il server di anteprima. Un service worker corretto da
 leggere e rotto all'uso è la norma, non l'eccezione: senza questa prova non c'è
 motivo di credere che l'app si apra in palestra.
 
