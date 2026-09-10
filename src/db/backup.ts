@@ -387,14 +387,14 @@ export function parseBackup(json: string): ValidatedBackup {
 export async function exportBackup(repo: ShadowRepository): Promise<BackupFile> {
   const [settings, sessions, testResults, exerciseStates, exerciseMedia, weights, waists, suggestions] =
     await Promise.all([
-      repo.db.settings.toArray(),
-      repo.db.sessions.toArray(),
-      repo.db.testResults.toArray(),
-      repo.db.exerciseStates.toArray(),
-      repo.db.exerciseMedia.toArray(),
-      repo.db.weights.toArray(),
-      repo.db.waists.toArray(),
-      repo.db.suggestions.toArray(),
+      repo.store.all<BackupFile['data']['settings'][number]>('settings'),
+      repo.store.all<BackupFile['data']['sessions'][number]>('sessions'),
+      repo.store.all<BackupFile['data']['testResults'][number]>('testResults'),
+      repo.store.all<BackupFile['data']['exerciseStates'][number]>('exerciseStates'),
+      repo.store.all<BackupFile['data']['exerciseMedia'][number]>('exerciseMedia'),
+      repo.store.all<BackupFile['data']['weights'][number]>('weights'),
+      repo.store.all<BackupFile['data']['waists'][number]>('waists'),
+      repo.store.all<BackupFile['data']['suggestions'][number]>('suggestions'),
     ]);
 
   return {
@@ -426,10 +426,15 @@ export interface ImportReport {
 }
 
 /**
- * Scrive il backup in una transazione unica.
+ * Scrive il backup nel magazzino.
  *
  * `replace` svuota tutto e riscrive: è il ripristino di un telefono nuovo.
  * `merge` sovrascrive solo le righe presenti nel file e lascia le altre.
+ *
+ * Il file viene validato per intero prima di arrivare qui, quindi non esiste
+ * il caso «dato sbagliato scritto a metà». Su Firestore resta possibile
+ * perdere la rete durante la scrittura: in quel caso il ripristino è
+ * incompleto, non corrotto, e rifarlo lo sistema.
  */
 export async function importBackup(
   repo: ShadowRepository,
@@ -438,32 +443,12 @@ export async function importBackup(
 ): Promise<ImportReport> {
   const { backup, warnings } = validated;
   const { data } = backup;
-  const database = repo.db;
 
-  const tables = [
-    database.settings,
-    database.sessions,
-    database.testResults,
-    database.exerciseStates,
-    database.exerciseMedia,
-    database.weights,
-    database.waists,
-    database.suggestions,
-  ];
+  if (mode === 'replace') await repo.store.clearAll();
 
-  await database.transaction('rw', tables, async () => {
-    if (mode === 'replace') {
-      for (const table of tables) await table.clear();
-    }
-    await database.settings.bulkPut([...data.settings]);
-    await database.sessions.bulkPut([...data.sessions]);
-    await database.testResults.bulkPut([...data.testResults]);
-    await database.exerciseStates.bulkPut([...data.exerciseStates]);
-    await database.exerciseMedia.bulkPut([...data.exerciseMedia]);
-    await database.weights.bulkPut([...data.weights]);
-    await database.waists.bulkPut([...data.waists]);
-    await database.suggestions.bulkPut([...data.suggestions]);
-  });
+  for (const name of TABLE_NAMES) {
+    await repo.store.putMany(name, [...data[name]]);
+  }
 
   const counts = Object.fromEntries(
     TABLE_NAMES.map((name) => [name, data[name].length]),

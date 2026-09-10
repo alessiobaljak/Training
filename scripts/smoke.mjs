@@ -16,11 +16,12 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import { launchOptions } from './chromium.mjs';
 import { completeOnboarding } from './onboarding.mjs';
+import { buildForTests, signInForTests, startEmulators, stopGroup } from './testenv.mjs';
 
 const PORT = 4181;
 const BASE = `http://localhost:${String(PORT)}`;
 
-async function waitForServer(timeoutMs = 20_000) {
+async function waitForServer(timeoutMs = 90_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -39,8 +40,12 @@ function check(condition, message) {
   if (!condition) failures.push(message);
 }
 
+buildForTests();
+const emulators = await startEmulators();
+
 const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
   stdio: 'ignore',
+  detached: true,
 });
 
 let browser;
@@ -55,6 +60,13 @@ try {
 
   await page.goto(BASE, { waitUntil: 'load' });
   await page.waitForTimeout(1200);
+
+  check(
+    (await page.getByRole('button', { name: 'Continua con Google' }).count()) === 1,
+    'Senza account l’app deve mostrare la schermata di accesso.',
+  );
+
+  await signInForTests(page);
 
   check(
     (await page.getByRole('button', { name: 'Vai ai test' }).count()) === 1,
@@ -277,7 +289,8 @@ try {
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();
-  server.kill('SIGTERM');
+  stopGroup(server);
+  stopGroup(emulators);
 }
 
 if (failures.length > 0) {

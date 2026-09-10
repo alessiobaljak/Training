@@ -1,5 +1,4 @@
-import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import {
   BACKUP_FORMAT,
   BackupError,
@@ -10,26 +9,24 @@ import {
   serializeBackup,
   validateBackup,
 } from './backup.ts';
-import { DATA_VERSION, ShadowDatabase } from './db.ts';
+import { DATA_VERSION, type TableName } from './db.ts';
 import { ShadowRepository } from './repository.ts';
+import { MemoryStore } from './store.ts';
 import { testResultSingle } from '../engine/ranges.ts';
 import { loggedExercise, sets } from '../engine/__fixtures.ts';
 import type { LoggedSession } from '../types/index.ts';
 
-let counter = 0;
-let database: ShadowDatabase;
+let store: MemoryStore;
 let repo: ShadowRepository;
 
-beforeEach(async () => {
-  counter += 1;
-  database = new ShadowDatabase(`shadow-test-backup-${String(counter)}`);
-  repo = new ShadowRepository(database);
-  await database.open();
-});
+/** Quante righe ci sono in una tabella. */
+async function count(table: TableName): Promise<number> {
+  return (await store.all(table)).length;
+}
 
-afterEach(async () => {
-  database.close();
-  await ShadowDatabase.delete(database.name);
+beforeEach(() => {
+  store = new MemoryStore();
+  repo = new ShadowRepository(store);
 });
 
 const session: LoggedSession = {
@@ -95,7 +92,7 @@ describe('ripristino', () => {
     const json = serializeBackup(await exportBackup(repo));
 
     await repo.clearAll();
-    expect(await database.sessions.count()).toBe(0);
+    expect(await count('sessions')).toBe(0);
 
     const report = await importBackup(repo, parseBackup(json), 'replace');
     expect(report.counts.sessions).toBe(1);
@@ -108,16 +105,16 @@ describe('ripristino', () => {
     const json = serializeBackup(await exportBackup(repo));
     await seed();
     await importBackup(repo, parseBackup(json), 'replace');
-    expect(await database.sessions.count()).toBe(0);
-    expect(await database.weights.count()).toBe(0);
+    expect(await count('sessions')).toBe(0);
+    expect(await count('weights')).toBe(0);
   });
 
   it('in modalità unione tiene quello che non è nel file', async () => {
     const json = serializeBackup(await exportBackup(repo));
     await seed();
     await importBackup(repo, parseBackup(json), 'merge');
-    expect(await database.sessions.count()).toBe(1);
-    expect(await database.weights.count()).toBe(1);
+    expect(await count('sessions')).toBe(1);
+    expect(await count('weights')).toBe(1);
   });
 
   it('in modalità unione le righe del file vincono su quelle esistenti', async () => {
@@ -238,9 +235,9 @@ describe('un file rotto non tocca i dati esistenti', () => {
   it('la validazione fallisce prima di qualunque scrittura', async () => {
     await seed();
     const before = {
-      sessions: await database.sessions.count(),
-      weights: await database.weights.count(),
-      tests: await database.testResults.count(),
+      sessions: await count('sessions'),
+      weights: await count('weights'),
+      tests: await count('testResults'),
     };
 
     // La seduta 0 è valida, la 1 no: senza validazione preventiva le prime
@@ -255,9 +252,9 @@ describe('un file rotto non tocca i dati esistenti', () => {
 
     expect(() => validateBackup(halfBroken)).toThrow(BackupError);
 
-    expect(await database.sessions.count()).toBe(before.sessions);
-    expect(await database.weights.count()).toBe(before.weights);
-    expect(await database.testResults.count()).toBe(before.tests);
+    expect(await count('sessions')).toBe(before.sessions);
+    expect(await count('weights')).toBe(before.weights);
+    expect(await count('testResults')).toBe(before.tests);
   });
 });
 

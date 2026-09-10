@@ -16,11 +16,12 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import { launchOptions } from './chromium.mjs';
 import { completeOnboarding } from './onboarding.mjs';
+import { buildForTests, signInForTests, startEmulators, stopGroup } from './testenv.mjs';
 
 const PORT = 4182;
 const BASE = `http://localhost:${String(PORT)}`;
 
-async function waitForServer(timeoutMs = 20_000) {
+async function waitForServer(timeoutMs = 90_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -71,15 +72,18 @@ async function waitForController(page, timeoutMs = 15_000) {
   return false;
 }
 
+buildForTests();
+const emulators = await startEmulators();
+
 const server = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], {
   stdio: 'ignore',
+  detached: true,
 });
 let serverStopped = false;
 function stopServer() {
-  if (!serverStopped) {
-    server.kill('SIGTERM');
-    serverStopped = true;
-  }
+  if (serverStopped) return;
+  serverStopped = true;
+  stopGroup(server);
 }
 
 let browser;
@@ -119,6 +123,10 @@ try {
 
   check(await waitForController(page), 'Il service worker deve prendere il comando al primo avvio.');
 
+  // L'accesso ha bisogno di rete, una volta sola: si fa adesso, con la rete
+  // ancora accesa, e da qui in poi la sessione resta valida anche in aereo.
+  await signInForTests(page);
+
   const precached = await page.evaluate(async () => {
     const names = await caches.keys();
     const name = names.find((key) => key.startsWith('shadow-'));
@@ -149,10 +157,21 @@ try {
 
   await completeOnboarding(page, BASE);
 
-  const foreign = [...new Set(requested)].filter((url) => !url.startsWith(BASE));
+  /*
+   * Da quando i dati stanno su Firebase, «nessuna chiamata di rete» non è più
+   * vero e non ha senso pretenderlo. Quello che resta vero, e che questo
+   * controllo difende, è che l'app parli solo con sé stessa e con Firebase:
+   * nessuna CDN, nessuna analitica, nessun terzo comparso per sbaglio.
+   *
+   * Nelle prove Firebase è l'emulatore, quindi tutto deve essere locale.
+   */
+  const foreign = [...new Set(requested)].filter((url) => {
+    const host = new URL(url).hostname;
+    return host !== 'localhost' && host !== '127.0.0.1';
+  });
   check(
     foreign.length === 0,
-    `L’app non deve contattare nessun indirizzo esterno. Contattati: ${foreign.join(', ')}`,
+    `L’app deve parlare solo con sé stessa e con Firebase. Contattati anche: ${foreign.join(', ')}`,
   );
 
   /* --------------------------- Modalità aereo --------------------------- */
@@ -264,6 +283,7 @@ try {
 } finally {
   if (browser !== undefined) await browser.close();
   stopServer();
+  stopGroup(emulators);
 }
 
 if (failures.length > 0) {

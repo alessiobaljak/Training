@@ -1,7 +1,8 @@
-import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { ShadowDatabase } from './db.ts';
+import { beforeEach, describe, expect, it } from 'vitest';
+
 import { ShadowRepository } from './repository.ts';
+import { MemoryStore } from './store.ts';
+import type { TableName } from './db.ts';
 import { initialExerciseState } from '../engine/progression.ts';
 import { testResultPerSide, testResultSingle } from '../engine/ranges.ts';
 import { getExercise } from '../data/exercises.ts';
@@ -14,20 +15,17 @@ function fullRound(date: string, week: number): TestResult[] {
   return WEEK_ZERO_TESTS.map((test) => testResultSingle(test.id, date, week, 10));
 }
 
-let counter = 0;
-let database: ShadowDatabase;
+let store: MemoryStore;
 let repo: ShadowRepository;
 
-beforeEach(async () => {
-  counter += 1;
-  database = new ShadowDatabase(`shadow-test-repo-${String(counter)}`);
-  repo = new ShadowRepository(database);
-  await database.open();
-});
+/** Quante righe ci sono in una tabella. */
+async function count(table: TableName): Promise<number> {
+  return (await store.all(table)).length;
+}
 
-afterEach(async () => {
-  database.close();
-  await ShadowDatabase.delete(database.name);
+beforeEach(() => {
+  store = new MemoryStore();
+  repo = new ShadowRepository(store);
 });
 
 function session(overrides: Partial<LoggedSession> = {}): LoggedSession {
@@ -54,7 +52,7 @@ describe('impostazioni', () => {
     const first = await repo.getSettings();
     const second = await repo.getSettings();
     expect(second.createdAt).toBe(first.createdAt);
-    expect(await database.settings.count()).toBe(1);
+    expect(await count('settings')).toBe(1);
   });
 
   it('salva la data di inizio programma', async () => {
@@ -118,7 +116,7 @@ describe('sedute', () => {
   it('sovrascrive la seduta con lo stesso id: è il salvataggio in corso d’opera', async () => {
     await repo.saveSession(session({ status: 'in-progress' }));
     await repo.saveSession(session({ status: 'completed' }));
-    expect(await database.sessions.count()).toBe(1);
+    expect(await count('sessions')).toBe(1);
     expect((await repo.getSession('sess-1'))?.status).toBe('completed');
   });
 
@@ -174,7 +172,7 @@ describe('test dei massimali', () => {
   it('rifare lo stesso test lo stesso giorno sovrascrive', async () => {
     await repo.saveTestResult(testResultSingle('pull-up', '2026-09-14', 0, 10));
     await repo.saveTestResult(testResultSingle('pull-up', '2026-09-14', 0, 11));
-    expect(await database.testResults.count()).toBe(1);
+    expect(await count('testResults')).toBe(1);
     expect((await repo.listTestResults('pull-up'))[0]?.value).toBe(11);
   });
 
@@ -203,7 +201,7 @@ describe('test dei massimali', () => {
       testResultSingle('dip', '2026-09-14', 0, 12),
       testResultSingle('hollow-hold', '2026-09-14', 0, 45),
     ]);
-    expect(await database.testResults.count()).toBe(3);
+    expect(await count('testResults')).toBe(3);
   });
 
   it('rifiuta un massimale negativo', async () => {
@@ -314,9 +312,9 @@ describe('svuotamento', () => {
 
     await repo.clearAll();
 
-    expect(await database.settings.count()).toBe(0);
-    expect(await database.sessions.count()).toBe(0);
-    expect(await database.testResults.count()).toBe(0);
-    expect(await database.weights.count()).toBe(0);
+    expect(await count('settings')).toBe(0);
+    expect(await count('sessions')).toBe(0);
+    expect(await count('testResults')).toBe(0);
+    expect(await count('weights')).toBe(0);
   });
 });

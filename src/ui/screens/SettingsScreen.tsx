@@ -14,6 +14,7 @@ import { backupAdvice, formatBytes } from '../../pwa/offline.ts';
 import { downloadTextFile, readTextFile } from '../download.ts';
 import { useSessions, useSettings } from '../hooks/useData.ts';
 import { usePwaStatus } from '../hooks/usePwa.ts';
+import { useAuthStatus } from '../hooks/useAuth.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 import type { ImportMode, ImportReport } from '../../db/backup.ts';
 
@@ -29,6 +30,7 @@ export function SettingsScreen() {
   const settings = useSettings();
   const sessions = useSessions();
   const pwa = usePwaStatus();
+  const auth = useAuthStatus();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<ImportMode>('replace');
@@ -85,11 +87,60 @@ export function SettingsScreen() {
   };
 
   return (
-    <Screen title="App e dati" subtitle="Tutto resta su questo telefono">
+    <Screen title="App e dati" subtitle="Sincronizzati sul tuo account">
       <div className="space-y-4">
+        <SectionTitle>Account</SectionTitle>
+        <Card>
+          <p className="text-sm font-semibold">
+            {auth.account?.email ?? auth.account?.displayName ?? 'Collegato'}
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-dim">
+            Sedute, test e misure stanno nel tuo spazio su Firebase e seguono l’account, non il
+            telefono. Cambi dispositivo, ritrovi tutto.
+          </p>
+          <div className="mt-3">
+            <Button full variant="secondary" size="lg" onClick={auth.signOut}>
+              Esci
+            </Button>
+          </div>
+        </Card>
+
+        <SectionTitle>Sblocco</SectionTitle>
+        <Card>
+          {!auth.biometricAvailable ? (
+            <p className="text-sm leading-relaxed text-dim">
+              Questo dispositivo non espone Face ID o impronta al browser.
+            </p>
+          ) : auth.biometricEnrolled ? (
+            <>
+              <p className="text-sm leading-relaxed text-dim">
+                All’apertura l’app chiede Face ID. Vale solo su questo dispositivo: su un altro
+                telefono va attivato di nuovo.
+              </p>
+              <div className="mt-3">
+                <Button full variant="secondary" size="lg" onClick={auth.disableBiometric}>
+                  Togli lo sblocco
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm leading-relaxed text-dim">
+                Chiedi Face ID a ogni apertura. È una tenda, non una cassaforte: tiene fuori chi ti
+                prende il telefono in mano, non chi sa usare gli strumenti da sviluppatore.
+              </p>
+              <div className="mt-3">
+                <Button full variant="secondary" size="lg" onClick={auth.enableBiometric}>
+                  Attiva lo sblocco
+                </Button>
+              </div>
+            </>
+          )}
+        </Card>
+
         <Notice tone="warn">
-          Non c’è nessun cloud e nessun account. Se perdi il telefono o cancelli i dati del sito,
-          lo storico sparisce. Il backup è manuale ed è l’unica copia che avrai.
+          I dati sono sul tuo account, non su questo telefono, ma restano legati a un solo posto.
+          Il backup scaricato è l’unica copia che controlli tu, e serve ancora.
         </Notice>
 
         <SectionTitle>Offline</SectionTitle>

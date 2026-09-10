@@ -13,14 +13,16 @@
     "test:watch": "vitest",
     "check:no-video-urls": "node scripts/check-no-video-urls.mjs",
     "verify": "npm run typecheck && npm run test && npm run check:no-video-urls",
-    "smoke": "npm run build && node scripts/smoke.mjs",
-    "offline": "npm run build && node scripts/offline.mjs",
+    "smoke": "node scripts/smoke.mjs",
+    "offline": "node scripts/offline.mjs",
     "svg": "node scripts/generate-exercise-svg.mjs",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-shadow"
   },
   "dependencies": {
     "dexie": "^4.4.5",
     "dexie-react-hooks": "^4.4.0",
+    "firebase": "^12.19.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },
@@ -31,6 +33,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.1",
     "fake-indexeddb": "^6.2.5",
+    "firebase-tools": "^15.30.0",
     "playwright": "^1.63.0",
     "tailwindcss": "^4.3.3",
     "typescript": "~5.9.3",

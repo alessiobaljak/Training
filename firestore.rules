@@ -1,0 +1,21 @@
+rules_version = '2';
+
+/*
+ * Ogni utente vede solo il proprio ramo, e nient'altro esiste.
+ *
+ * Tutto quello che l'app scrive sta sotto `users/{uid}`. Fuori da lì non c'è
+ * nessuna regola che permetta qualcosa, e in Firestore ciò che non è
+ * esplicitamente permesso è vietato: un utente non può nemmeno chiedere i dati
+ * di un altro, e senza accesso non si legge e non si scrive niente.
+ *
+ * Questa è la vera protezione dei dati. Le chiavi che finiscono nel bundle
+ * (apiKey, appId) non sono segrete e non proteggono nulla: servono solo a
+ * dire a quale progetto parlare.
+ */
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

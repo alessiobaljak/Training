@@ -8,10 +8,27 @@ import { MeasuresScreen } from './screens/MeasuresScreen.tsx';
 import { ProgressScreen } from './screens/ProgressScreen.tsx';
 import { SessionScreen } from './session/SessionScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
+import {
+  ConfigMissingScreen,
+  LoadingGate,
+  LockScreen,
+  LoginScreen,
+} from './screens/AuthScreens.tsx';
 import { useRoute } from './router.ts';
+import { useAuthStatus } from './hooks/useAuth.ts';
 
 export function App() {
   const route = useRoute();
+  const auth = useAuthStatus();
+
+  /*
+   * Il cancello sta prima di tutto: senza un account non esiste nessun dato da
+   * mostrare, perché i dati vivono nello spazio dell'utente su Firestore.
+   */
+  if (auth.state === 'config-missing') return <ConfigMissingScreen missingKeys={auth.missingKeys} />;
+  if (auth.state === 'loading') return <LoadingGate />;
+  if (auth.state === 'signed-out') return <LoginScreen auth={auth} />;
+  if (auth.state === 'locked') return <LockScreen auth={auth} />;
 
   const showNav = route.name !== 'onboarding' && route.name !== 'session';
 

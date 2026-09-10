@@ -1,5 +1,5 @@
-import { useLiveQuery } from 'dexie-react-hooks';
 import { repository } from '../../db/repository.ts';
+import { useStoreQuery } from './useStoreQuery.ts';
 import type { AppSettings } from '../../db/db.ts';
 import type { TestRound } from '../../engine/ranges.ts';
 import type {
@@ -13,63 +13,63 @@ import type {
 } from '../../types/index.ts';
 
 /**
- * Letture reattive dal database.
+ * Letture reattive dai dati dell'utente.
  *
- * `useLiveQuery` restituisce `undefined` finché la lettura non è finita: è la
- * differenza tra "sto caricando" e "non c'è nulla", e i componenti devono
- * distinguerle o mostreranno un lampo di schermata sbagliata al primo avvio.
+ * Ogni hook restituisce `undefined` finché la prima lettura non è finita, e si
+ * riaggiorna da solo quando i dati cambiano, che il cambiamento venga da qui o
+ * da un altro dispositivo collegato allo stesso account.
  */
 
 export function useSettings(): AppSettings | undefined {
-  // `readSettings` e non `getSettings`: la seconda scrive quando la riga manca,
-  // e una scrittura dentro useLiveQuery fa fallire la schermata.
-  return useLiveQuery(() => repository.readSettings(), []);
+  // `readSettings` e non `getSettings`: la seconda scrive quando la riga
+  // manca, e una lettura non deve mai scrivere.
+  return useStoreQuery(() => repository.readSettings(), []);
 }
 
 export function useIsOnboarded(): boolean | undefined {
-  return useLiveQuery(() => repository.isOnboarded(), []);
+  return useStoreQuery(() => repository.isOnboarded(), []);
 }
 
 export function useTestRounds(): TestRound[] | undefined {
-  return useLiveQuery(() => repository.listTestRounds(), []);
+  return useStoreQuery(() => repository.listTestRounds(), []);
 }
 
 export function useOpenRound(): TestRound | null | undefined {
-  return useLiveQuery(() => repository.getOpenRound(), []);
+  return useStoreQuery(() => repository.getOpenRound(), []);
 }
 
 export function useLatestCompleteRound(): TestRound | null | undefined {
-  return useLiveQuery(() => repository.getLatestCompleteRound(), []);
+  return useStoreQuery(() => repository.getLatestCompleteRound(), []);
 }
 
 export function useLatestTests(): ReadonlyMap<TestId, TestResult> | undefined {
-  return useLiveQuery(() => repository.latestTests(), []);
+  return useStoreQuery(() => repository.latestTests(), []);
 }
 
 export function useActiveSession(): LoggedSession | null | undefined {
-  return useLiveQuery(() => repository.getActiveSession(), []);
+  return useStoreQuery(() => repository.getActiveSession(), []);
 }
 
 export function useSessions(): LoggedSession[] | undefined {
-  return useLiveQuery(() => repository.listSessions(), []);
+  return useStoreQuery(() => repository.listSessions(), []);
 }
 
 export function useExerciseStates(): ExerciseState[] | undefined {
-  return useLiveQuery(() => repository.listExerciseStates(), []);
+  return useStoreQuery(() => repository.listExerciseStates(), []);
 }
 
 export function useExerciseState(slug: ExerciseSlug): ExerciseState | undefined {
-  return useLiveQuery(() => repository.getExerciseState(slug), [slug]);
+  return useStoreQuery(() => repository.getExerciseState(slug), [slug]);
 }
 
 export function useExerciseVideo(slug: ExerciseSlug): string | null | undefined {
-  return useLiveQuery(() => repository.getExerciseVideo(slug), [slug]);
+  return useStoreQuery(() => repository.getExerciseVideo(slug), [slug]);
 }
 
 export function useWeights(): WeightEntry[] | undefined {
-  return useLiveQuery(() => repository.listWeights(), []);
+  return useStoreQuery(() => repository.listWeights(), []);
 }
 
 export function useWaists(): WaistEntry[] | undefined {
-  return useLiveQuery(() => repository.listWaists(), []);
+  return useStoreQuery(() => repository.listWaists(), []);
 }
