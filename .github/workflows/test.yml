@@ -1,0 +1,51 @@
+# Le prove che Vercel non esegue.
+#
+# Il cancello prima della pubblicazione lo tiene Vercel, che esegue
+# `npm run verify` dentro il build (vedi vercel.json): typecheck, unit test e
+# controllo sugli URL video. Quello che Vercel non può fare è aprire un
+# browser, ed è lì che si vedono i difetti peggiori di una PWA.
+#
+# Quindi questo workflow non pubblica niente: apre l'app in Chromium, la prova
+# in modalità aereo e fallisce rumorosamente se qualcosa si rompe. Se ricevi
+# una notifica di fallimento, il deploy su Vercel è già andato online: guarda
+# qui prima di fidarti della versione nuova.
+name: Test
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # Le stesse prove che gira Vercel, ripetute qui perché il risultato resti
+      # visibile nella storia del repository e non solo nei log di un deploy.
+      - name: Verifica
+        run: npm run verify
+
+      - name: Installa Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Prova di fumo
+        run: npm run smoke
+
+      # La prova che conta: l'app in modalità aereo, con il server spento.
+      - name: Prova offline
+        run: npm run offline

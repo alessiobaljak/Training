@@ -39,6 +39,8 @@ npm run icons      # rigenera le icone della PWA
 npm run build      # build di produzione
 ```
 
+`npm run verify && npm run build` è il comando che gira Vercel a ogni deploy.
+
 `npm run verify` è il cancello: deve passare prima di ogni commit. Non richiede
 un browser, quindi gira ovunque.
 
@@ -61,27 +63,31 @@ senza HTTPS il browser non attiva il service worker e l'offline non esiste.
 Un indirizzo di rete locale in HTTP fa vedere l'app e basta, che è il contrario
 di quello per cui è stata scritta.
 
-`.github/workflows/deploy.yml` fa tutto da solo a ogni push sul branch di
-default: typecheck, unit test, controllo sugli URL video, prova di fumo e prova
-offline su Chromium, poi build e pubblicazione su GitHub Pages.
+**Vercel, con il repository privato.** Dalla dashboard: Add New Project,
+scegli `Training`, Deploy. Non c'è niente da configurare: `vercel.json` fissa
+già il framework, la cartella di uscita e il comando di build.
 
-**Il deploy passa solo se passano anche le prove sul browser.** Non è
-pignoleria: una PWA che si apre bianca senza rete supera qualunque unit test,
-ed è già successo una volta in questo progetto.
+Il comando di build è `npm run verify && npm run build`. Non è un vezzo:
+**pubblicare qualcosa di rotto, con un service worker di mezzo, è peggio del
+normale.** Il worker nuovo si installa, mette in cache il bundle rotto e lo
+serve anche offline: non è un errore che passa ricaricando. Typecheck, unit
+test e controllo sugli URL video devono passare prima che esista un `dist/`.
 
-Indirizzo: `https://alessiobaljak.github.io/Training/`
+Quello che Vercel non può fare è aprire un browser. Le due prove che ne hanno
+bisogno stanno in `.github/workflows/test.yml`, che gira a ogni push e non
+pubblica niente. Se ti arriva una notifica di fallimento da lì, il deploy è già
+online: guarda il workflow prima di fidarti della versione nuova.
 
-Prima del primo giro serve un interruttore nel repository: Settings > Pages >
-Source = «GitHub Actions». Il workflow prova ad accenderlo da solo; se il token
-non basta, si fa a mano una volta sola.
+`vercel.json` fissa anche due regole di cache: `sw.js` sempre rivalidato,
+perché è l'unico file che deve poter cambiare, e `assets/` immutabile per un
+anno, perché i nomi portano già l'hash del contenuto.
 
-GitHub Pages su un repository privato richiede un piano a pagamento. Le
-alternative gratuite che non chiedono di rendere pubblico il codice sono
-Cloudflare Pages e Netlify, entrambe con un token nei secrets del repository.
+**Il sito è pubblico anche con il repository privato.** Repository privato
+significa codice sorgente non leggibile, non indirizzo segreto. Va bene così:
+l'app non contiene dati, che stanno solo nell'IndexedDB del telefono.
 
-Per pubblicare a mano da un altro host: `npm run build` produce `dist/`, che è
-tutto quello che serve. I percorsi sono relativi, quindi funziona anche da una
-sottocartella.
+Per pubblicare altrove: `npm run build` produce `dist/`, che è tutto quello che
+serve. I percorsi sono relativi, quindi funziona anche da una sottocartella.
 
 ## Installazione sul telefono
 
