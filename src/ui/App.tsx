@@ -2,6 +2,7 @@ import { BottomNav } from './components/BottomNav.tsx';
 import { HomeScreen } from './screens/HomeScreen.tsx';
 import { OnboardingScreen } from './screens/OnboardingScreen.tsx';
 import { PlaceholderScreen } from './screens/PlaceholderScreen.tsx';
+import { SessionScreen } from './session/SessionScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { useRoute } from './router.ts';
 
@@ -21,13 +22,7 @@ export function App() {
         {route.name === 'home' ? <HomeScreen /> : null}
         {route.name === 'onboarding' ? <OnboardingScreen /> : null}
         {route.name === 'settings' ? <SettingsScreen /> : null}
-        {route.name === 'session' ? (
-          <PlaceholderScreen
-            title="Seduta"
-            phase={5}
-            what="Il player della sessione: un blocco per schermata, logging delle serie, timer di recupero con la logica superserie."
-          />
-        ) : null}
+        {route.name === 'session' ? <SessionScreen sessionId={route.sessionId} /> : null}
         {route.name === 'log' ? (
           <PlaceholderScreen
             title="Log"

@@ -227,6 +227,21 @@ export class ShadowRepository {
     return this.db.exerciseStates.toArray();
   }
 
+  /**
+   * `true` quando l'utente ha già confermato variante e livello di questo
+   * esercizio almeno una volta. Il player usa questo dato per fermarsi prima
+   * della prima serie: il livello di partenza viene dal programma, non da cosa
+   * l'utente sa fare davvero, e va corretto con l'attrezzo in mano.
+   */
+  async hasConfirmedState(slug: ExerciseSlug): Promise<boolean> {
+    return (await this.db.exerciseStates.get(slug)) !== undefined;
+  }
+
+  async getConfirmedStates(slugs: readonly ExerciseSlug[]): Promise<ReadonlySet<ExerciseSlug>> {
+    const rows = await this.db.exerciseStates.bulkGet([...slugs]);
+    return new Set(rows.filter((row) => row !== undefined).map((row) => row.exercise));
+  }
+
   /* ---------------------------------------------------------------------- */
   /* Video personali                                                         */
   /* ---------------------------------------------------------------------- */

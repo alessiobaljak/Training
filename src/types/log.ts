@@ -23,6 +23,12 @@ export interface LoggedSet {
   readonly rir: number | null;
   /** Sempre presente, vale 0 quando non si usa zavorra. */
   readonly loadKg: number;
+  /**
+   * Frequenza cardiaca media, in battiti al minuto.
+   * Riguarda solo le attività a durata: la zona 2 del mercoledì e quella
+   * conclusiva del sabato si giudicano dalla FC, non dalle ripetizioni.
+   */
+  readonly heartRate: number | null;
   readonly note: string | null;
 }
 

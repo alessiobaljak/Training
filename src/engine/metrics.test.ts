@@ -128,9 +128,9 @@ describe('riepilogo di un esercizio', () => {
   it('calcola il RIR medio solo sulle serie che ne hanno uno', () => {
     const summary = summarizeExercise(
       loggedExercise('trazioni-prona-presa-media', [
-        { setIndex: 1, side: null, value: 8, rir: 1, loadKg: 0, note: null },
-        { setIndex: 2, side: null, value: 8, rir: 2, loadKg: 0, note: null },
-        { setIndex: 3, side: null, value: 7, rir: null, loadKg: 0, note: null },
+        { setIndex: 1, side: null, value: 8, rir: 1, loadKg: 0, heartRate: null, note: null },
+        { setIndex: 2, side: null, value: 8, rir: 2, loadKg: 0, heartRate: null, note: null },
+        { setIndex: 3, side: null, value: 7, rir: null, loadKg: 0, heartRate: null, note: null },
       ]),
     );
     expect(summary.meanRir).toBe(1.5);

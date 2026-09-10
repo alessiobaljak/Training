@@ -18,6 +18,7 @@ export function set(
     value,
     rir: options.rir ?? null,
     loadKg: options.loadKg ?? 0,
+    heartRate: null,
     note: null,
   };
 }

@@ -15,7 +15,7 @@ dato, il valore è la logica che decide quando salire di livello.
 | 2 | Motore: range, leve, avanzamento, zavorra, deload, medie | fatta |
 | 3 | Persistenza Dexie, export/import JSON, export CSV | fatta |
 | 4 | Onboarding Settimana 0 e Home | da fare |
-| 5 | Player della sessione con timer di recupero | da fare |
+| 5 | Player della sessione con timer di recupero | fatta |
 | 6 | Log e Progressi | da fare |
 | 7 | Misure | da fare |
 | 8 | Libreria esercizi, cue, SVG, gestione video | da fare |
@@ -93,6 +93,7 @@ arrivano già calcolati dal motore.
 | Cartella | Contenuto |
 |---|---|
 | `screens/` | Una cartella per schermata: Home, onboarding, dati e backup |
+| `session/` | Il player: bozza, registrazione serie, recuperi, riepilogo |
 | `components/` | Primitive: pulsanti, card, stepper numerico, cronometri |
 | `hooks/` | Letture reattive dal database, cronometri basati sugli istanti |
 | `router.ts` | Rotte via hash, senza librerie |
@@ -107,6 +108,45 @@ Tre vincoli che attraversano tutta la UI:
 - **Le letture non scrivono mai.** `useLiveQuery` esegue in transazione di sola
   lettura: una scrittura lì dentro fa fallire l'intera schermata, senza dire
   perché.
+
+## Il player della seduta
+
+Percorre il piano che il motore ha già costruito: l'alternanza delle
+superserie, i recuperi e le serie dimezzate in scarico sono decisi in
+`rest.ts`, non qui. Il player registra e naviga, non calcola.
+
+**Niente entra nel log senza un tocco.** I valori della volta scorsa si vedono
+accanto al campo e si possono tenere, ma restano una proposta finché non si
+tocca "Serie fatta". Una riga precompilata e mai confermata registrerebbe i
+numeri della settimana scorsa come se fossero di oggi.
+
+**La bozza sta nel database, non nella memoria del browser.** Ogni serie
+registrata riscrive la seduta su IndexedDB. Chiudere l'app a metà allenamento
+non perde niente e al rientro si riprende dalla prima serie mancante.
+
+**La prima serie su un esercizio si ferma sulla variante.** Il livello di
+partenza viene dal programma, non da cosa sai fare: il giovedì il programma
+prescrive archer push-up, che è il livello 5. Finché quel livello non e'
+confermato una volta, il pulsante resta bloccato. Correggere adesso costa un
+tap, scoprirlo fra sei settimane guardando un grafico costa il confronto.
+
+**Il recupero è una barra, non una finestra.** Durante una superserie i 15-20"
+servono a spostarsi: uno schermo da chiudere sarebbe un ostacolo. Il conto
+resta visibile sopra il contenuto e non impedisce di registrare. A zero
+vibrazione e beep.
+
+**Il mercoledì ha un player diverso.** Niente serie e niente ripetizioni: solo
+cronometro, durata effettiva e frequenza cardiaca media.
+
+**Il metronomo del TUT è opzionale.** Scandisce le fasi del tempo prescritto,
+con un beep diverso sull'inizio della ripetizione. Contare a mente mentre si
+spinge non funziona, e il TUT nel metodo è la variabile principale, non un
+dettaglio.
+
+A fine seduta il motore propone la leva successiva per ogni esercizio che ha
+chiuso il massimo del range. Propone: accettare cambia il livello o il carico
+della prossima volta, rimandare lascia tutto com’è, e in entrambi i casi la
+scelta finisce nel database.
 
 ## Il motore
 

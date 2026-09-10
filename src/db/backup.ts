@@ -172,6 +172,9 @@ function readSet(value: unknown, path: string): LoggedSet {
     value: expectNonNegative(row['value'], `${path}.value`),
     rir: expectNullableNumber(row['rir'], `${path}.rir`),
     loadKg: expectNonNegative(row['loadKg'], `${path}.loadKg`),
+    // Assente nei backup fatti prima che questo campo esistesse.
+    heartRate:
+      row['heartRate'] === undefined ? null : expectNullableNumber(row['heartRate'], `${path}.heartRate`),
     note: expectNullableString(row['note'], `${path}.note`),
   };
 }

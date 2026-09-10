@@ -46,6 +46,8 @@ export interface SessionStep {
   readonly totalSets: number;
   /** Giro della superserie. `null` sugli esercizi isolati. */
   readonly round: number | null;
+  /** `true` quando la serie si registra separatamente per lato. */
+  readonly perSide: boolean;
   /** Cosa fare dopo aver chiuso questa serie. */
   readonly rest: RestDecision;
 }
@@ -162,6 +164,7 @@ export function buildSessionPlan(session: ProgramSession, week: number): Session
             setIndex: index + 1,
             totalSets: total,
             round: null,
+            perSide: block.perSide,
             rest: isLastStep ? NO_REST : straightRest(block),
           });
         }
@@ -181,6 +184,7 @@ export function buildSessionPlan(session: ProgramSession, week: number): Session
           setIndex,
           totalSets: sets,
           round: null,
+          perSide: block.perSide,
           rest: isLastSet ? NO_REST : straightRest(block),
         });
       }
@@ -216,6 +220,7 @@ export function buildSessionPlan(session: ProgramSession, week: number): Session
           setIndex: round,
           totalSets: group.setsByBlock.get(block.code) ?? block.sets,
           round,
+          perSide: block.perSide,
           rest,
         });
       });

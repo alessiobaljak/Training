@@ -110,13 +110,94 @@ try {
     }
   }
 
+  await page.getByRole('button', { name: 'Parti questa settimana' }).click();
+  await page.waitForTimeout(200);
   await page.getByRole('button', { name: 'Conferma e vai alla Home' }).click();
   await page.waitForTimeout(900);
 
+  const startButton = page.getByRole('button', { name: 'Inizia', exact: true });
   check(
-    (await page.getByRole('button', { name: /Inizia/ }).count()) > 0,
+    (await startButton.count()) > 0,
     'Con il giro di test completo la Home deve proporre la seduta del giorno.',
   );
+
+  /* ---------------------------- Player ---------------------------------- */
+
+  if ((await startButton.count()) > 0) {
+    await startButton.click();
+    await page.waitForTimeout(1000);
+
+    const order = [];
+    let planTotal = 0;
+
+    for (let guard = 0; guard < 60; guard += 1) {
+      const confirm = page.getByRole('button', { name: 'Confermo, è questo' });
+      if ((await confirm.count()) > 0) {
+        await confirm.click();
+        await page.waitForTimeout(220);
+      }
+
+      const commit = page.getByRole('button', { name: 'Serie fatta' });
+      if ((await commit.count()) === 0) break;
+
+      const heading = await page.locator('h1').first().innerText();
+      const code = heading.split('·').pop()?.trim() ?? '';
+
+      const inputs = page.locator('input[type=number]');
+      const count = await inputs.count();
+      for (let k = 0; k < count; k += 1) await inputs.nth(k).fill('10');
+      await page.waitForTimeout(120);
+
+      if (await commit.isDisabled()) {
+        failures.push(`Serie non registrabile sul blocco ${code}: il pulsante resta disabilitato.`);
+        break;
+      }
+
+      await commit.click();
+      await page.waitForTimeout(240);
+      order.push(code);
+
+      const progress = await page.locator('header p').first().innerText();
+      const match = /^(\d+) di (\d+)/.exec(progress);
+      if (match?.[2] !== undefined) planTotal = Number(match[2]);
+      if (match?.[1] === match?.[2]) break;
+
+      /* A metà seduta ricarica la pagina: i dati devono essere già salvati. */
+      if (order.length === 5) {
+        await page.reload({ waitUntil: 'load' });
+        await page.waitForTimeout(1200);
+        const resumed = await page.locator('header p').first().innerText();
+        check(
+          resumed.startsWith('5 di '),
+          `Dopo il ricaricamento la seduta deve riprendere da 5 serie, non da "${resumed}".`,
+        );
+      }
+    }
+
+    check(
+      order.length === planTotal && planTotal > 0,
+      `Registrate ${String(order.length)} serie su ${String(planTotal)} previste.`,
+    );
+    check(
+      order.slice(0, 4).join(' ') === 'A1 A2 A1 A2',
+      `La superserie deve alternare A1 e A2, ordine visto: ${order.slice(0, 4).join(' ')}.`,
+    );
+
+    const close = page.getByRole('button', { name: 'Chiudi la seduta' });
+    if ((await close.count()) > 0) {
+      await close.click();
+      await page.waitForTimeout(900);
+      check(
+        (await page.getByText('Hai tenuto il tempo prescritto').count()) > 0,
+        'Chiudendo il massimo del range il riepilogo deve chiedere se il tempo è stato rispettato.',
+      );
+      check(
+        (await page.getByText('Leva successiva').count()) > 0,
+        'Chiudendo il massimo del range il riepilogo deve proporre la leva successiva.',
+      );
+    }
+  }
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();

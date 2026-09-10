@@ -160,8 +160,8 @@ describe('calibrazione del carico', () => {
   it('riporta la media dei RIR quando c’è', () => {
     const result = calibrateLoad(
       [
-        { setIndex: 1, side: null, value: 7, rir: 1, loadKg: 5, note: null },
-        { setIndex: 2, side: null, value: 7, rir: 2, loadKg: 5, note: null },
+        { setIndex: 1, side: null, value: 7, rir: 1, loadKg: 5, heartRate: null, note: null },
+        { setIndex: 2, side: null, value: 7, rir: 2, loadKg: 5, heartRate: null, note: null },
       ],
       5,
     );
