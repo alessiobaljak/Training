@@ -16,7 +16,7 @@ dato, il valore è la logica che decide quando salire di livello.
 | 3 | Persistenza Dexie, export/import JSON, export CSV | fatta |
 | 4 | Onboarding Settimana 0 e Home | da fare |
 | 5 | Player della sessione con timer di recupero | fatta |
-| 6 | Log e Progressi | da fare |
+| 6 | Log e Progressi | fatta |
 | 7 | Misure | da fare |
 | 8 | Libreria esercizi, cue, SVG, gestione video | da fare |
 | 9 | PWA, service worker, installabilità, test offline | da fare |
@@ -94,6 +94,7 @@ arrivano già calcolati dal motore.
 |---|---|
 | `screens/` | Una cartella per schermata: Home, onboarding, dati e backup |
 | `session/` | Il player: bozza, registrazione serie, recuperi, riepilogo |
+| `charts/` | Grafici in SVG inline, senza librerie |
 | `components/` | Primitive: pulsanti, card, stepper numerico, cronometri |
 | `hooks/` | Letture reattive dal database, cronometri basati sugli istanti |
 | `router.ts` | Rotte via hash, senza librerie |
@@ -147,6 +148,35 @@ A fine seduta il motore propone la leva successiva per ogni esercizio che ha
 chiuso il massimo del range. Propone: accettare cambia il livello o il carico
 della prossima volta, rimandare lascia tutto com’è, e in entrambi i casi la
 scelta finisce nel database.
+
+## Log e progressi
+
+**Una sola funzione costruisce le righe del log.** `logRows` in `history.ts`
+alimenta sia la tabella a schermo sia l'export CSV, così non possono divergere.
+Le colonne sono le tredici del foglio Log_Allenamenti e la tabella scorre in
+orizzontale dentro il proprio contenitore: tredici colonne non stanno su un
+telefono, e comprimerle vorrebbe dire troncare i numeri.
+
+**Il grafico di un esercizio è una colonna impilata per seduta.** L'altezza è
+il totale, i segmenti sono le singole serie: un grafico solo risponde sia a
+"quanto ho fatto" sia a "come sono calato tra la prima e la quarta serie". Le
+linee verticali segnano i cambi di livello e di zavorra, senza le quali un
+salto di variante sembrerebbe un crollo invece della prova che il carico è
+aumentato.
+
+**Niente librerie di grafici.** SVG inline scritto a mano, poche centinaia di
+righe. Una libreria da 100 kB per due grafici sarebbe peso morto da scaricare
+e da tenere in cache offline.
+
+**I colori sono calcolati, non scelti a occhio.** La rampa delle serie è
+ordinale e non categorica, perché S1-S4 hanno un ordine. È passata dallo script
+di validazione della skill dataviz contro la superficie delle card: banda di
+luminosità, soglia di croma, separazione per daltonismo e contrasto. L'accento
+della UI non poteva fare da marca, troppo chiaro per la banda: i grafici usano
+un blu dedicato.
+
+**Ogni grafico ha la sua tabella.** Un valore leggibile solo passando il dito
+sopra non è leggibile.
 
 ## Il motore
 

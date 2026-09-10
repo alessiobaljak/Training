@@ -198,6 +198,30 @@ try {
     }
   }
 
+  /* ------------------------- Log e Progressi ---------------------------- */
+
+  await page.goto(`${BASE}/#/log`, { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  const logRowCount = await page.locator('tbody tr').count();
+  check(logRowCount > 0, 'Dopo una seduta il log deve contenere almeno una riga.');
+  check(
+    (await page.locator('thead th').count()) === 13,
+    'La tabella del log deve avere le tredici colonne del foglio originale.',
+  );
+
+  await page.goto(`${BASE}/#/progressi`, { waitUntil: 'load' });
+  await page.waitForTimeout(1200);
+  check(
+    (await page.locator('svg[role="img"]').count()) > 0,
+    'La schermata Progressi deve mostrare il grafico dell’esercizio scelto.',
+  );
+  check(
+    (await page.getByText('Vedi i numeri in tabella').count()) > 0,
+    'Ogni grafico deve avere la sua tabella equivalente.',
+  );
+  const adherence = await page.locator('main p').first().innerText();
+  check(/%$/.test(adherence.trim()), `L’aderenza deve essere una percentuale, letto "${adherence}".`);
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();

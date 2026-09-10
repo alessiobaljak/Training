@@ -1,8 +1,6 @@
 import { LOG_CSV_COLUMNS } from '../data/reference.ts';
-import { findExercise } from '../data/exercises.ts';
-import { PROGRAM_SESSIONS } from '../data/program.ts';
-import { summarizeExercise } from '../engine/metrics.ts';
-import type { LoggedSession, SessionId } from '../types/index.ts';
+import { logRows } from '../engine/history.ts';
+import type { LoggedSession } from '../types/index.ts';
 
 /**
  * Export CSV del log, con le stesse tredici colonne del foglio
@@ -25,10 +23,6 @@ export interface CsvOptions {
 
 /** Colonne Rip S1-S4 del foglio originale. */
 const REP_COLUMNS = 4;
-
-const SESSION_NAMES: ReadonlyMap<SessionId, string> = new Map(
-  PROGRAM_SESSIONS.map((session) => [session.id, session.name]),
-);
 
 function escapeCell(value: string, separator: CsvSeparator): string {
   if (!value.includes(separator) && !value.includes('"') && !/[\r\n]/.test(value)) {
@@ -64,27 +58,19 @@ export function sessionsToCsv(
 
   const rows: string[][] = [[...LOG_CSV_COLUMNS]];
 
-  const ordered = [...sessions].sort((a, b) =>
-    a.date < b.date ? -1 : a.date > b.date ? 1 : a.id < b.id ? -1 : 1,
-  );
-
-  for (const session of ordered) {
-    for (const logged of session.exercises) {
-      const summary = summarizeExercise(logged);
-      const exercise = findExercise(logged.exercise);
-      rows.push([
-        session.date,
-        String(session.week),
-        SESSION_NAMES.get(session.sessionId) ?? session.sessionId,
-        exercise?.name ?? logged.exercise,
-        logged.variantLabel,
-        formatNumber(summary.maxLoadKg, separator),
-        ...repCells(summary.sets.map((set) => set.label)),
-        summary.meanRir === null ? '' : formatNumber(summary.meanRir, separator),
-        String(summary.totalValue),
-        logged.note ?? '',
-      ]);
-    }
+  for (const row of logRows(sessions)) {
+    rows.push([
+      row.date,
+      String(row.week),
+      row.sessionName,
+      row.exerciseName,
+      row.variantLabel,
+      formatNumber(row.loadKg, separator),
+      ...repCells(row.setLabels),
+      row.meanRir === null ? '' : formatNumber(row.meanRir, separator),
+      String(row.total),
+      row.note ?? '',
+    ]);
   }
 
   const body = rows

@@ -1,7 +1,9 @@
 import { BottomNav } from './components/BottomNav.tsx';
 import { HomeScreen } from './screens/HomeScreen.tsx';
 import { OnboardingScreen } from './screens/OnboardingScreen.tsx';
+import { LogScreen } from './screens/LogScreen.tsx';
 import { PlaceholderScreen } from './screens/PlaceholderScreen.tsx';
+import { ProgressScreen } from './screens/ProgressScreen.tsx';
 import { SessionScreen } from './session/SessionScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import { useRoute } from './router.ts';
@@ -23,20 +25,8 @@ export function App() {
         {route.name === 'onboarding' ? <OnboardingScreen /> : null}
         {route.name === 'settings' ? <SettingsScreen /> : null}
         {route.name === 'session' ? <SessionScreen sessionId={route.sessionId} /> : null}
-        {route.name === 'log' ? (
-          <PlaceholderScreen
-            title="Log"
-            phase={6}
-            what="Storico con le stesse colonne del foglio Excel, filtri per esercizio e periodo."
-          />
-        ) : null}
-        {route.name === 'progress' ? (
-          <PlaceholderScreen
-            title="Progressi"
-            phase={6}
-            what="Grafici per esercizio con i marker sui cambi di livello e di zavorra, volume settimanale, aderenza."
-          />
-        ) : null}
+        {route.name === 'log' ? <LogScreen /> : null}
+        {route.name === 'progress' ? <ProgressScreen /> : null}
         {route.name === 'measures' ? (
           <PlaceholderScreen
             title="Misure"

@@ -10,6 +10,16 @@ export {
   toIsoDate,
 } from './dates.ts';
 export {
+  exerciseHistory,
+  filterLogRows,
+  logRows,
+  loggedExerciseSlugs,
+  maxSetCount,
+  type HistoryPoint,
+  type LogFilter,
+  type LogRow,
+} from './history.ts';
+export {
   assessLoadNeed,
   calibrateLoad,
   getLoadAvailability,

@@ -18,6 +18,18 @@
   --color-warn: #ffb02e;
   --color-danger: #ff6b6b;
 
+  /*
+   * Colori dei grafici, verificati con lo script di validazione contro la
+   * superficie #151b23: banda di luminosità, soglia di croma, contrasto.
+   * L'accento della UI (#4cc2ff) è troppo chiaro per fare da marca: resta
+   * per pulsanti ed etichette.
+   */
+  --color-mark: #3987e5;
+  --color-set-1: #86b6ef;
+  --color-set-2: #5598e7;
+  --color-set-3: #2a78d6;
+  --color-set-4: #1c5cab;
+
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
