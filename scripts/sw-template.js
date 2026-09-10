@@ -65,7 +65,15 @@ async function serve(request) {
   // nell'hash, non nel percorso.
   const key = request.mode === 'navigate' ? SHELL : request;
 
-  const hit = await cache.match(key);
+  /*
+   * `ignoreVary` non è un dettaglio: senza, l'app si apre bianca senza rete.
+   * Molti server statici rispondono con `Vary: Origin` (o `Accept-Encoding`),
+   * e il browser chiede il bundle con l'header Origin mentre il precache lo
+   * ha salvato senza. Stessa risorsa, richieste diverse, cache mancata.
+   * Qui i nomi dei file portano l'hash del contenuto: l'indirizzo identifica
+   * già i byte, quindi confrontare gli header non aggiunge niente.
+   */
+  const hit = await cache.match(key, { ignoreVary: true });
   if (hit !== undefined) return hit;
 
   // Da qui in poi siamo già fuori dal caso normale: un file che non era nel

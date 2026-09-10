@@ -14,7 +14,19 @@ import { extname, join, relative } from 'node:path';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const SKIP_DIRS = new Set(['node_modules', 'dist', '.git', 'coverage', '.vite']);
-const SCANNED_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.json', '.html', '.css', '.svg', '.md']);
+const SCANNED_EXTENSIONS = new Set([
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.json',
+  '.webmanifest',
+  '.html',
+  '.css',
+  '.svg',
+  '.md',
+]);
 
 /** L'unica base URL consentita: una ricerca, mai un video specifico. */
 const ALLOWED = ['https://www.youtube.com/results?search_query='];

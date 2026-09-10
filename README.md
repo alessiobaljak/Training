@@ -14,12 +14,12 @@ dato, il valore è la logica che decide quando salire di livello.
 | 1 | Scaffolding, tipi, trascrizione dei dati, test del seed | fatta, verificata contro l'Excel |
 | 2 | Motore: range, leve, avanzamento, zavorra, deload, medie | fatta |
 | 3 | Persistenza Dexie, export/import JSON, export CSV | fatta |
-| 4 | Onboarding Settimana 0 e Home | da fare |
+| 4 | Onboarding Settimana 0 e Home | fatta |
 | 5 | Player della sessione con timer di recupero | fatta |
 | 6 | Log e Progressi | fatta |
 | 7 | Misure | fatta |
 | 8 | Libreria esercizi, cue, SVG, gestione video | fatta |
-| 9 | PWA, service worker, installabilità, test offline | da fare |
+| 9 | PWA, service worker, installabilità, test offline | fatta, provata in modalità aereo |
 
 ## Stack
 
@@ -33,7 +33,9 @@ npm install
 npm run dev        # server di sviluppo
 npm run verify     # typecheck + test + controllo URL video
 npm run smoke      # build + prova end-to-end su Chromium
+npm run offline    # build + prova in modalità aereo su Chromium
 npm run svg        # rigenera le illustrazioni degli esercizi
+npm run icons      # rigenera le icone della PWA
 npm run build      # build di produzione
 ```
 
@@ -46,9 +48,64 @@ prendere quello che gli unit test non vedono: una schermata che resta nera
 perché una query scrive dentro una transazione di sola lettura non fa fallire
 nessun test del motore.
 
+`npm run offline` è la prova che conta per una PWA: carica l'app una volta con
+la rete, poi spegne la rete davvero, riapre l'app, scrive una misura, riavvia,
+e alla fine spegne anche il server di anteprima. Un service worker corretto da
+leggere e rotto all'uso è la norma, non l'eccezione: senza questa prova non c'è
+motivo di credere che l'app si apra in palestra.
+
 ## Installazione sul telefono
 
-Da completare nella Fase 9, quando ci saranno service worker, manifest e icone.
+L'app va servita da un qualunque server statico in **HTTPS** (oppure da
+`localhost`): senza HTTPS il browser non attiva il service worker e l'offline
+non esiste. `npm run build` produce `dist/`, che è tutto quello che serve.
+I percorsi sono relativi, quindi funziona anche da una sottocartella.
+
+**iPhone, Safari.** Apri l'indirizzo, tocca Condividi, poi «Aggiungi a Home».
+Deve essere Safari: da Chrome su iOS l'aggiunta non installa niente.
+
+**Android, Chrome.** Apri l'indirizzo, menu a tre punti, «Installa app».
+Dove il browser lo permette, la schermata «App e dati» mostra direttamente un
+pulsante Installa.
+
+Dopo l'installazione **apri e chiudi l'app una volta con la rete accesa**: al
+primo avvio il service worker scarica e mette da parte tutti i file. Dal
+secondo avvio in poi funziona in modalità aereo. La schermata «App e dati» lo
+dice esplicitamente: «Pronta offline» in verde significa che puoi partire.
+
+Installarla non è solo comodità. È quello che convince iOS e Android a non
+cancellare il database per fare spazio: vedi «Dove stanno i dati».
+
+## Come funziona l'offline
+
+`scripts/sw-template.js` è il service worker, scritto a mano, senza Workbox né
+altre librerie: sono ottanta righe che si leggono tutte. Un plugin dentro
+`vite.config.ts` lo emette in `dist/sw.js` sostituendo due segnaposto con la
+versione (l'hash del contenuto di tutti i file del build) e con l'elenco reale
+dei file compilati.
+
+La strategia è una sola: al primo avvio mette in cache tutto, poi serve solo
+dalla cache. La rete è un ripiego per un file che manca, mai la strada normale.
+
+Tre dettagli che sembrano piccoli e non lo sono:
+
+- **`ignoreVary: true` nella lettura dalla cache.** Senza, l'app si apre
+  bianca. Molti server statici rispondono con `Vary: Origin`, e il browser
+  chiede il bundle con l'header `Origin` mentre il precache lo ha salvato
+  senza: stessa risorsa, richieste diverse, cache mancata. È esattamente il
+  difetto che `npm run offline` ha trovato, e che un ricaricamento normale non
+  fa emergere perché i file arrivano dalla cache HTTP senza passare dal
+  service worker.
+- **Le richieste fuori origine non vengono intercettate.** Il pulsante «Cerca
+  un video» apre YouTube in un'altra scheda: quella navigazione non passa da
+  qui.
+- **Un build nuovo prende il posto del vecchio subito.** L'app non ha code
+  splitting, quindi non esistono pezzi vecchi che possano essere richiesti
+  dopo lo scambio.
+
+Le icone stanno in `public/icons/` e le genera `npm run icons` da un unico
+marchio vettoriale. Il marchio resta dentro il cerchio di sicurezza che Android
+ritaglia sulle icone maskable.
 
 ## Dove stanno i dati
 
@@ -85,6 +142,20 @@ cloud. L'unica via d'uscita è il backup, e parte da un gesto esplicito.
 
 La UI non parla mai con Dexie: passa da `ShadowRepository`, così le validazioni
 non si possono aggirare per distrazione.
+
+**Il sistema operativo può cancellare questo database.** Non è un rischio
+teorico: Safari elimina i dati dei siti non installati dopo qualche settimana
+di inattività, e sia iOS sia Android liberano spazio a spese dei siti quando il
+telefono è pieno. Due difese, entrambe necessarie:
+
+1. **Installare l'app sulla schermata Home.** Un'app installata è molto più
+   difficile da svuotare di un sito aperto nel browser.
+2. **Chiedere l'archiviazione persistente.** L'app la chiede da sola quando è
+   già installata; da browser il pulsante sta in «App e dati», sezione Spazio,
+   perché lì Firefox aprirebbe una richiesta di permesso a freddo. La stessa
+   schermata dice se è stata concessa.
+
+Nessuna delle due è una garanzia. Il backup sì.
 
 ## L'interfaccia
 
@@ -260,8 +331,13 @@ sopravvissute e hanno prodotto una semplificazione e un test in più.
 
 ## Backup
 
-I dati vivono solo nello storage del browser: disinstallare la PWA o cancellare
-i dati del sito li elimina. Il backup è manuale ed è l'unica rete di sicurezza.
+I dati vivono solo nello storage del browser: disinstallare la PWA, cancellare
+i dati del sito o lasciare che il sistema liberi spazio li elimina. Il backup è
+manuale ed è l'unica rete di sicurezza.
+
+La schermata «App e dati» mostra da quanti giorni non ne fai uno e diventa
+gialla a quattordici giorni, rossa a trenta. Il momento giusto è la fine di
+ogni settimana di allenamento.
 
 **Backup completo, JSON.** Un solo file con tutte le tabelle. Il ripristino ha
 due modalità: `replace` svuota e riscrive, ed è il caso del telefono nuovo;
