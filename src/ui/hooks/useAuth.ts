@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { missingConfigKeys, type ConfigKey } from '../../firebase/config.ts';
 import {
   consumeRedirectResult,
+  describeAuthError,
   observeAccount,
   signIn as firebaseSignIn,
   signOut as firebaseSignOut,
@@ -39,22 +40,6 @@ export interface AuthStatus {
   readonly disableBiometric: () => void;
 }
 
-function describe(cause: unknown): string {
-  if (typeof cause === 'object' && cause !== null && 'code' in cause) {
-    const code = String((cause as { code: unknown }).code);
-    if (code === 'auth/account-exists-with-different-credential') {
-      return 'Questo indirizzo è già collegato all’altro accesso. Usa quello con cui sei entrato la prima volta.';
-    }
-    if (code === 'auth/network-request-failed') {
-      return 'Nessuna rete. L’accesso ha bisogno di connessione, una volta sola.';
-    }
-    if (code === 'auth/unauthorized-domain') {
-      return 'Questo indirizzo non è tra i domini autorizzati nella console Firebase.';
-    }
-  }
-  return cause instanceof Error ? cause.message : 'Accesso non riuscito.';
-}
-
 export function useAuthStatus(): AuthStatus {
   const missingKeys = missingConfigKeys();
   const configured = missingKeys.length === 0;
@@ -73,7 +58,10 @@ export function useAuthStatus(): AuthStatus {
 
     // Un accesso via redirect torna qui: va raccolto prima di decidere se
     // mostrare la schermata di login, altrimenti l'utente la rivede e basta.
-    void consumeRedirectResult().catch(() => null);
+    // Se il giro è fallito, l'errore va a schermo invece che nel nulla.
+    void consumeRedirectResult().then((outcome) => {
+      if (outcome.error !== null) setError(outcome.error);
+    });
 
     return observeAccount((next) => {
       setAccount(next);
@@ -96,7 +84,7 @@ export function useAuthStatus(): AuthStatus {
   const signIn = useCallback((provider: ProviderId): void => {
     setError(null);
     void firebaseSignIn(provider).catch((cause: unknown) => {
-      setError(describe(cause));
+      setError(describeAuthError(cause));
     });
   }, []);
 

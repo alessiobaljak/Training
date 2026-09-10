@@ -134,6 +134,42 @@ accesso.
 I deploy di anteprima di Vercel hanno domini diversi a ogni push. Se ti serve
 l'accesso anche lì, aggiungi anche quelli, oppure prova solo in produzione.
 
+## 7b. La deviazione di `/__/auth` (serve su iPhone)
+
+**Sintomo se salti questo passo:** premi «Continua con Google», il giro parte,
+e torni indietro con
+
+> Unable to process request due to missing initial state.
+
+Non è un errore di configurazione: è Safari che isola la memoria dei siti di
+terze parti. L'accesso passa da una pagina ospitata su
+`<ID-PROGETTO>.firebaseapp.com`, che per il tuo browser è un altro sito, e la
+memoria che quella pagina usa per ricordarsi dove tornare viene buttata via.
+
+La cura è far vivere quella pagina sul tuo stesso dominio. Due modifiche:
+
+**1. In `vercel.json`**, aggiungi la deviazione con il tuo id progetto:
+
+```json
+"rewrites": [
+  {
+    "source": "/__/auth/:path*",
+    "destination": "https://<ID-PROGETTO>.firebaseapp.com/__/auth/:path*"
+  }
+]
+```
+
+**2. Su Vercel**, cambia una sola variabile:
+
+```
+VITE_FIREBASE_AUTH_DOMAIN = il-tuo-dominio.vercel.app
+```
+
+Non più `<ID-PROGETTO>.firebaseapp.com`. Poi rifai il deploy.
+
+Da quel momento la pagina di accesso è servita dal tuo dominio, il browser non
+ha più niente da isolare, e funzionano sia il popup sia il redirect.
+
 ## 8. Mettere le variabili su Vercel
 
 1. Progetto su Vercel, **Settings > Environment Variables**.
@@ -178,7 +214,7 @@ Copia `.env.example` in `.env.local` e riempilo per lavorare sul progetto vero.
 |---|---|
 | «Configurazione incompleta» con l'elenco delle variabili | Variabili non su Vercel, o deploy non rifatto dopo averle aggiunte |
 | `auth/unauthorized-domain` | Passo 7 saltato |
-| Accesso che gira a vuoto su iPhone | Il popup non torna: l'app ripiega sul redirect da sola, riprova una volta |
+| «missing initial state» dopo l'accesso | Passo 7b saltato: manca la deviazione di `/__/auth` |
 | «Missing or insufficient permissions» | Regole non caricate: passo 5 |
 | Accesso fatto ma storico vuoto | Account diverso da quello di prima. L'app chiede sempre quale Google usare proprio per questo |
 

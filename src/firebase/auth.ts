@@ -55,11 +55,17 @@ function buildProvider(id: ProviderId) {
   return provider;
 }
 
-/** Errori che significano «il popup non è praticabile qui», non «accesso fallito». */
+/**
+ * Errori che significano «il popup non è praticabile qui».
+ *
+ * L'elenco è corto apposta. Prima conteneva anche `popup-closed-by-user` e
+ * `cancelled-popup-request`, che vogliono dire tutt'altro: l'utente ha chiuso
+ * la finestra, o ne ha aperta una seconda. Trattarli come «popup non
+ * disponibile» faceva partire il redirect a sorpresa dopo un annullamento, e
+ * il redirect, su Safari, finisce nell'errore «missing initial state».
+ */
 const POPUP_UNAVAILABLE = new Set([
   'auth/popup-blocked',
-  'auth/popup-closed-by-user',
-  'auth/cancelled-popup-request',
   'auth/operation-not-supported-in-this-environment',
 ]);
 
@@ -67,6 +73,39 @@ function errorCode(cause: unknown): string {
   return typeof cause === 'object' && cause !== null && 'code' in cause
     ? String((cause as { code: unknown }).code)
     : '';
+}
+
+/** Messaggi in italiano, e soprattutto che dicano cosa fare. */
+export function describeAuthError(cause: unknown): string {
+  const code = errorCode(cause);
+  const text = cause instanceof Error ? cause.message : String(cause);
+
+  if (
+    code === 'auth/missing-initial-state' ||
+    text.includes('missing initial state') ||
+    code === 'auth/web-storage-unsupported'
+  ) {
+    return (
+      'Il browser ha isolato la memoria della pagina di accesso di Google, e il giro non è potuto tornare indietro. ' +
+      'Non è colpa di come hai configurato Firebase: serve la deviazione di /__/auth su Vercel, in docs/configurazione.md.'
+    );
+  }
+  if (code === 'auth/account-exists-with-different-credential') {
+    return 'Questo indirizzo è già collegato all’altro accesso. Usa quello con cui sei entrato la prima volta.';
+  }
+  if (code === 'auth/network-request-failed') {
+    return 'Nessuna rete. L’accesso ha bisogno di connessione, una volta sola.';
+  }
+  if (code === 'auth/unauthorized-domain') {
+    return 'Questo indirizzo non è tra i domini autorizzati nella console Firebase: Authentication, Settings, Domini autorizzati.';
+  }
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') {
+    return 'Hai chiuso la finestra di accesso. Riprova quando vuoi.';
+  }
+  if (code === 'auth/operation-not-allowed') {
+    return 'Questo tipo di accesso non è attivo nella console Firebase: Authentication, Sign-in method.';
+  }
+  return cause instanceof Error ? cause.message : 'Accesso non riuscito.';
 }
 
 export class AuthUnavailableError extends Error {
@@ -116,15 +155,31 @@ export async function signIn(id: ProviderId): Promise<AccountInfo | null> {
   }
 }
 
+export interface RedirectOutcome {
+  readonly account: AccountInfo | null;
+  /** Errore del giro di redirect, già tradotto. `null` se è andato bene. */
+  readonly error: string | null;
+}
+
 /**
  * Raccoglie l'esito di un accesso via redirect. Va chiamata all'avvio, prima
  * di decidere se mostrare la schermata di login.
+ *
+ * L'errore non si butta via: se il redirect fallisce e nessuno lo dice,
+ * l'utente rivede la schermata di accesso senza capire perché.
  */
-export async function consumeRedirectResult(): Promise<AccountInfo | null> {
+export async function consumeRedirectResult(): Promise<RedirectOutcome> {
   const firebase = getFirebase();
-  if (firebase === null) return null;
-  const credential = await getRedirectResult(firebase.auth).catch(() => null);
-  return credential === null ? null : toAccountInfo(credential.user);
+  if (firebase === null) return { account: null, error: null };
+  try {
+    const credential = await getRedirectResult(firebase.auth);
+    return {
+      account: credential === null ? null : toAccountInfo(credential.user),
+      error: null,
+    };
+  } catch (cause) {
+    return { account: null, error: describeAuthError(cause) };
+  }
 }
 
 export async function signOut(): Promise<void> {
