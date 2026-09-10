@@ -9,21 +9,26 @@ import {
 } from '../../db/backup.ts';
 import { csvFileName, sessionsToCsv } from '../../db/csv.ts';
 import { repository } from '../../db/repository.ts';
-import { todayIso } from '../../engine/dates.ts';
+import { daysBetween, todayIso } from '../../engine/dates.ts';
+import { backupAdvice, formatBytes } from '../../pwa/offline.ts';
 import { downloadTextFile, readTextFile } from '../download.ts';
 import { useSessions, useSettings } from '../hooks/useData.ts';
+import { usePwaStatus } from '../hooks/usePwa.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 import type { ImportMode, ImportReport } from '../../db/backup.ts';
 
 /**
- * Backup e ripristino.
+ * Installazione, stato offline, backup e ripristino.
  *
- * È l'unica via d'uscita dei dati e l'unica rete di sicurezza: senza cloud e
- * senza account, un telefono perso senza backup è tutto lo storico perso.
+ * Il backup è l'unica via d'uscita dei dati e l'unica rete di sicurezza: senza
+ * cloud e senza account, un telefono perso senza backup è tutto lo storico
+ * perso. L'installazione sulla schermata Home non è un vezzo: è quello che
+ * convince il sistema operativo a non cancellare il database.
  */
 export function SettingsScreen() {
   const settings = useSettings();
   const sessions = useSessions();
+  const pwa = usePwaStatus();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<ImportMode>('replace');
@@ -32,6 +37,9 @@ export function SettingsScreen() {
   const [busy, setBusy] = useState(false);
 
   const today = todayIso();
+  const backup = backupAdvice(
+    settings?.lastBackupAt == null ? null : daysBetween(settings.lastBackupAt.slice(0, 10), today),
+  );
 
   const handleExportBackup = (): void => {
     setError(null);
@@ -77,22 +85,89 @@ export function SettingsScreen() {
   };
 
   return (
-    <Screen title="Dati e backup" subtitle="Tutto resta su questo telefono">
+    <Screen title="App e dati" subtitle="Tutto resta su questo telefono">
       <div className="space-y-4">
         <Notice tone="warn">
           Non c’è nessun cloud e nessun account. Se perdi il telefono o cancelli i dati del sito,
           lo storico sparisce. Il backup è manuale ed è l’unica copia che avrai.
         </Notice>
 
+        <SectionTitle>Offline</SectionTitle>
+        <Notice tone={pwa.offline.tone}>
+          <p className="font-semibold">{pwa.offline.headline}</p>
+          <p className="mt-1">{pwa.offline.detail}</p>
+        </Notice>
+
+        <SectionTitle>Installazione</SectionTitle>
+        <Card>
+          {pwa.install === 'installed' ? (
+            <p className="text-sm leading-relaxed text-dim">
+              L’app è già installata. È così che deve stare: a schermo pieno, senza barra del
+              browser, e con i dati che il sistema non cancella per fare spazio.
+            </p>
+          ) : (
+            <>
+              <p className="text-sm leading-relaxed text-dim">
+                Installala sulla schermata Home. Non è solo comodità: un sito normale può essere
+                svuotato dal sistema per liberare spazio, un’app installata molto più difficilmente.
+              </p>
+              {pwa.install === 'prompt-available' ? (
+                <div className="mt-3">
+                  <Button full size="lg" onClick={pwa.askToInstall}>
+                    Installa l’app
+                  </Button>
+                </div>
+              ) : (
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-dim">
+                  <li>
+                    <span className="font-semibold text-ink">iPhone, Safari:</span> pulsante
+                    Condividi, poi «Aggiungi a Home».
+                  </li>
+                  <li>
+                    <span className="font-semibold text-ink">Android, Chrome:</span> menu a tre
+                    punti, poi «Installa app» o «Aggiungi a schermata Home».
+                  </li>
+                </ul>
+              )}
+            </>
+          )}
+        </Card>
+
+        <SectionTitle>Spazio</SectionTitle>
+        {pwa.storageAdvice === null ? (
+          <Card tone="muted">
+            <p className="text-sm text-dim">Lettura dello spazio in corso…</p>
+          </Card>
+        ) : (
+          <Card>
+            <p className="text-sm font-semibold">{pwa.storageAdvice.headline}</p>
+            <p className="mt-1 text-sm leading-relaxed text-dim">{pwa.storageAdvice.detail}</p>
+            {pwa.storage !== null && pwa.storage.usageBytes !== null ? (
+              <p className="mt-2 text-xs text-dim">
+                Occupati: {formatBytes(pwa.storage.usageBytes)}
+                {pwa.storage.quotaBytes === null
+                  ? ''
+                  : ` su ${formatBytes(pwa.storage.quotaBytes)} disponibili`}
+              </p>
+            ) : null}
+            {pwa.storage?.persisted === false ? (
+              <div className="mt-3">
+                <Button full variant="secondary" size="lg" onClick={pwa.askForPersistence}>
+                  Chiedi di proteggere i dati
+                </Button>
+              </div>
+            ) : null}
+          </Card>
+        )}
+
         <SectionTitle>Backup completo</SectionTitle>
+        <Notice tone={backup.tone}>
+          <p className="font-semibold">{backup.headline}</p>
+          <p className="mt-1">{backup.detail}</p>
+        </Notice>
         <Card>
           <p className="text-sm leading-relaxed text-dim">
             Un file JSON con tutto: sedute, test, misure, livelli e video salvati.
-          </p>
-          <p className="mt-2 text-xs text-dim">
-            {settings?.lastBackupAt == null
-              ? 'Non ne hai ancora fatto uno.'
-              : `Ultimo backup: ${settings.lastBackupAt.slice(0, 10)}`}
           </p>
           <div className="mt-3">
             <Button full size="lg" disabled={busy} onClick={handleExportBackup}>

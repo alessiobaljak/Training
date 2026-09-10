@@ -13,34 +13,12 @@
  * eseguibile ovunque senza browser.
  */
 import { spawn } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { chromium } from 'playwright';
+import { launchOptions } from './chromium.mjs';
+import { completeOnboarding } from './onboarding.mjs';
 
 const PORT = 4181;
 const BASE = `http://localhost:${String(PORT)}`;
-
-/** Valori di esempio del foglio Test_Livelli e range che la scheda scrive. */
-const CASES = [
-  { value: 10, range: '6-8' },
-  { value: 12, range: '7-9' },
-  { value: 30, range: '17-23' },
-  { value: 18, range: '10-14' },
-  { value: 8, range: '4-6' },
-  { value: 15, range: '8-11' },
-  // Nordic curl: la scheda scrive 3-5, la formula dà 2-3. Vince la formula.
-  { value: 4, range: '2-3' },
-  { value: 45, range: '25-34"' },
-  { value: 60, range: '33-45"' },
-];
-
-function findChromium() {
-  const candidates = [
-    process.env['CHROMIUM_PATH'],
-    '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-    '/opt/pw-browsers/chromium/chrome-linux/chrome',
-  ].filter((path) => typeof path === 'string' && path !== '');
-  return candidates.find((path) => existsSync(path));
-}
 
 async function waitForServer(timeoutMs = 20_000) {
   const deadline = Date.now() + timeoutMs;
@@ -69,8 +47,7 @@ let browser;
 try {
   await waitForServer();
 
-  const executablePath = findChromium();
-  browser = await chromium.launch(executablePath === undefined ? {} : { executablePath });
+  browser = await chromium.launch(launchOptions());
   const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 
   const errors = [];
@@ -84,36 +61,14 @@ try {
     'Senza test la Home deve restare bloccata e portare ai test.',
   );
 
-  await page.goto(`${BASE}/#/test`, { waitUntil: 'load' });
-  await page.waitForTimeout(800);
-  await page.getByRole('button', { name: 'Inizia i test' }).click();
-  await page.waitForTimeout(400);
-
-  for (const [index, testCase] of CASES.entries()) {
-    const inputs = page.locator('input[type=number]');
-    const count = await inputs.count();
-    for (let k = 0; k < count; k += 1) await inputs.nth(k).fill(String(testCase.value));
-    await page.waitForTimeout(200);
-
-    const shown = (await page.getByTestId('range').innerText()).trim();
-    check(
-      shown === testCase.range,
-      `Test ${String(index + 1)}: atteso range ${testCase.range}, mostrato "${shown}".`,
-    );
-
-    await page.getByRole('button', { name: 'Salva e continua' }).click();
-    await page.waitForTimeout(400);
-    const skip = page.getByRole('button', { name: 'Salta il recupero' });
-    if ((await skip.count()) > 0) {
-      await skip.click();
-      await page.waitForTimeout(300);
-    }
-  }
-
-  await page.getByRole('button', { name: 'Parti questa settimana' }).click();
-  await page.waitForTimeout(200);
-  await page.getByRole('button', { name: 'Conferma e vai alla Home' }).click();
-  await page.waitForTimeout(900);
+  await completeOnboarding(page, BASE, {
+    onRange: (shown, testCase, index) => {
+      check(
+        shown === testCase.range,
+        `Test ${String(index + 1)}: atteso range ${testCase.range}, mostrato "${shown}".`,
+      );
+    },
+  });
 
   const startButton = page.getByRole('button', { name: 'Inizia', exact: true });
   check(

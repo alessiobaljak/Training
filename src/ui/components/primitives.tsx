@@ -157,10 +157,11 @@ export function Notice({
   tone = 'accent',
 }: {
   children: ReactNode;
-  tone?: 'accent' | 'warn' | 'danger';
+  tone?: 'accent' | 'good' | 'warn' | 'danger';
 }) {
   const tones = {
     accent: 'border-accent/40 bg-accent/10 text-ink',
+    good: 'border-good/40 bg-good/10 text-ink',
     warn: 'border-warn/40 bg-warn/10 text-ink',
     danger: 'border-danger/40 bg-danger/10 text-ink',
   } as const;

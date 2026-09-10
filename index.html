@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0b0f14" />
+    <meta
+      name="description"
+      content="Motore di progressione per il protocollo Calisthenics Shadow. Funziona senza rete."
+    />
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+
+    <!--
+      iOS non legge il manifest per la schermata Home: display, titolo e barra
+      di stato passano solo da questi meta.
+    -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Shadow" />
+
     <title>Shadow — Calisthenics</title>
   </head>
   <body>
