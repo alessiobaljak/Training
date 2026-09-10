@@ -196,6 +196,35 @@ try {
     'Senza rete la Home deve proporre la seduta del giorno, con i dati già salvati.',
   );
 
+  /*
+   * `/__/auth/...` è la pagina di accesso di Firebase, deviata sul nostro
+   * dominio da Vercel. Il service worker non deve toccarla.
+   *
+   * Il controllo si fa senza rete apposta: se il service worker se la
+   * mangiasse, risponderebbe con l'index.html dell'app e la navigazione
+   * riuscirebbe. Deve invece fallire, perché senza rete quella pagina non è
+   * raggiungibile e nessuno ha il diritto di rispondere al posto suo.
+   *
+   * È il difetto che ha prodotto una pagina bianca in produzione: l'app
+   * caricata da un percorso profondo andava a cercare il proprio codice sotto
+   * /__/auth/, dove non c'è niente.
+   */
+  // In una scheda a parte: una navigazione fallita lascia la pagina su un
+  // errore del browser, e quella dopo verrebbe interrotta a metà.
+  const probe = await context.newPage();
+  let authHandlerServed = false;
+  try {
+    await probe.goto(`${BASE}/__/auth/handler`, { waitUntil: 'load' });
+    authHandlerServed = true;
+  } catch {
+    /* atteso: senza rete quella pagina non è raggiungibile */
+  }
+  await probe.close();
+  check(
+    !authHandlerServed,
+    'Il service worker non deve rispondere per /__/auth: è la pagina di accesso di Firebase, non nostra.',
+  );
+
   /* Le schermate pesanti: grafici, illustrazioni, scala di progressione. */
 
   await open(page, `${BASE}/#/esercizi`);

@@ -51,9 +51,24 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
 
+  const url = new URL(request.url);
+
   // Fuori dall'app non tocchiamo niente: il pulsante "Cerca un video" apre
   // YouTube in un'altra scheda e quella richiesta non deve passare da qui.
-  if (new URL(request.url).origin !== self.location.origin) return;
+  if (url.origin !== self.location.origin) return;
+
+  /*
+   * `/__/auth/...` non è nostro: è la pagina di accesso di Firebase, che
+   * arriva qui perché Vercel la devia sul nostro dominio.
+   *
+   * Senza questa riga il service worker se la mangia e risponde con
+   * l'index.html dell'app. Il risultato è una pagina bianca: l'app viene
+   * caricata da un percorso profondo, e siccome i suoi indirizzi sono
+   * relativi va a cercare il proprio codice sotto /__/auth/, dove non c'è
+   * niente. E la deviazione, che serviva proprio a far funzionare l'accesso,
+   * non viene mai raggiunta.
+   */
+  if (url.pathname.startsWith('/__/')) return;
 
   event.respondWith(serve(request));
 });

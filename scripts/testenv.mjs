@@ -104,7 +104,28 @@ export function stopGroup(child) {
  */
 export async function signInForTests(page) {
   const button = page.getByRole('button', { name: 'Continua con Google' });
-  await button.waitFor({ state: 'visible', timeout: 20_000 });
+  await button.waitFor({ state: 'visible', timeout: 30_000 });
   await button.click();
-  await page.waitForTimeout(2500);
+
+  // Si aspetta che la schermata di accesso se ne vada, non un tempo fisso:
+  // con gli emulatori ancora tiepidi il giro può prendere qualche secondo, e
+  // un'attesa a tempo faceva fallire la prova in modo intermittente.
+  await button.waitFor({ state: 'detached', timeout: 30_000 });
+
+  /*
+   * Entrati non basta: le prime letture da Firestore arrivano dopo, e finché
+   * non arrivano la Home mostra «Carico…». Chi chiama si aspetta una
+   * schermata su cui poter cliccare, quindi si aspetta quella.
+   */
+  await page
+    .waitForFunction(
+      () => {
+        const root = document.getElementById('root');
+        return root !== null && root.innerText.trim() !== '' && !root.innerText.includes('Carico');
+      },
+      undefined,
+      { timeout: 30_000 },
+    )
+    .catch(() => undefined);
+  await page.waitForTimeout(300);
 }
