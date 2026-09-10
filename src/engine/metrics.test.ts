@@ -4,6 +4,7 @@ import {
   adherenceFromSessions,
   fromWeightEntries,
   movingAverage,
+  plannedSessionsSoFar,
   sessionsInWeek,
   summarizeExercise,
   volumeByGroup,
@@ -220,6 +221,45 @@ describe('aderenza', () => {
       loggedSession('2026-09-15', 1, [], 'abandoned'),
       loggedSession('2026-09-16', 1, [], 'in-progress'),
     ];
-    expect(adherenceFromSessions(sessions, 6, 1)).toEqual({ completed: 1, planned: 6, percent: 17 });
+    // Mercoledì della prima settimana: tre sedute dovute, non sei.
+    expect(adherenceFromSessions(sessions, 6, '2026-09-14', '2026-09-16')).toEqual({
+      completed: 1,
+      planned: 3,
+      percent: 33,
+    });
+  });
+
+  it('senza data di inizio non c’è una percentuale da mostrare', () => {
+    expect(adherenceFromSessions([], 6, null, '2026-09-16').percent).toBeNull();
+  });
+});
+
+describe('sedute previste fino a oggi', () => {
+  it('la settimana in corso conta solo per i giorni passati', () => {
+    // Lunedì 14 settembre 2026 è l'inizio: al martedì sono dovute due sedute.
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-14', 6)).toBe(1);
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-15', 6)).toBe(2);
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-19', 6)).toBe(6);
+  });
+
+  it('la domenica non aggiunge una seduta: sono sei a settimana', () => {
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-20', 6)).toBe(6);
+  });
+
+  it('le settimane concluse contano intere', () => {
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-21', 6)).toBe(7);
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-27', 6)).toBe(12);
+  });
+
+  it('non conta nulla prima dell’inizio', () => {
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-07', 6)).toBe(0);
+  });
+
+  it('chi è in pari non risulta mai sotto il cento per cento', () => {
+    // Sei sedute chiuse in una settimana piena: 100%, non 6 su 36.
+    const done = ['14', '15', '16', '17', '18', '19'].map((day) =>
+      loggedSession(`2026-09-${day}`, 1, [], 'completed'),
+    );
+    expect(adherenceFromSessions(done, 6, '2026-09-14', '2026-09-19').percent).toBe(100);
   });
 });

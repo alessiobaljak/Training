@@ -77,7 +77,7 @@ export function ProgressScreen() {
 
   const start = settings.programStartDate;
   const weeksElapsed = start === null ? 0 : Math.max(0, programWeek(start, todayIso()));
-  const adherence = adherenceFromSessions(sessions, SESSIONS_PER_WEEK, weeksElapsed);
+  const adherence = adherenceFromSessions(sessions, SESSIONS_PER_WEEK, start, todayIso());
 
   return (
     <Screen title="Progressi">
@@ -88,8 +88,9 @@ export function ProgressScreen() {
             {adherence.percent === null ? '—' : `${String(adherence.percent)}%`}
           </p>
           <p className="mt-1 text-sm text-dim">
-            {adherence.completed} sedute chiuse su {adherence.planned} previste in{' '}
-            {weeksElapsed === 1 ? 'una settimana' : `${String(weeksElapsed)} settimane`}.
+            {adherence.completed} sedute chiuse su {adherence.planned} previste fino a oggi.{' '}
+            {weeksElapsed <= 1 ? 'Prima settimana' : `Settimana ${String(weeksElapsed)}`}, con la
+            settimana in corso contata solo per i giorni già passati.
           </p>
         </Card>
 

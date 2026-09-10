@@ -40,6 +40,7 @@ export {
   fromWaistEntries,
   fromWeightEntries,
   movingAverage,
+  plannedSessionsSoFar,
   sessionsInWeek,
   summarizeExercise,
   volumeByGroup,

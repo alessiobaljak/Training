@@ -11,7 +11,7 @@ import type {
   WaistEntry,
   WeightEntry,
 } from '../types/index.ts';
-import { addDays, sortIsoDates, startOfWeek } from './dates.ts';
+import { addDays, daysBetween, isoWeekday, sortIsoDates, startOfWeek } from './dates.ts';
 
 /**
  * Medie, delta, volume e aderenza. Tutto puro, tutto su dati già registrati.
@@ -260,12 +260,32 @@ export function adherence(completed: number, planned: number): Adherence {
   return { completed, planned, percent: Math.round((completed / planned) * 100) };
 }
 
-/** Aderenza calcolata sulle sedute effettivamente chiuse. */
+/**
+ * Sedute previste da inizio programma fino a oggi compreso.
+ *
+ * La settimana in corso conta solo per i giorni già passati. Contarla intera
+ * farebbe apparire in ritardo chi è perfettamente in pari: al martedì della
+ * settimana 6 il denominatore sarebbe 36 invece di 32.
+ */
+export function plannedSessionsSoFar(
+  startDate: string,
+  today: string,
+  sessionsPerWeek: number,
+): number {
+  const week = Math.floor(daysBetween(startOfWeek(startDate), today) / 7) + 1;
+  if (week < 1) return 0;
+  const dueThisWeek = Math.min(isoWeekday(today), sessionsPerWeek);
+  return (week - 1) * sessionsPerWeek + dueThisWeek;
+}
+
+/** Aderenza sulle sedute chiuse, contro quelle previste fino a oggi. */
 export function adherenceFromSessions(
   sessions: readonly LoggedSession[],
-  plannedPerWeek: number,
-  weeks: number,
+  sessionsPerWeek: number,
+  startDate: string | null,
+  today: string,
 ): Adherence {
   const completed = sessions.filter((session) => session.status === 'completed').length;
-  return adherence(completed, plannedPerWeek * weeks);
+  if (startDate === null) return adherence(completed, 0);
+  return adherence(completed, plannedSessionsSoFar(startDate, today, sessionsPerWeek));
 }
