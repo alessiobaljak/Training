@@ -35,6 +35,18 @@ jobs:
 
       - run: npm ci
 
+      # Il jar dell'emulatore Firestore pesa un centinaio di megabyte. Senza
+      # cache viene riscaricato a ogni giro, e il primo tentativo scadeva
+      # prima ancora di arrivare ad avviare qualcosa.
+      - name: Cache degli emulatori
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/firebase/emulators
+          key: emulatori-firebase-${{ runner.os }}
+
+      - name: Scarica gli emulatori
+        run: npx firebase setup:emulators:firestore
+
       # Le stesse prove che gira Vercel, ripetute qui perché il risultato resti
       # visibile nella storia del repository e non solo nei log di un deploy.
       - name: Verifica

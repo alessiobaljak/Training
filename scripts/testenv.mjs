@@ -6,6 +6,9 @@
  * chiavi qui sotto sono finte e non aprono niente.
  */
 import { spawn, spawnSync } from 'node:child_process';
+import { openSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 export const AUTH_PORT = 9099;
 export const FIRESTORE_PORT = 8080;
@@ -29,7 +32,12 @@ export function buildForTests() {
   if (result.status !== 0) throw new Error('Build fallito.');
 }
 
-async function waitForPort(port, timeoutMs = 60_000) {
+/*
+ * Il primo avvio su una macchina pulita scarica un jar da un centinaio di
+ * megabyte prima di poter fare qualunque cosa. Tre minuti sono il tempo di
+ * quel download su un runner lento, non un margine di sicurezza.
+ */
+async function waitForPort(port, logPath, timeoutMs = 180_000) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -39,10 +47,25 @@ async function waitForPort(port, timeoutMs = 60_000) {
       await new Promise((resolve) => setTimeout(resolve, 400));
     }
   }
-  throw new Error(`Emulatore non partito sulla porta ${String(port)}.`);
+
+  // Senza questo il messaggio è «non è partito» e basta, che non dice se il
+  // problema è il download, la porta occupata o Java che manca.
+  let tail = '(nessun log)';
+  try {
+    tail = readFileSync(logPath, 'utf8').split('\n').slice(-25).join('\n');
+  } catch {
+    /* il log può non esistere se il processo è morto subito */
+  }
+  throw new Error(
+    `Emulatore non partito sulla porta ${String(port)} entro ${String(Math.round(timeoutMs / 1000))}s.\n` +
+      `Ultime righe del log:\n${tail}`,
+  );
 }
 
 export async function startEmulators() {
+  const logPath = join(tmpdir(), `shadow-emulatori-${String(process.pid)}.log`);
+  const log = openSync(logPath, 'w');
+
   const child = spawn(
     'npx',
     [
@@ -56,10 +79,10 @@ export async function startEmulators() {
     // Gruppo di processi a sé: gli emulatori avviano un Java figlio, e
     // ucciderne solo il padre lo lascerebbe vivo, attaccato alle porte, a far
     // fallire la prova successiva con un messaggio che non c'entra niente.
-    { stdio: 'ignore', detached: true },
+    { stdio: ['ignore', log, log], detached: true },
   );
-  await waitForPort(FIRESTORE_PORT);
-  await waitForPort(AUTH_PORT);
+  await waitForPort(FIRESTORE_PORT, logPath);
+  await waitForPort(AUTH_PORT, logPath);
   return child;
 }
 
