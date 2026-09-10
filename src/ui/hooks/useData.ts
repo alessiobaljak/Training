@@ -2,7 +2,14 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { repository } from '../../db/repository.ts';
 import type { AppSettings } from '../../db/db.ts';
 import type { TestRound } from '../../engine/ranges.ts';
-import type { ExerciseState, LoggedSession, TestId, TestResult } from '../../types/index.ts';
+import type {
+  ExerciseState,
+  LoggedSession,
+  TestId,
+  TestResult,
+  WaistEntry,
+  WeightEntry,
+} from '../../types/index.ts';
 
 /**
  * Letture reattive dal database.
@@ -48,4 +55,12 @@ export function useSessions(): LoggedSession[] | undefined {
 
 export function useExerciseStates(): ExerciseState[] | undefined {
   return useLiveQuery(() => repository.listExerciseStates(), []);
+}
+
+export function useWeights(): WeightEntry[] | undefined {
+  return useLiveQuery(() => repository.listWeights(), []);
+}
+
+export function useWaists(): WaistEntry[] | undefined {
+  return useLiveQuery(() => repository.listWaists(), []);
 }

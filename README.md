@@ -17,7 +17,7 @@ dato, il valore è la logica che decide quando salire di livello.
 | 4 | Onboarding Settimana 0 e Home | da fare |
 | 5 | Player della sessione con timer di recupero | fatta |
 | 6 | Log e Progressi | fatta |
-| 7 | Misure | da fare |
+| 7 | Misure | fatta |
 | 8 | Libreria esercizi, cue, SVG, gestione video | da fare |
 | 9 | PWA, service worker, installabilità, test offline | da fare |
 
@@ -177,6 +177,25 @@ un blu dedicato.
 
 **Ogni grafico ha la sua tabella.** Un valore leggibile solo passando il dito
 sopra non è leggibile.
+
+## Misure
+
+**Il numero grande è la media a 7 giorni, non il peso di stamattina.** Il dato
+singolo oscilla di un chilo per acqua, sale e ora del giorno; leggerlo come
+progresso porta a decisioni sbagliate. Il valore giornaliero è un campo da
+riempire, non un risultato.
+
+**Il grafico è a enfasi, non a due serie alla pari.** La media è la linea, i
+pesi giornalieri sono puntini grigi dietro: servono a far vedere quanto
+oscilla il dato, non a essere letti uno per uno.
+
+**L'asse verticale non parte da zero.** Su un peso corporeo lo zero
+schiaccerebbe una variazione reale di due chili in una linea piatta. La scala è
+l'intervallo dei dati con un margine, e i numeri sono scritti sull'asse.
+
+**Nessun obiettivo di peso e nessuna azione suggerita.** Il foglio Misure della
+scheda ha una colonna "Azione suggerita" alimentata dalla dieta: è fuori da
+questa app, come richiesto.
 
 ## Il motore
 

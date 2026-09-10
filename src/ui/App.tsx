@@ -2,6 +2,7 @@ import { BottomNav } from './components/BottomNav.tsx';
 import { HomeScreen } from './screens/HomeScreen.tsx';
 import { OnboardingScreen } from './screens/OnboardingScreen.tsx';
 import { LogScreen } from './screens/LogScreen.tsx';
+import { MeasuresScreen } from './screens/MeasuresScreen.tsx';
 import { PlaceholderScreen } from './screens/PlaceholderScreen.tsx';
 import { ProgressScreen } from './screens/ProgressScreen.tsx';
 import { SessionScreen } from './session/SessionScreen.tsx';
@@ -27,13 +28,7 @@ export function App() {
         {route.name === 'session' ? <SessionScreen sessionId={route.sessionId} /> : null}
         {route.name === 'log' ? <LogScreen /> : null}
         {route.name === 'progress' ? <ProgressScreen /> : null}
-        {route.name === 'measures' ? (
-          <PlaceholderScreen
-            title="Misure"
-            phase={7}
-            what="Peso a digiuno, media mobile a 7 giorni in evidenza, girovita e delta."
-          />
-        ) : null}
+        {route.name === 'measures' ? <MeasuresScreen /> : null}
         {route.name === 'library' || route.name === 'exercise' ? (
           <PlaceholderScreen
             title="Esercizi"

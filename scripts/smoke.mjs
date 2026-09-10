@@ -222,6 +222,58 @@ try {
   const adherence = await page.locator('main p').first().innerText();
   check(/%$/.test(adherence.trim()), `L’aderenza deve essere una percentuale, letto "${adherence}".`);
 
+  /* ------------------------------ Misure -------------------------------- */
+
+  await page.goto(`${BASE}/#/misure`, { waitUntil: 'load' });
+  await page.waitForTimeout(1000);
+  check(
+    (await page.getByText('Media a 7 giorni').count()) > 0,
+    'La schermata Misure deve mettere in grande la media, non il peso del giorno.',
+  );
+
+  /*
+   * Due pesi diversi su due giorni: la media (81) deve differire dal peso del
+   * giorno (80), altrimenti il controllo non distingue i due numeri.
+   */
+  const days = page.getByTestId('week-strip').locator('button:not([disabled])');
+  const dayCount = await days.count();
+  check(dayCount >= 2, 'La striscia della settimana deve permettere di scegliere il giorno.');
+
+  const weightField = page.locator('input[type=number]').first();
+  await days.nth(dayCount - 2).click();
+  await page.waitForTimeout(200);
+  await weightField.fill('');
+  await weightField.pressSequentially('82', { delay: 60 });
+  await weightField.blur();
+  await page.waitForTimeout(400);
+
+  await days.nth(dayCount - 1).click();
+  await page.waitForTimeout(200);
+  /*
+   * Cifra per cifra, non in blocco: con il minimo applicato a ogni tasto il
+   * campo correggerebbe "8" al minimo e il numero resterebbe impossibile da
+   * scrivere. È un difetto che `fill` non fa emergere.
+   */
+  await weightField.fill('');
+  await weightField.pressSequentially('80', { delay: 60 });
+  await weightField.blur();
+  await page.waitForTimeout(600);
+
+  check(
+    (await weightField.inputValue()) === '80',
+    `Digitando "80" il campo deve contenere 80, non ${await weightField.inputValue()}.`,
+  );
+
+  const hero = (await page.locator('main p').nth(1).innerText()).trim();
+  check(
+    hero.startsWith('81'),
+    `Il numero grande deve essere la media dei due giorni, 81, non il peso di oggi. Letto "${hero}".`,
+  );
+  check(
+    (await page.locator('svg[role="img"]').count()) > 0,
+    'Le misure devono mostrare l’andamento del peso.',
+  );
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();

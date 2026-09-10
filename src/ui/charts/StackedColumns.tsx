@@ -29,9 +29,17 @@ export interface StackedColumnsProps {
   readonly title: string;
 }
 
-const PAD = { top: 18, right: 12, bottom: 34, left: 30 };
+/*
+ * Sistema di coordinate fisso, scalato alla larghezza del contenitore: con lo
+ * scorrimento orizzontale le etichette dell'asse verticale finirebbero fuori
+ * schermo proprio mentre si guardano i dati più recenti.
+ */
+const WIDTH = 340;
 const HEIGHT = 200;
-const SLOT = 34;
+const PAD = { top: 18, right: 12, bottom: 34, left: 30 };
+
+/** Oltre questo numero le colonne diventano illeggibili: si mostrano le ultime. */
+const MAX_COLUMNS = 24;
 
 export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
   const [picked, setPicked] = useState<string | null>(null);
@@ -40,13 +48,17 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
     return <p className="text-sm text-dim">Nessuna serie registrata su questo esercizio.</p>;
   }
 
-  const maxSets = columns.reduce((max, column) => Math.max(max, column.segments.length), 0);
-  const maxTotal = columns.reduce((max, column) => Math.max(max, column.total), 0);
+  const hidden = Math.max(0, columns.length - MAX_COLUMNS);
+  const shown = hidden === 0 ? columns : columns.slice(-MAX_COLUMNS);
+
+  const maxSets = shown.reduce((max, column) => Math.max(max, column.segments.length), 0);
+  const maxTotal = shown.reduce((max, column) => Math.max(max, column.total), 0);
   const ticks = niceTicks(maxTotal);
   const scaleTop = ticks.at(-1) ?? maxTotal;
 
   const plotHeight = HEIGHT - PAD.top - PAD.bottom;
-  const width = PAD.left + PAD.right + columns.length * SLOT;
+  const slot = (WIDTH - PAD.left - PAD.right) / shown.length;
+  const barWidth = Math.max(3, Math.min(MAX_BAR, slot - 4));
   const y = (value: number): number => PAD.top + plotHeight * (1 - value / (scaleTop || 1));
 
   /*
@@ -54,25 +66,23 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
    * appartiene ai dati correnti: cambiando esercizio le chiavi cambiano tutte,
    * e uno stato rimasto indietro lascerebbe il grafico senza dettaglio.
    */
-  const active = columns.find((column) => column.key === picked) ?? columns.at(-1) ?? null;
+  const active = shown.find((column) => column.key === picked) ?? shown.at(-1) ?? null;
   const selected = active?.key ?? null;
 
   return (
     <div>
-      <div className="overflow-x-auto">
+      <div>
         <svg
-          width={width}
-          height={HEIGHT}
-          viewBox={`0 0 ${String(width)} ${String(HEIGHT)}`}
+          viewBox={`0 0 ${String(WIDTH)} ${String(HEIGHT)}`}
           role="img"
           aria-label={title}
-          className="block"
+          className="block h-auto w-full"
         >
           {ticks.map((tick) => (
             <g key={tick}>
               <line
                 x1={PAD.left}
-                x2={width - PAD.right}
+                x2={WIDTH - PAD.right}
                 y1={y(tick)}
                 y2={y(tick)}
                 stroke={GRID}
@@ -91,10 +101,9 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
             </g>
           ))}
 
-          {columns.map((column, index) => {
-            const slotX = PAD.left + index * SLOT;
-            const barWidth = Math.min(MAX_BAR, SLOT - 10);
-            const x = slotX + (SLOT - barWidth) / 2;
+          {shown.map((column, index) => {
+            const slotX = PAD.left + index * slot;
+            const x = slotX + (slot - barWidth) / 2;
             const isActive = column.key === selected;
 
             let cursor = PAD.top + plotHeight;
@@ -119,9 +128,9 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
                       strokeWidth={1}
                     />
                     <text
-                      x={index > columns.length - 3 ? slotX - 3 : slotX + 3}
+                      x={index > shown.length - 3 ? slotX - 3 : slotX + 3}
                       y={PAD.top - 4}
-                      textAnchor={index > columns.length - 3 ? 'end' : 'start'}
+                      textAnchor={index > shown.length - 3 ? 'end' : 'start'}
                       fontSize={AXIS_FONT}
                       fill={INK_DIM}
                     >
@@ -150,7 +159,7 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
                 )}
 
                 <text
-                  x={slotX + SLOT / 2}
+                  x={slotX + slot / 2}
                   y={HEIGHT - PAD.bottom + 14}
                   textAnchor="middle"
                   fontSize={AXIS_FONT}
@@ -164,7 +173,7 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
                 <rect
                   x={slotX}
                   y={PAD.top - 12}
-                  width={SLOT}
+                  width={slot}
                   height={plotHeight + 26}
                   fill="transparent"
                   onClick={() => { setPicked(column.key); }}
@@ -172,9 +181,9 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
                 />
                 {isActive ? (
                   <rect
-                    x={slotX + 6}
+                    x={slotX + slot / 2 - barWidth / 2}
                     y={HEIGHT - PAD.bottom + 20}
-                    width={SLOT - 12}
+                    width={barWidth}
                     height={3}
                     rx={1.5}
                     fill="var(--color-accent)"
@@ -198,6 +207,12 @@ export function StackedColumns({ columns, unit, title }: StackedColumnsProps) {
           </span>
         ))}
       </div>
+
+      {hidden > 0 ? (
+        <p className="mt-2 text-xs text-dim">
+          Ultime {MAX_COLUMNS} sedute. Le {hidden} precedenti sono nella tabella qui sotto.
+        </p>
+      ) : null}
 
       {active !== null ? (
         <p className="mt-2 text-sm">
