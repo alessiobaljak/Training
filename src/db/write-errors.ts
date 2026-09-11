@@ -21,7 +21,13 @@ export function describeWriteError(cause: unknown): string {
       : '';
 
   if (code === 'permission-denied') {
-    return 'Il server ha rifiutato una scrittura. Prova a uscire e rientrare: se resta, le regole di sicurezza di Firestore non sono quelle giuste.';
+    return (
+      'Firestore ha rifiutato la scrittura. Quasi sempre significa che le regole di sicurezza ' +
+      'non sono state pubblicate: un database creato in modalità produzione nasce chiuso a ' +
+      'tutti. Si pubblicano dalla console Firebase, Firestore Database, scheda Regole. ' +
+      'Il testo da incollare è in firestore.rules, e il passo 5 di docs/configurazione.md ' +
+      'spiega come.'
+    );
   }
   if (code === 'unauthenticated') {
     return 'La sessione è scaduta. Esci e rientra.';

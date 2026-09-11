@@ -94,9 +94,18 @@ npx firebase deploy --only firestore:rules
 Il primo comando apre il browser. Il secondo crea `.firebaserc`, che va
 committato: contiene solo l'id del progetto, che non è un segreto.
 
+**Senza riga di comando**, che è più veloce: console Firebase, Firestore
+Database, scheda **Regole**, cancella quello che c'è, incolla il contenuto di
+`firestore.rules` e premi **Pubblica**.
+
 Verifica in console, Firestore > Regole: devi vedere la regola su
 `users/{uid}`. Se vedi ancora `allow read, write: if false;` o una data di
-scadenza, il deploy non è passato.
+scadenza, le regole non sono pubblicate.
+
+**Sintomo se salti questo passo:** l'app funziona, ti fa registrare tutto, ma
+in alto compare «Una modifica non è stata salvata» e niente arriva davvero sul
+server. Un database creato in modalità produzione nasce chiuso a tutti,
+compreso te.
 
 ## 6. Prendere le sei variabili
 
@@ -253,6 +262,7 @@ Copia `.env.example` in `.env.local` e riempilo per lavorare sul progetto vero.
 | `auth/unauthorized-domain` | Passo 7 saltato |
 | «missing initial state» dopo l'accesso | Passo 7b saltato: manca la deviazione di `/__/auth` |
 | `Error 400: redirect_uri_mismatch` | Passo 7c saltato: il nuovo dominio non è tra gli URI di ritorno su Google Cloud |
+| «Una modifica non è stata salvata» in cima all'app | Regole non pubblicate: passo 5 |
 | «Missing or insufficient permissions» | Regole non caricate: passo 5 |
 | Accesso fatto ma storico vuoto | Account diverso da quello di prima. L'app chiede sempre quale Google usare proprio per questo |
 
