@@ -21,9 +21,18 @@ export interface StorageState {
   readonly quotaBytes: number | null;
 }
 
-/** Dopo tanti giorni senza backup il promemoria diventa un allarme. */
-export const BACKUP_STALE_DAYS = 14;
-export const BACKUP_CRITICAL_DAYS = 30;
+/**
+ * Dopo tanti giorni senza backup il promemoria diventa un allarme.
+ *
+ * Le soglie erano quattordici e trenta giorni quando i dati vivevano solo sul
+ * telefono e un telefono perso era la fine dello storico. Adesso i dati stanno
+ * su Firebase e ne esiste una copia automatica al giorno: il file scaricato
+ * protegge da un caso solo, perdere l'account o il progetto, che è raro. Un
+ * avviso che grida ogni due settimane per un rischio raro smette di essere
+ * letto, e quando servirà non lo guarderà più nessuno.
+ */
+export const BACKUP_STALE_DAYS = 30;
+export const BACKUP_CRITICAL_DAYS = 90;
 
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${String(Math.round(bytes))} B`;
@@ -61,28 +70,29 @@ export function backupAdvice(daysSinceBackup: number | null): Advice {
     return {
       tone: 'danger',
       headline: 'Nessun backup',
-      detail: 'Non hai ancora scaricato nessun file. Adesso un telefono perso è tutto lo storico perso.',
+      detail:
+        'I dati sono su Firebase e ne esiste una copia automatica al giorno, quindi un telefono perso non è più un problema. Il file scaricato serve per l’altro caso: perdere l’account o il progetto.',
     };
   }
   if (daysSinceBackup >= BACKUP_CRITICAL_DAYS) {
     return {
       tone: 'danger',
       headline: `Backup di ${String(daysSinceBackup)} giorni fa`,
-      detail: 'È passato troppo tempo. Scaricane uno nuovo prima della prossima seduta.',
+      detail: 'È passato troppo tempo. Scaricane uno: è l’unica copia che non dipende dal tuo account Google.',
     };
   }
   if (daysSinceBackup >= BACKUP_STALE_DAYS) {
     return {
       tone: 'warn',
       headline: `Backup di ${String(daysSinceBackup)} giorni fa`,
-      detail: 'Le sedute registrate da allora non sono in nessun file.',
+      detail: 'Le sedute registrate da allora stanno su Firebase, ma non in nessun file tuo.',
     };
   }
   return {
     tone: 'good',
     headline:
       daysSinceBackup === 0 ? 'Backup di oggi' : `Backup di ${String(daysSinceBackup)} giorni fa`,
-    detail: 'Sei coperto. Rifallo dopo ogni settimana di allenamento.',
+    detail: 'Sei coperto. Il momento buono per il prossimo è dopo un giro di test: quei nove numeri decidono ogni range.',
   };
 }
 

@@ -371,15 +371,46 @@ I test sono stati verificati per mutazione: si rompe una regola del motore di
 proposito e si controlla che la suite se ne accorga. Due mutazioni erano
 sopravvissute e hanno prodotto una semplificazione e un test in più.
 
+## Copie automatiche
+
+Una copia dell'intero archivio al giorno, presa al primo avvio, tenuta in
+`users/{uid}/snapshots` accanto ai dati. Le ultime quattordici; le più vecchie
+vengono potate da sole.
+
+**Servono a una cosa che Firebase non fa: tornare indietro.** Firestore non
+tiene versioni. Se qualcosa scrive un valore sbagliato, quel valore sostituisce
+il precedente su tutti i dispositivi nel giro di un secondo, e il vecchio non
+esiste più da nessuna parte. Il ripristino a un istante passato è una funzione
+a pagamento che va accesa prima, non dopo.
+
+Due scelte che sembrano dettagli e non lo sono:
+
+- **Le copie stanno fuori dal backup.** Se ci fossero dentro, ogni copia
+  conterrebbe tutte le precedenti e crescerebbe su sé stessa.
+- **Un ripristino non le cancella.** Se torni indietro alla copia sbagliata,
+  le altre sono ancora lì: altrimenti sarebbe un'azione irreversibile.
+
+Sopra i 700 kB la copia non viene scritta: un documento Firestore non può
+superare 1 MiB, e fermarsi prima, dicendolo, è meglio che vedersi rifiutare la
+scrittura quando l'archivio è cresciuto.
+
+**Quello che non coprono:** stanno nello stesso progetto Firebase dei dati. Se
+perdi l'account o il progetto viene sospeso, spariscono insieme a tutto il
+resto. Per quel caso serve il file scaricato.
+
 ## Backup
 
-I dati vivono solo nello storage del browser: disinstallare la PWA, cancellare
-i dati del sito o lasciare che il sistema liberi spazio li elimina. Il backup è
-manuale ed è l'unica rete di sicurezza.
+Il file JSON è l'unica copia che non dipende dal tuo account Google. Le copie
+automatiche coprono l'errore di scrittura, il cloud copre il telefono perso,
+questo copre l'ultimo caso rimasto: perdere l'account o il progetto.
 
 La schermata «App e dati» mostra da quanti giorni non ne fai uno e diventa
-gialla a quattordici giorni, rossa a trenta. Il momento giusto è la fine di
-ogni settimana di allenamento.
+gialla a trenta, rossa a novanta. Le soglie erano molto più strette quando i
+dati vivevano solo sul telefono: adesso il file copre un rischio raro, e un
+avviso che grida ogni due settimane per un rischio raro smette di essere letto.
+
+Il momento buono è dopo un giro di test: quei nove numeri decidono ogni range
+dell'app e sono gli unici irripetibili.
 
 **Backup completo, JSON.** Un solo file con tutte le tabelle. Il ripristino ha
 due modalità: `replace` svuota e riscrive, ed è il caso del telefono nuovo;

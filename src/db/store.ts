@@ -1,4 +1,4 @@
-import { TABLE_NAMES, type TableName } from './db.ts';
+import { SNAPSHOTS_TABLE, TABLE_NAMES, type TableName } from './db.ts';
 
 /**
  * Il magazzino dei documenti, visto dal repository.
@@ -31,6 +31,7 @@ export interface DocumentStore {
 
 /** Il campo che fa da chiave, tabella per tabella. */
 export const KEY_FIELD = {
+  [SNAPSHOTS_TABLE]: 'id',
   settings: 'id',
   sessions: 'id',
   testResults: 'id',
@@ -61,14 +62,12 @@ export class MemoryStore implements DocumentStore {
   private readonly tables = new Map<TableName, Map<string, unknown>>();
   private readonly listeners = new Set<() => void>();
 
-  constructor() {
-    for (const table of TABLE_NAMES) this.tables.set(table, new Map());
-  }
-
   private table(name: TableName): Map<string, unknown> {
     const found = this.tables.get(name);
-    if (found === undefined) throw new Error(`Tabella sconosciuta: ${name}`);
-    return found;
+    if (found !== undefined) return found;
+    const created = new Map<string, unknown>();
+    this.tables.set(name, created);
+    return created;
   }
 
   private notify(): void {
@@ -114,6 +113,8 @@ export class MemoryStore implements DocumentStore {
   }
 
   clearAll(): Promise<void> {
+    // Solo le tabelle dei dati: le copie automatiche sopravvivono a un
+    // ripristino, altrimenti un ripristino sbagliato sarebbe irreversibile.
     for (const table of TABLE_NAMES) this.table(table).clear();
     this.notify();
     return Promise.resolve();

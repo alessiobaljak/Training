@@ -47,6 +47,13 @@ describe('backupAdvice', () => {
     expect(backupAdvice(null).tone).toBe('danger');
   });
 
+  it('le soglie sono larghe: il file copre un rischio raro, non quotidiano', () => {
+    // Un avviso che grida ogni due settimane per un caso raro smette di essere
+    // letto, e quando servirà davvero non lo guarderà più nessuno.
+    expect(BACKUP_STALE_DAYS).toBeGreaterThanOrEqual(30);
+    expect(BACKUP_CRITICAL_DAYS).toBeGreaterThan(BACKUP_STALE_DAYS);
+  });
+
   it('un backup di oggi è sicuro', () => {
     const advice = backupAdvice(0);
     expect(advice.tone).toBe('good');

@@ -132,3 +132,34 @@ export async function signInForTests(page) {
     .catch(() => undefined);
   await page.waitForTimeout(300);
 }
+
+/**
+ * Interroga direttamente il server degli emulatori, senza passare dal browser.
+ *
+ * Serve a distinguere due cose che a schermo si somigliano: un dato che sta
+ * solo nella cache del telefono e un dato che è arrivato davvero su Firestore.
+ *
+ * La domanda attraversa tutti i rami `users/{uid}/...` in una volta, così non
+ * serve sapere quale identificativo abbia preso l'utente di prova: quello
+ * Firebase lo tiene in IndexedDB, e andarlo a pescare renderebbe il controllo
+ * dipendente da un dettaglio interno dell'SDK.
+ */
+export async function readFromEmulator(collection) {
+  const project = TEST_ENV.VITE_FIREBASE_PROJECT_ID;
+  const url =
+    `http://127.0.0.1:${String(FIRESTORE_PORT)}/v1/projects/${project}` +
+    `/databases/(default)/documents:runQuery`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      structuredQuery: { from: [{ collectionId: collection, allDescendants: true }] },
+    }),
+  });
+
+  const rows = await response.json();
+  return Array.isArray(rows)
+    ? rows.map((row) => row.document).filter((document) => document !== undefined)
+    : [];
+}

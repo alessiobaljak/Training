@@ -144,7 +144,27 @@ export const TABLE_NAMES = [
   'suggestions',
 ] as const;
 
-export type TableName = (typeof TABLE_NAMES)[number];
+/**
+ * Le copie automatiche.
+ *
+ * Sta fuori da `TABLE_NAMES` di proposito, e per due motivi. Il backup non
+ * deve contenere sé stesso, e un ripristino non deve cancellare la storia
+ * delle copie: se ripristini una copia sbagliata, le altre devono essere
+ * ancora lì.
+ */
+export const SNAPSHOTS_TABLE = 'snapshots';
+
+export type TableName = (typeof TABLE_NAMES)[number] | typeof SNAPSHOTS_TABLE;
+
+/** Una copia dell'intero archivio, presa dall'app e tenuta accanto ai dati. */
+export interface SnapshotRecord {
+  /** La data della copia, YYYY-MM-DD: una al giorno, la seconda sovrascrive. */
+  readonly id: string;
+  readonly takenAt: string;
+  /** Il backup completo, serializzato. */
+  readonly payload: string;
+  readonly bytes: number;
+}
 
 /** Istanza condivisa dall'app. I test creano la propria, con un altro nome. */
 export const db = new ShadowDatabase();

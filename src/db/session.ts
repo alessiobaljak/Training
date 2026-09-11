@@ -2,6 +2,8 @@ import { getFirebase } from '../firebase/app.ts';
 import { DexieStore } from './dexie-store.ts';
 import { FirestoreStore } from './firestore-store.ts';
 import { migrateLocalData, type MigrationReport } from './migrate.ts';
+import { takeSnapshotIfDue } from './snapshots.ts';
+import { todayIso } from '../engine/dates.ts';
 import { repository } from './repository.ts';
 import { MemoryStore } from './store.ts';
 import { clearWriteError } from './write-errors.ts';
@@ -28,7 +30,16 @@ export async function attachUser(uid: string): Promise<MigrationReport | null> {
 
   // I dati di chi usava l'app prima che ci fosse un account. Se non ce ne
   // sono, o se questo account ha già uno storico, non tocca niente.
-  return migrateLocalData(new DexieStore(), store).catch(() => null);
+  const report = await migrateLocalData(new DexieStore(), store).catch(() => null);
+
+  /*
+   * La copia del giorno, una sola, al primo avvio. Non si aspetta e non si
+   * lascia fallire l'accesso per colpa sua: se non riesce, l'app parte lo
+   * stesso e ci riprova domani.
+   */
+  void takeSnapshotIfDue(repository, todayIso()).catch(() => undefined);
+
+  return report;
 }
 
 export function detachUser(): void {

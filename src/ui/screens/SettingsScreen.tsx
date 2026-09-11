@@ -15,6 +15,8 @@ import { downloadTextFile, readTextFile } from '../download.ts';
 import { useSessions, useSettings } from '../hooks/useData.ts';
 import { usePwaStatus } from '../hooks/usePwa.ts';
 import { useAuthStatus } from '../hooks/useAuth.ts';
+import { useSnapshots } from '../hooks/useSnapshots.ts';
+import { restoreSnapshot } from '../../db/snapshots.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 import type { ImportMode, ImportReport } from '../../db/backup.ts';
 
@@ -31,6 +33,8 @@ export function SettingsScreen() {
   const sessions = useSessions();
   const pwa = usePwaStatus();
   const auth = useAuthStatus();
+  const snapshots = useSnapshots();
+  const [confirmRestore, setConfirmRestore] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [mode, setMode] = useState<ImportMode>('replace');
@@ -56,6 +60,27 @@ export function SettingsScreen() {
       })
       .finally(() => {
         setBusy(false);
+      });
+  };
+
+  /**
+   * Ripristina una copia automatica.
+   *
+   * In due tempi apposta: sostituisce tutto quello che c'è adesso, ed è
+   * l'unica azione di questa schermata che si può rimpiangere.
+   */
+  const handleRestoreSnapshot = (id: string): void => {
+    setError(null);
+    setReport(null);
+    setBusy(true);
+    void restoreSnapshot(repository, id)
+      .then(setReport)
+      .catch((cause: unknown) => {
+        setError(cause instanceof Error ? cause.message : 'Ripristino non riuscito.');
+      })
+      .finally(() => {
+        setBusy(false);
+        setConfirmRestore(null);
       });
   };
 
@@ -210,6 +235,77 @@ export function SettingsScreen() {
             ) : null}
           </Card>
         )}
+
+        <SectionTitle>Copie automatiche</SectionTitle>
+        <Card>
+          <p className="text-sm leading-relaxed text-dim">
+            Una copia al giorno, le ultime quattordici, tenute accanto ai dati. Servono a tornare
+            indietro se qualcosa scrive un valore sbagliato: Firestore non tiene versioni, e senza
+            queste il valore vecchio non esisterebbe più da nessuna parte.
+          </p>
+
+          {snapshots === undefined ? (
+            <p className="mt-3 text-sm text-dim">Carico…</p>
+          ) : snapshots.length === 0 ? (
+            <p className="mt-3 text-sm text-dim">
+              Nessuna copia ancora. La prima arriva al prossimo avvio dell’app.
+            </p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {snapshots.map((snapshot) => (
+                <li
+                  key={snapshot.id}
+                  className="rounded-2xl border border-line bg-panel px-4 py-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="tabular text-sm font-semibold">{snapshot.id}</p>
+                      <p className="text-xs text-dim">{formatBytes(snapshot.bytes)}</p>
+                    </div>
+                    {confirmRestore === snapshot.id ? null : (
+                      <Button
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() => { setConfirmRestore(snapshot.id); }}
+                      >
+                        Ripristina
+                      </Button>
+                    )}
+                  </div>
+
+                  {confirmRestore === snapshot.id ? (
+                    <div className="mt-3">
+                      <p className="text-sm leading-relaxed text-warn">
+                        Sostituisce tutto quello che c’è adesso con i dati del {snapshot.id}.
+                        Quello che hai registrato dopo quella data sparisce.
+                      </p>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          variant="danger"
+                          disabled={busy}
+                          onClick={() => { handleRestoreSnapshot(snapshot.id); }}
+                        >
+                          Sì, torna al {snapshot.id}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          onClick={() => { setConfirmRestore(null); }}
+                        >
+                          Annulla
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <p className="mt-3 text-xs leading-relaxed text-dim">
+            Stanno nello stesso progetto Firebase dei dati. Proteggono da una scrittura sbagliata,
+            non dalla perdita dell’account: per quella serve il file qui sotto.
+          </p>
+        </Card>
 
         <SectionTitle>Backup completo</SectionTitle>
         <Notice tone={backup.tone}>

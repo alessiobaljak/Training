@@ -16,7 +16,13 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import { launchOptions } from './chromium.mjs';
 import { completeOnboarding } from './onboarding.mjs';
-import { buildForTests, signInForTests, startEmulators, stopGroup } from './testenv.mjs';
+import {
+  buildForTests,
+  readFromEmulator,
+  signInForTests,
+  startEmulators,
+  stopGroup,
+} from './testenv.mjs';
 
 const PORT = 4182;
 const BASE = `http://localhost:${String(PORT)}`;
@@ -302,6 +308,33 @@ try {
   check(
     (await page.getByRole('navigation').count()) > 0,
     'Con il server irraggiungibile l’app deve aprirsi lo stesso dalla cache.',
+  );
+
+  /* ------------- La misura scritta in aereo arriva sul server ------------ */
+
+  /*
+   * Il controllo che conta davvero per chi si allena senza campo.
+   *
+   * Fin qui abbiamo visto la misura a schermo, ma a schermo un dato nella
+   * cache del telefono e un dato arrivato su Firestore si somigliano. Qui si
+   * interroga il server degli emulatori direttamente, senza passare dal
+   * browser: se il 79 è lì, la coda delle scritture ha fatto il suo mestiere.
+   */
+  let synced;
+  for (let attempt = 0; attempt < 25; attempt += 1) {
+    await page.waitForTimeout(1000);
+    const documents = await readFromEmulator('weights');
+    synced = documents.find(
+      (document) =>
+        document.fields?.kg?.doubleValue === 79 ||
+        document.fields?.kg?.integerValue === '79',
+    );
+    if (synced !== undefined) break;
+  }
+
+  check(
+    synced !== undefined,
+    'La misura scritta senza rete deve arrivare su Firestore quando la rete torna.',
   );
 
   check(
