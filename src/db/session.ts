@@ -4,6 +4,7 @@ import { FirestoreStore } from './firestore-store.ts';
 import { migrateLocalData, type MigrationReport } from './migrate.ts';
 import { repository } from './repository.ts';
 import { MemoryStore } from './store.ts';
+import { clearWriteError } from './write-errors.ts';
 
 /**
  * Collega e scollega il magazzino dell'utente.
@@ -20,6 +21,7 @@ export async function attachUser(uid: string): Promise<MigrationReport | null> {
   if (firebase === null) return null;
 
   attached?.dispose();
+  clearWriteError();
   const store = new FirestoreStore(firebase.firestore, uid);
   attached = store;
   repository.use(store);

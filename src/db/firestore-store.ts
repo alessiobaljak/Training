@@ -11,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import { TABLE_NAMES, type TableName } from './db.ts';
 import { keyOf, type DocumentStore } from './store.ts';
+import { reportWriteError } from './write-errors.ts';
 
 /**
  * I dati dell'utente su Firestore, sotto `users/{uid}`.
@@ -126,30 +127,70 @@ export class FirestoreStore implements DocumentStore {
     return [...(await this.rows(table)).values()] as T[];
   }
 
-  async put<T>(table: TableName, document: T): Promise<void> {
-    await setDoc(doc(this.ref(table), keyOf(table, document)), document as object);
+  /*
+   * Le scritture non aspettano il server.
+   *
+   * La promessa che Firestore restituisce si risolve quando il server ha
+   * confermato, non quando il dato è stato scritto in locale. Aspettarla
+   * significa lasciare un pulsante morto ogni volta che la rete è lenta, e in
+   * palestra la rete è sempre lenta. Era il difetto del pulsante «Salva e
+   * continua»: la seduta non andava avanti finché Google non rispondeva.
+   *
+   * Qui si aggiorna subito la copia locale, si lascia partire la scrittura e
+   * si va avanti. Firestore la manda quando può, anche dopo giorni. Se il
+   * server la rifiuta, l'errore non si perde: finisce in `reportWriteError` e
+   * l'app lo mostra.
+   */
+  private track(promise: Promise<unknown>): void {
+    promise.catch((cause: unknown) => {
+      reportWriteError(cause);
+    });
   }
 
-  async putMany<T>(table: TableName, documents: readonly T[]): Promise<void> {
+  /** Applica subito alla copia locale, così una rilettura immediata la vede. */
+  private touch(table: TableName, apply: (rows: Map<string, unknown>) => void): void {
+    const rows = this.mirror.get(table);
+    if (rows !== undefined) {
+      apply(rows);
+      for (const listener of this.listeners) listener();
+    }
+  }
+
+  put<T>(table: TableName, document: T): Promise<void> {
+    const id = keyOf(table, document);
+    this.touch(table, (rows) => rows.set(id, document));
+    this.track(setDoc(doc(this.ref(table), id), document as object));
+    return Promise.resolve();
+  }
+
+  putMany<T>(table: TableName, documents: readonly T[]): Promise<void> {
+    this.touch(table, (rows) => {
+      for (const document of documents) rows.set(keyOf(table, document), document);
+    });
     for (const group of chunk(documents, BATCH_LIMIT)) {
       const batch = writeBatch(this.firestore);
       for (const document of group) {
         batch.set(doc(this.ref(table), keyOf(table, document)), document as object);
       }
-      await batch.commit();
+      this.track(batch.commit());
     }
+    return Promise.resolve();
   }
 
-  async remove(table: TableName, id: string): Promise<void> {
-    await deleteDoc(doc(this.ref(table), id));
+  remove(table: TableName, id: string): Promise<void> {
+    this.touch(table, (rows) => rows.delete(id));
+    this.track(deleteDoc(doc(this.ref(table), id)));
+    return Promise.resolve();
   }
 
   async clear(table: TableName): Promise<void> {
+    // Qui la lettura serve davvero: per cancellare bisogna sapere cosa c'è.
     const snapshot = await getDocs(this.ref(table));
+    this.touch(table, (rows) => rows.clear());
     for (const group of chunk(snapshot.docs, BATCH_LIMIT)) {
       const batch = writeBatch(this.firestore);
       for (const entry of group) batch.delete(entry.ref);
-      await batch.commit();
+      this.track(batch.commit());
     }
   }
 

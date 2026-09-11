@@ -56,6 +56,7 @@ export function OnboardingScreen() {
   const [roundDate, setRoundDate] = useState<string>(() => todayIso());
   const [drafts, setDrafts] = useState<Partial<Record<TestId, Draft>>>({});
   const [startsThisWeek, setStartsThisWeek] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const initialized = useRef(false);
 
   /* Riprende il giro lasciato a metà, una volta sola. */
@@ -103,6 +104,24 @@ export function OnboardingScreen() {
       ? testResultPerSide(test.id, roundDate, week, draft.left, draft.right)
       : testResultSingle(test.id, roundDate, week, draft.value);
     await repository.saveTestResult(result);
+  };
+
+  /*
+   * Un salvataggio che fallisce non deve lasciare il pulsante morto.
+   *
+   * Prima qui c'era un `.then()` senza `.catch()`: se la scrittura non andava
+   * a buon fine, il passo successivo non arrivava e a schermo non compariva
+   * niente. Sembrava un pulsante che non funziona.
+   */
+  const saveThenGo = (test: TestDefinition, draft: Draft, index: number): void => {
+    setSaveError(null);
+    void saveTest(test, draft)
+      .then(() => {
+        goAfter(index);
+      })
+      .catch((cause: unknown) => {
+        setSaveError(cause instanceof Error ? cause.message : 'Salvataggio non riuscito.');
+      });
   };
 
   const goAfter = (index: number): void => {
@@ -199,12 +218,13 @@ export function OnboardingScreen() {
         }
         footer={
           <div className="flex flex-col gap-2 pb-1">
+            {saveError === null ? null : <Notice tone="danger">{saveError}</Notice>}
             <Button
               full
               size="lg"
               disabled={value <= 0}
               onClick={() => {
-                void saveTest(test, draft).then(() => { goAfter(step.index); });
+                saveThenGo(test, draft, step.index);
               }}
             >
               Salva e continua
@@ -213,9 +233,7 @@ export function OnboardingScreen() {
               full
               variant="ghost"
               onClick={() => {
-                void saveTest(test, { value: 0, left: 0, right: 0 }).then(() => {
-                  goAfter(step.index);
-                });
+                saveThenGo(test, { value: 0, left: 0, right: 0 }, step.index);
               }}
             >
               Salta questo test

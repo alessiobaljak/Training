@@ -1,4 +1,5 @@
 import { BottomNav } from './components/BottomNav.tsx';
+import { WriteErrorBanner } from './components/WriteErrorBanner.tsx';
 import { HomeScreen } from './screens/HomeScreen.tsx';
 import { OnboardingScreen } from './screens/OnboardingScreen.tsx';
 import { ExerciseScreen } from './screens/ExerciseScreen.tsx';
@@ -39,6 +40,7 @@ export function App() {
    */
   return (
     <div className="flex h-dvh flex-col">
+      <WriteErrorBanner />
       <div className="min-h-0 flex-1 overflow-y-auto">
         {route.name === 'home' ? <HomeScreen /> : null}
         {route.name === 'onboarding' ? <OnboardingScreen /> : null}

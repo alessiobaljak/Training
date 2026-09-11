@@ -91,8 +91,16 @@ try {
   /* ---------------------------- Player ---------------------------------- */
 
   if ((await startButton.count()) > 0) {
-    await startButton.click();
-    await page.waitForTimeout(1000);
+    /*
+     * Si entra in una seduta scelta, non in quella di oggi.
+     *
+     * Solo il lunedì e il giovedì hanno superserie, e il controllo qui sotto
+     * verifica proprio che A1 e A2 si alternino. Partendo da «oggi», lo stesso
+     * test cambiava significato a seconda del giorno in cui girava: verde il
+     * giovedì, rosso il venerdì, senza che niente fosse cambiato nel codice.
+     */
+    await page.goto(`${BASE}/#/seduta/upper-a`, { waitUntil: 'load' });
+    await page.waitForTimeout(1200);
 
     const order = [];
     let planTotal = 0;
