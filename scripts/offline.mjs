@@ -244,9 +244,22 @@ try {
   // l'app direttamente su una schermata interna.
   await open(page, `${BASE}/#/esercizi/trazioni-prona-presa-media`);
   await page.waitForTimeout(900);
+  /*
+   * L'illustrazione deve comparire davvero, non solo essere nel markup.
+   *
+   * Trentuno esercizi su trentasei usano un'immagine webp, che il service
+   * worker mette in cache insieme al resto del build. Contare gli elementi non
+   * basterebbe: un'immagine non caricata è un elemento presente e un rettangolo
+   * vuoto. `naturalWidth` è maggiore di zero solo se i byte sono arrivati.
+   */
+  const illustrazione = await page.evaluate(() => {
+    const immagini = [...document.querySelectorAll('main img')];
+    if (immagini.length > 0) return immagini.some((img) => img.naturalWidth > 0);
+    return document.querySelectorAll('main svg').length > 0;
+  });
   check(
-    (await page.locator('svg').count()) > 0,
-    'Senza rete l’illustrazione dell’esercizio deve comparire: è dentro il codice, non su un server.',
+    illustrazione,
+    'Senza rete l’illustrazione dell’esercizio deve comparire: è dentro il build, non su un server.',
   );
   check(
     (await page.getByRole('link', { name: 'Cerca un video' }).count()) > 0,

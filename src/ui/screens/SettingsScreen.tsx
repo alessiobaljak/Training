@@ -17,6 +17,7 @@ import { usePwaStatus } from '../hooks/usePwa.ts';
 import { useAuthStatus } from '../hooks/useAuth.ts';
 import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { restoreSnapshot } from '../../db/snapshots.ts';
+import { ART_ATTRIBUTION } from '../../data/exercise-art.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 import type { ImportMode, ImportReport } from '../../db/backup.ts';
 
@@ -394,6 +395,26 @@ export function SettingsScreen() {
               Scarica il CSV
             </Button>
           </div>
+        </Card>
+
+        <SectionTitle>Crediti</SectionTitle>
+        <Card tone="muted">
+          {/*
+            Attribuzione richiesta dalla licenza del tier gratuito di RepDB.
+            Non è una cortesia: è la condizione per poter usare i disegni.
+          */}
+          <p className="text-sm leading-relaxed text-dim">
+            {ART_ATTRIBUTION.text}{' '}
+            <a
+              href={ART_ATTRIBUTION.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-accent underline"
+            >
+              repdb.co
+            </a>
+            . Trentuno esercizi su trentasei; per gli altri le figure sono disegnate qui.
+          </p>
         </Card>
 
         <SectionTitle>Programma</SectionTitle>

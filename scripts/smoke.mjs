@@ -261,8 +261,18 @@ try {
   await page.goto(`${BASE}/#/esercizi/trazioni-prona-presa-media`, { waitUntil: 'load' });
   await page.waitForTimeout(900);
 
+  /*
+   * Due fonti possibili: l'illustrazione RepDB, che è un'immagine, o la figura
+   * schematica, che è un SVG. Si controlla che ci sia una delle due e che
+   * l'immagine sia caricata davvero, non solo presente nel markup.
+   */
+  const illustrata = await page.evaluate(() => {
+    const immagini = [...document.querySelectorAll('figure img')];
+    if (immagini.length > 0) return immagini.every((img) => img.naturalWidth > 0);
+    return document.querySelectorAll('figure svg').length === 1;
+  });
   check(
-    (await page.locator('figure svg').count()) === 1,
+    illustrata,
     'La scheda dell’esercizio deve mostrare l’illustrazione.',
   );
   check(

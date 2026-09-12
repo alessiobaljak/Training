@@ -226,6 +226,30 @@ Tre vincoli che attraversano tutta la UI:
 
 ## Le illustrazioni
 
+Due fonti, in ordine di preferenza.
+
+**RepDB**, per trentuno esercizi su trentasei: illustrazioni piatte con
+posizione di inizio e di fine, 56 file webp per meno di un megabyte. Coprono
+quelli che nessun altro archivio aperto ha e dove un disegno serve davvero:
+archer push-up, pike push-up, nordic curl, hollow hold, dead hang, planche.
+
+La licenza del tier gratuito consente l'uso dentro l'applicazione, anche
+commerciale, con una attribuzione visibile: sta nella schermata «App e dati».
+Due vincoli che il progetto rispetta per costruzione, con un test ciascuno:
+nel repository stanno solo le immagini che l'app mostra davvero, perché
+ridistribuire l'archivio è vietato; e da quei disegni non se ne derivano altri,
+perché la licenza esclude l'uso come riferimento per modelli generativi.
+
+La mappatura sta in `src/data/exercise-art.ts`, scritta a mano e con
+l'identificativo RepDB accanto a ogni voce, così si rifà senza indovinare
+quando l'archivio si aggiorna.
+
+**Le figure schematiche** restano per i cinque scoperti. Quattro non sono
+esercizi (camminata, corsa, mobilità, zona 2) e il quinto è lo shrimp squat,
+che RepDB non ha.
+
+### Come sono fatte le figure schematiche
+
 Trentasei figure schematiche in `src/assets/exercises/`, una per esercizio, con
 due pose affiancate: inizio e fine del range. Le isometrie e le attività
 continue ne hanno una sola.

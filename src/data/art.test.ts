@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EXERCISES } from './exercises.ts';
+import { ART_ATTRIBUTION, REPDB_ART } from './exercise-art.ts';
 
 /**
  * Le illustrazioni sono generate da `npm run svg`. Questi test verificano che
@@ -21,6 +22,17 @@ const ART: ReadonlyMap<string, string> = new Map(
     if (file === undefined || typeof value !== 'string') return [];
     return [[file.replace(/\.svg$/, ''), value] as const];
   }),
+);
+
+/** I file delle illustrazioni RepDB, caricati come li carica l'app. */
+const PHOTOS: Record<string, unknown> = import.meta.glob('../assets/exercises-repdb/*.webp', {
+  query: '?url',
+  import: 'default',
+  eager: true,
+});
+
+const PHOTO_FILES: ReadonlySet<string> = new Set(
+  Object.keys(PHOTOS).map((path) => path.split('/').at(-1) ?? ''),
 );
 
 describe('illustrazioni degli esercizi', () => {
@@ -63,5 +75,44 @@ describe('illustrazioni degli esercizi', () => {
       const addresses = markup.match(/https?:\/\/[^"']+/g) ?? [];
       expect(new Set(addresses), slug).toEqual(new Set(['http://www.w3.org/2000/svg']));
     }
+  });
+});
+
+describe('illustrazioni RepDB', () => {
+  it('ogni mappatura punta a file che esistono davvero', () => {
+    // Senza questo, rinominare o dimenticare un file lascerebbe l'esercizio a
+    // mani vuote senza che niente se ne accorga fino alla palestra.
+    for (const [slug, art] of Object.entries(REPDB_ART)) {
+      expect(art, slug).toBeDefined();
+      for (const file of art?.frames ?? []) {
+        expect(PHOTO_FILES.has(file), `${slug} -> ${file}`).toBe(true);
+      }
+    }
+  });
+
+  it('ogni mappatura riguarda un esercizio che esiste', () => {
+    const slugs = new Set<string>(EXERCISES.map((exercise) => exercise.slug));
+    for (const slug of Object.keys(REPDB_ART)) {
+      expect(slugs.has(slug), slug).toBe(true);
+    }
+  });
+
+  it('non ci sono immagini copiate e mai usate', () => {
+    const usate = new Set(Object.values(REPDB_ART).flatMap((art) => [...(art?.frames ?? [])]));
+    // Il termine 3 della licenza vieta di ridistribuire l'archivio: nel
+    // progetto stanno solo le immagini che l'app mostra davvero.
+    expect([...PHOTO_FILES].filter((file) => !usate.has(file))).toEqual([]);
+  });
+
+  it('ogni esercizio ha un disegno, da una fonte o dall’altra', () => {
+    for (const exercise of EXERCISES) {
+      const coperto = exercise.slug in REPDB_ART || ART.has(exercise.slug);
+      expect(coperto, exercise.slug).toBe(true);
+    }
+  });
+
+  it('l’attribuzione richiesta dalla licenza è presente e punta a RepDB', () => {
+    expect(ART_ATTRIBUTION.href).toBe('https://repdb.co');
+    expect(ART_ATTRIBUTION.text).toContain('RepDB');
   });
 });
