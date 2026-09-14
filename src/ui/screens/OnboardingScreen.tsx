@@ -180,7 +180,10 @@ export function OnboardingScreen() {
   if (step.kind === 'rest') {
     return (
       <Screen title="Recupero" subtitle={`Prossimo: ${WEEK_ZERO_TESTS[step.nextIndex]?.label ?? ''}`}>
+        {/* Come nel player: una chiave diversa per ogni recupero, altrimenti
+            il conto prosegue da quello precedente invece di ripartire. */}
         <CountdownPanel
+          key={`recupero-${String(step.nextIndex)}`}
           totalSeconds={TEST_REST_SECONDS.max}
           readySeconds={TEST_REST_SECONDS.min}
           title="Prima del prossimo test"

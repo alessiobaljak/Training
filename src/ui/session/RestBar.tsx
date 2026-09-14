@@ -22,7 +22,11 @@ export function RestBar({ rest, nextLabel, onDismiss }: RestBarProps) {
   const tone = countdown.done ? 'border-good/50 bg-good/15' : 'border-accent/40 bg-accent/10';
 
   return (
-    <div className={`flex items-center gap-3 border-b px-4 py-3 ${tone}`}>
+    <div
+      data-testid="rest-bar"
+      data-total={rest.seconds}
+      className={`flex items-center gap-3 border-b px-4 py-3 ${tone}`}
+    >
       <p
         className={`tabular w-20 shrink-0 text-3xl font-semibold ${countdown.done ? 'text-good' : 'text-ink'}`}
       >

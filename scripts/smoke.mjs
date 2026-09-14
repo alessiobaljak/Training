@@ -103,6 +103,7 @@ try {
     await page.waitForTimeout(1200);
 
     const order = [];
+    const riposi = [];
     let planTotal = 0;
 
     for (let guard = 0; guard < 60; guard += 1) {
@@ -132,6 +133,31 @@ try {
       await page.waitForTimeout(240);
       order.push(code);
 
+      /*
+       * Il recupero deve ripartire da capo a ogni serie.
+       *
+       * React riusa lo stesso componente quando cambiano solo le proprietà,
+       * quindi senza una chiave diversa il cronometro prosegue da quello
+       * precedente: 0:15, poi 0:11, poi 0:07, finché nasce a zero e sembra non
+       * partire. Nessun unit test lo vede, succede solo montando davvero.
+       *
+       * Il confronto è con `data-total`, cioè la durata che l'app stessa
+       * prescrive, non con un numero scritto qui.
+       */
+      const barra = page.getByTestId('rest-bar');
+      if ((await barra.count()) > 0) {
+        const previsti = Number(await barra.getAttribute('data-total'));
+        const letto = /(\d+):(\d{2})/.exec(await barra.innerText());
+        if (letto !== null && Number.isFinite(previsti)) {
+          riposi.push({
+            serie: order.length,
+            code,
+            mostrati: Number(letto[1]) * 60 + Number(letto[2]),
+            previsti,
+          });
+        }
+      }
+
       const progress = await page.locator('header p').first().innerText();
       const match = /^(\d+) di (\d+)/.exec(progress);
       if (match?.[2] !== undefined) planTotal = Number(match[2]);
@@ -153,6 +179,21 @@ try {
       order.length === planTotal && planTotal > 0,
       `Registrate ${String(order.length)} serie su ${String(planTotal)} previste.`,
     );
+    check(
+      riposi.length > 2,
+      `Il recupero deve comparire dopo le serie: letto ${String(riposi.length)} volte su ${String(order.length)}.`,
+    );
+    // Tre secondi di tolleranza per il tempo tra il clic e la lettura.
+    const corti = riposi.filter((riposo) => riposo.mostrati < riposo.previsti - 3);
+    check(
+      corti.length === 0,
+      `Ogni recupero deve ripartire da capo. Partiti corti: ${corti
+        .map(
+          (r) => `serie ${String(r.serie)} ${r.code}: ${String(r.mostrati)}s invece di ${String(r.previsti)}s`,
+        )
+        .join(', ')}.`,
+    );
+
     check(
       order.slice(0, 4).join(' ') === 'A1 A2 A1 A2',
       `La superserie deve alternare A1 e A2, ordine visto: ${order.slice(0, 4).join(' ')}.`,
@@ -207,32 +248,38 @@ try {
   );
 
   /*
-   * Due pesi diversi su due giorni: la media (81) deve differire dal peso del
-   * giorno (80), altrimenti il controllo non distingue i due numeri.
+   * Quanti giorni siano scegliibili dipende dal giorno in cui gira la prova:
+   * di lunedì ce n'è uno solo. Il test si adatta invece di pretendere una
+   * settimana già avanzata, altrimenti sarebbe verde il venerdì e rosso il
+   * lunedì senza che nel codice sia cambiato niente.
    */
   const days = page.getByTestId('week-strip').locator('button:not([disabled])');
   const dayCount = await days.count();
-  check(dayCount >= 2, 'La striscia della settimana deve permettere di scegliere il giorno.');
+  check(dayCount >= 1, 'La striscia della settimana deve permettere di scegliere almeno oggi.');
 
   const weightField = page.locator('input[type=number]').first();
-  await days.nth(dayCount - 2).click();
-  await page.waitForTimeout(200);
-  await weightField.fill('');
-  await weightField.pressSequentially('82', { delay: 60 });
-  await weightField.blur();
-  await page.waitForTimeout(400);
 
-  await days.nth(dayCount - 1).click();
-  await page.waitForTimeout(200);
-  /*
-   * Cifra per cifra, non in blocco: con il minimo applicato a ogni tasto il
-   * campo correggerebbe "8" al minimo e il numero resterebbe impossibile da
-   * scrivere. È un difetto che `fill` non fa emergere.
-   */
-  await weightField.fill('');
-  await weightField.pressSequentially('80', { delay: 60 });
-  await weightField.blur();
-  await page.waitForTimeout(600);
+  async function scriviPeso(indiceGiorno, valore) {
+    await days.nth(indiceGiorno).click();
+    await page.waitForTimeout(200);
+    await weightField.fill('');
+    /*
+     * Cifra per cifra, non in blocco: con il minimo applicato a ogni tasto il
+     * campo correggerebbe "8" al minimo e il numero resterebbe impossibile da
+     * scrivere. È un difetto che `fill` non fa emergere.
+     */
+    await weightField.pressSequentially(valore, { delay: 60 });
+    await weightField.blur();
+    await page.waitForTimeout(500);
+  }
+
+  let mediaAttesa = '80';
+  if (dayCount >= 2) {
+    // Due pesi diversi: la media (81) deve differire dal peso del giorno (80).
+    await scriviPeso(dayCount - 2, '82');
+    mediaAttesa = '81';
+  }
+  await scriviPeso(dayCount - 1, '80');
 
   check(
     (await weightField.inputValue()) === '80',
@@ -241,9 +288,10 @@ try {
 
   const hero = (await page.locator('main p').nth(1).innerText()).trim();
   check(
-    hero.startsWith('81'),
-    `Il numero grande deve essere la media dei due giorni, 81, non il peso di oggi. Letto "${hero}".`,
+    hero.startsWith(mediaAttesa),
+    `Il numero grande deve essere la media a sette giorni (${mediaAttesa}), non il peso del giorno. Letto "${hero}".`,
   );
+
   check(
     (await page.locator('svg[role="img"]').count()) > 0,
     'Le misure devono mostrare l’andamento del peso.',

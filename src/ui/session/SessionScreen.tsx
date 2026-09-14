@@ -41,7 +41,18 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const { program, draft, plan, week, states, confirmed, previous, tests, update, confirmExercise } = state;
 
   const [stepIndex, setStepIndex] = useState(0);
-  const [rest, setRest] = useState<{ readonly rest: RestDecision; readonly nextLabel: string } | null>(null);
+  /*
+   * `startedAt` non serve a contare: serve a distinguere un recupero
+   * dall'altro. React tiene in vita lo stesso componente quando cambiano solo
+   * le sue proprietà, quindi senza un valore che cambia il cronometro non
+   * riparte e ogni recupero nasce già consumato dal precedente. Dopo qualche
+   * serie il recupero da quindici secondi nasceva a zero.
+   */
+  const [rest, setRest] = useState<{
+    readonly rest: RestDecision;
+    readonly nextLabel: string;
+    readonly startedAt: number;
+  } | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [decided, setDecided] = useState<ReadonlySet<string>>(new Set());
   const positioned = useRef(false);
@@ -175,6 +186,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           : program.blocks.find((entry) => entry.code === next.blockCode);
       setRest({
         rest: step.rest,
+        startedAt: Date.now(),
         nextLabel:
           nextBlock === undefined
             ? 'Ultima serie del blocco.'
@@ -205,6 +217,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
       {rest !== null ? (
         <div className="-mx-4 -mt-4 mb-4">
           <RestBar
+            key={rest.startedAt}
             rest={rest.rest}
             nextLabel={rest.nextLabel}
             onDismiss={() => { setRest(null); }}
