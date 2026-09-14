@@ -77,13 +77,18 @@ export function SetEntry({
 
   return (
     <Card>
+      {/*
+        Quale serie sia lo dice già la scheda dell'esercizio, sopra. Qui resta
+        solo quello che quella scheda non può sapere: se è una serie speciale,
+        e se il numero appena scritto sta dentro il range.
+      */}
       <div className="flex items-baseline justify-between gap-3">
         <p className="text-sm font-semibold">
           {step.kind === 'activation'
             ? 'Serie di attivazione'
             : step.kind === 'mini-set'
               ? `Mini-serie ${String(step.setIndex - 1)}`
-              : `Serie ${String(step.setIndex)} di ${String(step.totalSets)}`}
+              : 'Quante ne hai fatte'}
         </p>
         <RangeHint value={main} range={range} />
       </div>

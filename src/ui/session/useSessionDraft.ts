@@ -45,6 +45,14 @@ export interface SessionDraft {
   readonly tests: ReadonlyMap<TestId, TestResult>;
   readonly update: (change: (session: LoggedSession) => LoggedSession) => void;
   readonly confirmExercise: (state: ExerciseState) => void;
+  /**
+   * Butta via la seduta di oggi e riparte da vuoto.
+   *
+   * Serve quando quello che è stato registrato non vale: una prova, un
+   * esercizio sbagliato, un pomeriggio andato storto. Cancella solo la seduta
+   * del giorno; test, misure e livelli restano.
+   */
+  readonly discard: () => Promise<void>;
 }
 
 export function useSessionDraft(sessionId: SessionId): SessionDraft {
@@ -135,6 +143,24 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
     void repository.saveExerciseState(state);
   }, []);
 
+  const discard = useCallback(async (): Promise<void> => {
+    const corrente = draft;
+    if (corrente === null) return;
+
+    await repository.deleteSession(corrente.id);
+
+    const vuota = buildDraftSession({
+      id: corrente.id,
+      date: corrente.date,
+      week: corrente.week,
+      session: program,
+      states,
+      previous,
+    });
+    await repository.saveSession(vuota);
+    setDraft(vuota);
+  }, [draft, program, states, previous]);
+
   return {
     loading,
     program,
@@ -147,6 +173,7 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
     tests,
     update,
     confirmExercise,
+    discard,
   };
 }
 

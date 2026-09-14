@@ -102,6 +102,28 @@ try {
     await page.goto(`${BASE}/#/seduta/upper-a`, { waitUntil: 'load' });
     await page.waitForTimeout(1200);
 
+    /*
+     * La prima serie si deve poter registrare senza confermare niente.
+     *
+     * Prima il player chiedeva di confermare variante e livello prima della
+     * prima serie di ogni esercizio. Il livello esce dai nove test della
+     * settimana 0: chiederne conferma era un passaggio in più che non
+     * aggiungeva informazione, e in palestra un passaggio in più è un
+     * ostacolo.
+     */
+    check(
+      (await page.getByRole('button', { name: 'Confermo, è questo' }).count()) === 0,
+      'La prima serie non deve chiedere di confermare l’esercizio.',
+    );
+    const primiCampi = page.locator('input[type=number]');
+    for (let k = 0; k < (await primiCampi.count()); k += 1) await primiCampi.nth(k).fill('8');
+    await page.waitForTimeout(200);
+    const primoCommit = page.getByRole('button', { name: 'Serie fatta' });
+    check(
+      (await primoCommit.count()) > 0 && !(await primoCommit.isDisabled()),
+      'Scritte le ripetizioni, "Serie fatta" deve essere attivo senza altri passaggi.',
+    );
+
     const order = [];
     const riposi = [];
     let planTotal = 0;

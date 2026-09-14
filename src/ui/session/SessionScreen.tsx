@@ -20,6 +20,7 @@ import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components
 import { navigate } from '../router.ts';
 import { CardioSession } from './CardioSession.tsx';
 import { Metronome } from './Metronome.tsx';
+import { ExerciseArt } from '../components/ExerciseArt.tsx';
 import { RestBar } from './RestBar.tsx';
 import { SessionSummary } from './SessionSummary.tsx';
 import { SetEntry } from './SetEntry.tsx';
@@ -38,7 +39,8 @@ import type { ProgressionSuggestion } from '../../engine/progression.ts';
  */
 export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) {
   const state = useSessionDraft(sessionId);
-  const { program, draft, plan, week, states, confirmed, previous, tests, update, confirmExercise } = state;
+  const { program, draft, plan, week, states, previous, tests, update, confirmExercise, discard } =
+    state;
 
   const [stepIndex, setStepIndex] = useState(0);
   /*
@@ -54,6 +56,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     readonly startedAt: number;
   } | null>(null);
   const [showSummary, setShowSummary] = useState(false);
+  const [confermaScarto, setConfermaScarto] = useState(false);
   const [decided, setDecided] = useState<ReadonlySet<string>>(new Set());
   const positioned = useRef(false);
 
@@ -158,7 +161,16 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const load = getLoadAvailability(exercise, week);
   const progress = sessionProgress(draft, plan);
   const weekState = getWeekState(week);
-  const mustConfirm = !confirmed.has(block.exercise);
+  /*
+   * L'esercizio non si conferma più a mano.
+   *
+   * Il livello di partenza esce dai nove test della settimana 0 e da quello
+   * che il programma prescrive: chiederne conferma prima di ogni prima serie
+   * era un passaggio in più che non aggiungeva informazione, e in palestra un
+   * passaggio in più è un ostacolo. La variante resta cambiabile quando serve,
+   * dalla riga qui sotto.
+   */
+  const mustConfirm = false;
   const nothingLoggedYet = progress.done === 0;
 
   const past = previous.get(block.code);
@@ -202,15 +214,46 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
       subtitle={`${String(progress.done)} di ${String(progress.total)} serie`}
       onBack={goHome}
       footer={
-        <div className="flex gap-2 pb-1">
-          <Button
-            full
-            size="lg"
-            variant={progress.complete ? 'primary' : 'secondary'}
-            onClick={() => { setShowSummary(true); }}
-          >
-            {progress.complete ? 'Chiudi la seduta' : 'Chiudi in anticipo'}
-          </Button>
+        <div className="flex flex-col gap-2 pb-1">
+          {confermaScarto ? (
+            <div className="rounded-2xl border border-danger/40 bg-danger/10 p-3">
+              <p className="text-sm leading-relaxed">
+                Cancella tutte le serie registrate oggi e riparte da vuoto. Test, misure e livelli
+                restano.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setConfermaScarto(false);
+                    void discard();
+                  }}
+                >
+                  Sì, cancella oggi
+                </Button>
+                <Button variant="ghost" onClick={() => { setConfermaScarto(false); }}>
+                  Annulla
+                </Button>
+              </div>
+            </div>
+          ) : null}
+          <div className="flex gap-2">
+            <Button
+              full
+              size="lg"
+              variant={progress.complete ? 'primary' : 'secondary'}
+              onClick={() => { setShowSummary(true); }}
+            >
+              {progress.complete ? 'Chiudi la seduta' : 'Chiudi in anticipo'}
+            </Button>
+            <Button
+              variant="danger"
+              ariaLabel="Cancella la seduta di oggi"
+              onClick={() => { setConfermaScarto((valore) => !valore); }}
+            >
+              Svuota
+            </Button>
+          </div>
         </div>
       }
     >
@@ -265,11 +308,17 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           })}
         </div>
 
+        {/*
+          L'ordine è quello che serve con il telefono a terra: prima cosa fai e
+          che aspetto ha, poi tutti i numeri della prescrizione insieme, poi
+          dove scrivi quello che hai fatto con il metronomo accanto. Lo storico
+          della seduta sta in fondo, perché si consulta, non si usa.
+        */}
         <Card tone="accent">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="font-mono text-xs text-accent">{block.code}</p>
-              <p className="text-xl font-semibold">{exercise.name}</p>
+              <p className="text-xl font-semibold">{logged?.variantLabel ?? exercise.name}</p>
             </div>
             <button
               type="button"
@@ -280,9 +329,19 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             </button>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+          <div className="mt-3">
+            <ExerciseArt slug={exercise.slug} />
+          </div>
+
+          <div className="mt-4 grid grid-cols-4 gap-2 text-sm">
             <div>
-              <p className="text-xs text-dim">Target</p>
+              <p className="text-xs text-dim">Serie</p>
+              <p className="tabular font-semibold">
+                {step.kind === 'work' ? `${String(step.setIndex)}/${String(step.totalSets)}` : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-dim">Ripetizioni</p>
               <p className="tabular font-semibold">
                 {range.kind === 'range' ? formatRange(range.range, range.unit) : '—'}
               </p>
@@ -301,10 +360,6 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           {block.variantNote !== undefined ? (
             <p className="mt-2 text-xs leading-relaxed text-warn">{block.variantNote}</p>
           ) : null}
-
-          <div className="mt-3">
-            <Metronome tut={tempo} />
-          </div>
         </Card>
 
         {exerciseState !== undefined ? (
@@ -316,6 +371,8 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             mustConfirm={mustConfirm}
             onChange={(level, label) => {
               update((session) => setVariant(session, block.code, label, level));
+              // Il cambio si salva subito: non c'è più una conferma a chiuderlo.
+              confirmExercise({ ...exerciseState, level: level ?? exerciseState.level });
             }}
             onConfirm={(confirmedState) => {
               const level = logged?.level ?? confirmedState.level;
@@ -323,6 +380,22 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             }}
           />
         ) : null}
+
+        <SetEntry
+          key={`${step.blockCode}-${String(step.setIndex)}`}
+          step={step}
+          block={block}
+          exercise={exercise}
+          range={range}
+          load={load}
+          suggestion={suggestion}
+          lockedReason={null}
+          onCommit={commit}
+        />
+
+        <Card>
+          <Metronome tut={tempo} />
+        </Card>
 
         {logged !== undefined && logged.sets.length > 0 ? (
           <div>
@@ -358,20 +431,6 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             </ul>
           </div>
         ) : null}
-
-        <SetEntry
-          key={`${step.blockCode}-${String(step.setIndex)}`}
-          step={step}
-          block={block}
-          exercise={exercise}
-          range={range}
-          load={load}
-          suggestion={suggestion}
-          lockedReason={
-            mustConfirm ? 'Conferma prima variante e livello: senza, il confronto tra le settimane non ha significato.' : null
-          }
-          onCommit={commit}
-        />
 
         <div className="flex gap-2">
           <Button
