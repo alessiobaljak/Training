@@ -6,6 +6,7 @@ import {
   effectiveSets,
   getWeekState,
   isRetestDue,
+  nextTrainingDay,
   programWeek,
 } from './schedule.ts';
 
@@ -92,5 +93,34 @@ describe('ritest', () => {
     expect(isRetestDue(6, 5)).toBe(false);
     expect(isRetestDue(5, 6)).toBe(false);
     expect(isRetestDue(18, 6)).toBe(false);
+  });
+});
+
+describe('il prossimo allenamento', () => {
+  it('di solito è domani', () => {
+    // 2026-09-14 è un lunedì.
+    expect(nextTrainingDay('2026-09-14')).toEqual({
+      date: '2026-09-15',
+      weekday: 2,
+      inDays: 1,
+    });
+  });
+
+  it('il sabato salta la domenica e va al lunedì', () => {
+    // Senza questo, il sabato l'app direbbe «ci vediamo domani» per un giorno
+    // in cui non si allena.
+    expect(nextTrainingDay('2026-09-19')).toEqual({
+      date: '2026-09-21',
+      weekday: 1,
+      inDays: 2,
+    });
+  });
+
+  it('anche partendo dalla domenica trova il lunedì', () => {
+    expect(nextTrainingDay('2026-09-20')).toEqual({
+      date: '2026-09-21',
+      weekday: 1,
+      inDays: 1,
+    });
   });
 });

@@ -233,6 +233,37 @@ try {
         (await page.getByText('Leva successiva').count()) > 0,
         'Chiudendo il massimo del range il riepilogo deve proporre la leva successiva.',
       );
+
+      /*
+       * Chiusa la seduta, la Home deve dirlo.
+       *
+       * Prima il riepilogo veniva aperto e mai salvato: la seduta restava
+       * «in-progress» e nessun controllo si accorgeva che la Home continuava a
+       * proporre «Inizia» a lavoro finito.
+       */
+      const salva = page.getByRole('button', { name: 'Salva e chiudi' });
+      if ((await salva.count()) > 0) {
+        await salva.click();
+        await page.waitForTimeout(1200);
+
+        await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+        await page.waitForTimeout(1200);
+
+        /* innerText applica il CSS: quel titolo è in maiuscolo, il confronto no. */
+        const home = (await page.locator('main').innerText()).toLowerCase();
+        check(
+          home.includes('è finita'),
+          `A seduta chiusa la Home deve dire che è finita, invece mostra: ${home.slice(0, 220)}`,
+        );
+        check(
+          home.includes('prossimo allenamento'),
+          'A seduta chiusa la Home deve dire quando è il prossimo allenamento.',
+        );
+        check(
+          (await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0,
+          'A seduta chiusa la Home non deve più proporre «Inizia».',
+        );
+      }
     }
   }
 
