@@ -181,7 +181,20 @@ export type MeasurementKind = 'reps' | 'seconds' | 'duration';
  * Politica zavorra. Il metodo elenca in modo esplicito su quali esercizi la
  * zavorra è consentita; su tutto il resto il campo non deve nemmeno esistere.
  */
-export type LoadPolicy = 'allowed' | 'forbidden';
+/**
+ * Come sta il carico esterno su un esercizio.
+ *
+ * - `allowed`: esercizio a corpo libero su cui la zavorra è la quinta leva
+ *   del sovraccarico, con i passi da 2,5 kg e le soglie del metodo.
+ * - `forbidden`: a corpo libero e basta. Il sovraccarico passa da tempo,
+ *   pause e variante.
+ * - `inherent`: il peso è l'esercizio, non una leva. Un manubrio in mano si
+ *   registra sempre, ma non è zavorra: non segue i passi da 2,5 kg e non
+ *   entra nell'ordine delle leve. Senza questo terzo stato un'alzata laterale
+ *   con i manubri costringeva a scegliere tra non poter scrivere il peso e
+ *   far entrare la leva zavorra dove il metodo non la prevede.
+ */
+export type LoadPolicy = 'allowed' | 'forbidden' | 'inherent';
 
 /** Incremento unico ammesso dal metodo. Lo stepper non propone altri valori. */
 export const LOAD_STEP_KG = 2.5;

@@ -4,7 +4,7 @@ import { getProgressionScale } from '../../data/progressions.ts';
 import { MOTOR_PATTERN_LABELS } from '../../types/index.ts';
 import { repository } from '../../db/repository.ts';
 import { exerciseHistory } from '../../engine/history.ts';
-import { resolveVideoLink } from '../../engine/media.ts';
+import { resolveVideoLink, youtubeSearchUrl } from '../../engine/media.ts';
 import { getLoadThreshold } from '../../data/method.ts';
 import { navigate } from '../router.ts';
 import { useExerciseState, useExerciseVideo, useSessions } from '../hooks/useData.ts';
@@ -103,6 +103,35 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
         <Card>
           <CueList cues={exercise.cues} />
         </Card>
+
+        {exercise.alternative === null ? null : (
+          <>
+            <SectionTitle>Oppure</SectionTitle>
+            <Card>
+              <p className="text-lg font-semibold">{exercise.alternative.name}</p>
+              <p className="mt-1 text-sm leading-relaxed text-dim">
+                La scheda offre due varianti su questa riga. Valgono lo stesso: scegli quella che
+                l’attrezzatura e le spalle ti permettono oggi.
+              </p>
+              <div className="mt-3">
+                <ExerciseArt slug={slug} variant="alternativa" />
+              </div>
+              <div className="mt-3">
+                <CueList cues={exercise.alternative.cues} />
+              </div>
+              <div className="mt-3">
+                <a
+                  href={youtubeSearchUrl(exercise.alternative.videoQuery)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-14 w-full items-center justify-center rounded-2xl border border-line bg-panel px-6 font-semibold text-ink"
+                >
+                  Cerca un video della variante
+                </a>
+              </div>
+            </Card>
+          </>
+        )}
 
         <SectionTitle>Video</SectionTitle>
         <Card>

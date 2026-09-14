@@ -25,6 +25,10 @@ export interface LoadAvailability {
 }
 
 export function getLoadAvailability(exercise: Exercise, week: number): LoadAvailability {
+  if (exercise.loadPolicy === 'inherent') {
+    // Il peso va scritto sempre: è l'esercizio, non un sovraccarico aggiunto.
+    return { allowed: true, reason: null, explanation: null };
+  }
   if (exercise.loadPolicy === 'forbidden') {
     return {
       allowed: false,
@@ -88,7 +92,9 @@ export interface LoadNeedAssessment {
  * Sugli altri schemi motori la scheda non fissa soglie.
  */
 export function assessLoadNeed(exercise: Exercise, maxReps: number): LoadNeedAssessment {
-  if (exercise.loadPolicy === 'forbidden') {
+  // `inherent` come `forbidden`: le soglie del metodo parlano di zavorra su
+  // trazioni e dip, non di quanto pesa un manubrio.
+  if (exercise.loadPolicy !== 'allowed') {
     return { need: 'unknown', message: null };
   }
   const threshold = getLoadThreshold(exercise.pattern);

@@ -144,6 +144,24 @@ function variantLever(input: ProgressionInput): LeverAvailability {
 
 function loadLever(input: ProgressionInput): LeverAvailability {
   const label = OVERLOAD_LEVER_LABELS.load;
+
+  /*
+   * Il peso di un manubrio non è la quinta leva del metodo.
+   *
+   * `inherent` vuol dire che il carico è l'esercizio: si registra sempre, ma
+   * non si sale di 2,5 kg alla volta e non entra nell'ordine delle leve.
+   * Confondere le due cose farebbe comparire "aggiungi zavorra" su un'alzata
+   * laterale, dove la scheda non prevede nessuna progressione di carico.
+   */
+  if (input.exercise.loadPolicy === 'inherent') {
+    return {
+      lever: 'load',
+      label,
+      available: false,
+      reason: 'Qui il peso è l’esercizio, non una leva: si registra, ma non è zavorra.',
+    };
+  }
+
   const availability = getLoadAvailability(input.exercise, input.week);
   if (!availability.allowed) {
     return { lever: 'load', label, available: false, reason: availability.explanation };

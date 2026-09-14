@@ -4,6 +4,20 @@ import type { LevelIndex, LoadPolicy, MeasurementKind, MotorPattern, MuscleGroup
 export type ExerciseSlug = string;
 
 /**
+ * La seconda variante che la scheda offre nella stessa riga.
+ *
+ * Righe come «Dip tra due panche **o** diamond push-up» sono due esercizi, non
+ * uno con un nome lungo. Finché l'app ne conosceva solo il primo, la seconda
+ * metà della riga non esisteva: niente cue, niente disegno, niente da
+ * scegliere. È il difetto che l'utente ha trovato sul blocco C2 del lunedì.
+ */
+export interface ExerciseAlternative {
+  readonly name: string;
+  readonly cues: readonly string[];
+  readonly videoQuery: string;
+}
+
+/**
  * Anagrafica di un esercizio. È dato statico: nessun valore qui dipende
  * dall'utente. Livello attuale, video personale e storico stanno in IndexedDB.
  *
@@ -49,4 +63,10 @@ export interface Exercise {
    * Nel codebase non esiste alcun URL di video hardcodato.
    */
   readonly videoQuery: string;
+  /**
+   * La seconda variante della stessa riga, quando la scheda ne offre due.
+   * `null` quando l'esercizio è uno solo. Un test verifica che ogni nome con
+   * due varianti la dichiari.
+   */
+  readonly alternative: ExerciseAlternative | null;
 }

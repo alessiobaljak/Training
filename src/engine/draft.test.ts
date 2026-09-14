@@ -54,7 +54,7 @@ describe('etichetta della variante', () => {
   it('usa il nome dell’esercizio per gli accessori fuori scala', () => {
     const exercise = getExercise('alzate-laterali-elastico');
     expect(variantLabelFor(exercise, initialExerciseState(exercise))).toBe(
-      'Alzate laterali con elastico',
+      'Alzate laterali con manubri',
     );
   });
 });

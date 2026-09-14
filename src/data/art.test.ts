@@ -84,7 +84,7 @@ describe('illustrazioni RepDB', () => {
     // mani vuote senza che niente se ne accorga fino alla palestra.
     for (const [slug, art] of Object.entries(REPDB_ART)) {
       expect(art, slug).toBeDefined();
-      for (const file of art?.frames ?? []) {
+      for (const file of [...(art?.frames ?? []), ...(art?.alternative?.frames ?? [])]) {
         expect(PHOTO_FILES.has(file), `${slug} -> ${file}`).toBe(true);
       }
     }
@@ -98,7 +98,12 @@ describe('illustrazioni RepDB', () => {
   });
 
   it('non ci sono immagini copiate e mai usate', () => {
-    const usate = new Set(Object.values(REPDB_ART).flatMap((art) => [...(art?.frames ?? [])]));
+    const usate = new Set(
+      Object.values(REPDB_ART).flatMap((art) => [
+        ...(art?.frames ?? []),
+        ...(art?.alternative?.frames ?? []),
+      ]),
+    );
     // Il termine 3 della licenza vieta di ridistribuire l'archivio: nel
     // progetto stanno solo le immagini che l'app mostra davvero.
     expect([...PHOTO_FILES].filter((file) => !usate.has(file))).toEqual([]);

@@ -1,12 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { DELOAD_WEEKS, PROGRAM_SESSIONS, REST_WEEKDAYS, RETEST_WEEKS, getSessionForWeekday, isRestDay } from './program.ts';
 import { getExercise } from './exercises.ts';
+import { DEVIAZIONI, applicaDeviazione } from './deviations.ts';
 import type { Prescription, RestPrescription, SessionId } from '../types/index.ts';
 
 /**
  * Questo file è una seconda trascrizione, indipendente, delle tabelle della
  * specifica. Se il seed e questa tabella divergono, uno dei due è sbagliato:
  * è esattamente il controllo che serve.
+ *
+ * Le righe qui sotto riportano il foglio Excel **così com'è**, anche dove
+ * l'app ha poi cambiato qualcosa. Le differenze volute passano da
+ * `DEVIAZIONI`, che le applica al confronto: correggere queste righe per far
+ * passare un test significherebbe cancellare la prova che serviva.
  *
  * Colonne: codice | esercizio | serie | rip | riferimento | TUT | RIR | recupero | per lato
  */
@@ -68,6 +74,11 @@ function actualRows(id: SessionId): Row[] {
     formatRest(block.rest),
     block.perSide,
   ]);
+}
+
+/** Le righe della scheda, con le differenze volute già applicate. */
+function attese(rows: readonly Row[]): Row[] {
+  return rows.map((row) => [row[0], applicaDeviazione(row[1]), ...row.slice(2)] as unknown as Row);
 }
 
 const UPPER_A: readonly Row[] = [
@@ -148,7 +159,7 @@ describe('program.ts — trascrizione delle 6 sedute', () => {
   });
 
   it.each(EXPECTED)('la seduta %s corrisponde riga per riga alla scheda', (id, rows) => {
-    expect(actualRows(id)).toEqual(rows);
+    expect(actualRows(id)).toEqual(attese(rows));
   });
 
   it('ha 36 blocchi in totale', () => {
@@ -242,5 +253,27 @@ describe('calendario del mesociclo', () => {
   it('scarico alle settimane 6, 12 e 18; ritest alle 6 e 12', () => {
     expect(DELOAD_WEEKS).toEqual([6, 12, 18]);
     expect(RETEST_WEEKS).toEqual([6, 12]);
+  });
+});
+
+describe('deviazioni dichiarate', () => {
+  it('ogni deviazione riguarda un esercizio che la scheda nomina davvero', () => {
+    // Una voce che non corrisponde a niente è una deviazione vecchia rimasta
+    // lì: da quel momento la lista racconta una storia che non esiste più.
+    const nomiDaScheda = new Set(
+      [UPPER_A, LOWER_A, ZONA_2, UPPER_B, LOWER_B, SHADOW].flatMap((rows) =>
+        rows.map((row) => row[1]),
+      ),
+    );
+    for (const deviazione of DEVIAZIONI) {
+      expect(nomiDaScheda.has(deviazione.scheda), deviazione.scheda).toBe(true);
+    }
+  });
+
+  it('ogni deviazione porta un motivo scritto, non un cambio silenzioso', () => {
+    for (const deviazione of DEVIAZIONI) {
+      expect(deviazione.motivo.length, deviazione.scheda).toBeGreaterThan(40);
+      expect(deviazione.app).not.toBe(deviazione.scheda);
+    }
   });
 });

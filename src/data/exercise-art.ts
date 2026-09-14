@@ -30,13 +30,22 @@ export const ART_ATTRIBUTION = {
   href: 'https://repdb.co',
 } as const;
 
-export interface RepDbArt {
+export interface RepDbFrames {
   /** L'identificativo dell'esercizio nell'archivio RepDB. */
   readonly source: string;
   /** Il nome inglese, per ritrovarlo. */
   readonly label: string;
   /** Inizio e fine del movimento. Le isometrie ne hanno una sola. */
   readonly frames: readonly string[];
+}
+
+export interface RepDbArt extends RepDbFrames {
+  /**
+   * Il disegno della seconda variante, quando la riga della scheda ne offre
+   * due e RepDB ha anche quella. Senza, la variante alternativa resterebbe
+   * descritta a parole e mostrata con il disegno di un altro esercizio.
+   */
+  readonly alternative?: RepDbFrames;
 }
 
 export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
@@ -84,21 +93,46 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     source: 'archer-push-ups',
     label: 'Archer Push Ups',
     frames: ['archer-push-ups-start.webp', 'archer-push-ups-peak.webp'],
+    alternative: {
+      source: 'pseudo-planche-push-ups',
+      label: 'Pseudo Planche Push Ups',
+      frames: ['pseudo-planche-push-ups-start.webp', 'pseudo-planche-push-ups-peak.webp'],
+    },
   },
+  /*
+   * RepDB non ha le croci con elastico. Il disegno che avevamo è quello del
+   * push-up presa larga, che è la seconda variante della riga: sta al suo
+   * posto, sotto l'alternativa. Per la prima resta la figura schematica.
+   */
   'croci-elastico-o-pushup-presa-larga': {
-    source: 'wide-grip-push-ups',
-    label: 'Wide Grip Push Ups',
-    frames: ['wide-grip-push-ups-start.webp', 'wide-grip-push-ups-peak.webp'],
+    source: '',
+    label: '',
+    frames: [],
+    alternative: {
+      source: 'wide-grip-push-ups',
+      label: 'Wide Grip Push Ups',
+      frames: ['wide-grip-push-ups-start.webp', 'wide-grip-push-ups-peak.webp'],
+    },
   },
   'dip-parallele-anelli': {
-    source: 'ring-dips',
-    label: 'Ring Dips',
-    frames: ['ring-dips-start.webp', 'ring-dips-peak.webp'],
+    source: 'dips',
+    label: 'Chest Dips',
+    frames: ['dips-start.webp', 'dips-peak.webp'],
+    alternative: {
+      source: 'ring-dips',
+      label: 'Ring Dips',
+      frames: ['ring-dips-start.webp', 'ring-dips-peak.webp'],
+    },
   },
   'dip-panche-o-diamond-pushup': {
-    source: 'bench-dips',
-    label: 'Bench Dips',
-    frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
+    source: 'diamond-push-ups',
+    label: 'Diamond Push Ups',
+    frames: ['diamond-push-ups-start.webp', 'diamond-push-ups-peak.webp'],
+    alternative: {
+      source: 'bench-dips',
+      label: 'Bench Dips',
+      frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
+    },
   },
   'dip-panche-piedi-rialzati': {
     source: 'bench-dips',
@@ -114,16 +148,27 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     source: 'handstand-push-ups',
     label: 'Handstand Push Ups',
     frames: ['handstand-push-ups-start.webp', 'handstand-push-ups-peak.webp'],
+    alternative: {
+      source: 'pike-push-ups',
+      label: 'Pike Push Ups',
+      frames: ['pike-push-ups-start.webp', 'pike-push-ups-peak.webp'],
+    },
   },
   'bulgarian-split-squat': {
     source: 'bulgarian-split-squat',
     label: 'Bulgarian Split Squat',
     frames: ['bulgarian-split-squat-start.webp', 'bulgarian-split-squat-peak.webp'],
   },
+  /* Stesso caso: il wall sit è la seconda variante, il sissy squat non c'è. */
   'sissy-squat-o-wall-sit': {
-    source: 'wall-sit',
-    label: 'Wall Sit',
-    frames: ['wall-sit-main.webp'],
+    source: '',
+    label: '',
+    frames: [],
+    alternative: {
+      source: 'wall-sit',
+      label: 'Wall Sit',
+      frames: ['wall-sit-main.webp'],
+    },
   },
   'nordic-curl': {
     source: 'nordic-hamstring-curl',

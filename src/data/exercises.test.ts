@@ -151,3 +151,53 @@ describe('getExercise', () => {
     expect(() => getExercise('esercizio-inventato')).toThrow(/sconosciuto/i);
   });
 });
+
+describe('righe con due varianti', () => {
+  /**
+   * La scheda scrive righe come «Dip tra due panche **o** diamond push-up».
+   * Sono due esercizi, non uno con un nome lungo.
+   *
+   * Per mesi l'app ne ha conosciuto solo il primo: niente cue, niente disegno
+   * e niente da scegliere per il secondo. Se ne è accorto l'utente, in
+   * palestra, guardando il blocco C2 del lunedì. Questi test fanno in modo che
+   * non possa succedere di nuovo su nessuna delle altre righe.
+   */
+  const conDueVarianti = EXERCISES.filter((exercise) => / o /.test(exercise.name));
+
+  it('ce ne sono, altrimenti questo controllo non controlla niente', () => {
+    expect(conDueVarianti.length).toBeGreaterThan(5);
+  });
+
+  it('ogni riga con due varianti dichiara la seconda', () => {
+    for (const exercise of conDueVarianti) {
+      expect(exercise.alternative, exercise.name).not.toBeNull();
+    }
+  });
+
+  it('la seconda variante ha cue suoi, non quelli della prima', () => {
+    for (const exercise of conDueVarianti) {
+      const alternative = exercise.alternative;
+      if (alternative === null) continue;
+      expect(alternative.cues.length, exercise.name).toBeGreaterThanOrEqual(4);
+      for (const cue of alternative.cues) {
+        expect(exercise.cues, `${exercise.name}: cue copiato`).not.toContain(cue);
+      }
+    }
+  });
+
+  it('la seconda variante ha una ricerca video sua', () => {
+    for (const exercise of conDueVarianti) {
+      const alternative = exercise.alternative;
+      if (alternative === null) continue;
+      expect(alternative.videoQuery, exercise.name).not.toBe(exercise.videoQuery);
+      expect(alternative.videoQuery.length, exercise.name).toBeGreaterThan(15);
+    }
+  });
+
+  it('chi non ha due varianti non dichiara un’alternativa a vuoto', () => {
+    for (const exercise of EXERCISES) {
+      if (/ o /.test(exercise.name)) continue;
+      expect(exercise.alternative, exercise.name).toBeNull();
+    }
+  });
+});

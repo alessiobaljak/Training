@@ -39,22 +39,33 @@ function byFileName(modules: Record<string, unknown>, strip: RegExp): ReadonlyMa
 const SVG_BY_SLUG = byFileName(SVG_MODULES, /\.svg$/);
 const PHOTO_BY_FILE = byFileName(PHOTO_MODULES, /$^/);
 
-/** Gli indirizzi dei fotogrammi di un esercizio, vuoto se non ne ha. */
-function framesFor(slug: string): string[] {
+export type ArtVariant = 'primaria' | 'alternativa';
+
+/** Gli indirizzi dei fotogrammi di una variante, vuoto se non ne ha. */
+function framesFor(slug: string, variant: ArtVariant): string[] {
   const art = REPDB_ART[slug as keyof typeof REPDB_ART];
   if (art === undefined) return [];
-  return art.frames.flatMap((file) => {
+  const scelta = variant === 'alternativa' ? art.alternative : art;
+  return (scelta?.frames ?? []).flatMap((file) => {
     const url = PHOTO_BY_FILE.get(file);
     return url === undefined ? [] : [url];
   });
 }
 
 export function hasExerciseArt(slug: string): boolean {
-  return framesFor(slug).length > 0 || SVG_BY_SLUG.has(slug);
+  return framesFor(slug, 'primaria').length > 0 || SVG_BY_SLUG.has(slug);
 }
 
-export function ExerciseArt({ slug, label }: { readonly slug: string; readonly label?: string }) {
-  const frames = framesFor(slug);
+export function ExerciseArt({
+  slug,
+  label,
+  variant = 'primaria',
+}: {
+  readonly slug: string;
+  readonly label?: string;
+  readonly variant?: ArtVariant;
+}) {
+  const frames = framesFor(slug, variant);
   const caption = label ?? (frames.length === 1 ? 'La posizione da tenere' : 'Inizio e fine del range');
 
   if (frames.length > 0) {
@@ -75,6 +86,10 @@ export function ExerciseArt({ slug, label }: { readonly slug: string; readonly l
       </figure>
     );
   }
+
+  // Per l'alternativa non c'è ripiego: la figura schematica disegna la
+  // variante principale e mostrarla qui direbbe una cosa falsa.
+  if (variant === 'alternativa') return null;
 
   const markup = SVG_BY_SLUG.get(slug);
   if (markup === undefined) return null;

@@ -35,6 +35,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: mento sopra la sbarra senza estendere il collo, ritorno a gomiti completamente distesi.',
     ],
     videoQuery: 'pull up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'trazioni-presa-larga',
@@ -53,6 +54,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: mento sopra la sbarra, discesa controllata fino a braccia distese.',
     ],
     videoQuery: 'wide grip pull up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'chin-up-presa-supina-stretta',
@@ -71,6 +73,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: mento sopra la sbarra, discesa fino a distensione completa senza rimbalzo.',
     ],
     videoQuery: 'close grip chin up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'chin-up-presa-supina',
@@ -89,6 +92,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: mento sopra la sbarra, ritorno a gomiti distesi con controllo.',
     ],
     videoQuery: 'chin up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'dead-hang',
@@ -107,6 +111,7 @@ const EXERCISE_LIST = [
       'Misura valida: il tempo si ferma quando le dita si aprono, non quando fa male.',
     ],
     videoQuery: 'dead hang grip endurance tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
@@ -129,6 +134,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: maniglie all’altezza delle costole basse, ritorno a braccia distese senza perdere la linea.',
     ],
     videoQuery: 'trx inverted row proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'rematore-inverso-trx-piedi-rialzati',
@@ -147,6 +153,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: pausa in chiusura rispettata, discesa controllata fino a braccia distese.',
     ],
     videoQuery: 'feet elevated inverted row proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'rematore-trx-monobraccio',
@@ -165,6 +172,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: spalle parallele al pavimento dall’inizio alla fine, braccio disteso a ogni ritorno.',
     ],
     videoQuery: 'single arm trx row proper form tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
@@ -187,6 +195,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: petto a un pugno da terra, distensione completa in alto senza perdere la linea.',
     ],
     videoQuery: 'push up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'pushup-archer-o-pseudo-planche',
@@ -205,6 +214,16 @@ const EXERCISE_LIST = [
       'Ripetizione valida: petto vicino a terra sul lato che lavora, risalita senza torsione.',
     ],
     videoQuery: 'archer push up pseudo planche push up tutorial',
+    alternative: {
+      name: 'Pseudo-planche push-up',
+      cues: [
+        'Mani all’altezza della vita invece che delle spalle, dita rivolte verso i piedi o di lato.',
+        'Spingi il corpo in avanti finché le spalle superano le mani: è quello che rende il movimento duro.',
+        'Bacino in retroversione e glutei contratti: la lombare non deve inarcarsi.',
+        'Ripetizione valida: petto verso terra senza che le anche cedano, spalle sempre davanti alle mani.',
+      ],
+      videoQuery: 'pseudo planche push up proper form tutorial',
+    },
   },
   {
     slug: 'croci-elastico-o-pushup-presa-larga',
@@ -223,6 +242,16 @@ const EXERCISE_LIST = [
       'Ripetizione valida: angolo del gomito costante, allungamento percepito sul petto e non sulla spalla.',
     ],
     videoQuery: 'resistance band chest fly proper form tutorial',
+    alternative: {
+      name: 'Push-up presa larga lenta',
+      cues: [
+        'Mani più larghe delle spalle di una mano e mezza, gomiti a circa 45° dal busto.',
+        'Scendi in 3", tocca il petto a terra, risali in 1": è la lentezza a fare il lavoro.',
+        'Errore tipico: gomiti a 90° verso l’esterno, che carica la parte davanti della spalla.',
+        'Ripetizione valida: corpo in linea dalla testa ai talloni, nessun cedimento del bacino.',
+      ],
+      videoQuery: 'wide grip push up slow tempo proper form',
+    },
   },
 
   /* ---------------------------------------------------------------------- */
@@ -245,6 +274,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: testa che sfiora il pavimento davanti alle mani, distensione completa in alto.',
     ],
     videoQuery: 'feet elevated pike push up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'negative-hspu-muro-o-pike-pushup',
@@ -263,6 +293,16 @@ const EXERCISE_LIST = [
       'Ripetizione valida: 5" di eccentrica cronometrati, uscita senza spinta di schiena.',
     ],
     videoQuery: 'wall handstand push up negative tutorial',
+    alternative: {
+      name: 'Pike push-up piedi a terra',
+      cues: [
+        'A V rovesciata, mani a larghezza spalle, bacino alto e talloni verso terra.',
+        'Scendi portando la fronte davanti alle mani, non tra le mani: è lì che lavorano le spalle.',
+        'Gomiti che scorrono indietro a circa 45°, non aperti di lato.',
+        'Ripetizione valida: fronte che sfiora terra e ritorno a braccia distese senza abbassare il bacino.',
+      ],
+      videoQuery: 'pike push up proper form tutorial',
+    },
   },
 
   /* ---------------------------------------------------------------------- */
@@ -285,10 +325,33 @@ const EXERCISE_LIST = [
       'Ripetizione valida: circa 90° al gomito in basso, distensione completa in alto senza scrollata.',
     ],
     videoQuery: 'parallel bar dip proper form tutorial',
+    alternative: {
+      name: 'Dip agli anelli',
+      cues: [
+        'Anelli a larghezza spalle, polsi leggermente ruotati verso l’interno in basso e verso l’esterno in alto.',
+        'Gli anelli si muovono: parti da un supporto stabile e non cercare la profondità finché non li tieni fermi.',
+        'Spalle depresse per tutto il movimento: se salgono verso le orecchie, sei sceso troppo.',
+        'Ripetizione valida: gomiti oltre i 90° con anelli fermi, blocco completo in alto.',
+      ],
+      videoQuery: 'ring dips proper form tutorial',
+    },
   },
   {
+    /*
+     * La scheda scrive «Dip tra due panche o diamond push-up». Qui l'ordine è
+     * invertito, e non è un refuso: è una scelta dell'utente, dichiarata in
+     * DEVIAZIONI.
+     *
+     * Il motivo. Questo blocco arriva terzo, a RIR 0-1, dopo quattro serie di
+     * dip alle parallele e tre di pike push-up. Il dip su panca porta la
+     * spalla in estensione e rotazione interna profonda, che è la posizione
+     * con meno spazio nell'articolazione, e ce la porta stanca. Il diamond
+     * push-up allena gli stessi tricipiti nelle stesse ripetizioni senza
+     * mettere la spalla lì. Il dip su panca resta disponibile come
+     * alternativa, con i suoi cue.
+     */
     slug: 'dip-panche-o-diamond-pushup',
-    name: 'Dip tra due panche o diamond push-up',
+    name: 'Diamond push-up o dip tra due panche',
     pattern: 'dip',
     defaultLevel: 1,
     primaryMuscles: ['braccia'],
@@ -296,13 +359,24 @@ const EXERCISE_LIST = [
     measurement: 'reps',
     loadPolicy: 'allowed',
     cues: [
-      'Mani sul bordo della panca dietro di te, dita in avanti, bacino vicino alla panca.',
-      'I gomiti scorrono indietro paralleli, mai verso l’esterno.',
-      'Scendi fino a gomiti a 90° e non oltre.',
-      'Errore tipico: allontanare il bacino dalla panca, che sposta il carico sulla capsula della spalla.',
-      'Ripetizione valida: 90° al gomito in basso, braccia distese in alto, busto verticale.',
+      'Mani sotto lo sterno, indici e pollici che si toccano a formare un rombo.',
+      'Gomiti stretti che scorrono lungo il busto, mai aperti di lato.',
+      'Scendi fino a sfiorare le mani con lo sterno, corpo in linea dai talloni alla testa.',
+      'Errore tipico: bacino che cede o che si alza per accorciare il movimento.',
+      'Ripetizione valida: sterno sulle mani in basso, braccia distese in alto, nessun cedimento della lombare.',
     ],
-    videoQuery: 'bench dip proper form tutorial',
+    videoQuery: 'diamond push up proper form tutorial',
+    alternative: {
+      name: 'Dip tra due panche',
+      cues: [
+        'Mani sul bordo della panca dietro di te, dita in avanti, bacino vicino alla panca.',
+        'I gomiti scorrono indietro paralleli, mai verso l’esterno.',
+        'Scendi fino a gomiti a 90° e non oltre: più giù la spalla non ha spazio.',
+        'Errore tipico: allontanare il bacino dalla panca, che sposta il carico sulla capsula della spalla.',
+        'Ripetizione valida: 90° al gomito in basso, braccia distese in alto, busto verticale.',
+      ],
+      videoQuery: 'bench dips proper form tutorial',
+    },
   },
   {
     slug: 'dip-panche-piedi-rialzati',
@@ -321,6 +395,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: 90° al gomito in basso, gambe passive, distensione completa in alto.',
     ],
     videoQuery: 'feet elevated bench dip proper form tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
@@ -343,6 +418,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: coscia anteriore parallela, risalita senza appoggiare il ginocchio posteriore a terra.',
     ],
     videoQuery: 'bulgarian split squat proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'step-up-box-alto',
@@ -361,6 +437,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: anca completamente estesa in alto, discesa di almeno 2" senza rimbalzo.',
     ],
     videoQuery: 'high box step up proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'sissy-squat-o-wall-sit',
@@ -379,6 +456,16 @@ const EXERCISE_LIST = [
       'Ripetizione valida: linea ginocchia-anca-spalla mantenuta, nessuna flessione d’anca.',
     ],
     videoQuery: 'sissy squat proper form tutorial',
+    alternative: {
+      name: 'Wall sit isometrico 45"',
+      cues: [
+        'Schiena piatta contro il muro, ginocchia e anche a 90°, piedi a larghezza bacino.',
+        'Peso sui talloni, ginocchia sopra le caviglie e non oltre le punte.',
+        'Respira normalmente: trattenere il fiato alza la pressione senza aggiungere niente.',
+        'Serie valida: 45" senza scivolare in basso lungo il muro e senza appoggiare le mani sulle cosce.',
+      ],
+      videoQuery: 'wall sit proper form tutorial',
+    },
   },
   {
     slug: 'shrimp-squat-o-skater-squat',
@@ -397,6 +484,16 @@ const EXERCISE_LIST = [
       'Ripetizione valida: ginocchio posteriore che tocca il pavimento in controllo, risalita senza caduta laterale.',
     ],
     videoQuery: 'shrimp squat skater squat progression tutorial',
+    alternative: {
+      name: 'Skater squat',
+      cues: [
+        'Gamba libera dietro, ginocchio che scende verso terra senza toccarla.',
+        'Busto che si inclina in avanti quanto serve a tenere l’equilibrio: è normale, non è un errore.',
+        'Braccia avanti come contrappeso; se serve, tocca terra con le dita di una mano.',
+        'Ripetizione valida: ginocchio posteriore a un palmo da terra e risalita senza appoggiarsi.',
+      ],
+      videoQuery: 'skater squat proper form tutorial',
+    },
   },
 
   /* ---------------------------------------------------------------------- */
@@ -419,6 +516,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: eccentrica cronometrata al tempo prescritto con anche estese fino all’ultimo grado controllato.',
     ],
     videoQuery: 'nordic hamstring curl eccentric proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'hip-thrust-monopodalico',
@@ -437,6 +535,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: anca completamente estesa senza iperestensione lombare, pausa in alto rispettata.',
     ],
     videoQuery: 'single leg hip thrust proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'single-leg-rdl',
@@ -455,6 +554,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: bacino chiuso e parallelo a terra, pausa rispettata, risalita per estensione d’anca.',
     ],
     videoQuery: 'single leg romanian deadlift bodyweight tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
@@ -477,6 +577,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: pause in basso e in alto rispettate, ginocchio esteso per tutta la serie.',
     ],
     videoQuery: 'single leg standing calf raise proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'calf-monopodalico-seduto',
@@ -495,6 +596,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: pause rispettate e tallone che scende sotto il livello dell’avampiede.',
     ],
     videoQuery: 'seated calf raise proper form tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
@@ -517,6 +619,7 @@ const EXERCISE_LIST = [
       'Misura valida: il tempo si ferma nel momento in cui la lombare si stacca.',
     ],
     videoQuery: 'hollow body hold proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'hanging-leg-raise',
@@ -535,6 +638,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: nessuna oscillazione, discesa controllata fino a corpo completamente disteso.',
     ],
     videoQuery: 'hanging leg raise proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'ab-wheel-o-rollout-trx',
@@ -553,6 +657,16 @@ const EXERCISE_LIST = [
       'Ripetizione valida: lombare neutra per tutta l’escursione, ritorno senza flessione d’anca.',
     ],
     videoQuery: 'ab wheel rollout proper form tutorial',
+    alternative: {
+      name: 'Rollout al TRX',
+      cues: [
+        'Maniglie in mano, braccia tese davanti, corpo inclinato in avanti sulle punte.',
+        'Porta le braccia oltre la testa tenendo costole basse e bacino in retroversione.',
+        'Errore tipico: lasciare che la lombare si inarchi, che sposta il lavoro dall’addome alla schiena.',
+        'Ripetizione valida: allungo massimo senza che il bacino ceda, ritorno tirando con l’addome.',
+      ],
+      videoQuery: 'trx rollout proper form tutorial',
+    },
   },
   {
     slug: 'skill-isometrica',
@@ -571,28 +685,38 @@ const EXERCISE_LIST = [
       'Misura valida: il tempo si ferma alla prima perdita di posizione, non all’esaurimento.',
     ],
     videoQuery: 'l sit hollow hold wall handstand skill progression tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
   /* Spalle e braccia accessori                                              */
   /* ---------------------------------------------------------------------- */
   {
+    /*
+     * La scheda scrive «con elastico». L'utente ha scelto il manubrio, che a
+     * parità di ripetizioni dà un carico costante invece di crescere verso la
+     * fine del movimento, ed è più facile da dosare.
+     *
+     * Lo slug resta quello di prima: cambiarlo scollegherebbe lo storico già
+     * registrato e i video salvati.
+     */
     slug: 'alzate-laterali-elastico',
-    name: 'Alzate laterali con elastico',
+    name: 'Alzate laterali con manubri',
     pattern: null,
     defaultLevel: null,
     primaryMuscles: ['spalle'],
     secondaryMuscles: [],
     measurement: 'reps',
-    loadPolicy: 'forbidden',
+    loadPolicy: 'inherent',
     cues: [
-      'Elastico sotto i piedi, gomiti leggermente flessi e angolo fisso.',
+      'Manubri leggeri lungo i fianchi, gomiti leggermente flessi e angolo fisso.',
       'Sali fino all’altezza delle spalle, non oltre: sopra interviene il trapezio.',
-      'Il polso resta sulla linea del gomito, non più alto.',
-      'Errore tipico: slanciare con la schiena quando l’elastico si tende.',
-      'Ripetizione valida: nessun movimento del busto, discesa in almeno 2" contro la trazione dell’elastico.',
+      'Il polso resta sulla linea del gomito, non più alto: niente versare l’acqua.',
+      'Errore tipico: slanciare con la schiena per far partire il peso.',
+      'Ripetizione valida: nessun movimento del busto, discesa controllata in almeno 2".',
     ],
-    videoQuery: 'resistance band lateral raise proper form tutorial',
+    videoQuery: 'dumbbell lateral raise proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'face-pull-elastico',
@@ -611,6 +735,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: gomiti sopra le spalle in chiusura, pausa di 1" rispettata.',
     ],
     videoQuery: 'band face pull proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'curl-elastico-presa-neutra',
@@ -629,6 +754,7 @@ const EXERCISE_LIST = [
       'Ripetizione valida: gomito immobile, discesa in almeno 3" contro l’elastico.',
     ],
     videoQuery: 'resistance band hammer curl proper form tutorial',
+    alternative: null,
   },
 
   /* ---------------------------------------------------------------------- */
@@ -649,6 +775,7 @@ const EXERCISE_LIST = [
       'Serve ad alzare la temperatura, non a stancare: se ti manca il fiato stai andando troppo forte.',
     ],
     videoQuery: 'dynamic warm up walking routine before running',
+    alternative: null,
   },
   {
     slug: 'corsa-continua-piano',
@@ -666,6 +793,7 @@ const EXERCISE_LIST = [
       'Errore tipico: trasformare la zona 2 in un medio, che rovina il recupero delle sedute di forza.',
     ],
     videoQuery: 'zone 2 training pace talk test explained',
+    alternative: null,
   },
   {
     slug: 'mobilita-anche-torace-spalle',
@@ -682,6 +810,7 @@ const EXERCISE_LIST = [
       'Non cercare il massimo allungamento: qui l’obiettivo è defaticare, non guadagnare range.',
     ],
     videoQuery: 'hip thoracic shoulder mobility cool down routine',
+    alternative: null,
   },
   {
     slug: 'zona-2-conclusiva',
@@ -698,6 +827,7 @@ const EXERCISE_LIST = [
       'Se la FC non scende sotto i 135 bpm dopo due minuti, riduci il ritmo.',
     ],
     videoQuery: 'low intensity steady state cardio after strength training',
+    alternative: null,
   },
 ] as const satisfies readonly Exercise[];
 

@@ -65,6 +65,25 @@ export function startPwa(): void {
   if (!import.meta.env.PROD) return;
   if (!('serviceWorker' in navigator)) return;
 
+  /*
+   * Quando un service worker nuovo prende il comando, la pagina aperta sta
+   * ancora usando il codice vecchio: `clients.claim()` cambia chi risponde
+   * alle richieste, non quello che è già stato caricato. Senza questo giro,
+   * una correzione pubblicata richiede due ricaricamenti per farsi vedere, e
+   * chi ne fa uno solo pensa che non sia stata pubblicata.
+   *
+   * Si ricarica solo se un service worker c'era già: alla primissima
+   * installazione non c'è niente di vecchio da sostituire.
+   */
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller !== null) {
+    let ricaricando = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (ricaricando) return;
+      ricaricando = true;
+      window.location.reload();
+    });
+  }
+
   window.addEventListener('load', () => {
     // `updateViaCache: 'none'` impedisce al browser di servire un sw.js vecchio
     // dalla sua cache HTTP: è l'unico file che deve poter cambiare.
