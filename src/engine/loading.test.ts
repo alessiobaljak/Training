@@ -17,6 +17,8 @@ const nordic = getExercise('nordic-curl');
 const hspu = getExercise('negative-hspu-muro-o-pike-pushup');
 const hangingLegRaise = getExercise('hanging-leg-raise');
 const rematore = getExercise('rematore-inverso-trx-piedi-rialzati');
+const bulgarian = getExercise('bulgarian-split-squat');
+const alzateLaterali = getExercise('alzate-laterali-elastico');
 
 describe('disponibilità della zavorra', () => {
   it('è bloccata nelle prime due settimane, con spiegazione', () => {
@@ -50,6 +52,42 @@ describe('disponibilità della zavorra', () => {
 
   it('è vietata anche sui rematori, che la whitelist non elenca', () => {
     expect(getLoadAvailability(rematore, 10).allowed).toBe(false);
+  });
+
+  /*
+   * Bloccata come leva, non come campo.
+   *
+   * Chi fa il Bulgarian split squat con i manubri in settimana 1 deve poter
+   * scrivere quanto sta usando: prima il campo spariva del tutto e il diario
+   * registrava a corpo libero un esercizio fatto con dieci chili in mano.
+   */
+  it('nelle prime due settimane il peso si scrive lo stesso', () => {
+    for (const week of [1, 2]) {
+      const availability = getLoadAvailability(bulgarian, week);
+      expect(availability.allowed, `leva/${String(week)}`).toBe(false);
+      expect(availability.recordable, `campo/${String(week)}`).toBe(true);
+      expect(availability.explanation).toContain('non si aumenta');
+    }
+  });
+
+  it('dove la zavorra non si usa mai non si scrive nemmeno', () => {
+    for (const exercise of [nordic, hspu, hangingLegRaise]) {
+      expect(getLoadAvailability(exercise, 5).recordable, exercise.slug).toBe(false);
+    }
+  });
+
+  it('dove il peso è l’esercizio si scrive sempre, da subito', () => {
+    for (const week of [1, 2, 3, 20]) {
+      const availability = getLoadAvailability(alzateLaterali, week);
+      expect(availability.recordable, String(week)).toBe(true);
+      expect(availability.allowed, String(week)).toBe(true);
+    }
+  });
+
+  it('sbloccata la leva, il campo resta scrivibile', () => {
+    const availability = getLoadAvailability(bulgarian, 3);
+    expect(availability.allowed).toBe(true);
+    expect(availability.recordable).toBe(true);
   });
 });
 

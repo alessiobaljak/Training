@@ -23,7 +23,8 @@ import { Metronome } from './Metronome.tsx';
 import { ExerciseArt } from '../components/ExerciseArt.tsx';
 import { RestBar } from './RestBar.tsx';
 import { SessionSummary } from './SessionSummary.tsx';
-import { SetEntry } from './SetEntry.tsx';
+import { SetEntry, initialSetValues } from './SetEntry.tsx';
+import type { SetValues } from './SetEntry.tsx';
 import { VariantPicker } from './VariantPicker.tsx';
 import { useSessionDraft } from './useSessionDraft.ts';
 import type { LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
@@ -43,6 +44,15 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     state;
 
   const [stepIndex, setStepIndex] = useState(0);
+  /*
+   * Quello che è stato scritto, serie per serie.
+   *
+   * Stava dentro SetEntry, che si rimonta a ogni cambio di serie: premere
+   * «Serie successiva» dopo aver scritto le ripetizioni le buttava via senza
+   * un avviso, e la serie risultava non registrata. Qui sopravvive alla
+   * navigazione, quindi si può tornare indietro e registrarla.
+   */
+  const [valori, setValori] = useState<ReadonlyMap<string, SetValues>>(new Map());
   /*
    * `startedAt` non serve a contare: serve a distinguere un recupero
    * dall'altro. React tiene in vita lo stesso componente quando cambiano solo
@@ -182,6 +192,15 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   };
 
   const tempo = exerciseState === undefined ? parseTut(block.tut) : effectiveTempo(block.tut, exerciseState);
+
+  const prevStep = plan[stepIndex - 1];
+  const nextStep = plan[stepIndex + 1];
+
+  const stepKey = `${step.blockCode}-${String(step.setIndex)}`;
+  const stepValues = valori.get(stepKey) ?? initialSetValues(suggestion, load);
+  const stepLogged = isStepLogged(draft, step);
+  /* Numeri scritti da una persona e non ancora finiti nel diario. */
+  const daRegistrare = stepValues.touched && !stepLogged;
 
   const goToStep = (index: number): void => {
     setStepIndex(Math.min(Math.max(0, index), plan.length - 1));
@@ -382,7 +401,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
         ) : null}
 
         <SetEntry
-          key={`${step.blockCode}-${String(step.setIndex)}`}
+          key={stepKey}
           step={step}
           block={block}
           exercise={exercise}
@@ -390,6 +409,10 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           load={load}
           suggestion={suggestion}
           lockedReason={null}
+          values={stepValues}
+          onChange={(next) => {
+            setValori((current) => new Map(current).set(stepKey, next));
+          }}
           onCommit={commit}
         />
 
@@ -432,6 +455,20 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           </div>
         ) : null}
 
+        {/*
+          Spostarsi non registra: chi scriveva le ripetizioni e premeva «Serie
+          successiva» si ritrovava la serie mancante e nessun avviso. Ora se
+          c'è qualcosa di scritto e non registrato la barra lo dice prima, e i
+          pulsanti nominano la serie in cui portano, così si vede che un tocco
+          ha fatto qualcosa.
+        */}
+        {daRegistrare ? (
+          <Notice tone="warn">
+            La serie {step.setIndex} non è ancora registrata. Premi «Serie fatta» qui sopra:
+            spostarti su un’altra serie non la salva.
+          </Notice>
+        ) : null}
+
         <div className="flex gap-2">
           <Button
             full
@@ -439,7 +476,9 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             disabled={stepIndex === 0}
             onClick={() => { goToStep(stepIndex - 1); }}
           >
-            ‹ Serie precedente
+            {prevStep === undefined
+              ? '‹ Serie precedente'
+              : `‹ ${prevStep.blockCode} · serie ${String(prevStep.setIndex)}`}
           </Button>
           <Button
             full
@@ -447,7 +486,9 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             disabled={stepIndex >= plan.length - 1}
             onClick={() => { goToStep(stepIndex + 1); }}
           >
-            Serie successiva ›
+            {nextStep === undefined
+              ? 'Serie successiva ›'
+              : `${nextStep.blockCode} · serie ${String(nextStep.setIndex)} ›`}
           </Button>
         </div>
       </div>

@@ -267,6 +267,75 @@ try {
     }
   }
 
+  /* --------------------- Zavorra e serie non perse ----------------------- */
+
+  /*
+   * Tre guasti trovati insieme sul Bulgarian split squat, tutti invisibili ai
+   * test di allora: il campo della zavorra non esisteva nelle prime due
+   * settimane, spostarsi di serie buttava via le ripetizioni appena scritte, e
+   * i due pulsanti in fondo non dicevano dove portavano, quindi premerli
+   * sembrava non fare niente.
+   */
+  await page.goto(`${BASE}/#/seduta/lower-a`, { waitUntil: 'load' });
+  await page.waitForTimeout(1500);
+
+  const schermata = await page.locator('main').innerText();
+  check(
+    schermata.includes('Zavorra'),
+    'In settimana 1 il peso usato si deve poter scrivere lo stesso: il campo Zavorra deve esserci.',
+  );
+  check(
+    schermata.includes('non si aumenta'),
+    'Accanto al campo deve restare scritto che fino alla settimana 3 la zavorra non è una leva.',
+  );
+
+  const campi = () => page.locator('input[type=number]');
+  const valoriCampi = () =>
+    page.locator('input[type=number]').evaluateAll((els) => els.map((el) => el.value));
+
+  for (let k = 0; k < (await campi().count()); k += 1) await campi().nth(k).fill('15');
+  await page.waitForTimeout(250);
+
+  check(
+    (await page.getByText('non è ancora registrata').count()) > 0,
+    'Scritte le ripetizioni e non registrate, la seduta deve avvisare prima che ci si sposti.',
+  );
+
+  const avanti = page.getByRole('button', { name: /serie \d+ ›$/ });
+  check(
+    (await avanti.count()) > 0,
+    'Il pulsante di avanzamento deve dire in quale serie porta, altrimenti premerlo sembra non fare niente.',
+  );
+
+  if ((await avanti.count()) > 0) {
+    const etichettaAvanti = (await avanti.innerText()).trim();
+    await avanti.click();
+    await page.waitForTimeout(500);
+    const indietro = page.getByRole('button', { name: /^‹ / });
+    check(
+      (await indietro.count()) > 0 && (await indietro.innerText()).trim() !== etichettaAvanti,
+      'Cambiata serie, i due pulsanti devono nominare serie diverse da prima.',
+    );
+    if ((await indietro.count()) > 0) {
+      await indietro.click();
+      await page.waitForTimeout(500);
+      check(
+        (await valoriCampi()).includes('15'),
+        `Tornando sulla serie, le ripetizioni scritte devono essere ancora lì: trovato ${JSON.stringify(await valoriCampi())}.`,
+      );
+    }
+  }
+
+  const commitLower = page.getByRole('button', { name: 'Serie fatta' });
+  if ((await commitLower.count()) > 0 && !(await commitLower.isDisabled())) {
+    await commitLower.click();
+    await page.waitForTimeout(600);
+    check(
+      (await page.getByText('15 kg').count()) > 0,
+      'Registrata la serie, il peso usato deve comparire nello storico accanto alle ripetizioni.',
+    );
+  }
+
   /* ------------------------- Log e Progressi ---------------------------- */
 
   await page.goto(`${BASE}/#/log`, { waitUntil: 'load' });

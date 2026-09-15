@@ -13,25 +13,36 @@ import type { Exercise, LoggedSet } from '../types/index.ts';
  * Due vincoli non negoziabili attraversano tutto il file: la zavorra non
  * esiste prima della settimana 3, e non esiste affatto sugli esercizi fuori
  * dalla whitelist del metodo. Su quelli il campo non va nemmeno renderizzato.
+ *
+ * «Bloccata» però vuol dire due cose diverse, e confonderle rendeva il diario
+ * falso: il metodo vieta di *aggiungere* peso nelle prime due settimane, non
+ * di *scrivere* il peso che si è usato. Chi fa il Bulgarian split squat con i
+ * manubri in settimana 1 deve poterlo registrare, altrimenti il log dice che
+ * l'ha fatto a corpo libero e la settimana 3 non ha un punto di partenza.
+ * Da qui i due campi distinti: `allowed` è la leva, `recordable` è il campo.
  */
 
 export type LoadBlockReason = 'forbidden-exercise' | 'locked-week' | null;
 
 export interface LoadAvailability {
+  /** La zavorra può essere usata come leva di sovraccarico. */
   readonly allowed: boolean;
+  /** Il peso usato può essere scritto nel diario, anche se non è una leva. */
+  readonly recordable: boolean;
   readonly reason: LoadBlockReason;
-  /** Spiegazione da mostrare al posto del campo. `null` quando è consentita. */
+  /** Spiegazione da mostrare accanto al campo. `null` quando non serve. */
   readonly explanation: string | null;
 }
 
 export function getLoadAvailability(exercise: Exercise, week: number): LoadAvailability {
   if (exercise.loadPolicy === 'inherent') {
     // Il peso va scritto sempre: è l'esercizio, non un sovraccarico aggiunto.
-    return { allowed: true, reason: null, explanation: null };
+    return { allowed: true, recordable: true, reason: null, explanation: null };
   }
   if (exercise.loadPolicy === 'forbidden') {
     return {
       allowed: false,
+      recordable: false,
       reason: 'forbidden-exercise',
       explanation:
         'Su questo esercizio la zavorra non si usa mai. Il sovraccarico passa dal tempo, dalle pause e dalla variante.',
@@ -40,11 +51,12 @@ export function getLoadAvailability(exercise: Exercise, week: number): LoadAvail
   if (week < LOAD_UNLOCK_WEEK) {
     return {
       allowed: false,
+      recordable: true,
       reason: 'locked-week',
-      explanation: `Zavorra bloccata fino alla settimana ${String(LOAD_UNLOCK_WEEK)}: le prime due servono a ricostruire lo schema motorio e a validare i massimali del test.`,
+      explanation: `Scrivi pure il peso che usi: fino alla settimana ${String(LOAD_UNLOCK_WEEK)} però non è una leva, non si aumenta. Le prime due settimane servono a ricostruire lo schema motorio e a validare i massimali del test.`,
     };
   }
-  return { allowed: true, reason: null, explanation: null };
+  return { allowed: true, recordable: true, reason: null, explanation: null };
 }
 
 /* -------------------------------------------------------------------------- */

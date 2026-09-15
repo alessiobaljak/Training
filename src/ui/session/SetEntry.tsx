@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { classifyValue, formatRange } from '../../engine/ranges.ts';
 import { parseRir } from '../../engine/notation.ts';
 import { LOAD_STEP_KG } from '../../data/method.ts';
@@ -26,7 +25,43 @@ export interface SetEntryProps {
   readonly load: LoadAvailability;
   readonly suggestion: { readonly value: number; readonly left: number; readonly right: number; readonly loadKg: number };
   readonly lockedReason: string | null;
+  readonly values: SetValues;
+  readonly onChange: (values: SetValues) => void;
   readonly onCommit: (sets: readonly LoggedSet[]) => void;
+}
+
+/**
+ * Quello che è stato scritto per una serie, prima di registrarla.
+ *
+ * Vive nel genitore e non qui dentro: cambiando serie il componente si rimonta
+ * e lo stato locale sparirebbe, buttando via i numeri appena scritti senza
+ * dire niente. `touched` distingue quello che ha scritto una persona dai
+ * valori proposti dalla volta scorsa: solo il primo si può registrare da solo.
+ */
+export interface SetValues {
+  readonly value: number;
+  readonly left: number;
+  readonly right: number;
+  readonly rir: number | null;
+  readonly loadKg: number;
+  readonly note: string;
+  readonly touched: boolean;
+}
+
+/** Valori di partenza per una serie mai toccata. */
+export function initialSetValues(
+  suggestion: { readonly value: number; readonly left: number; readonly right: number; readonly loadKg: number },
+  load: LoadAvailability,
+): SetValues {
+  return {
+    value: suggestion.value,
+    left: suggestion.left,
+    right: suggestion.right,
+    rir: null,
+    loadKg: load.recordable ? suggestion.loadKg : 0,
+    note: '',
+    touched: false,
+  };
 }
 
 const RIR_CHOICES: readonly (number | null)[] = [0, 1, 2, 3, null];
@@ -51,14 +86,18 @@ export function SetEntry({
   load,
   suggestion,
   lockedReason,
+  values,
+  onChange,
   onCommit,
 }: SetEntryProps) {
-  const [value, setValue] = useState(suggestion.value);
-  const [left, setLeft] = useState(suggestion.left);
-  const [right, setRight] = useState(suggestion.right);
-  const [rir, setRir] = useState<number | null>(null);
-  const [loadKg, setLoadKg] = useState(load.allowed ? suggestion.loadKg : 0);
-  const [note, setNote] = useState('');
+  const { value, left, right, rir, loadKg, note } = values;
+  const patch = (change: Partial<SetValues>): void => { onChange({ ...values, ...change, touched: true }); };
+  const setValue = (next: number): void => { patch({ value: next }); };
+  const setLeft = (next: number): void => { patch({ left: next }); };
+  const setRight = (next: number): void => { patch({ right: next }); };
+  const setRir = (next: number | null): void => { patch({ rir: next }); };
+  const setLoadKg = (next: number): void => { patch({ loadKg: next }); };
+  const setNote = (next: string): void => { patch({ note: next }); };
 
   const rirTarget = parseRir(block.rir);
   const isSeconds = exercise.measurement === 'seconds';
@@ -168,16 +207,28 @@ export function SetEntry({
           </div>
         </div>
 
-        {load.allowed ? (
-          <NumberStepper
-            label="Zavorra"
-            value={loadKg}
-            onChange={setLoadKg}
-            unit="kg"
-            step={LOAD_STEP_KG}
-            max={80}
-            hint={`Solo passi da ${String(LOAD_STEP_KG)} kg`}
-          />
+        {/*
+          Il campo c'è ogni volta che il peso si può scrivere, anche quando
+          non è una leva. Prima, nelle prime due settimane, spariva del tutto:
+          chi faceva il Bulgarian split squat con i manubri non aveva dove
+          scrivere quanto stava usando, e il diario lo registrava a corpo
+          libero.
+        */}
+        {load.recordable ? (
+          <div>
+            <NumberStepper
+              label="Zavorra"
+              value={loadKg}
+              onChange={setLoadKg}
+              unit="kg"
+              step={LOAD_STEP_KG}
+              max={80}
+              hint={`Solo passi da ${String(LOAD_STEP_KG)} kg`}
+            />
+            {load.explanation !== null ? (
+              <p className="mt-2 text-xs leading-relaxed text-dim">{load.explanation}</p>
+            ) : null}
+          </div>
         ) : load.explanation !== null ? (
           <p className="text-xs leading-relaxed text-dim">{load.explanation}</p>
         ) : null}
