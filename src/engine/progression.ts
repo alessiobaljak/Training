@@ -193,7 +193,7 @@ export interface ProgressionSuggestion {
 export interface ProgressionEvaluation {
   /** Massimo del range chiuso su tutte le serie. */
   readonly closedRange: boolean;
-  readonly tempoRespected: boolean;
+  readonly tempoRespected: boolean | null;
   /** Le due condizioni insieme: è il momento di cambiare leva. */
   readonly triggered: boolean;
   readonly levers: readonly LeverAvailability[];
@@ -302,8 +302,18 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     loadLever(input),
   ];
 
+  /*
+   * La soglia è in ripetizioni e vale solo dove si contano ripetizioni.
+   *
+   * Su un'isometria il numero registrato sono secondi: 40" di wall sit
+   * facevano scattare «sopra 25-30 ripetizioni stai allenando la resistenza»,
+   * che oltre a essere falso suggeriva di cambiare leva su una tenuta da 45"
+   * andata come prescritto.
+   */
   const enduranceWarning =
-    logged.sets.length > 0 && meanValue(logged) >= ENDURANCE_REP_THRESHOLD.min
+    input.exercise.measurement === 'reps' &&
+    logged.sets.length > 0 &&
+    meanValue(logged) >= ENDURANCE_REP_THRESHOLD.min
       ? `Sopra ${String(ENDURANCE_REP_THRESHOLD.min)}-${String(ENDURANCE_REP_THRESHOLD.max)} ripetizioni stai allenando la resistenza, non l’ipertrofia. Cambia leva.`
       : null;
 
@@ -321,13 +331,23 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
 
   const closedRange =
     logged.sets.length > 0 && logged.sets.every((set) => set.value >= range.range.max);
-  const triggered = closedRange && logged.tempoRespected;
+  /*
+   * `null` è «non hai ancora risposto», e non vale come sì.
+   *
+   * Prima il campo nasceva a `true`: la domanda di fine seduta arrivava già
+   * con «Sì» acceso, premerlo non cambiava niente, e soprattutto il metodo
+   * dava per rispettato un tempo che nessuno aveva confermato. La condizione
+   * di avanzamento si reggeva su una risposta mai data.
+   */
+  const triggered = closedRange && logged.tempoRespected === true;
 
   if (!triggered) {
     levers[0] = repsLever;
     const blockedReason = !closedRange
       ? `Non hai ancora chiuso ${String(range.range.max)} su tutte le serie. Resta sulla leva 1 e sali dentro il range.`
-      : 'Il tempo prescritto non è stato rispettato su tutte le serie: la leva 1 non è ancora esaurita.';
+      : logged.tempoRespected === null
+        ? 'Manca una risposta sul tempo prescritto: finché non c’è, la leva 1 non si può dire esaurita.'
+        : 'Il tempo prescritto non è stato rispettato su tutte le serie: la leva 1 non è ancora esaurita.';
     return {
       closedRange,
       tempoRespected: logged.tempoRespected,

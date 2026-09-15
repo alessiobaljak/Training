@@ -188,7 +188,12 @@ function readExercise(value: unknown, path: string, warnings: string[]): LoggedE
     exercise: slug,
     variantLabel: expectString(row['variantLabel'], `${path}.variantLabel`),
     level: expectNullableLevel(row['level'], `${path}.level`),
-    tempoRespected: expectBoolean(row['tempoRespected'], `${path}.tempoRespected`),
+    /* Le copie fatte prima che la domanda potesse restare senza risposta
+       portano un booleano: resta valido. */
+    tempoRespected:
+      row['tempoRespected'] === null || row['tempoRespected'] === undefined
+        ? null
+        : expectBoolean(row['tempoRespected'], `${path}.tempoRespected`),
     sets: expectArray(row['sets'], `${path}.sets`).map((entry, index) =>
       readSet(entry, `${path}.sets[${String(index)}]`),
     ),

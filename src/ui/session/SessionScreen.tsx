@@ -3,6 +3,7 @@ import { getExercise } from '../../data/exercises.ts';
 import { repository } from '../../db/repository.ts';
 import {
   closeSession,
+  effectiveBlock,
   findLoggedExercise,
   firstPendingIndex,
   isStepLogged,
@@ -167,20 +168,10 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const declaredBlock = program.blocks.find((entry) => entry.code === step.blockCode);
   if (declaredBlock === undefined) return null;
 
-  /*
-   * Il blocco effettivo, cioè con l'esercizio davvero scelto.
-   *
-   * Dove la scheda ammette due esercizi con misure diverse — il C2 del Lower
-   * A: sissy squat a ripetizioni, wall sit a secondi — la scelta cambia anche
-   * la prescrizione. Sostituendola qui, una volta sola, range, progressione e
-   * registrazione della serie continuano a leggere `block` come prima.
-   */
+  /* L'esercizio davvero scelto, non quello dichiarato dalla scheda. */
   const alternative = declaredBlock.alternative;
   const chosenSlug = findLoggedExercise(draft, declaredBlock.code)?.exercise ?? declaredBlock.exercise;
-  const block =
-    alternative !== undefined && chosenSlug === alternative.exercise
-      ? { ...declaredBlock, exercise: alternative.exercise, prescription: alternative.prescription }
-      : declaredBlock;
+  const block = effectiveBlock(declaredBlock, draft);
 
   const exercise = getExercise(block.exercise);
   const exerciseState = states.get(block.exercise);

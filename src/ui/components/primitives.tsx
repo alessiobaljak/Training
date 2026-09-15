@@ -34,6 +34,8 @@ export interface ButtonProps {
   readonly disabled?: boolean;
   readonly full?: boolean;
   readonly ariaLabel?: string;
+  /** Per i pulsanti che stanno in un gruppo a scelta singola. */
+  readonly ariaPressed?: boolean;
 }
 
 export function Button({
@@ -44,6 +46,7 @@ export function Button({
   disabled = false,
   full = false,
   ariaLabel,
+  ariaPressed,
 }: ButtonProps) {
   return (
     <button
@@ -51,6 +54,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
+      aria-pressed={ariaPressed}
       className={[
         'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold',
         'transition-[filter,background-color] select-none',

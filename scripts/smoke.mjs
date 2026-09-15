@@ -388,6 +388,72 @@ try {
       await registra.click();
       await page.waitForTimeout(700);
     }
+
+    /* ------------------- Il riepilogo di fine seduta -------------------- */
+
+    /*
+     * Due guasti visti solo qui dentro, e solo da chi aveva scelto il wall
+     * sit: il riepilogo leggeva il blocco dichiarato, quindi analizzava
+     * «Sissy squat» con i secondi contati come ripetizioni; e la domanda sul
+     * tempo arrivava già con «Sì» acceso, quindi premerlo non faceva niente.
+     */
+    const chiudiLower = page.getByRole('button', { name: /Chiudi la seduta|Chiudi in anticipo/ });
+    if ((await chiudiLower.count()) > 0) {
+      await chiudiLower.first().click();
+      await page.waitForTimeout(1200);
+
+      const riepilogo = await page.locator('main').innerText();
+      const indice = riepilogo.indexOf('C2');
+      const schedaC2 = indice === -1 ? '' : riepilogo.slice(indice, indice + 700);
+
+      check(
+        indice !== -1,
+        'Scegliendo il wall sit il blocco C2 deve restare nel riepilogo, non sparire.',
+      );
+      check(
+        schedaC2.includes('Wall sit'),
+        `Il riepilogo deve analizzare l’esercizio fatto davvero: letto ${JSON.stringify(schedaC2.slice(0, 120))}.`,
+      );
+      check(
+        !schedaC2.includes('Sissy squat'),
+        'Il riepilogo non deve attribuire al sissy squat una seduta fatta di wall sit.',
+      );
+      check(
+        !schedaC2.includes('ripetizioni stai allenando la resistenza'),
+        'L’avviso sulla resistenza è in ripetizioni: non deve comparire su un’isometria a secondi.',
+      );
+
+      const siTempo = page.getByRole('button', { name: /^Sì, / }).first();
+      if ((await siTempo.count()) > 0) {
+        check(
+          (await siTempo.getAttribute('aria-pressed')) === 'false',
+          'La domanda sul tempo deve arrivare senza risposta: nessuno dei due pulsanti acceso.',
+        );
+        check(
+          !riepilogo.includes('Leva successiva'),
+          'Senza risposta sul tempo l’app non deve ancora proporre la leva successiva.',
+        );
+
+        await siTempo.click();
+        await page.waitForTimeout(900);
+
+        check(
+          (await siTempo.getAttribute('aria-pressed')) === 'true',
+          'Premere «Sì» deve cambiare qualcosa: prima non succedeva niente perché era già la risposta.',
+        );
+        const dopoRisposta = await page.locator('main').innerText();
+        check(
+          dopoRisposta.includes('Leva successiva'),
+          'Risposto sì sul tempo chiuso il range, la leva successiva deve comparire.',
+        );
+      }
+
+      const salvaLower = page.getByRole('button', { name: 'Salva e chiudi' });
+      if ((await salvaLower.count()) > 0) {
+        await salvaLower.click();
+        await page.waitForTimeout(1200);
+      }
+    }
   }
 
   /* ------------------------- Log e Progressi ---------------------------- */

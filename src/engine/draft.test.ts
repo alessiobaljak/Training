@@ -9,6 +9,7 @@ import {
   plannedSets,
   removeLoggedSet,
   sessionProgress,
+  effectiveBlock,
   setBlockExercise,
   setExerciseNote,
   setTempoRespected,
@@ -134,6 +135,55 @@ describe('modifica della bozza', () => {
    * diversamente: tenere le serie già registrate significherebbe archiviare
    * dei secondi sotto la voce delle ripetizioni.
    */
+  /*
+   * La domanda di fine seduta nasce senza risposta.
+   *
+   * Nasceva a `true`, quindi arrivava con «Sì» già acceso: premerlo non
+   * cambiava niente e il metodo dava per rispettato un tempo che nessuno
+   * aveva confermato.
+   */
+  it('una serie appena aperta non ha ancora risposto sul tempo', () => {
+    for (const entry of draft().exercises) {
+      expect(entry.tempoRespected, entry.blockCode).toBeNull();
+    }
+  });
+
+  it('il blocco effettivo segue l’esercizio scelto, non quello della scheda', () => {
+    const lowerA = getSession('lower-a');
+    const c2 = lowerA.blocks.find((b) => b.code === 'C2');
+    if (c2 === undefined) throw new Error('C2 mancante');
+
+    let session = buildDraftSession({
+      id: 'draft-eff',
+      date: '2026-09-15',
+      week: 1,
+      session: lowerA,
+      states: new Map(),
+      previous: new Map(),
+    });
+
+    expect(effectiveBlock(c2, session).exercise).toBe('sissy-squat');
+    expect(effectiveBlock(c2, session).prescription).toEqual({ kind: 'reps', min: 12, max: 15 });
+
+    session = setBlockExercise(session, 'C2', 'wall-sit', 'Wall sit isometrico');
+    expect(effectiveBlock(c2, session).exercise).toBe('wall-sit');
+    expect(effectiveBlock(c2, session).prescription).toEqual({ kind: 'seconds', min: 45, max: 45 });
+  });
+
+  it('un blocco senza alternativa resta sé stesso', () => {
+    const block = getSession('lower-a').blocks.find((b) => b.code === 'A');
+    if (block === undefined) throw new Error('A mancante');
+    const session = buildDraftSession({
+      id: 'draft-eff-2',
+      date: '2026-09-15',
+      week: 1,
+      session: getSession('lower-a'),
+      states: new Map(),
+      previous: new Map(),
+    });
+    expect(effectiveBlock(block, session)).toBe(block);
+  });
+
   it('cambiando esercizio del blocco butta via le serie già registrate', () => {
     let session = buildDraftSession({
       id: 'draft-lower',

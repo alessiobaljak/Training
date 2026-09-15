@@ -79,7 +79,22 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
           ? 1
           : Math.max(1, programWeek(settings.programStartDate, today));
 
-      const slugs = program.blocks.map((block) => block.exercise);
+      /*
+       * Anche gli esercizi alternativi, non solo quelli dichiarati.
+       *
+       * Il riepilogo di fine seduta scarta i blocchi di cui non conosce lo
+       * stato: senza il wall sit qui dentro, sceglierlo faceva sparire il C2
+       * dal riepilogo senza dire niente.
+       */
+      const slugs = [
+        ...new Set(
+          program.blocks.flatMap((block) =>
+            block.alternative === undefined
+              ? [block.exercise]
+              : [block.exercise, block.alternative.exercise],
+          ),
+        ),
+      ];
       const stateEntries = await Promise.all(
         slugs.map(async (slug): Promise<readonly [ExerciseSlug, ExerciseState]> => [
           slug,

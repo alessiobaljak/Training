@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
 import { getExercise } from '../../data/exercises.ts';
-import { findLoggedExercise, setSessionNote, setTempoRespected } from '../../engine/draft.ts';
+import {
+  effectiveBlock,
+  findLoggedExercise,
+  setSessionNote,
+  setTempoRespected,
+} from '../../engine/draft.ts';
 import { evaluateProgression } from '../../engine/progression.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
 import { resolveBlockRange } from '../../engine/ranges.ts';
@@ -58,10 +63,18 @@ export function SessionSummary({
 
   const rows = useMemo(
     () =>
-      program.blocks.flatMap((block) => {
-        const logged = findLoggedExercise(draft, block.code);
+      program.blocks.flatMap((declared) => {
+        const logged = findLoggedExercise(draft, declared.code);
         if (logged === undefined || logged.sets.length === 0) return [];
 
+        /*
+         * Il blocco con l'esercizio davvero fatto.
+         *
+         * Senza questo il riepilogo leggeva il blocco dichiarato: chi aveva
+         * fatto il wall sit si vedeva analizzare «Sissy squat», con il range
+         * in ripetizioni e i suoi secondi contati come ripetizioni.
+         */
+        const block = effectiveBlock(declared, draft);
         const exercise = getExercise(block.exercise);
         const state = states.get(block.exercise);
         if (state === undefined) return [];
@@ -143,6 +156,11 @@ export function SessionSummary({
                 </div>
               </div>
 
+              {/*
+                Finché non si risponde nessuno dei due è acceso.
+                Prima il campo nasceva a «sì»: la domanda arrivava già
+                risposta, premere «Sì» non cambiava niente e sembrava rotto.
+              */}
               {evaluation.closedRange ? (
                 <div className="mt-4 rounded-2xl border border-line bg-panel p-3">
                   <p className="text-sm font-semibold">
@@ -154,7 +172,8 @@ export function SessionSummary({
                   </p>
                   <div className="mt-3 flex gap-2">
                     <Button
-                      variant={logged.tempoRespected ? 'primary' : 'secondary'}
+                      variant={logged.tempoRespected === true ? 'primary' : 'secondary'}
+                      ariaPressed={logged.tempoRespected === true}
                       onClick={() => {
                         onUpdate((session) => setTempoRespected(session, block.code, true));
                       }}
@@ -162,7 +181,8 @@ export function SessionSummary({
                       Sì, {block.tut}
                     </Button>
                     <Button
-                      variant={logged.tempoRespected ? 'secondary' : 'primary'}
+                      variant={logged.tempoRespected === false ? 'primary' : 'secondary'}
+                      ariaPressed={logged.tempoRespected === false}
                       onClick={() => {
                         onUpdate((session) => setTempoRespected(session, block.code, false));
                       }}
@@ -170,6 +190,13 @@ export function SessionSummary({
                       No
                     </Button>
                   </div>
+                  <p className="mt-3 text-xs leading-relaxed text-dim">
+                    {logged.tempoRespected === null
+                      ? 'Non hai ancora risposto: finché manca, l’app non propone la leva successiva.'
+                      : logged.tempoRespected
+                        ? `Risposto sì: tempo ${block.tut} tenuto su tutte le serie.`
+                        : 'Risposto no: la leva delle ripetizioni non è ancora esaurita.'}
+                  </p>
                 </div>
               ) : null}
 

@@ -7,6 +7,7 @@ import type {
   LoggedExercise,
   LoggedSession,
   LoggedSet,
+  ProgramBlock,
   ProgramSession,
   Side,
 } from '../types/index.ts';
@@ -58,7 +59,7 @@ export function buildDraftSession(params: DraftParams): LoggedSession {
       exercise: block.exercise,
       variantLabel: past?.variantLabel ?? (state === undefined ? exercise.name : variantLabelFor(exercise, state)),
       level: state?.level ?? exercise.defaultLevel,
-      tempoRespected: true,
+      tempoRespected: null,
       sets: [],
       note: null,
     };
@@ -128,6 +129,24 @@ export function setVariant(
 }
 
 /**
+ * Il blocco con dentro l'esercizio davvero scelto.
+ *
+ * Dove la scheda ammette due esercizi con misure diverse — il C2 del Lower A:
+ * sissy squat a ripetizioni, wall sit a secondi — la scelta cambia anche la
+ * prescrizione. Sta qui e non nella UI perché il primo tentativo l'aveva
+ * risolto solo nel player: il riepilogo di fine seduta continuava a leggere il
+ * blocco dichiarato e analizzava i secondi del wall sit come se fossero
+ * ripetizioni di sissy squat. Una volta sola, per tutti.
+ */
+export function effectiveBlock(block: ProgramBlock, session: LoggedSession): ProgramBlock {
+  const alternative = block.alternative;
+  if (alternative === undefined) return block;
+  const chosen = findLoggedExercise(session, block.code)?.exercise;
+  if (chosen !== alternative.exercise) return block;
+  return { ...block, exercise: alternative.exercise, prescription: alternative.prescription };
+}
+
+/**
  * Cambia quale dei due esercizi ammessi dal blocco si sta facendo.
  *
  * Non è un cambio di variante: sissy squat e wall sit sono esercizi diversi,
@@ -151,7 +170,7 @@ export function setBlockExercise(
 export function setTempoRespected(
   session: LoggedSession,
   blockCode: string,
-  tempoRespected: boolean,
+  tempoRespected: boolean | null,
 ): LoggedSession {
   return replaceExercise(session, blockCode, (entry) => ({ ...entry, tempoRespected }));
 }

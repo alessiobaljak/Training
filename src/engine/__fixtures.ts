@@ -39,14 +39,14 @@ export function perSideSets(pairs: readonly (readonly [number, number])[]): Logg
 export function loggedExercise(
   exercise: string,
   loggedSets: readonly LoggedSet[],
-  options: { blockCode?: string; tempoRespected?: boolean; variantLabel?: string } = {},
+  options: { blockCode?: string; tempoRespected?: boolean | null; variantLabel?: string } = {},
 ): LoggedExercise {
   return {
     blockCode: options.blockCode ?? 'A1',
     exercise,
     variantLabel: options.variantLabel ?? 'Livello 3',
     level: 3,
-    tempoRespected: options.tempoRespected ?? true,
+    tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
     sets: [...loggedSets],
     note: null,
   };

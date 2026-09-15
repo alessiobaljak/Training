@@ -41,7 +41,7 @@ function makeInput(options: {
   sessionId: SessionId;
   code: string;
   loggedSets: readonly LoggedSet[];
-  tempoRespected?: boolean;
+  tempoRespected?: boolean | null;
   state?: Partial<ExerciseState>;
   week?: number;
   currentMaxReps?: number | null;
@@ -56,7 +56,7 @@ function makeInput(options: {
     state: { ...initialExerciseState(exercise), ...options.state },
     logged: loggedExercise(exercise.slug, options.loggedSets, {
       blockCode: block.code,
-      tempoRespected: options.tempoRespected ?? true,
+      tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
     }),
     range: resolveBlockRange(block, exercise, tests),
     week: options.week ?? 4,
@@ -135,6 +135,28 @@ describe('regola di avanzamento', () => {
     expect(evaluation.triggered).toBe(false);
     expect(evaluation.suggestion).toBeNull();
     expect(evaluation.blockedReason).toContain('8');
+  });
+
+  /*
+   * «Non risposto» non vale come «sì».
+   *
+   * La bozza nasceva con il tempo già dato per rispettato: la domanda di fine
+   * seduta arrivava con «Sì» acceso, premerlo non cambiava niente, e la
+   * condizione di avanzamento si reggeva su una risposta mai data.
+   */
+  it('non scatta finché la domanda sul tempo resta senza risposta', () => {
+    const evaluation = evaluateProgression(
+      makeInput({
+        sessionId: 'upper-a',
+        code: 'A2',
+        loggedSets: sets([8, 8, 8, 8]),
+        tempoRespected: null,
+      }),
+    );
+    expect(evaluation.closedRange).toBe(true);
+    expect(evaluation.triggered).toBe(false);
+    expect(evaluation.suggestion).toBeNull();
+    expect(evaluation.blockedReason).toContain('risposta');
   });
 
   it('non scatta se il tempo prescritto non è stato rispettato', () => {
@@ -504,5 +526,49 @@ describe('avviso sulla resistenza', () => {
       makeInput({ sessionId: 'upper-a', code: 'A2', loggedSets: sets([8, 8, 8, 8]) }),
     );
     expect(evaluation.enduranceWarning).toBeNull();
+  });
+
+  /*
+   * Su un'isometria il numero registrato sono secondi. 40" di wall sit
+   * facevano scattare «sopra 25-30 ripetizioni stai allenando la resistenza»,
+   * che è falso e per giunta suggerisce di cambiare leva su una tenuta andata
+   * come prescritto.
+   */
+  it('non compare sugli esercizi che si misurano in secondi', () => {
+    /* Il C2 del Lower A fatto come wall sit: il blocco effettivo, non quello
+       dichiarato dalla scheda, che è il sissy squat a ripetizioni. */
+    const declared = blockOf('lower-a', 'C2');
+    const alternative = declared.alternative;
+    if (alternative === undefined) throw new Error('Il C2 del Lower A deve avere un’alternativa.');
+    const block = { ...declared, exercise: alternative.exercise, prescription: alternative.prescription };
+    const exercise = getExercise(block.exercise);
+    expect(exercise.measurement).toBe('seconds');
+
+    const evaluation = evaluateProgression({
+      block,
+      exercise,
+      state: initialExerciseState(exercise),
+      logged: loggedExercise(exercise.slug, sets([40, 40, 40]), { blockCode: 'C2' }),
+      range: resolveBlockRange(block, exercise, latestTestResults(DEFAULT_TESTS)),
+      week: 4,
+      currentMaxReps: null,
+    });
+    expect(evaluation.enduranceWarning).toBeNull();
+  });
+
+  it('sullo stesso blocco fatto a ripetizioni l’avviso compare', () => {
+    const block = blockOf('lower-a', 'C2');
+    const exercise = getExercise(block.exercise);
+    expect(exercise.measurement).toBe('reps');
+    const evaluation = evaluateProgression({
+      block,
+      exercise,
+      state: initialExerciseState(exercise),
+      logged: loggedExercise(exercise.slug, sets([40, 40, 40]), { blockCode: 'C2' }),
+      range: resolveBlockRange(block, exercise, latestTestResults(DEFAULT_TESTS)),
+      week: 4,
+      currentMaxReps: null,
+    });
+    expect(evaluation.enduranceWarning).toContain('resistenza');
   });
 });

@@ -48,7 +48,7 @@ export interface LoggedExercise {
    * range "mantenendo il tempo prescritto": senza questo dato la condizione
    * non è valutabile. È l'unico campo che l'app aggiunge alla scheda.
    */
-  readonly tempoRespected: boolean;
+  readonly tempoRespected: boolean | null;
   readonly sets: readonly LoggedSet[];
   readonly note: string | null;
 }
