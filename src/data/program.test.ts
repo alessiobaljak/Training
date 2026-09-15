@@ -162,6 +162,36 @@ describe('program.ts — trascrizione delle 6 sedute', () => {
     expect(actualRows(id)).toEqual(attese(rows));
   });
 
+  /*
+   * La riga «Sissy squat o wall sit isometrico 45"» diventa due esercizi.
+   *
+   * La deviazione dichiarata copre il nome; qui si controlla che la seconda
+   * scelta non sia sparita nel farlo, e che porti davvero la misura per cui
+   * è stata separata: 45 secondi, non 12-15 ripetizioni.
+   */
+  it('il C2 del Lower A offre entrambi gli esercizi, ognuno con la sua misura', () => {
+    const lowerA = PROGRAM_SESSIONS.find((s) => s.id === 'lower-a');
+    const c2 = lowerA?.blocks.find((b) => b.code === 'C2');
+    expect(c2?.exercise).toBe('sissy-squat');
+    expect(c2?.prescription).toEqual({ kind: 'reps', min: 12, max: 15 });
+    expect(getExercise('sissy-squat').measurement).toBe('reps');
+
+    expect(c2?.alternative).toEqual({
+      exercise: 'wall-sit',
+      prescription: { kind: 'seconds', min: 45, max: 45 },
+    });
+    expect(getExercise('wall-sit').measurement).toBe('seconds');
+  });
+
+  it('nessun blocco offre un’alternativa che non cambia niente', () => {
+    for (const session of PROGRAM_SESSIONS) {
+      for (const block of session.blocks) {
+        if (block.alternative === undefined) continue;
+        expect(block.alternative.exercise, block.code).not.toBe(block.exercise);
+      }
+    }
+  });
+
   it('ha 36 blocchi in totale', () => {
     const total = PROGRAM_SESSIONS.reduce((sum, s) => sum + s.blocks.length, 0);
     expect(total).toBe(36);

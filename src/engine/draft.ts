@@ -127,6 +127,27 @@ export function setVariant(
   return replaceExercise(session, blockCode, (entry) => ({ ...entry, variantLabel, level }));
 }
 
+/**
+ * Cambia quale dei due esercizi ammessi dal blocco si sta facendo.
+ *
+ * Non è un cambio di variante: sissy squat e wall sit sono esercizi diversi,
+ * con misure diverse. Le serie già registrate se ne vanno insieme
+ * all'esercizio, perché ripetizioni e secondi non si sommano e tenerle
+ * significherebbe archiviare secondi sotto la voce delle ripetizioni.
+ */
+export function setBlockExercise(
+  session: LoggedSession,
+  blockCode: string,
+  exercise: ExerciseSlug,
+  variantLabel: string,
+): LoggedSession {
+  return replaceExercise(session, blockCode, (entry) =>
+    entry.exercise === exercise
+      ? entry
+      : { ...entry, exercise, variantLabel, level: null, sets: [] },
+  );
+}
+
 export function setTempoRespected(
   session: LoggedSession,
   blockCode: string,

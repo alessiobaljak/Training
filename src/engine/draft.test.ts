@@ -9,6 +9,7 @@ import {
   plannedSets,
   removeLoggedSet,
   sessionProgress,
+  setBlockExercise,
   setExerciseNote,
   setTempoRespected,
   setVariant,
@@ -124,6 +125,50 @@ describe('modifica della bozza', () => {
     const after = upsertLoggedSet(before, 'A2', set(1, 8));
     expect(findLoggedExercise(after, 'A1')).toEqual(findLoggedExercise(before, 'A1'));
     expect(findLoggedExercise(before, 'A2')?.sets).toEqual([]);
+  });
+
+  /*
+   * Cambiare esercizio non è cambiare variante.
+   *
+   * Sissy squat e wall sit stanno sullo stesso blocco ma si misurano
+   * diversamente: tenere le serie già registrate significherebbe archiviare
+   * dei secondi sotto la voce delle ripetizioni.
+   */
+  it('cambiando esercizio del blocco butta via le serie già registrate', () => {
+    let session = buildDraftSession({
+      id: 'draft-lower',
+      date: '2026-09-15',
+      week: 1,
+      session: getSession('lower-a'),
+      states: new Map(),
+      previous: new Map(),
+    });
+    session = upsertLoggedSet(session, 'C2', {
+      setIndex: 1, side: null, value: 13, rir: 1, loadKg: 0, heartRate: null, note: null,
+    });
+    expect(findLoggedExercise(session, 'C2')?.sets).toHaveLength(1);
+
+    session = setBlockExercise(session, 'C2', 'wall-sit', 'Wall sit isometrico');
+    const entry = findLoggedExercise(session, 'C2');
+    expect(entry?.exercise).toBe('wall-sit');
+    expect(entry?.variantLabel).toBe('Wall sit isometrico');
+    expect(entry?.sets).toEqual([]);
+  });
+
+  it('riscegliere lo stesso esercizio non cancella niente', () => {
+    let session = buildDraftSession({
+      id: 'draft-lower-2',
+      date: '2026-09-15',
+      week: 1,
+      session: getSession('lower-a'),
+      states: new Map(),
+      previous: new Map(),
+    });
+    session = upsertLoggedSet(session, 'C2', {
+      setIndex: 1, side: null, value: 13, rir: 1, loadKg: 0, heartRate: null, note: null,
+    });
+    session = setBlockExercise(session, 'C2', 'sissy-squat', 'Sissy squat');
+    expect(findLoggedExercise(session, 'C2')?.sets).toHaveLength(1);
   });
 
   it('aggiorna variante, tempo rispettato e note', () => {

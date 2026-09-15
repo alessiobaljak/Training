@@ -5,10 +5,10 @@ import { REPDB_ART } from '../../data/exercise-art.ts';
  *
  * Due fonti, in ordine di preferenza.
  *
- * 1. I disegni di RepDB, che coprono trentuno esercizi su trentasei. Sono
+ * 1. I disegni di RepDB, che coprono trenta esercizi su trentasette. Sono
  *    illustrazioni vere, fatte da illustratori.
- * 2. Le figure schematiche generate da `npm run svg`, per i cinque rimasti:
- *    quattro non sono esercizi e il quinto RepDB non ce l'ha.
+ * 2. Le figure schematiche generate da `npm run svg`, per i sette rimasti:
+ *    quattro non sono esercizi e tre RepDB non ce li ha.
  *
  * Le immagini sono importate a build time, quindi finiscono nel build con un
  * nome che porta l'hash del contenuto e vengono messe in cache dal service

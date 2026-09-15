@@ -213,9 +213,17 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         code: 'C2',
         group: 'C',
         pairing: 'superset',
-        exercise: 'sissy-squat-o-wall-sit',
+        exercise: 'sissy-squat',
         sets: 3,
         prescription: { kind: 'reps', min: 12, max: 15 },
+        /*
+         * La scheda scrive «Sissy squat o wall sit isometrico 45"». Sono due
+         * esercizi con due misure: le ripetizioni qui, i secondi nell'altro.
+         */
+        alternative: {
+          exercise: 'wall-sit',
+          prescription: { kind: 'seconds', min: 45, max: 45 },
+        },
         reference: 'RIR 0-1',
         tut: '3-1-1-0',
         rir: '0-1',

@@ -36,6 +36,12 @@ export const DEVIAZIONI: readonly Deviazione[] = [
     motivo:
       'Scelta dell’utente: stesse due varianti della scheda, ordine invertito. Il blocco arriva terzo a RIR 0-1 dopo dip alle parallele e pike push-up, e il dip su panca porta la spalla stanca in estensione e rotazione interna profonda. Il diamond push-up allena gli stessi tricipiti senza quella posizione. Il dip su panca resta come alternativa.',
   },
+  {
+    scheda: 'Sissy squat o wall sit isometrico 45"',
+    app: 'Sissy squat',
+    motivo:
+      'Divisi in due esercizi su richiesta dell’utente: sono movimenti diversi e si misurano diversamente, il sissy squat a ripetizioni e il wall sit a secondi. Finché stavano su una riga sola l’app doveva sceglierne una misura per entrambi, e chi faceva il wall sit non aveva dove scrivere i secondi. Il wall sit resta la seconda scelta del blocco C2, con la sua prescrizione da 45" e il suo storico.',
+  },
 ];
 
 /** Il nome con cui l'app chiama quello che la scheda chiama `scheda`. */

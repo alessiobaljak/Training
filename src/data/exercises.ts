@@ -439,9 +439,19 @@ const EXERCISE_LIST = [
     videoQuery: 'high box step up proper form tutorial',
     alternative: null,
   },
+  /*
+   * Sissy squat e wall sit sono due esercizi, non due nomi dello stesso.
+   *
+   * La scheda li scrive su una riga sola, «Sissy squat o wall sit isometrico
+   * 45"», e finché sono stati un esercizio solo l'app ha dovuto sceglierne
+   * una misura per entrambi: ripetizioni. Il wall sit però si misura in
+   * secondi, quindi chi lo faceva non aveva dove scriverlo. Separati hanno
+   * ognuno la propria misura, il proprio range e il proprio storico; la
+   * scelta tra i due resta, ma la fa il blocco C2 del Lower A.
+   */
   {
-    slug: 'sissy-squat-o-wall-sit',
-    name: 'Sissy squat o wall sit isometrico 45"',
+    slug: 'sissy-squat',
+    name: 'Sissy squat',
     pattern: null,
     defaultLevel: null,
     primaryMuscles: ['quadricipiti'],
@@ -449,23 +459,33 @@ const EXERCISE_LIST = [
     measurement: 'reps',
     loadPolicy: 'forbidden',
     cues: [
-      'Sissy squat: ginocchia che avanzano, bacino e spalle su una sola linea inclinata all’indietro.',
+      'Ginocchia che avanzano, bacino e spalle su una sola linea inclinata all’indietro.',
       'Appoggiati con una mano a un supporto finché il controllo non è completo.',
-      'Wall sit: schiena piatta al muro, cosce parallele a terra, 45" senza scivolare.',
-      'Errore tipico: piegare l’anca, che trasforma il sissy squat in uno squat normale.',
+      'Scendi finché senti i quadricipiti sotto tensione piena, senza cedere di schiena.',
+      'Errore tipico: piegare l’anca, che lo trasforma in uno squat normale.',
       'Ripetizione valida: linea ginocchia-anca-spalla mantenuta, nessuna flessione d’anca.',
     ],
     videoQuery: 'sissy squat proper form tutorial',
-    alternative: {
-      name: 'Wall sit isometrico 45"',
-      cues: [
-        'Schiena piatta contro il muro, ginocchia e anche a 90°, piedi a larghezza bacino.',
-        'Peso sui talloni, ginocchia sopra le caviglie e non oltre le punte.',
-        'Respira normalmente: trattenere il fiato alza la pressione senza aggiungere niente.',
-        'Serie valida: 45" senza scivolare in basso lungo il muro e senza appoggiare le mani sulle cosce.',
-      ],
-      videoQuery: 'wall sit proper form tutorial',
-    },
+    alternative: null,
+  },
+  {
+    slug: 'wall-sit',
+    name: 'Wall sit isometrico',
+    pattern: null,
+    defaultLevel: null,
+    primaryMuscles: ['quadricipiti'],
+    secondaryMuscles: [],
+    measurement: 'seconds',
+    loadPolicy: 'forbidden',
+    cues: [
+      'Schiena piatta contro il muro, ginocchia e anche a 90°, piedi a larghezza bacino.',
+      'Peso sui talloni, ginocchia sopra le caviglie e non oltre le punte.',
+      'Respira normalmente: trattenere il fiato alza la pressione senza aggiungere niente.',
+      'Errore tipico: scivolare in basso lungo il muro per alleggerire le cosce.',
+      'Serie valida: il tempo pieno senza scivolare e senza appoggiare le mani sulle cosce.',
+    ],
+    videoQuery: 'wall sit proper form tutorial',
+    alternative: null,
   },
   {
     slug: 'shrimp-squat-o-skater-squat',

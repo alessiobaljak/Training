@@ -7,6 +7,7 @@ import {
   firstPendingIndex,
   isStepLogged,
   sessionProgress,
+  setBlockExercise,
   setVariant,
   suggestedSetValue,
   upsertLoggedSet,
@@ -53,6 +54,8 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
    * navigazione, quindi si può tornare indietro e registrarla.
    */
   const [valori, setValori] = useState<ReadonlyMap<string, SetValues>>(new Map());
+  /* Esercizio verso cui si sta cambiando, in attesa di conferma. */
+  const [cambioEsercizio, setCambioEsercizio] = useState<string | null>(null);
   /*
    * `startedAt` non serve a contare: serve a distinguere un recupero
    * dall'altro. React tiene in vita lo stesso componente quando cambiano solo
@@ -161,8 +164,23 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     );
   }
 
-  const block = program.blocks.find((entry) => entry.code === step.blockCode);
-  if (block === undefined) return null;
+  const declaredBlock = program.blocks.find((entry) => entry.code === step.blockCode);
+  if (declaredBlock === undefined) return null;
+
+  /*
+   * Il blocco effettivo, cioè con l'esercizio davvero scelto.
+   *
+   * Dove la scheda ammette due esercizi con misure diverse — il C2 del Lower
+   * A: sissy squat a ripetizioni, wall sit a secondi — la scelta cambia anche
+   * la prescrizione. Sostituendola qui, una volta sola, range, progressione e
+   * registrazione della serie continuano a leggere `block` come prima.
+   */
+  const alternative = declaredBlock.alternative;
+  const chosenSlug = findLoggedExercise(draft, declaredBlock.code)?.exercise ?? declaredBlock.exercise;
+  const block =
+    alternative !== undefined && chosenSlug === alternative.exercise
+      ? { ...declaredBlock, exercise: alternative.exercise, prescription: alternative.prescription }
+      : declaredBlock;
 
   const exercise = getExercise(block.exercise);
   const exerciseState = states.get(block.exercise);
@@ -380,6 +398,78 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             <p className="mt-2 text-xs leading-relaxed text-warn">{block.variantNote}</p>
           ) : null}
         </Card>
+
+        {/*
+          Dove la scheda ammette due esercizi diversi — non due livelli dello
+          stesso — la scelta sta qui, prima dei campi: cambia anche l'unità di
+          misura di quello che si registra, quindi va fatta prima di scrivere.
+        */}
+        {alternative !== undefined ? (
+          <Card>
+            <p className="text-sm font-semibold">Quale dei due stai facendo</p>
+            <div className="mt-3 flex gap-2">
+              {[
+                { slug: declaredBlock.exercise, prescription: declaredBlock.prescription },
+                { slug: alternative.exercise, prescription: alternative.prescription },
+              ].map((option) => {
+                const optionExercise = getExercise(option.slug);
+                const active = chosenSlug === option.slug;
+                const unit = optionExercise.measurement === 'seconds' ? 'secondi' : 'ripetizioni';
+                return (
+                  <button
+                    key={option.slug}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      if (active) return;
+                      const perse = findLoggedExercise(draft, declaredBlock.code)?.sets.length ?? 0;
+                      if (perse > 0 && cambioEsercizio !== option.slug) {
+                        setCambioEsercizio(option.slug);
+                        return;
+                      }
+                      setCambioEsercizio(null);
+                      update((session) =>
+                        setBlockExercise(session, declaredBlock.code, option.slug, optionExercise.name),
+                      );
+                    }}
+                    className={`min-h-20 flex-1 rounded-2xl border px-3 py-2 text-left ${
+                      active ? 'border-accent bg-accent/20 text-ink' : 'border-line bg-panel text-dim'
+                    }`}
+                  >
+                    <span className="block text-sm font-semibold">{optionExercise.name}</span>
+                    <span className="mt-1 block text-xs">si misura in {unit}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {cambioEsercizio !== null ? (
+              <div className="mt-3">
+                <Notice tone="warn">
+                  Hai già registrato delle serie su {exercise.name}. Passare a{' '}
+                  {getExercise(cambioEsercizio).name} le cancella: sono misure diverse e non si
+                  sommano.
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="danger"
+                      onClick={() => {
+                        const target = getExercise(cambioEsercizio);
+                        setCambioEsercizio(null);
+                        update((session) =>
+                          setBlockExercise(session, declaredBlock.code, cambioEsercizio, target.name),
+                        );
+                      }}
+                    >
+                      Sì, cambia esercizio
+                    </Button>
+                    <Button variant="ghost" onClick={() => { setCambioEsercizio(null); }}>
+                      Annulla
+                    </Button>
+                  </div>
+                </Notice>
+              </div>
+            ) : null}
+          </Card>
+        ) : null}
 
         {exerciseState !== undefined ? (
           <VariantPicker

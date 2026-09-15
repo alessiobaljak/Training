@@ -63,6 +63,10 @@ describe('exercises.ts — anagrafica', () => {
   it('non lascia esercizi orfani: ognuno è usato dal programma o da un test', () => {
     const used = new Set<string>([
       ...PROGRAM_SESSIONS.flatMap((s) => s.blocks.map((b) => b.exercise)),
+      /* Anche la seconda scelta di un blocco è un esercizio usato. */
+      ...PROGRAM_SESSIONS.flatMap((s) =>
+        s.blocks.flatMap((b) => (b.alternative === undefined ? [] : [b.alternative.exercise])),
+      ),
       ...WEEK_ZERO_TESTS.map((t) => t.exercise),
     ]);
     const orphans = EXERCISES.filter((e) => !used.has(e.slug)).map((e) => e.slug);

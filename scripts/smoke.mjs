@@ -336,6 +336,60 @@ try {
     );
   }
 
+  /* ------------------ Sissy squat oppure wall sit ------------------------ */
+
+  /*
+   * La scheda scrive «Sissy squat o wall sit isometrico 45"» su una riga
+   * sola, ma sono due esercizi con due misure. Finché erano un esercizio solo
+   * l'app ne imponeva una, le ripetizioni, e i secondi del wall sit non
+   * avevano dove finire.
+   */
+  /* Il C2 arriva a metà piano: il limite copre l'intera seduta, non un tratto. */
+  for (let i = 0; i < 24; i += 1) {
+    if ((await page.locator('h1').first().innerText()).includes('C2')) break;
+    const avantiC2 = page.getByRole('button', { name: /serie \d+ ›$/ });
+    if ((await avantiC2.count()) === 0) break;
+    await avantiC2.click();
+    await page.waitForTimeout(300);
+  }
+
+  const suC2 = (await page.locator('h1').first().innerText()).includes('C2');
+  check(suC2, 'La navigazione tra le serie deve arrivare al blocco C2 del Lower A.');
+
+  if (suC2) {
+    const scelta = await page.locator('main').innerText();
+    check(
+      scelta.includes('Sissy squat') && scelta.includes('Wall sit'),
+      'Il C2 deve far scegliere tra sissy squat e wall sit, che sono due esercizi diversi.',
+    );
+    check(
+      scelta.includes('Target 12-15'),
+      `Sul sissy squat il target deve essere in ripetizioni: letto ${JSON.stringify((/Target [^\n]+/.exec(scelta) ?? ['(nessuno)'])[0])}.`,
+    );
+
+    await page.getByRole('button', { name: /Wall sit/ }).click();
+    await page.waitForTimeout(800);
+
+    const dopoScelta = await page.locator('main').innerText();
+    check(
+      dopoScelta.includes('Cronometro'),
+      'Scelto il wall sit, la serie si deve registrare col cronometro: è un’isometria, non ripetizioni.',
+    );
+    check(
+      dopoScelta.includes('Target 45"'),
+      `Sul wall sit il target deve essere in secondi: letto ${JSON.stringify((/Target [^\n]+/.exec(dopoScelta) ?? ['(nessuno)'])[0])}.`,
+    );
+
+    const secondi = page.locator('input[type=number]');
+    for (let k = 0; k < (await secondi.count()); k += 1) await secondi.nth(k).fill('45');
+    await page.waitForTimeout(200);
+    const registra = page.getByRole('button', { name: 'Serie fatta' });
+    if ((await registra.count()) > 0 && !(await registra.isDisabled())) {
+      await registra.click();
+      await page.waitForTimeout(700);
+    }
+  }
+
   /* ------------------------- Log e Progressi ---------------------------- */
 
   await page.goto(`${BASE}/#/log`, { waitUntil: 'load' });
@@ -345,6 +399,12 @@ try {
   check(
     (await page.locator('thead th').count()) === 13,
     'La tabella del log deve avere le tredici colonne del foglio originale.',
+  );
+
+  const righeLog = await page.locator('tbody tr').allInnerTexts();
+  check(
+    righeLog.some((riga) => riga.includes('Wall sit')),
+    'Il wall sit deve finire nel log col proprio nome, non sotto quello del sissy squat.',
   );
 
   await page.goto(`${BASE}/#/progressi`, { waitUntil: 'load' });

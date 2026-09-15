@@ -4,13 +4,14 @@ import type { ExerciseSlug } from '../types/index.ts';
  * Le illustrazioni di RepDB, una coppia per esercizio.
  *
  * Sono disegni fatti da illustratori, non figure generate da questo codice:
- * coprono trentuno dei trentasei esercizi del programma, compresi quelli dove
+ * coprono trenta dei trentasette esercizi del programma, compresi quelli dove
  * un disegno serve davvero e che nessun altro archivio ha, come archer
  * push-up, nordic curl, pike push-up e hollow hold.
  *
- * Per i cinque scoperti restano le figure in `src/assets/exercises/`. Quattro
- * non sono esercizi (camminata, corsa, mobilità, zona 2) e il quinto è lo
- * shrimp squat, che RepDB non ha.
+ * Per i sette scoperti restano le figure in `src/assets/exercises/`. Quattro
+ * non sono esercizi (camminata, corsa, mobilità, zona 2); gli altri tre sono
+ * shrimp squat, sissy squat e croci con elastico, che RepDB non ha — delle
+ * croci ha però il push-up a presa larga, tenuto come variante alternativa.
  *
  * **Licenza.** Uso libero dentro l'applicazione, anche commerciale, con una
  * attribuzione visibile: la trovi nella schermata «App e dati». Due vincoli
@@ -159,16 +160,15 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     label: 'Bulgarian Split Squat',
     frames: ['bulgarian-split-squat-start.webp', 'bulgarian-split-squat-peak.webp'],
   },
-  /* Stesso caso: il wall sit è la seconda variante, il sissy squat non c'è. */
-  'sissy-squat-o-wall-sit': {
-    source: '',
-    label: '',
-    frames: [],
-    alternative: {
-      source: 'wall-sit',
-      label: 'Wall Sit',
-      frames: ['wall-sit-main.webp'],
-    },
+  /*
+   * Divisi in due esercizi, quindi anche i disegni si dividono: RepDB ha il
+   * wall sit e non ha il sissy squat, che resta con la figura schematica di
+   * `src/assets/exercises/`.
+   */
+  'wall-sit': {
+    source: 'wall-sit',
+    label: 'Wall Sit',
+    frames: ['wall-sit-main.webp'],
   },
   'nordic-curl': {
     source: 'nordic-hamstring-curl',

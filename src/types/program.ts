@@ -70,6 +70,20 @@ export type RestPrescription =
 /* Blocchi e sedute                                                            */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * La seconda scelta prevista dalla scheda per lo stesso blocco.
+ *
+ * Non è una variante di difficoltà — quella passa da `ExerciseState.level` —
+ * ma un esercizio diverso, con la sua misura e la sua prescrizione. Serve
+ * dove la scheda scrive «X o Y» e i due si registrano in modo diverso: il
+ * C2 del Lower A offre sissy squat a ripetizioni oppure wall sit a secondi,
+ * e un solo `measurement` non poteva descriverli entrambi.
+ */
+export interface BlockAlternative {
+  readonly exercise: ExerciseSlug;
+  readonly prescription: Prescription;
+}
+
 export interface ProgramBlock {
   /** Codice come in scheda: 'A1', 'A2', 'B1', 'A', 'W', 'F'… */
   readonly code: string;
@@ -89,6 +103,8 @@ export interface ProgramBlock {
   readonly perSide: boolean;
   /** Precisazione della scheda sulla variante da usare in questo blocco. */
   readonly variantNote?: string;
+  /** L'altro esercizio che la scheda ammette qui, quando ce n'è uno. */
+  readonly alternative?: BlockAlternative;
 }
 
 export interface ProgramSession {

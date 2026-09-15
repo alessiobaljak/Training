@@ -228,6 +228,16 @@ const ARCHETYPES = {
     floor() + figure({ he: [34, 34], ne: [40, 40], hi: [52, 60], el: [46, 50], ha: [58, 54], kn: [66, 78], fo: [50, FLOOR - 2] }),
   ],
 
+  /* Isometria: una posa sola, perché non c'è un inizio e una fine da mostrare. */
+  wallsit: () => [
+    wall(26) + floor() +
+      figure({
+        he: [36, 38], ne: [36, 46], hi: [36, 72],
+        sh: [36, 46], el: [46, 58], ha: [56, 68],
+        kn: [72, 72], fo: [72, FLOOR - 2],
+      }),
+  ],
+
   shrimp: () => [
     floor() + figure({ he: [46, 24], ne: [46, 32], hi: [46, 60], el: [38, 44], ha: [34, 54], kn: [46, 80], fo: [46, FLOOR - 2], kn2: [62, 70], fo2: [70, 56] }),
     floor() + figure({ he: [38, 46], ne: [40, 54], hi: [48, 78], el: [30, 60], ha: [26, 70], kn: [40, 90], fo: [46, FLOOR - 2], kn2: [66, 96], fo2: [76, 82] }),
@@ -369,7 +379,8 @@ const EXERCISES = {
   'dip-panche-piedi-rialzati': ['bench-dip', { feet: 24 }, 'Dip tra panche piedi rialzati: gomiti a 90 gradi'],
   'bulgarian-split-squat': ['split-squat', {}, 'Bulgarian split squat: in piedi, poi coscia parallela a terra'],
   'step-up-box-alto': ['step-up', {}, 'Step-up: piede sul box, poi in piedi sopra'],
-  'sissy-squat-o-wall-sit': ['sissy', {}, 'Sissy squat: in piedi, poi ginocchia avanti con anca estesa'],
+  'sissy-squat': ['sissy', {}, 'Sissy squat: in piedi, poi ginocchia avanti con anca estesa'],
+  'wall-sit': ['wallsit', {}, 'Wall sit: schiena al muro, cosce parallele a terra, ginocchia a 90 gradi'],
   'shrimp-squat-o-skater-squat': ['shrimp', {}, 'Shrimp squat: in piedi, poi ginocchio posteriore a terra'],
   'nordic-curl': ['nordic', {}, 'Nordic curl: busto eretto, poi discesa in blocco'],
   'hip-thrust-monopodalico': ['hip-thrust', {}, 'Hip thrust monopodalico: bacino in basso, poi anca estesa'],
