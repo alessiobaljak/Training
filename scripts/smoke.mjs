@@ -498,6 +498,62 @@ try {
     }
   }
 
+  /* ------------------ Il blocco a durata del sabato ---------------------- */
+
+  /*
+   * La zona 2 conclusiva dello Shadow si misura in minuti.
+   *
+   * `measurement: 'duration'` cadeva nel ramo delle ripetizioni: il blocco
+   * chiedeva «Ripetizioni» con l'unità «rip» per mezz'ora di corsa, e non
+   * c'era dove scrivere né i minuti né la frequenza cardiaca. Si è visto solo
+   * allungando il blocco da 15 a 30 minuti.
+   */
+  await page.goto(`${BASE}/#/seduta/shadow`, { waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+
+  for (let i = 0; i < 30; i += 1) {
+    if ((await page.locator('h1').first().innerText()).includes('· F')) break;
+    const avantiF = page.getByRole('button', { name: /serie \d+ ›$/ });
+    if ((await avantiF.count()) === 0) break;
+    await avantiF.click();
+    await page.waitForTimeout(220);
+  }
+
+  const suF = (await page.locator('h1').first().innerText()).includes('· F');
+  check(suF, 'La navigazione deve arrivare al blocco F dello Shadow.');
+
+  if (suF) {
+    const bloccoF = await page.locator('main').innerText();
+    check(
+      bloccoF.includes('Durata effettiva'),
+      'Un blocco a durata si registra in minuti: deve chiedere la durata effettiva.',
+    );
+    check(
+      !bloccoF.includes('Ripetizioni'),
+      'Un blocco a durata non ha ripetizioni: non deve chiederle né mostrarle.',
+    );
+    check(
+      bloccoF.includes('30′'),
+      `Il blocco F del sabato è stato allungato a 30 minuti: la scheda deve dirlo. Letto: ${JSON.stringify(bloccoF.slice(bloccoF.indexOf('Durata'), bloccoF.indexOf('Durata') + 40))}`,
+    );
+    check(
+      bloccoF.includes('Frequenza cardiaca'),
+      'La zona 2 si guida con la frequenza cardiaca: ci deve essere dove scriverla.',
+    );
+
+    const campiF = page.locator('input[type=number]');
+    if ((await campiF.count()) >= 2) {
+      await campiF.nth(0).fill('30');
+      await campiF.nth(1).fill('130');
+      await page.waitForTimeout(200);
+      const registraF = page.getByRole('button', { name: 'Serie fatta' });
+      check(
+        (await registraF.count()) > 0 && !(await registraF.isDisabled()),
+        'Scritti minuti e frequenza, la registrazione del blocco a durata deve essere possibile.',
+      );
+    }
+  }
+
   /* ---------------- Sedute doppie e sedute fantasma ---------------------- */
 
   /*

@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { DELOAD_WEEKS, PROGRAM_SESSIONS, REST_WEEKDAYS, RETEST_WEEKS, getSessionForWeekday, isRestDay } from './program.ts';
 import { getExercise } from './exercises.ts';
-import { DEVIAZIONI, applicaDeviazione } from './deviations.ts';
+import {
+  DEVIAZIONI,
+  DEVIAZIONI_BLOCCO,
+  applicaDeviazione,
+  applicaDeviazioneBlocco,
+  applicaDeviazioneMinuti,
+} from './deviations.ts';
 import type { Prescription, RestPrescription, SessionId } from '../types/index.ts';
 
 /**
@@ -77,8 +83,17 @@ function actualRows(id: SessionId): Row[] {
 }
 
 /** Le righe della scheda, con le differenze volute già applicate. */
-function attese(rows: readonly Row[]): Row[] {
-  return rows.map((row) => [row[0], applicaDeviazione(row[1]), ...row.slice(2)] as unknown as Row);
+function attese(id: SessionId, rows: readonly Row[]): Row[] {
+  return rows.map(
+    (row) =>
+      [
+        row[0],
+        applicaDeviazione(row[1]),
+        row[2],
+        applicaDeviazioneBlocco(id, row[0], row[3]),
+        ...row.slice(4),
+      ] as unknown as Row,
+  );
 }
 
 const UPPER_A: readonly Row[] = [
@@ -159,7 +174,7 @@ describe('program.ts — trascrizione delle 6 sedute', () => {
   });
 
   it.each(EXPECTED)('la seduta %s corrisponde riga per riga alla scheda', (id, rows) => {
-    expect(actualRows(id)).toEqual(attese(rows));
+    expect(actualRows(id)).toEqual(attese(id, rows));
   });
 
   /*
@@ -201,14 +216,23 @@ describe('program.ts — trascrizione delle 6 sedute', () => {
     const durations = Object.fromEntries(
       PROGRAM_SESSIONS.map((s) => [s.id, s.estimatedMinutes]),
     );
-    expect(durations).toEqual({
+    /* I minuti del foglio, con le differenze volute applicate come per le righe. */
+    const daScheda: Record<string, number> = {
       'upper-a': 58,
       'lower-a': 60,
       'zona-2': 40,
       'upper-b': 58,
       'lower-b': 60,
       shadow: 48,
-    });
+    };
+    expect(durations).toEqual(
+      Object.fromEntries(
+        Object.entries(daScheda).map(([id, minuti]) => [
+          id,
+          applicaDeviazioneMinuti(id as SessionId, minuti),
+        ]),
+      ),
+    );
   });
 
   it('trascrive i warm-up di ogni seduta', () => {
@@ -304,6 +328,39 @@ describe('deviazioni dichiarate', () => {
     for (const deviazione of DEVIAZIONI) {
       expect(deviazione.motivo.length, deviazione.scheda).toBeGreaterThan(40);
       expect(deviazione.app).not.toBe(deviazione.scheda);
+    }
+  });
+
+  /*
+   * Stessi vincoli per le deviazioni su un blocco.
+   *
+   * Una deviazione che non corrisponde a nessuna riga del foglio non
+   * protegge niente e nasconde un refuso: se il codice o la prescrizione di
+   * partenza sono sbagliati, `applicaDeviazioneBlocco` non trova nulla e il
+   * confronto passa per il motivo sbagliato.
+   */
+  it('ogni deviazione su un blocco punta a una riga che la scheda ha davvero', () => {
+    const perSeduta = new Map<SessionId, readonly Row[]>(EXPECTED);
+    for (const deviazione of DEVIAZIONI_BLOCCO) {
+      const rows = perSeduta.get(deviazione.sessione);
+      expect(rows, deviazione.sessione).toBeDefined();
+      const riga = rows?.find((row) => row[0] === deviazione.codice);
+      expect(riga, `${deviazione.sessione}/${deviazione.codice}`).toBeDefined();
+      expect(riga?.[3], `${deviazione.sessione}/${deviazione.codice}`).toBe(deviazione.scheda);
+    }
+  });
+
+  it('ogni deviazione su un blocco porta un motivo scritto e cambia qualcosa', () => {
+    for (const deviazione of DEVIAZIONI_BLOCCO) {
+      expect(deviazione.motivo.length, deviazione.codice).toBeGreaterThan(40);
+      expect(deviazione.app).not.toBe(deviazione.scheda);
+    }
+  });
+
+  it('i minuti dichiarati da una deviazione sono quelli che la scheda scrive', () => {
+    for (const deviazione of DEVIAZIONI_BLOCCO) {
+      if (deviazione.minuti === null) continue;
+      expect(deviazione.minuti.app, deviazione.codice).not.toBe(deviazione.minuti.scheda);
     }
   });
 });

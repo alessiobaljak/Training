@@ -15,6 +15,8 @@
  * su tutto il resto: qualunque altra differenza continua a farli fallire.
  */
 
+import type { SessionId } from '../types/index.ts';
+
 export interface Deviazione {
   /** Come lo scrive la scheda. */
   readonly scheda: string;
@@ -47,4 +49,61 @@ export const DEVIAZIONI: readonly Deviazione[] = [
 /** Il nome con cui l'app chiama quello che la scheda chiama `scheda`. */
 export function applicaDeviazione(nomeDaScheda: string): string {
   return DEVIAZIONI.find((d) => d.scheda === nomeDaScheda)?.app ?? nomeDaScheda;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Deviazioni su un blocco                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Un blocco che resta lo stesso esercizio ma cambia prescrizione.
+ *
+ * Le deviazioni qui sopra sostituiscono un esercizio con un altro. Questa è
+ * un'altra cosa: l'esercizio non si tocca, cambia quanto se ne fa. Serviva
+ * una forma sua perché la trascrizione confronta anche la colonna delle
+ * ripetizioni, e allungare un blocco senza dichiararlo avrebbe costretto a
+ * ritoccare la seconda trascrizione del foglio, cioè a cancellare la prova.
+ */
+export interface DeviazioneBlocco {
+  readonly sessione: SessionId;
+  readonly codice: string;
+  /** La prescrizione come la scrive la scheda, nel formato della trascrizione. */
+  readonly scheda: string;
+  /** Come la scrive l'app. */
+  readonly app: string;
+  /** Minuti stimati della seduta, prima e dopo, quando il cambio li sposta. */
+  readonly minuti: { readonly scheda: number; readonly app: number } | null;
+  readonly motivo: string;
+}
+
+export const DEVIAZIONI_BLOCCO: readonly DeviazioneBlocco[] = [
+  {
+    sessione: 'shadow',
+    codice: 'F',
+    scheda: 'dur:15',
+    app: 'dur:30',
+    minuti: { scheda: 48, app: 63 },
+    motivo:
+      'Scelta dell’utente: voleva una seconda uscita di corsa il sabato. Allungare il blocco che c’è già costa quindici minuti e non toglie niente; sostituire la seduta avrebbe cancellato face pull e dead hang, che non compaiono altrove nella settimana, e la skill isometrica. La corsa resta dopo la parte di forza e non il giorno dopo i nordic curl del venerdì.',
+  },
+];
+
+/** La prescrizione che l'app dà a un blocco, se diversa da quella della scheda. */
+export function applicaDeviazioneBlocco(
+  sessione: SessionId,
+  codice: string,
+  prescrizioneDaScheda: string,
+): string {
+  const trovata = DEVIAZIONI_BLOCCO.find(
+    (d) => d.sessione === sessione && d.codice === codice && d.scheda === prescrizioneDaScheda,
+  );
+  return trovata?.app ?? prescrizioneDaScheda;
+}
+
+/** I minuti stimati che l'app dà a una seduta, se diversi da quelli della scheda. */
+export function applicaDeviazioneMinuti(sessione: SessionId, minutiDaScheda: number): number {
+  const trovata = DEVIAZIONI_BLOCCO.find(
+    (d) => d.sessione === sessione && d.minuti?.scheda === minutiDaScheda,
+  );
+  return trovata?.minuti?.app ?? minutiDaScheda;
 }

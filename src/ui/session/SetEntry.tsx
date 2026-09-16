@@ -44,6 +44,8 @@ export interface SetValues {
   readonly right: number;
   readonly rir: number | null;
   readonly loadKg: number;
+  /** Battiti al minuto, per i blocchi a durata. 0 quando non è stata scritta. */
+  readonly heartRate: number;
   readonly note: string;
   readonly touched: boolean;
 }
@@ -59,6 +61,7 @@ export function initialSetValues(
     right: suggestion.right,
     rir: null,
     loadKg: load.recordable ? suggestion.loadKg : 0,
+    heartRate: 0,
     note: '',
     touched: false,
   };
@@ -90,17 +93,27 @@ export function SetEntry({
   onChange,
   onCommit,
 }: SetEntryProps) {
-  const { value, left, right, rir, loadKg, note } = values;
+  const { value, left, right, rir, loadKg, heartRate, note } = values;
   const patch = (change: Partial<SetValues>): void => { onChange({ ...values, ...change, touched: true }); };
   const setValue = (next: number): void => { patch({ value: next }); };
   const setLeft = (next: number): void => { patch({ left: next }); };
   const setRight = (next: number): void => { patch({ right: next }); };
   const setRir = (next: number | null): void => { patch({ rir: next }); };
   const setLoadKg = (next: number): void => { patch({ loadKg: next }); };
+  const setHeartRate = (next: number): void => { patch({ heartRate: next }); };
   const setNote = (next: string): void => { patch({ note: next }); };
 
   const rirTarget = parseRir(block.rir);
   const isSeconds = exercise.measurement === 'seconds';
+  /*
+   * I blocchi a durata si misurano in minuti, non in ripetizioni.
+   *
+   * Cadevano nel ramo delle ripetizioni: la zona 2 conclusiva del sabato
+   * chiedeva «Ripetizioni» e l'unità diceva «rip» per mezz'ora di corsa.
+   * La convenzione è la stessa del player cardio del mercoledì: `value` sono
+   * i minuti effettivi, e accanto ci va la frequenza cardiaca.
+   */
+  const isDuration = exercise.measurement === 'duration';
   const main = step.perSide ? Math.min(left, right) : value;
   const canCommit = lockedReason === null && (step.perSide ? left > 0 && right > 0 : value > 0);
 
@@ -110,7 +123,7 @@ export function SetEntry({
     value: setValueFor,
     rir,
     loadKg,
-    heartRate: null,
+    heartRate: isDuration && heartRate > 0 ? heartRate : null,
     note: note.trim() === '' ? null : note.trim(),
   });
 
@@ -139,7 +152,25 @@ export function SetEntry({
       ) : null}
 
       <div className="mt-4 space-y-4">
-        {isSeconds ? (
+        {isDuration ? (
+          <>
+            <NumberStepper
+              label="Durata effettiva"
+              value={value}
+              onChange={setValue}
+              unit="min"
+              max={180}
+            />
+            <NumberStepper
+              label="Frequenza cardiaca media"
+              value={heartRate}
+              onChange={setHeartRate}
+              unit="bpm"
+              max={220}
+              hint="facoltativa"
+            />
+          </>
+        ) : isSeconds ? (
           <>
             <StopwatchField label="Cronometro" seconds={value} onChange={setValue} />
             <NumberStepper
@@ -177,7 +208,7 @@ export function SetEntry({
           />
         )}
 
-        <div>
+        <div hidden={isDuration}>
           <p className="mb-2 text-sm font-medium text-dim">
             RIR{rirTarget === null ? '' : ` · obiettivo ${block.rir}`}
           </p>
@@ -214,7 +245,7 @@ export function SetEntry({
           scrivere quanto stava usando, e il diario lo registrava a corpo
           libero.
         */}
-        {load.recordable ? (
+        {load.recordable && !isDuration ? (
           <div>
             <NumberStepper
               label="Zavorra"

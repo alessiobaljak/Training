@@ -368,10 +368,22 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                 {step.kind === 'work' ? `${String(step.setIndex)}/${String(step.totalSets)}` : '—'}
               </p>
             </div>
+            {/*
+              Un blocco a durata non ha ripetizioni: la sua prescrizione sono
+              i minuti, e prima la casella diceva «Ripetizioni —».
+            */}
             <div>
-              <p className="text-xs text-dim">Ripetizioni</p>
+              <p className="text-xs text-dim">
+                {block.prescription.kind === 'duration' ? 'Durata' : 'Ripetizioni'}
+              </p>
               <p className="tabular font-semibold">
-                {range.kind === 'range' ? formatRange(range.range, range.unit) : '—'}
+                {block.prescription.kind === 'duration'
+                  ? block.prescription.minMinutes === block.prescription.maxMinutes
+                    ? `${String(block.prescription.minMinutes)}′`
+                    : `${String(block.prescription.minMinutes)}-${String(block.prescription.maxMinutes)}′`
+                  : range.kind === 'range'
+                    ? formatRange(range.range, range.unit)
+                    : '—'}
               </p>
             </div>
             <div>

@@ -842,7 +842,7 @@ const EXERCISE_LIST = [
     measurement: 'duration',
     loadPolicy: 'forbidden',
     cues: [
-      '15 minuti a FC 125-135 bpm, subito dopo la parte di forza.',
+      '30 minuti a FC 125-135 bpm, subito dopo la parte di forza.',
       'Corsa, bici o camminata in pendenza: quello che ti lascia respirare a frasi intere.',
       'Se la FC non scende sotto i 135 bpm dopo due minuti, riduci il ritmo.',
     ],

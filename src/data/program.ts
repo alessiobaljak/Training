@@ -530,7 +530,8 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
     name: 'Shadow',
     focus: 'delti, braccia, core, skill',
     kind: 'strength',
-    estimatedMinutes: 48,
+    /* 48' della scheda più i quindici minuti aggiunti al blocco F. */
+    estimatedMinutes: 63,
     warmup: ["3' cardio", 'Band pull-apart × 20', 'Dead hang 30"'],
     note: 'Skill a inizio seduta, da fresco.',
     blocks: [
@@ -619,7 +620,12 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         pairing: 'single',
         exercise: 'zona-2-conclusiva',
         sets: 1,
-        prescription: { kind: 'duration', minMinutes: 15, maxMinutes: 15 },
+        /*
+         * La scheda scrive 15'. Allungato a 30 su richiesta dell'utente, che
+         * voleva una seconda uscita di corsa il sabato senza perdere face
+         * pull, dead hang e skill. Vedi DEVIAZIONI_BLOCCO.
+         */
+        prescription: { kind: 'duration', minMinutes: 30, maxMinutes: 30 },
         reference: 'FC 125-135',
         tut: '—',
         rir: '—',
