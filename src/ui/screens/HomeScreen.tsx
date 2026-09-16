@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { getSession, getSessionForWeekday, isRestDay } from '../../data/program.ts';
 import { getExercise } from '../../data/exercises.ts';
 import { daysBetween, isoWeekday, todayIso } from '../../engine/dates.ts';
@@ -6,6 +7,7 @@ import { getWeekState, isRetestDue, nextTrainingDay, programWeek } from '../../e
 import { totalWorkSets } from '../../engine/rest.ts';
 import type { LoggedSession, ProgramSession } from '../../types/index.ts';
 import { WEEKDAY_LABELS } from '../../types/index.ts';
+import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
 import { useActiveSession, useIsOnboarded, useSessions, useSettings } from '../hooks/useData.ts';
 import { useSnapshots } from '../hooks/useSnapshots.ts';
@@ -30,6 +32,8 @@ export function HomeScreen() {
   const activeSession = useActiveSession();
   const sessions = useSessions();
   const snapshots = useSnapshots();
+  /* Conferma in due tempi prima di eliminare una seduta vecchia. */
+  const [chiudiVecchia, setChiudiVecchia] = useState(false);
 
   const today = todayIso();
   const weekday = isoWeekday(today);
@@ -99,6 +103,7 @@ export function HomeScreen() {
     activeSession !== undefined && activeSession !== null && activeSession.date !== today
       ? activeSession
       : null;
+  const staleSets = countSets(staleSession);
 
   const next = nextTrainingDay(today);
   const nextSession = getSessionForWeekday(next.weekday);
@@ -159,21 +164,67 @@ export function HomeScreen() {
           </Notice>
         ) : null}
 
+        {/*
+          Una seduta aperta in un altro giorno va anche potuta togliere.
+          Prima si poteva solo riprenderla, quindi una rimasta lì per sbaglio
+          restava in Home per sempre. Se è vuota si cancella, se ha delle serie
+          si archivia: quei numeri non si buttano via senza dirlo.
+        */}
         {staleSession !== null ? (
           <Card tone="accent">
             <p className="text-sm font-semibold">Hai una seduta rimasta aperta</p>
             <p className="mt-1 text-sm text-dim">
-              {staleSession.sessionId} del {staleSession.date}. I dati sono salvati: puoi
-              riprenderla da dove l’hai lasciata.
+              {getSession(staleSession.sessionId).name} del {staleSession.date}.{' '}
+              {staleSets === 0
+                ? 'Non contiene nessuna serie.'
+                : `Contiene ${String(staleSets)} serie, già salvate.`}
             </p>
-            <div className="mt-3">
+            <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 variant="secondary"
                 onClick={() => { navigate({ name: 'session', sessionId: staleSession.sessionId }); }}
               >
                 Riprendi
               </Button>
+              {staleSets === 0 ? (
+                <Button
+                  variant="danger"
+                  onClick={() => { setChiudiVecchia((aperto) => !aperto); }}
+                >
+                  Elimina
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    void repository.saveSession({ ...staleSession, status: 'completed' });
+                  }}
+                >
+                  Segnala come finita
+                </Button>
+              )}
             </div>
+            {chiudiVecchia && staleSets === 0 ? (
+              <div className="mt-3">
+                <Notice tone="warn">
+                  La seduta del {staleSession.date} è vuota: eliminarla non perde niente.
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      variant="danger"
+                      onClick={() => {
+                        setChiudiVecchia(false);
+                        void repository.deleteSession(staleSession.id);
+                      }}
+                    >
+                      Sì, eliminala
+                    </Button>
+                    <Button variant="ghost" onClick={() => { setChiudiVecchia(false); }}>
+                      Annulla
+                    </Button>
+                  </div>
+                </Notice>
+              </div>
+            ) : null}
           </Card>
         ) : null}
 

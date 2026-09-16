@@ -16,7 +16,14 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 import { launchOptions } from './chromium.mjs';
 import { completeOnboarding } from './onboarding.mjs';
-import { buildForTests, signInForTests, startEmulators, stopGroup } from './testenv.mjs';
+import {
+  buildForTests,
+  readFromEmulator,
+  signInForTests,
+  startEmulators,
+  stopGroup,
+  writeToEmulator,
+} from './testenv.mjs';
 
 const PORT = 4181;
 const BASE = `http://localhost:${String(PORT)}`;
@@ -453,6 +460,89 @@ try {
         await salvaLower.click();
         await page.waitForTimeout(1200);
       }
+    }
+  }
+
+  /* ---------------- Sedute doppie e sedute fantasma ---------------------- */
+
+  /*
+   * Riaprire una seduta chiusa non deve crearne una seconda.
+   *
+   * Cercava solo le sedute aperte di oggi: riaprendone una già chiusa ne
+   * nasceva una nuova e vuota, che restava «in corso» per sempre e il giorno
+   * dopo compariva in Home come «seduta rimasta aperta». Chi la riapriva
+   * vedeva zero serie su ventuno al posto del proprio lavoro.
+   */
+  const sedutePrima = (await readFromEmulator('sessions')).length;
+
+  await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+  await page.waitForTimeout(1300);
+  const riapri = page.getByRole('button', { name: /Riapri la seduta di oggi/ });
+  if ((await riapri.count()) > 0) {
+    await riapri.click();
+    await page.waitForTimeout(1800);
+
+    check(
+      (await page.locator('main').innerText()).includes('SERIE REGISTRATE') ||
+        (await page.getByText('Serie registrate').count()) > 0,
+      'Riaprendo una seduta chiusa si devono rivedere le serie registrate, non una seduta vuota.',
+    );
+
+    const seduteDopo = (await readFromEmulator('sessions')).length;
+    check(
+      seduteDopo === sedutePrima,
+      `Riaprire una seduta non deve crearne un’altra: erano ${String(sedutePrima)}, ora ${String(seduteDopo)}.`,
+    );
+  }
+
+  /*
+   * Una seduta rimasta aperta in un altro giorno si deve poter togliere.
+   *
+   * Prima la Home la mostrava e basta: si poteva solo riprenderla, quindi una
+   * lasciata lì per sbaglio restava in vista per sempre.
+   */
+  const esistenti = await readFromEmulator('sessions');
+  if (esistenti.length > 0 && esistenti[0] !== undefined) {
+    const modello = esistenti[0];
+    const parent = modello.name.split('/sessions/')[0];
+    const fantasmaId = 'fantasma-di-ieri';
+    await writeToEmulator(parent, 'sessions', fantasmaId, {
+      ...modello.fields,
+      id: { stringValue: fantasmaId },
+      date: { stringValue: '2020-01-02' },
+      status: { stringValue: 'in-progress' },
+      exercises: { arrayValue: { values: [] } },
+    });
+
+    await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+    await page.waitForTimeout(2000);
+
+    check(
+      (await page.getByText('rimasta aperta').count()) > 0,
+      'Una seduta aperta in un giorno passato deve comparire in Home.',
+    );
+
+    const elimina = page.getByRole('button', { name: 'Elimina', exact: true });
+    check(
+      (await elimina.count()) > 0,
+      'Di una seduta vecchia e vuota si deve poter fare qualcosa, non solo riprenderla.',
+    );
+
+    if ((await elimina.count()) > 0) {
+      await elimina.click();
+      await page.waitForTimeout(500);
+      await page.getByRole('button', { name: 'Sì, eliminala' }).click();
+      await page.waitForTimeout(2000);
+
+      check(
+        (await page.getByText('rimasta aperta').count()) === 0,
+        'Eliminata la seduta vecchia, la Home non deve più parlarne.',
+      );
+      const rimaste = await readFromEmulator('sessions');
+      check(
+        !rimaste.some((row) => row.name.endsWith(fantasmaId)),
+        'La seduta eliminata deve sparire davvero dal database, non solo dallo schermo.',
+      );
     }
   }
 

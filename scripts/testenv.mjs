@@ -144,6 +144,27 @@ export async function signInForTests(page) {
  * Firebase lo tiene in IndexedDB, e andarlo a pescare renderebbe il controllo
  * dipendente da un dettaglio interno dell'SDK.
  */
+/**
+ * Scrive un documento nell'emulatore, scavalcando le regole.
+ *
+ * Serve per costruire situazioni che l'interfaccia non sa creare: una seduta
+ * datata ieri, per esempio. `name` è il percorso completo del documento, come
+ * lo restituisce `readFromEmulator`.
+ */
+export async function writeToEmulator(parentPath, collection, documentId, fields) {
+  const url =
+    `http://127.0.0.1:${String(FIRESTORE_PORT)}/v1/${parentPath}/${collection}` +
+    `?documentId=${documentId}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+  if (!response.ok) {
+    throw new Error(`Scrittura nell'emulatore fallita: ${String(response.status)}`);
+  }
+}
+
 export async function readFromEmulator(collection) {
   const project = TEST_ENV.VITE_FIREBASE_PROJECT_ID;
   const url =

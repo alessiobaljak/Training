@@ -108,10 +108,21 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
         repository.listSessions({ sessionId }),
       ]);
 
-      /* Riprende la seduta aperta di oggi, altrimenti ne apre una nuova. */
-      const open = history.find(
-        (entry) => entry.status === 'in-progress' && entry.date === today,
-      );
+      /*
+       * Riprende la seduta di oggi, qualunque sia il suo stato.
+       *
+       * Prima cercava solo quelle aperte: riaprire una seduta già chiusa ne
+       * creava una seconda, vuota, che restava aperta per sempre e il giorno
+       * dopo compariva in Home come «seduta rimasta aperta». Chi premeva
+       * «Riapri la seduta di oggi» si trovava davanti zero serie su ventuno e
+       * si lasciava dietro un doppione.
+       *
+       * Una chiusa si riapre così com'è e resta chiusa: aggiungere una serie a
+       * una seduta archiviata la corregge, non la rimette in corso.
+       */
+      const perOggi = history.filter((entry) => entry.date === today);
+      const open =
+        perOggi.find((entry) => entry.status === 'in-progress') ?? perOggi[0];
       const id = open?.id ?? `${sessionId}-${today}-${String(Date.now())}`;
       const previousByBlock = lastLoggedByBlock(history, sessionId, id);
 
