@@ -9,7 +9,7 @@ import type { LoggedSession, ProgramSession } from '../../types/index.ts';
 import { WEEKDAY_LABELS } from '../../types/index.ts';
 import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
-import { useActiveSession, useIsOnboarded, useSessions, useSettings } from '../hooks/useData.ts';
+import { useIsOnboarded, useSessions, useSettings } from '../hooks/useData.ts';
 import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 
@@ -29,11 +29,10 @@ function countSets(session: LoggedSession | null): number {
 export function HomeScreen() {
   const onboarded = useIsOnboarded();
   const settings = useSettings();
-  const activeSession = useActiveSession();
   const sessions = useSessions();
   const snapshots = useSnapshots();
-  /* Conferma in due tempi prima di eliminare una seduta vecchia. */
-  const [chiudiVecchia, setChiudiVecchia] = useState(false);
+  /* Quale seduta fuori posto sta aspettando conferma di eliminazione. */
+  const [daEliminare, setDaEliminare] = useState<string | null>(null);
 
   const today = todayIso();
   const weekday = isoWeekday(today);
@@ -78,41 +77,36 @@ export function HomeScreen() {
   const retestDue = isRetestDue(week, weekday);
 
   /*
-   * Cosa è successo oggi.
+   * La Home parla della seduta che il calendario prescrive per oggi.
    *
-   * Prima la Home diceva «Inizia» anche a seduta finita, come se non fosse
-   * successo niente. E se la seduta era solo lasciata aperta mostrava insieme
-   * «Hai una seduta aperta» e «Inizia», che sono due cose diverse per lo
-   * stesso giorno. Qui oggi ha un solo stato: da fare, aperta, finita.
+   * Prima guardava «una qualunque seduta registrata oggi»: bastava una Lower A
+   * finita di mercoledì perché la Home dicesse «Lower A è finita, domani Upper
+   * B» e la corsa del mercoledì sparisse del tutto. Il giorno ha una seduta
+   * sua, e il suo stato è quello: da fare, aperta, finita.
    */
-  const todaySessions = sessions?.filter((entry) => entry.date === today) ?? [];
-  const doneToday = todaySessions.find((entry) => entry.status === 'completed') ?? null;
-  const openToday = todaySessions.find((entry) => entry.status === 'in-progress') ?? null;
+  const dateOggi = sessions?.filter((entry) => entry.date === today) ?? [];
+  const diOggi = session === null ? [] : dateOggi.filter((entry) => entry.sessionId === session.id);
+  const doneToday = diOggi.find((entry) => entry.status === 'completed') ?? null;
+  const openToday = diOggi.find((entry) => entry.status === 'in-progress') ?? null;
   const setsToday = countSets(doneToday ?? openToday);
 
   /*
-   * Il nome esce dalla seduta registrata, non dal giorno della settimana.
-   * Se una seduta viene aperta in un giorno diverso dal suo, la Home deve
-   * dire quale seduta è stata fatta davvero.
+   * Tutto il resto che sta in giro: sedute registrate oggi che non sono quella
+   * di oggi, e sedute rimaste aperte in altri giorni. Vanno viste e va potuto
+   * farci qualcosa, altrimenti restano lì per sempre a sporcare lo storico.
    */
-  const loggedToday = doneToday ?? openToday;
-  const loggedName = loggedToday === null ? null : getSession(loggedToday.sessionId).name;
-
-  /* Una seduta lasciata aperta in un altro giorno: quella sì va segnalata. */
-  const staleSession =
-    activeSession !== undefined && activeSession !== null && activeSession.date !== today
-      ? activeSession
-      : null;
-  const staleSets = countSets(staleSession);
+  const fuoriPosto = [
+    ...dateOggi.filter((entry) => session === null || entry.sessionId !== session.id),
+    ...(sessions ?? []).filter(
+      (entry) => entry.date !== today && entry.status === 'in-progress',
+    ),
+  ].sort((a, b) => (a.date < b.date ? 1 : -1));
 
   const next = nextTrainingDay(today);
   const nextSession = getSessionForWeekday(next.weekday);
 
-  /*
-   * Il pulsante riapre la seduta registrata oggi, non quella del calendario:
-   * altrimenti «Riapri la seduta di oggi» ne aprirebbe un'altra.
-   */
-  const apriSessione = loggedToday?.sessionId ?? session?.id ?? null;
+  /* Il pulsante apre la seduta di oggi secondo il calendario, non altre. */
+  const apriSessione = session?.id ?? null;
 
   /*
    * Le copie contano quelle automatiche, non l'ultimo file scaricato a mano.
@@ -165,66 +159,90 @@ export function HomeScreen() {
         ) : null}
 
         {/*
-          Una seduta aperta in un altro giorno va anche potuta togliere.
-          Prima si poteva solo riprenderla, quindi una rimasta lì per sbaglio
-          restava in Home per sempre. Se è vuota si cancella, se ha delle serie
-          si archivia: quei numeri non si buttano via senza dirlo.
+          Sedute fuori posto: registrate oggi ma non di oggi, oppure rimaste
+          aperte in altri giorni.
+
+          Prima questa scheda aveva un pulsante «Riprendi» che apriva la seduta
+          *di oggi* con quel nome, non quella vecchia: premerlo su una Lower A
+          di ieri creava una Lower A di oggi, e la Home finiva per dire «Lower A
+          è finita» in un giorno di corsa. Qui non si riprende niente: si vede
+          cosa c'è e lo si archivia o si elimina. Lo storico completo sta nel
+          Log.
         */}
-        {staleSession !== null ? (
-          <Card tone="accent">
-            <p className="text-sm font-semibold">Hai una seduta rimasta aperta</p>
-            <p className="mt-1 text-sm text-dim">
-              {getSession(staleSession.sessionId).name} del {staleSession.date}.{' '}
-              {staleSets === 0
-                ? 'Non contiene nessuna serie.'
-                : `Contiene ${String(staleSets)} serie, già salvate.`}
+        {fuoriPosto.length > 0 ? (
+          <Card tone="warn">
+            <p className="text-sm font-semibold">
+              {fuoriPosto.length === 1 ? 'Una seduta fuori posto' : 'Sedute fuori posto'}
             </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => { navigate({ name: 'session', sessionId: staleSession.sessionId }); }}
-              >
-                Riprendi
-              </Button>
-              {staleSets === 0 ? (
-                <Button
-                  variant="danger"
-                  onClick={() => { setChiudiVecchia((aperto) => !aperto); }}
-                >
-                  Elimina
-                </Button>
-              ) : (
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    void repository.saveSession({ ...staleSession, status: 'completed' });
-                  }}
-                >
-                  Segnala come finita
-                </Button>
-              )}
-            </div>
-            {chiudiVecchia && staleSets === 0 ? (
-              <div className="mt-3">
-                <Notice tone="warn">
-                  La seduta del {staleSession.date} è vuota: eliminarla non perde niente.
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      variant="danger"
-                      onClick={() => {
-                        setChiudiVecchia(false);
-                        void repository.deleteSession(staleSession.id);
-                      }}
-                    >
-                      Sì, eliminala
-                    </Button>
-                    <Button variant="ghost" onClick={() => { setChiudiVecchia(false); }}>
-                      Annulla
-                    </Button>
-                  </div>
-                </Notice>
-              </div>
-            ) : null}
+            <p className="mt-1 text-sm text-dim">
+              Non fanno parte del programma di oggi. Puoi archiviarle o eliminarle.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {fuoriPosto.map((entry) => {
+                const serie = countSets(entry);
+                const inCorso = entry.status === 'in-progress';
+                return (
+                  <li key={entry.id} className="rounded-xl border border-line bg-panel p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">
+                          {getSession(entry.sessionId).name}
+                        </p>
+                        <p className="tabular mt-1 text-xs text-dim">
+                          {entry.date} · {serie === 0 ? 'nessuna serie' : `${String(serie)} serie`}
+                        </p>
+                      </div>
+                      <Badge tone={inCorso ? 'warn' : 'neutral'}>
+                        {inCorso ? 'Aperta' : 'Chiusa'}
+                      </Badge>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {inCorso && serie > 0 ? (
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            void repository.saveSession({ ...entry, status: 'completed' });
+                          }}
+                        >
+                          Archivia
+                        </Button>
+                      ) : null}
+                      <Button
+                        variant="danger"
+                        onClick={() => {
+                          setDaEliminare((corrente) => (corrente === entry.id ? null : entry.id));
+                        }}
+                      >
+                        Elimina
+                      </Button>
+                    </div>
+                    {daEliminare === entry.id ? (
+                      <div className="mt-3">
+                        <Notice tone="warn">
+                          {serie === 0
+                            ? 'È vuota: eliminarla non perde niente.'
+                            : `Elimini ${String(serie)} serie registrate il ${entry.date}. Non si torna indietro.`}
+                          <div className="mt-3 flex gap-2">
+                            <Button
+                              variant="danger"
+                              onClick={() => {
+                                setDaEliminare(null);
+                                void repository.deleteSession(entry.id);
+                              }}
+                            >
+                              Sì, eliminala
+                            </Button>
+                            <Button variant="ghost" onClick={() => { setDaEliminare(null); }}>
+                              Annulla
+                            </Button>
+                          </div>
+                        </Notice>
+                      </div>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
           </Card>
         ) : null}
 
@@ -249,7 +267,7 @@ export function HomeScreen() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-2xl font-semibold text-good">
-                  {loggedName ?? 'Seduta'} è finita
+                  {session?.name ?? 'Seduta'} è finita
                 </p>
                 <p className="mt-1 text-sm text-dim">
                   {setsToday === 0
@@ -265,7 +283,7 @@ export function HomeScreen() {
           <Card tone="accent">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-2xl font-semibold">{loggedName ?? 'Seduta'}</p>
+                <p className="text-2xl font-semibold">{session?.name ?? 'Seduta'}</p>
                 <p className="mt-1 text-sm text-dim">
                   {setsToday === 0
                     ? 'Aperta, ancora nessuna serie registrata.'

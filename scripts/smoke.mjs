@@ -26,6 +26,18 @@ import {
 } from './testenv.mjs';
 
 const PORT = 4181;
+
+/*
+ * La seduta che il calendario prescrive oggi.
+ *
+ * La prova entra sempre nelle stesse sedute, scelte apposta, e quelle
+ * coincidono con quella del giorno solo una volta a settimana. Senza questo
+ * conto i controlli sulla Home sarebbero verdi il lunedì e rossi il mercoledì
+ * senza che il codice sia cambiato.
+ */
+const SEDUTE_PER_GIORNO = ['upper-a', 'lower-a', 'zona-2', 'upper-b', 'lower-b', 'shadow'];
+const isoOggi = ((new Date().getDay() + 6) % 7) + 1;
+const SESSIONE_DI_OGGI = SEDUTE_PER_GIORNO[isoOggi - 1] ?? null;
 const BASE = `http://localhost:${String(PORT)}`;
 
 async function waitForServer(timeoutMs = 90_000) {
@@ -258,18 +270,41 @@ try {
 
         /* innerText applica il CSS: quel titolo è in maiuscolo, il confronto no. */
         const home = (await page.locator('main').innerText()).toLowerCase();
-        check(
-          home.includes('è finita'),
-          `A seduta chiusa la Home deve dire che è finita, invece mostra: ${home.slice(0, 220)}`,
-        );
-        check(
-          home.includes('prossimo allenamento'),
-          'A seduta chiusa la Home deve dire quando è il prossimo allenamento.',
-        );
-        check(
-          (await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0,
-          'A seduta chiusa la Home non deve più proporre «Inizia».',
-        );
+
+        if (SESSIONE_DI_OGGI === 'upper-a') {
+          check(
+            home.includes('è finita'),
+            `A seduta chiusa la Home deve dire che è finita, invece mostra: ${home.slice(0, 220)}`,
+          );
+          check(
+            home.includes('prossimo allenamento'),
+            'A seduta chiusa la Home deve dire quando è il prossimo allenamento.',
+          );
+          check(
+            (await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0,
+            'A seduta chiusa la Home non deve più proporre «Inizia».',
+          );
+        } else {
+          /*
+           * Upper A chiusa in un giorno che non è il suo non è la seduta di
+           * oggi. Prima bastava una seduta qualunque registrata oggi perché la
+           * Home dicesse «è finita» e facesse sparire quella del giorno: chi
+           * chiudeva una Lower A di mercoledì si vedeva «Lower A è finita,
+           * domani Upper B» e la corsa del mercoledì da nessuna parte.
+           */
+          check(
+            !home.includes('è finita'),
+            'Una seduta chiusa fuori dal suo giorno non è la seduta di oggi: la Home non deve darla per fatta.',
+          );
+          check(
+            home.includes('fuori posto'),
+            'Una seduta registrata fuori dal suo giorno deve comparire tra quelle fuori posto.',
+          );
+          check(
+            (await page.getByRole('button', { name: 'Inizia', exact: true }).count()) > 0,
+            'La seduta di oggi deve restare proponibile anche se se ne è chiusa un’altra.',
+          );
+        }
       }
     }
   }
@@ -496,10 +531,12 @@ try {
   }
 
   /*
-   * Una seduta rimasta aperta in un altro giorno si deve poter togliere.
+   * Una seduta fuori posto si deve poter togliere, e la riga giusta.
    *
-   * Prima la Home la mostrava e basta: si poteva solo riprenderla, quindi una
-   * lasciata lì per sbaglio restava in vista per sempre.
+   * Prima la Home aveva un pulsante «Riprendi» che apriva la seduta *di oggi*
+   * con quel nome invece di quella vecchia: premerlo su una Lower A di ieri ne
+   * creava una di oggi, e la Home finiva per dire «Lower A è finita» in un
+   * giorno di corsa.
    */
   const esistenti = await readFromEmulator('sessions');
   if (esistenti.length > 0 && esistenti[0] !== undefined) {
@@ -518,25 +555,39 @@ try {
     await page.waitForTimeout(2000);
 
     check(
-      (await page.getByText('rimasta aperta').count()) > 0,
-      'Una seduta aperta in un giorno passato deve comparire in Home.',
+      (await page.getByText('fuori posto').count()) > 0,
+      'Una seduta aperta in un giorno passato deve comparire tra quelle fuori posto.',
     );
-
-    const elimina = page.getByRole('button', { name: 'Elimina', exact: true });
     check(
-      (await elimina.count()) > 0,
-      'Di una seduta vecchia e vuota si deve poter fare qualcosa, non solo riprenderla.',
+      (await page.getByRole('button', { name: 'Riprendi' }).count()) === 0,
+      'La Home non deve più offrire di riprendere una seduta vecchia: apriva quella di oggi, non quella.',
     );
 
-    if ((await elimina.count()) > 0) {
-      await elimina.click();
+    /* La riga della seduta seminata, non una qualunque delle tre. */
+    const riga = page.getByRole('listitem').filter({ hasText: '2020-01-02' });
+    check(
+      (await riga.count()) === 1,
+      `La seduta del 2020-01-02 deve avere la sua riga: trovate ${String(await riga.count())}.`,
+    );
+
+    if ((await riga.count()) === 1) {
+      check(
+        (await riga.innerText()).includes('nessuna serie'),
+        'La riga deve dire quante serie contiene, così si sa cosa si sta eliminando.',
+      );
+
+      await riga.getByRole('button', { name: 'Elimina' }).click();
       await page.waitForTimeout(500);
+      check(
+        (await page.getByText('eliminarla non perde niente').count()) > 0,
+        'Eliminare una seduta vuota deve dire che non si perde niente.',
+      );
       await page.getByRole('button', { name: 'Sì, eliminala' }).click();
       await page.waitForTimeout(2000);
 
       check(
-        (await page.getByText('rimasta aperta').count()) === 0,
-        'Eliminata la seduta vecchia, la Home non deve più parlarne.',
+        (await page.getByRole('listitem').filter({ hasText: '2020-01-02' }).count()) === 0,
+        'Eliminata la seduta, la Home non deve più mostrarla.',
       );
       const rimaste = await readFromEmulator('sessions');
       check(
