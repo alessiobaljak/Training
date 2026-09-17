@@ -7,6 +7,15 @@ export interface ProgressionStep {
   readonly slug: string;
   /** Nome del gradino, in italiano, identico alla scheda. */
   readonly name: string;
+  /**
+   * Il gradino si esegue un lato per volta.
+   *
+   * Sta sul gradino e non sul blocco perché dentro la stessa scala convivono
+   * gesti a due braccia e a un braccio: la trazione orizzontale passa dal
+   * rematore a due mani al monobraccio al gradino 5. Scendendo dal monobraccio
+   * al rematore a 45° l'app continuava a chiedere sinistra e destra.
+   */
+  readonly perSide: boolean;
 }
 
 /**

@@ -391,6 +391,15 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         exercise: 'croci-elastico-o-pushup-presa-larga',
         sets: 3,
         prescription: { kind: 'reps', min: 12, max: 15 },
+        /*
+         * La scheda scrive «Croci con elastico o push-up presa larga lenta».
+         * Sono due esercizi: le croci si fanno con un peso in mano, il push-up
+         * a corpo libero, e la politica del carico non può essere la stessa.
+         */
+        alternative: {
+          exercise: 'pushup-presa-larga-lento',
+          prescription: { kind: 'reps', min: 12, max: 15 },
+        },
         reference: 'RIR 0-1',
         tut: '4-1-1-0',
         rir: '0-1',

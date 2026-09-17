@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildSessionPlan, totalWorkSets } from './rest.ts';
+import { blockPerSide, buildSessionPlan, totalWorkSets } from './rest.ts';
+import type { ExerciseState } from '../types/index.ts';
 import { getSession, PROGRAM_SESSIONS } from '../data/program.ts';
 
 const codesOf = (steps: readonly { blockCode: string }[]) => steps.map((step) => step.blockCode);
@@ -165,6 +166,76 @@ describe('coerenza del piano su tutte le sedute', () => {
       expect(plan.length - clusterSteps + clusterBlocks, session.id).toBe(
         totalWorkSets(session, 1),
       );
+    }
+  });
+});
+
+describe('registrazione per lato', () => {
+  const statoCon = (slug: string, level: number | null): ReadonlyMap<string, ExerciseState> =>
+    new Map([
+      [
+        slug,
+        {
+          exercise: slug,
+          level: level as ExerciseState['level'],
+          eccentricBonusSeconds: 0,
+          bottomPauseBonusSeconds: 0,
+          loadKg: 0,
+        },
+      ],
+    ]);
+
+  const b1 = getSession('upper-b').blocks.find((block) => block.code === 'B1');
+  if (b1 === undefined) throw new Error('B1 dell’Upper B mancante');
+
+  /*
+   * Il gesto lo descrive il gradino, non la riga della scheda.
+   *
+   * Il B1 prescrive il rematore monobraccio, gradino 5 della trazione
+   * orizzontale. Chi scende al gradino 2, il rematore TRX a 45°, sta tirando
+   * con due braccia: l'app continuava a chiedere sinistra e destra e la serie
+   * non si chiudeva finché non si scrivevano due numeri per un gesto solo.
+   */
+  it('il rematore monobraccio si registra per lato', () => {
+    expect(blockPerSide(b1, statoCon('rematore-trx-monobraccio', 5))).toBe(true);
+  });
+
+  it('scendendo al rematore a 45° non si registra più per lato', () => {
+    expect(blockPerSide(b1, statoCon('rematore-trx-monobraccio', 2))).toBe(false);
+  });
+
+  it('il piano segue il livello scelto, non solo la scheda', () => {
+    const conLivello2 = buildSessionPlan(
+      getSession('upper-b'),
+      1,
+      statoCon('rematore-trx-monobraccio', 2),
+    );
+    const passiB1 = conLivello2.filter((step) => step.blockCode === 'B1');
+    expect(passiB1.length).toBeGreaterThan(0);
+    for (const passo of passiB1) expect(passo.perSide).toBe(false);
+  });
+
+  it('salendo al monobraccio il blocco a due braccia diventa per lato', () => {
+    const b2 = getSession('upper-a').blocks.find((block) => block.code === 'B2');
+    if (b2 === undefined) throw new Error('B2 dell’Upper A mancante');
+    /* La scheda lo dà a due braccia, gradino 4. */
+    expect(b2.perSide).toBe(false);
+    expect(blockPerSide(b2, new Map())).toBe(false);
+    expect(blockPerSide(b2, statoCon('rematore-inverso-trx-piedi-rialzati', 5))).toBe(true);
+  });
+
+  it('senza scala decide la scheda', () => {
+    const c1 = getSession('lower-a').blocks.find((block) => block.code === 'C1');
+    if (c1 === undefined) throw new Error('C1 del Lower A mancante');
+    /* Lo step-up non sta in nessuna scala: la riga dice «per gamba». */
+    expect(blockPerSide(c1, new Map())).toBe(true);
+  });
+
+  it('la scala della gamba singola è per lato a ogni gradino', () => {
+    const a = getSession('lower-a').blocks.find((block) => block.code === 'A');
+    if (a === undefined) throw new Error('A del Lower A mancante');
+    for (const level of [1, 2, 3, 4, 5, 6]) {
+      expect(blockPerSide(a, statoCon('bulgarian-split-squat', level)), String(level)).toBe(true);
     }
   });
 });

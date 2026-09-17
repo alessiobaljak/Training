@@ -1,4 +1,11 @@
-import type { ExerciseSlug, ProgramBlock, ProgramSession } from '../types/index.ts';
+import type {
+  ExerciseSlug,
+  ExerciseState,
+  ProgramBlock,
+  ProgramSession,
+} from '../types/index.ts';
+import { getExercise } from '../data/exercises.ts';
+import { getProgressionStep } from '../data/progressions.ts';
 import { effectiveSets } from './schedule.ts';
 
 /**
@@ -137,7 +144,31 @@ function groupBlocks(session: ProgramSession, week: number): Pending[] {
  * Il cluster myo-reps diventa una serie di attivazione seguita dalle
  * mini-serie, ciascuna con la propria pausa corta.
  */
-export function buildSessionPlan(session: ProgramSession, week: number): SessionStep[] {
+/**
+ * Se un blocco si registra un lato per volta.
+ *
+ * La scheda lo dichiara sul blocco, ma la scala di progressione può smentirla:
+ * il B1 dell'Upper B prescrive il rematore monobraccio, e chi scende al
+ * rematore a 45° sta facendo un gesto a due braccia. Dove l'esercizio ha una
+ * scala vince il gradino, perché descrive il movimento che si sta facendo
+ * davvero; dove non ce l'ha resta quello che dice la scheda.
+ */
+export function blockPerSide(
+  block: ProgramBlock,
+  states: ReadonlyMap<ExerciseSlug, ExerciseState>,
+): boolean {
+  const exercise = getExercise(block.exercise);
+  if (exercise.pattern === null) return block.perSide;
+  const level = states.get(block.exercise)?.level ?? exercise.defaultLevel;
+  if (level === null) return block.perSide;
+  return getProgressionStep(exercise.pattern, level).perSide;
+}
+
+export function buildSessionPlan(
+  session: ProgramSession,
+  week: number,
+  states: ReadonlyMap<ExerciseSlug, ExerciseState> = new Map(),
+): SessionStep[] {
   const steps: SessionStep[] = [];
   const groups = groupBlocks(session, week);
   let order = 0;
@@ -164,7 +195,7 @@ export function buildSessionPlan(session: ProgramSession, week: number): Session
             setIndex: index + 1,
             totalSets: total,
             round: null,
-            perSide: block.perSide,
+            perSide: blockPerSide(block, states),
             rest: isLastStep ? NO_REST : straightRest(block),
           });
         }
@@ -184,7 +215,7 @@ export function buildSessionPlan(session: ProgramSession, week: number): Session
           setIndex,
           totalSets: sets,
           round: null,
-          perSide: block.perSide,
+          perSide: blockPerSide(block, states),
           rest: isLastSet ? NO_REST : straightRest(block),
         });
       }
@@ -220,7 +251,7 @@ export function buildSessionPlan(session: ProgramSession, week: number): Session
           setIndex: round,
           totalSets: group.setsByBlock.get(block.code) ?? block.sets,
           round,
-          perSide: block.perSide,
+          perSide: blockPerSide(block, states),
           rest,
         });
       });

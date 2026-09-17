@@ -86,10 +86,12 @@ function buildSteps(
   pattern: MotorPattern,
   names: readonly [string, string, string, string, string, string],
 ): ProgressionScale['steps'] {
+  const perSide = SCALE_PER_SIDE[pattern];
   const step = (level: LevelIndex, name: string): ProgressionStep => ({
     level,
     slug: `${pattern}-l${level}`,
     name,
+    perSide: perSide[level - 1] ?? false,
   });
   return [
     step(1, names[0]),
@@ -100,6 +102,31 @@ function buildSteps(
     step(6, names[5]),
   ];
 }
+
+/**
+ * Quali gradini si eseguono un lato per volta.
+ *
+ * Sta accanto ai nomi perché descrive gli stessi gradini, uno per uno. Dentro
+ * la stessa scala convivono gesti bilaterali e unilaterali: la trazione
+ * orizzontale diventa monobraccio al gradino 5, la catena posteriore parte dal
+ * glute bridge monopodalico e passa ai nordic a due gambe. Chi scende dal
+ * rematore monobraccio al rematore a 45° non deve più registrare due lati.
+ */
+const SCALE_PER_SIDE: Readonly<
+  Record<MotorPattern, readonly [boolean, boolean, boolean, boolean, boolean, boolean]>
+> = Object.freeze({
+  'vertical-pull': [false, false, false, false, false, false],
+  /* 5 e 6 sono i monobraccio. */
+  'horizontal-pull': [false, false, false, false, true, true],
+  'horizontal-push': [false, false, false, false, false, false],
+  'vertical-push': [false, false, false, false, false, false],
+  dip: [false, false, false, false, false, false],
+  /* Tutta la scala è su una gamba, dallo split squat al pistol. */
+  'single-leg-squat': [true, true, true, true, true, true],
+  /* Solo il glute bridge del gradino 1; i nordic sono a due gambe. */
+  'posterior-chain': [true, false, false, false, false, false],
+  core: [false, false, false, false, false, false],
+});
 
 export const PROGRESSION_SCALES: readonly ProgressionScale[] = Object.freeze(
   MOTOR_PATTERNS.map((pattern) => ({

@@ -4,14 +4,13 @@ import type { ExerciseSlug } from '../types/index.ts';
  * Le illustrazioni di RepDB, una coppia per esercizio.
  *
  * Sono disegni fatti da illustratori, non figure generate da questo codice:
- * coprono trenta dei trentasette esercizi del programma, compresi quelli dove
+ * coprono trentuno dei trentotto esercizi del programma, compresi quelli dove
  * un disegno serve davvero e che nessun altro archivio ha, come archer
  * push-up, nordic curl, pike push-up e hollow hold.
  *
  * Per i sette scoperti restano le figure in `src/assets/exercises/`. Quattro
  * non sono esercizi (camminata, corsa, mobilità, zona 2); gli altri tre sono
- * shrimp squat, sissy squat e croci con elastico, che RepDB non ha — delle
- * croci ha però il push-up a presa larga, tenuto come variante alternativa.
+ * shrimp squat, sissy squat e croci con manubri, che RepDB non ha.
  *
  * **Licenza.** Uso libero dentro l'applicazione, anche commerciale, con una
  * attribuzione visibile: la trovi nella schermata «App e dati». Due vincoli
@@ -105,15 +104,14 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
    * push-up presa larga, che è la seconda variante della riga: sta al suo
    * posto, sotto l'alternativa. Per la prima resta la figura schematica.
    */
-  'croci-elastico-o-pushup-presa-larga': {
-    source: '',
-    label: '',
-    frames: [],
-    alternative: {
-      source: 'wide-grip-push-ups',
-      label: 'Wide Grip Push Ups',
-      frames: ['wide-grip-push-ups-start.webp', 'wide-grip-push-ups-peak.webp'],
-    },
+  /*
+   * Divisi in due esercizi, quindi anche i disegni: RepDB ha il push-up a
+   * presa larga e non ha le croci, che restano con la figura schematica.
+   */
+  'pushup-presa-larga-lento': {
+    source: 'wide-grip-push-ups',
+    label: 'Wide Grip Push Ups',
+    frames: ['wide-grip-push-ups-start.webp', 'wide-grip-push-ups-peak.webp'],
   },
   'dip-parallele-anelli': {
     source: 'dips',

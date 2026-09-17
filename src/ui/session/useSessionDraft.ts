@@ -151,7 +151,11 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
     void load();
   }, [program, sessionId]);
 
-  const plan = useMemo(() => buildSessionPlan(program, week), [program, week]);
+  /*
+   * Il piano dipende anche dai livelli: sono loro a dire se un blocco si
+   * registra un lato per volta. Cambiare variante rifà il piano.
+   */
+  const plan = useMemo(() => buildSessionPlan(program, week, states), [program, week, states]);
 
   const update = useCallback((change: (session: LoggedSession) => LoggedSession) => {
     setDraft((current) => {

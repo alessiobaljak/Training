@@ -39,6 +39,18 @@ export const DEVIAZIONI: readonly Deviazione[] = [
       'Scelta dell’utente: stesse due varianti della scheda, ordine invertito. Il blocco arriva terzo a RIR 0-1 dopo dip alle parallele e pike push-up, e il dip su panca porta la spalla stanca in estensione e rotazione interna profonda. Il diamond push-up allena gli stessi tricipiti senza quella posizione. Il dip su panca resta come alternativa.',
   },
   {
+    scheda: 'Croci con elastico o push-up presa larga lenta',
+    app: 'Croci con manubri',
+    motivo:
+      'Divisi in due esercizi su richiesta dell’utente: le croci si fanno con un peso in mano e il peso va scritto, il push-up a presa larga è a corpo libero. Uniti costringevano a una sola politica di carico per entrambi, e vinceva «niente carico»: chi usava i manubri non aveva dove registrarli. L’elastico è passato a manubri perché troppo leggero per stare dentro 12-15 a RIR 0-1. Il push-up resta la seconda scelta del blocco C1.',
+  },
+  {
+    scheda: 'Curl con elastico presa neutra',
+    app: 'Curl con manubri presa neutra',
+    motivo:
+      'Scelta dell’utente: con l’elastico il carico era troppo leggero per arrivare a RIR 0-1 dentro 12-15 ripetizioni. Il peso si registra sempre ma non è zavorra, come per le alzate laterali: non segue i passi da 2,5 kg e non entra nell’ordine delle leve. L’illustrazione era già quella con i manubri.',
+  },
+  {
     scheda: 'Sissy squat o wall sit isometrico 45"',
     app: 'Sissy squat',
     motivo:

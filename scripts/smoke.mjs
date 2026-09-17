@@ -498,6 +498,99 @@ try {
     }
   }
 
+  /* --------------------------- Upper B ---------------------------------- */
+
+  /*
+   * Tre guasti dello stesso giovedì.
+   *
+   * Il B1 prescrive il rematore monobraccio: scendendo al rematore a 45°, che
+   * è a due braccia, l'app continuava a chiedere sinistra e destra perché
+   * `perSide` stava sul blocco e non sul gradino della scala.
+   *
+   * Il C1 teneva croci e push-up a presa larga su un esercizio solo, con una
+   * politica del carico per entrambi: vinceva «niente carico», e chi faceva
+   * le croci con i manubri non aveva dove scriverli.
+   */
+  await page.goto(`${BASE}/#/seduta/upper-b`, { waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+
+  const vaiAlBlocco = async (codice) => {
+    for (let i = 0; i < 30; i += 1) {
+      if ((await page.locator('h1').first().innerText()).includes(`· ${codice}`)) return true;
+      const avanti = page.getByRole('button', { name: /serie \d+ ›$/ });
+      if ((await avanti.count()) === 0) return false;
+      await avanti.click();
+      await page.waitForTimeout(200);
+    }
+    return false;
+  };
+
+  if (await vaiAlBlocco('B1')) {
+    check(
+      (await page.getByText('Sinistra').count()) > 0,
+      'Il rematore monobraccio si registra per lato: devono comparire sinistra e destra.',
+    );
+
+    const matita = page.locator('main button').filter({ hasText: '✎' }).first();
+    if ((await matita.count()) > 0) {
+      await matita.click();
+      await page.waitForTimeout(600);
+      const a45 = page.getByRole('button', { name: /Rematore TRX a 45/ }).first();
+      if ((await a45.count()) > 0) {
+        await a45.click();
+        await page.waitForTimeout(1200);
+        check(
+          (await page.getByText('Sinistra').count()) === 0,
+          'Scelto un gradino a due braccia, la seduta non deve più chiedere due lati per un gesto solo.',
+        );
+        check(
+          (await page.locator('input[type=number]').count()) === 1,
+          `Un gesto a due braccia ha un campo, non due: trovati ${String(await page.locator('input[type=number]').count())}.`,
+        );
+      }
+    }
+  }
+
+  if (await vaiAlBlocco('C1')) {
+    const c1 = await page.locator('main').innerText();
+    check(
+      c1.includes('Croci con manubri') && c1.includes('Push-up presa larga lento'),
+      'Il C1 deve far scegliere tra croci e push-up a presa larga: sono due esercizi.',
+    );
+    check(
+      c1.includes('Zavorra'),
+      'Sulle croci il peso è l’esercizio: ci deve essere dove scriverlo.',
+    );
+
+    const larga = page.getByRole('button', { name: /Push-up presa larga/ }).first();
+    if ((await larga.count()) > 0) {
+      await larga.click();
+      await page.waitForTimeout(900);
+      /*
+       * Si conta il numero di campi, non la parola «zavorra»: la spiegazione
+       * di un esercizio senza carico la contiene, e `getByText` cerca per
+       * sottostringa senza distinguere le maiuscole.
+       */
+      check(
+        (await page.locator('input[type=number]').count()) === 1,
+        `Il push-up a presa larga è a corpo libero: solo le ripetizioni, invece trovati ${String(await page.locator('input[type=number]').count())} campi.`,
+      );
+      check(
+        (await page.getByText('la zavorra non si usa mai').count()) > 0,
+        'Sul push-up a presa larga la seduta deve dire perché il peso non si mette.',
+      );
+    }
+  }
+
+  if (await vaiAlBlocco('C2')) {
+    const c2 = await page.locator('main').innerText();
+    check(
+      c2.includes('Curl con manubri presa neutra'),
+      'Il curl è passato ai manubri: il nome deve dirlo.',
+    );
+    check(c2.includes('Zavorra'), 'Sul curl con manubri il peso si deve poter scrivere.');
+  }
+
   /* ------------------ Il blocco a durata del sabato ---------------------- */
 
   /*
@@ -614,8 +707,9 @@ try {
       (await page.getByText('fuori posto').count()) > 0,
       'Una seduta aperta in un giorno passato deve comparire tra quelle fuori posto.',
     );
+    /* `exact` apposta: «Riprendi la seduta» è il pulsante di oggi, non è quello. */
     check(
-      (await page.getByRole('button', { name: 'Riprendi' }).count()) === 0,
+      (await page.getByRole('button', { name: 'Riprendi', exact: true }).count()) === 0,
       'La Home non deve più offrire di riprendere una seduta vecchia: apriva quella di oggi, non quella.',
     );
 

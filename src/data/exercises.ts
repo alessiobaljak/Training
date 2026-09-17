@@ -225,38 +225,56 @@ const EXERCISE_LIST = [
       videoQuery: 'pseudo planche push up proper form tutorial',
     },
   },
+  /*
+   * Croci e push-up a presa larga sono due esercizi, non due nomi.
+   *
+   * La scheda li scrive su una riga sola. Le croci si fanno con un peso in
+   * mano — l'utente è passato dall'elastico ai manubri perché l'elastico era
+   * troppo leggero — e il peso va scritto; il push-up è a corpo libero. Tenerli
+   * uniti costringeva a una sola politica di carico per entrambi, e vinceva
+   * «niente carico»: chi usava i manubri non aveva dove scriverli.
+   */
   {
     slug: 'croci-elastico-o-pushup-presa-larga',
-    name: 'Croci con elastico o push-up presa larga lenta',
+    name: 'Croci con manubri',
     pattern: null,
     defaultLevel: null,
     primaryMuscles: ['petto'],
     secondaryMuscles: [],
     measurement: 'reps',
-    loadPolicy: 'forbidden',
+    loadPolicy: 'inherent',
     cues: [
-      'Croci: elastico dietro la schiena, gomiti semiflessi e angolo fisso per tutta la ripetizione.',
-      'Chiudi portando le mani davanti allo sterno, non sopra la testa.',
-      'Versione push-up: presa larga ed eccentrica di 4", il petto resta la parte che allunga.',
+      'Manubri leggeri, gomiti semiflessi con angolo fisso per tutta la ripetizione.',
+      'Da in piedi o su panca inclinata: chiudi portando le mani davanti allo sterno, non sopra la testa.',
       'Errore tipico: piegare ed estendere i gomiti, che trasforma le croci in una distensione.',
       'Ripetizione valida: angolo del gomito costante, allungamento percepito sul petto e non sulla spalla.',
     ],
-    videoQuery: 'resistance band chest fly proper form tutorial',
-    alternative: {
-      name: 'Push-up presa larga lenta',
-      cues: [
-        'Mani più larghe delle spalle di una mano e mezza, gomiti a circa 45° dal busto.',
-        'Scendi in 3", tocca il petto a terra, risali in 1": è la lentezza a fare il lavoro.',
-        'Errore tipico: gomiti a 90° verso l’esterno, che carica la parte davanti della spalla.',
-        'Ripetizione valida: corpo in linea dalla testa ai talloni, nessun cedimento del bacino.',
-      ],
-      videoQuery: 'wide grip push up slow tempo proper form',
-    },
+    videoQuery: 'dumbbell chest fly proper form tutorial',
+    alternative: null,
   },
-
-  /* ---------------------------------------------------------------------- */
-  /* Spinta verticale                                                        */
-  /* ---------------------------------------------------------------------- */
+  {
+    slug: 'pushup-presa-larga-lento',
+    name: 'Push-up presa larga lento',
+    pattern: null,
+    defaultLevel: null,
+    primaryMuscles: ['petto'],
+    secondaryMuscles: ['braccia'],
+    measurement: 'reps',
+    /*
+     * Niente zavorra, come nell'esercizio unito da cui viene: questo blocco è
+     * un finisher a tempo 4-1-1-0 e il sovraccarico passa dalla lentezza, non
+     * da un peso addosso. La whitelist della zavorra resta quella del metodo.
+     */
+    loadPolicy: 'forbidden',
+    cues: [
+      'Mani più larghe delle spalle di una mano e mezza, gomiti a circa 45° dal busto.',
+      'Scendi in 4", tocca il petto a terra, risali in 1": è la lentezza a fare il lavoro.',
+      'Errore tipico: gomiti a 90° verso l’esterno, che carica la parte davanti della spalla.',
+      'Ripetizione valida: corpo in linea dalla testa ai talloni, nessun cedimento del bacino.',
+    ],
+    videoQuery: 'wide grip push up slow tempo proper form',
+    alternative: null,
+  },
   {
     slug: 'pike-pushup-piedi-rialzati',
     name: 'Pike push-up piedi rialzati',
@@ -759,21 +777,28 @@ const EXERCISE_LIST = [
   },
   {
     slug: 'curl-elastico-presa-neutra',
-    name: 'Curl con elastico presa neutra',
+    /*
+     * Manubri e non elastico, su richiesta dell'utente: l'elastico era troppo
+     * leggero per stare dentro 12-15 a RIR 0-1. Il peso qui è l'esercizio,
+     * quindi si registra sempre ma non è zavorra: nessun passo da 2,5 kg e
+     * nessun posto nell'ordine delle leve. Lo slug resta quello per non
+     * staccare lo storico già registrato.
+     */
+    name: 'Curl con manubri presa neutra',
     pattern: null,
     defaultLevel: null,
     primaryMuscles: ['braccia'],
     secondaryMuscles: [],
     measurement: 'reps',
-    loadPolicy: 'forbidden',
+    loadPolicy: 'inherent',
     cues: [
-      'Elastico sotto i piedi, presa neutra (palmi che si guardano), gomiti al fianco.',
+      'Manubri con presa neutra, palmi che si guardano, gomiti al fianco.',
       'Il gomito resta fermo: si muove solo l’avambraccio.',
       'Chiudi senza portare il gomito in avanti, altrimenti scarichi la tensione.',
       'Errore tipico: oscillare il busto indietro nelle ultime ripetizioni.',
-      'Ripetizione valida: gomito immobile, discesa in almeno 3" contro l’elastico.',
+      'Ripetizione valida: gomito immobile, discesa controllata in almeno 3".',
     ],
-    videoQuery: 'resistance band hammer curl proper form tutorial',
+    videoQuery: 'dumbbell hammer curl proper form tutorial',
     alternative: null,
   },
 
