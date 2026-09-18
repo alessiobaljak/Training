@@ -100,6 +100,74 @@ export const DEVIAZIONI_BLOCCO: readonly DeviazioneBlocco[] = [
   },
 ];
 
+/* -------------------------------------------------------------------------- */
+/* Scale di progressione aggiunte                                              */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Le scale che il foglio non aveva, e perché sono state scritte.
+ *
+ * Le deviazioni qui sopra cambiano qualcosa che la scheda dice. Questa è
+ * un'altra cosa: la scheda non diceva niente. Il foglio Scale_Progressioni ha
+ * otto scale e prescriveva sei esercizi già nella loro forma avanzata — hip
+ * thrust monopodalico, single-leg RDL, i due calf a una gamba, step-up su box
+ * alto, sissy squat libero — senza nessun gradino più facile. Chi non ha mai
+ * fatto la versione a due gambe non aveva niente da cui partire: nessun
+ * livello, nessuna scala, nessun test, e quindi nemmeno un livello da
+ * abbassare.
+ *
+ * I gradini sono stati dedotti dalla logica delle otto scale del foglio —
+ * assistito, libero, monopodalico, con pausa, zavorrato — e vanno guardati con
+ * l'occhio di chi li dovrà fare, non dati per buoni perché stanno nel codice.
+ */
+export interface ScalaAggiunta {
+  /** Lo schema motorio nuovo. */
+  readonly schema: string;
+  /** Gli esercizi del programma che ora hanno un gradino da cui partire. */
+  readonly esercizi: readonly string[];
+  /** Il gradino che la scheda prescriveva, che resta l'obiettivo. */
+  readonly obiettivo: string;
+  readonly motivo: string;
+}
+
+export const SCALE_AGGIUNTE: readonly ScalaAggiunta[] = [
+  {
+    schema: 'hip-thrust',
+    esercizi: ['hip-thrust-monopodalico'],
+    obiettivo: 'Hip thrust monopodalico, spalle su panca (gradino 4)',
+    motivo:
+      'La scheda prescriveva l’hip thrust su una gamba senza che esistesse quello a due. Si parte dal glute bridge a terra e si passa al monopodalico al terzo gradino, quando l’anca regge il movimento a due gambe con il range pieno.',
+  },
+  {
+    schema: 'hip-hinge',
+    esercizi: ['single-leg-rdl'],
+    obiettivo: 'Single-leg RDL con pausa 2" in basso (gradino 5)',
+    motivo:
+      'Il single-leg RDL è un esercizio di equilibrio prima che di forza: la scheda lo prescriveva libero e con pausa. I primi gradini insegnano il movimento d’anca a due gambe e poi con una mano d’appoggio, che è quello che serve perché la pausa abbia senso.',
+  },
+  {
+    schema: 'calf',
+    esercizi: ['calf-monopodalico-rialzo', 'calf-monopodalico-seduto'],
+    obiettivo: 'Monopodalico, range completo (gradino 4)',
+    motivo:
+      'I gradini non nominano la posizione, così la stessa scala serve al calf in piedi su rialzo e a quello seduto: il gesto è lo stesso, la posizione la dice il nome dell’esercizio. La scheda scriveva «monopodalico» per entrambi ma segnava per lato solo il primo: ora lo dice il gradino, quindi da monopodalico in su si registrano due lati su tutti e due.',
+  },
+  {
+    schema: 'step-up',
+    esercizi: ['step-up-box-alto'],
+    obiettivo: 'Ginocchio+, discesa 2" senza slancio (gradino 3)',
+    motivo:
+      'La scheda partiva dal box all’altezza del ginocchio o più. L’altezza del box è la progressione più naturale che esista su questo esercizio, e il gradino 3 è quello che la scheda chiede: sopra ci sono il box più alto, la pausa e la zavorra.',
+  },
+  {
+    schema: 'sissy-squat',
+    esercizi: ['sissy-squat'],
+    obiettivo: 'A corpo libero (gradino 3)',
+    motivo:
+      'Il sissy squat a corpo libero chiede un controllo del ginocchio che non si improvvisa: i primi due gradini lo fanno con una e due mani d’appoggio. Il gradino 6 non è zavorrato ma con eccentrica 5", perché un peso su un ginocchio già molto flesso aggiunge taglio sull’articolazione senza aggiungere lavoro ai quadricipiti.',
+  },
+];
+
 /** La prescrizione che l'app dà a un blocco, se diversa da quella della scheda. */
 export function applicaDeviazioneBlocco(
   sessione: SessionId,

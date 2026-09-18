@@ -25,9 +25,18 @@ export const WEEKDAY_LABELS: Readonly<Record<WeekdayIndex, string>> = Object.fre
 /* -------------------------------------------------------------------------- */
 
 /**
- * Gli 8 schemi motori su cui è costruita la scala di progressione a 6 livelli.
- * Gli esercizi accessori (elastici, polpacci, core non in sospensione…) non
- * appartengono ad alcuno schema: usano `null`.
+ * Gli schemi motori su cui è costruita la scala di progressione a 6 livelli.
+ *
+ * I primi otto vengono dal foglio Scale_Progressioni. Gli altri cinque sono
+ * stati aggiunti dopo: il foglio prescriveva sei esercizi direttamente nella
+ * loro forma avanzata — hip thrust monopodalico, single-leg RDL, i due calf a
+ * una gamba, step-up su box alto, sissy squat libero — senza nessun gradino
+ * più facile da cui partire. Chi non ha mai fatto la versione a due gambe non
+ * aveva niente da cui salire, e nemmeno un livello da abbassare. Le cinque
+ * scale nuove sono dichiarate in `SCALE_AGGIUNTE`.
+ *
+ * Gli accessori dove il carico è l'esercizio (manubri, elastici) restano fuori
+ * da ogni schema: la loro progressione è il peso, e usano `null`.
  */
 export type MotorPattern =
   | 'vertical-pull'
@@ -37,7 +46,12 @@ export type MotorPattern =
   | 'dip'
   | 'single-leg-squat'
   | 'posterior-chain'
-  | 'core';
+  | 'core'
+  | 'hip-thrust'
+  | 'hip-hinge'
+  | 'calf'
+  | 'step-up'
+  | 'sissy-squat';
 
 export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
   'vertical-pull',
@@ -48,6 +62,11 @@ export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
   'single-leg-squat',
   'posterior-chain',
   'core',
+  'hip-thrust',
+  'hip-hinge',
+  'calf',
+  'step-up',
+  'sissy-squat',
 ] as const);
 
 export const MOTOR_PATTERN_LABELS: Readonly<Record<MotorPattern, string>> = Object.freeze({
@@ -59,6 +78,11 @@ export const MOTOR_PATTERN_LABELS: Readonly<Record<MotorPattern, string>> = Obje
   'single-leg-squat': 'Squat monopodalico (quadricipiti)',
   'posterior-chain': 'Catena posteriore (femorali)',
   core: 'Core',
+  'hip-thrust': 'Estensione d’anca (glutei)',
+  'hip-hinge': 'Hip hinge (femorali)',
+  calf: 'Polpaccio',
+  'step-up': 'Step-up (quadricipiti)',
+  'sissy-squat': 'Sissy squat (quadricipiti)',
 });
 
 /** Livello nella scala di progressione. Sempre 1..6. */

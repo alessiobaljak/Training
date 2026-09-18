@@ -626,6 +626,64 @@ try {
     check(c2.includes('Zavorra'), 'Sul curl con manubri il peso si deve poter scrivere.');
   }
 
+  /* --------- Gli esercizi che non avevano un gradino da cui partire ------ */
+
+  /*
+   * Il foglio prescriveva sei esercizi già nella loro forma avanzata.
+   *
+   * L'hip thrust monopodalico senza che esistesse quello a due gambe, il
+   * single-leg RDL, i due calf a una gamba, lo step-up su box alto, il sissy
+   * squat libero: niente scala, niente livello, nessun gradino più facile.
+   * Chi non aveva mai fatto la versione standard non aveva da dove partire e
+   * nemmeno un livello da abbassare.
+   */
+  await page.goto(`${BASE}/#/seduta/lower-b`, { waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+
+  for (let i = 0; i < 30; i += 1) {
+    if ((await page.locator('h1').first().innerText()).includes('· B1')) break;
+    const avantiB1 = page.getByRole('button', { name: /serie \d+ ›$/ });
+    if ((await avantiB1.count()) === 0) break;
+    await avantiB1.click();
+    await page.waitForTimeout(190);
+  }
+
+  if ((await page.locator('h1').first().innerText()).includes('· B1')) {
+    const b1 = await page.locator('main').innerText();
+    check(
+      b1.includes('Hip thrust monopodalico, spalle su panca'),
+      'Il blocco deve continuare a dire cosa prescrive la scheda.',
+    );
+    check(
+      b1.includes('Liv. 1 · Glute bridge a terra, due gambe'),
+      `Senza un test sulla scala si parte dal primo gradino: letto ${JSON.stringify((/Liv\. \d+ · [^\n]+/.exec(b1) ?? ['(nessuno)'])[0])}.`,
+    );
+    check(
+      b1.includes('Obiettivo della scheda: Hip thrust monopodalico'),
+      'L’obiettivo della scheda deve restare scritto, altrimenti un gradino più basso sembra un errore.',
+    );
+    check(
+      (await page.getByText('Sinistra').count()) === 0,
+      'Il glute bridge a due gambe non si registra per lato, anche se la scheda dichiara il blocco «per gamba».',
+    );
+
+    /* La scala intera deve essere raggiungibile dal selettore. */
+    const matitaB1 = page.locator('main button').filter({ hasText: '✎' }).first();
+    if ((await matitaB1.count()) > 0) {
+      await matitaB1.click();
+      await page.waitForTimeout(600);
+      const scala = await page.locator('main').innerText();
+      for (const gradino of [
+        'Glute bridge a terra, due gambe',
+        'Hip thrust spalle su panca, due gambe',
+        'Glute bridge monopodalico a terra',
+        'Hip thrust monopodalico con pausa 2"',
+      ]) {
+        check(scala.includes(gradino), `Il selettore deve offrire il gradino «${gradino}».`);
+      }
+    }
+  }
+
   /* ------------------ Il blocco a durata del sabato ---------------------- */
 
   /*
@@ -648,7 +706,11 @@ try {
   }
 
   const suF = (await page.locator('h1').first().innerText()).includes('· F');
-  check(suF, 'La navigazione deve arrivare al blocco F dello Shadow.');
+  check(
+    suF,
+    `La navigazione deve arrivare al blocco F dello Shadow, invece è su ${JSON.stringify(await page.locator('h1').first().innerText())}.`,
+  );
+
 
   if (suF) {
     const bloccoF = await page.locator('main').innerText();
@@ -681,6 +743,31 @@ try {
       );
     }
   }
+
+  /*
+   * Passare da una seduta all'altra deve ripartire dalla prima serie.
+   *
+   * Il router cambia solo la proprietà `sessionId`, quindi React riusava lo
+   * stesso componente e la serie corrente restava quella della seduta di
+   * prima: arrivando da una seduta più lunga si finiva su «Piano della seduta
+   * vuoto», perché quell'indice nell'altro piano non esiste.
+   */
+  await page.goto(`${BASE}/#/seduta/lower-b`, { waitUntil: 'load' });
+  await page.waitForTimeout(1400);
+  for (let i = 0; i < 30; i += 1) {
+    const avanti = page.getByRole('button', { name: /serie \d+ ›$/ });
+    if ((await avanti.count()) === 0) break;
+    await avanti.click();
+    await page.waitForTimeout(140);
+  }
+  const finePiano = await page.locator('header p').first().innerText();
+  await page.goto(`${BASE}/#/seduta/zona-2`, { waitUntil: 'load' });
+  await page.waitForTimeout(1400);
+  const dopoIlCambio = await page.locator('main').innerText();
+  check(
+    !dopoIlCambio.includes('Piano della seduta vuoto'),
+    `Cambiando seduta il player non deve finire fuori dal piano (veniva da ${JSON.stringify(finePiano)}).`,
+  );
 
   /* ---------------- Sedute doppie e sedute fantasma ---------------------- */
 

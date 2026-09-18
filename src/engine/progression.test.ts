@@ -624,6 +624,35 @@ describe('livello di partenza dal test', () => {
   it('lo stato iniziale usa il gradino del test', () => {
     expect(initialExerciseState(getExercise('pushup-archer-o-pseudo-planche')).level).toBe(2);
   });
+
+  /*
+   * Senza un test non c'è niente contro cui tarare un tetto, quindi si parte
+   * dal primo gradino. Sono le cinque scale aggiunte: il foglio prescriveva
+   * questi esercizi già nella forma avanzata, e chi non ha mai fatto l'hip
+   * thrust a due gambe non aveva niente da cui salire.
+   */
+  it('senza un test sulla scala si parte dal primo gradino', () => {
+    for (const slug of [
+      'hip-thrust-monopodalico',
+      'single-leg-rdl',
+      'calf-monopodalico-rialzo',
+      'calf-monopodalico-seduto',
+      'step-up-box-alto',
+      'sissy-squat',
+    ]) {
+      const exercise = getExercise(slug);
+      expect(exercise.pattern, slug).not.toBeNull();
+      expect(exercise.defaultLevel, slug).not.toBeNull();
+      expect(startingLevel(exercise), slug).toBe(1);
+    }
+  });
+
+  it('il gradino della scheda resta l’obiettivo, non sparisce', () => {
+    /* Serve alla riga «Obiettivo della scheda» del player. */
+    expect(getExercise('hip-thrust-monopodalico').defaultLevel).toBe(4);
+    expect(getExercise('single-leg-rdl').defaultLevel).toBe(5);
+    expect(getExercise('sissy-squat').defaultLevel).toBe(3);
+  });
 });
 
 describe('la variante scavalca quando il gradino è troppo facile', () => {

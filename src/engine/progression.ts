@@ -56,7 +56,17 @@ export function startingLevel(exercise: Exercise): LevelIndex | null {
   const prescritto = exercise.defaultLevel;
   if (exercise.pattern === null || prescritto === null) return prescritto;
   const prova = testBaseline(exercise.pattern);
-  if (prova === null) return prescritto;
+  /*
+   * Nessun test su questa scala: si parte dal primo gradino.
+   *
+   * Le cinque scale aggiunte non hanno un test in settimana 0, quindi non c'è
+   * niente contro cui tarare un tetto. Partire dal gradino che la scheda
+   * prescrive era il problema: l'hip thrust monopodalico a chi non ha mai
+   * fatto quello a due gambe. Senza una misura l'app non ha nessuna prova che
+   * si possa fare di più, e la regola di avanzamento porta su in fretta se il
+   * primo gradino è banale.
+   */
+  if (prova === null) return 1;
   /*
    * Solo dentro la stessa misura. La scala del core passa dalle tenute in
    * secondi alle ripetizioni: abbassare l'hanging leg raise fino all'hollow

@@ -157,7 +157,16 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     );
   }
 
-  const step: SessionStep | undefined = plan[stepIndex];
+  /*
+   * Un indice fuori dal piano non è un piano vuoto.
+   *
+   * La causa vera era il componente riusato tra due sedute, e si corregge con
+   * la `key` in App.tsx. Ma un indice fuori range non deve mai diventare un
+   * vicolo cieco: qui si rientra nell'ultimo passo disponibile invece di
+   * mostrare un messaggio da cui non si va avanti. Il piano vuoto per davvero
+   * resta l'unico caso che lo dice.
+   */
+  const step: SessionStep | undefined = plan[stepIndex] ?? plan.at(-1);
   if (step === undefined) {
     return (
       <Screen title={program.name} onBack={goHome}>

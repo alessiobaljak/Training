@@ -45,7 +45,16 @@ export function App() {
         {route.name === 'home' ? <HomeScreen /> : null}
         {route.name === 'onboarding' ? <OnboardingScreen /> : null}
         {route.name === 'settings' ? <SettingsScreen /> : null}
-        {route.name === 'session' ? <SessionScreen sessionId={route.sessionId} /> : null}
+        {/*
+          `key` sulla seduta: passando da una seduta all'altra il player deve
+          ripartire da zero. Senza, React riusa lo stesso componente cambiando
+          solo la proprietà, e la serie corrente resta quella di prima: da una
+          seduta lunga a una più corta si finiva sul messaggio «Piano della
+          seduta vuoto», perché quell'indice nell'altro piano non esiste.
+        */}
+        {route.name === 'session' ? (
+          <SessionScreen key={route.sessionId} sessionId={route.sessionId} />
+        ) : null}
         {route.name === 'log' ? <LogScreen /> : null}
         {route.name === 'progress' ? <ProgressScreen /> : null}
         {route.name === 'measures' ? <MeasuresScreen /> : null}

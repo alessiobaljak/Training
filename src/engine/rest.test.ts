@@ -239,3 +239,61 @@ describe('registrazione per lato', () => {
     }
   });
 });
+
+describe('le scale aggiunte e i due lati', () => {
+  /*
+   * Hip thrust, RDL e calf partono bilaterali e diventano monopodalici al
+   * terzo gradino. La scheda li dichiara «per lato» perché prescriveva
+   * direttamente la forma avanzata: ai primi due gradini chiedere sinistra e
+   * destra sarebbe sbagliato.
+   */
+  const statoA = (slug: string, level: number): ReadonlyMap<string, ExerciseState> =>
+    new Map([
+      [
+        slug,
+        {
+          exercise: slug,
+          level: level as ExerciseState['level'],
+          eccentricBonusSeconds: 0,
+          bottomPauseBonusSeconds: 0,
+          loadKg: 0,
+        },
+      ],
+    ]);
+
+  it('ai primi gradini non si registrano due lati', () => {
+    const b1 = getSession('lower-b').blocks.find((block) => block.code === 'B1');
+    if (b1 === undefined) throw new Error('B1 del Lower B mancante');
+    expect(b1.perSide).toBe(true);
+    expect(blockPerSide(b1, statoA('hip-thrust-monopodalico', 1))).toBe(false);
+    expect(blockPerSide(b1, statoA('hip-thrust-monopodalico', 2))).toBe(false);
+    expect(blockPerSide(b1, statoA('hip-thrust-monopodalico', 3))).toBe(true);
+    expect(blockPerSide(b1, statoA('hip-thrust-monopodalico', 4))).toBe(true);
+  });
+
+  it('vale anche per il single-leg RDL e per i due calf', () => {
+    const c1 = getSession('lower-b').blocks.find((block) => block.code === 'C1');
+    const c2 = getSession('lower-b').blocks.find((block) => block.code === 'C2');
+    const d1 = getSession('lower-a').blocks.find((block) => block.code === 'D1');
+    if (c1 === undefined || c2 === undefined || d1 === undefined) throw new Error('blocchi mancanti');
+    expect(blockPerSide(c1, statoA('single-leg-rdl', 1))).toBe(false);
+    expect(blockPerSide(c1, statoA('single-leg-rdl', 4))).toBe(true);
+    expect(blockPerSide(d1, statoA('calf-monopodalico-rialzo', 1))).toBe(false);
+    expect(blockPerSide(d1, statoA('calf-monopodalico-rialzo', 4))).toBe(true);
+    /*
+     * La scheda segnava per lato solo il calf su rialzo, non quello seduto,
+     * pur chiamandoli entrambi «monopodalico». Ora lo dice il gradino, quindi
+     * da monopodalico in su valgono due lati su tutti e due.
+     */
+    expect(c2.perSide).toBe(false);
+    expect(blockPerSide(c2, statoA('calf-monopodalico-seduto', 4))).toBe(true);
+  });
+
+  it('lo step-up è su una gamba a ogni altezza di box', () => {
+    const c1 = getSession('lower-a').blocks.find((block) => block.code === 'C1');
+    if (c1 === undefined) throw new Error('C1 del Lower A mancante');
+    for (const level of [1, 2, 3, 4, 5, 6]) {
+      expect(blockPerSide(c1, statoA('step-up-box-alto', level)), String(level)).toBe(true);
+    }
+  });
+});

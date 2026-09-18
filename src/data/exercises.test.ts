@@ -89,10 +89,11 @@ describe('politica zavorra', () => {
     }
   });
 
-  it('consente la zavorra solo sulla whitelist del metodo', () => {
+  it('consente la zavorra solo sulla whitelist dichiarata', () => {
     const allowed = EXERCISES.filter((e) => e.loadPolicy === 'allowed').map((e) => e.slug);
     expect([...allowed].sort()).toEqual(
       [
+        /* La whitelist del metodo, dal foglio Zavorra. */
         'bulgarian-split-squat',
         'chin-up-presa-supina',
         'chin-up-presa-supina-stretta',
@@ -104,6 +105,18 @@ describe('politica zavorra', () => {
         'step-up-box-alto',
         'trazioni-presa-larga',
         'trazioni-prona-presa-media',
+        /*
+         * Aggiunti insieme alle cinque scale nuove: su questi tre il carico è
+         * la progressione naturale una volta arrivati al monopodalico con
+         * pausa, e senza di esso il gradino 6 sarebbe stato irraggiungibile.
+         * Un manubrio sull'anca nell'hip thrust, in mano nel single-leg RDL e
+         * nei calf. Il sissy squat resta fuori: un peso su un ginocchio già
+         * molto flesso aggiunge taglio, non lavoro.
+         */
+        'calf-monopodalico-rialzo',
+        'calf-monopodalico-seduto',
+        'hip-thrust-monopodalico',
+        'single-leg-rdl',
       ].sort(),
     );
   });

@@ -96,10 +96,86 @@ const EXPECTED: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
   ],
 ];
 
-describe('progressions.ts — 8 scale da 6 livelli', () => {
-  it('copre tutti e soli gli 8 schemi motori', () => {
-    expect(PROGRESSION_SCALES).toHaveLength(8);
+/**
+ * Le cinque scale che il foglio non ha.
+ *
+ * Tenute in una tabella separata apposta: `EXPECTED` qui sopra è la seconda
+ * trascrizione del foglio Scale_Progressioni e resta il confronto con la
+ * scheda. Queste invece sono state scritte per l'app, perché il foglio
+ * prescriveva sei esercizi già nella loro forma avanzata e non offriva nessun
+ * gradino più facile. Mescolarle avrebbe fatto sembrare trascritto quello che
+ * è stato deciso.
+ */
+const AGGIUNTE: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
+  [
+    'hip-thrust',
+    [
+      'Glute bridge a terra, due gambe',
+      'Hip thrust spalle su panca, due gambe',
+      'Glute bridge monopodalico a terra',
+      'Hip thrust monopodalico, spalle su panca',
+      'Hip thrust monopodalico con pausa 2"',
+      'Hip thrust monopodalico zavorrato',
+    ],
+  ],
+  [
+    'hip-hinge',
+    [
+      'Hip hinge a due gambe con bastone',
+      'RDL a due gambe a corpo libero',
+      'Single-leg RDL con mano d’appoggio',
+      'Single-leg RDL a corpo libero',
+      'Single-leg RDL con pausa 2" in basso',
+      'Single-leg RDL zavorrato',
+    ],
+  ],
+  [
+    'calf',
+    [
+      'Due gambe, range parziale',
+      'Due gambe, range completo',
+      'Monopodalico, range parziale',
+      'Monopodalico, range completo',
+      'Monopodalico con pausa 2" in basso',
+      'Monopodalico zavorrato',
+    ],
+  ],
+  [
+    'step-up',
+    [
+      'Box a metà tibia',
+      'Box all’altezza del ginocchio',
+      'Ginocchio+, discesa 2" senza slancio',
+      'Box sopra il ginocchio',
+      'Con pausa 2" in alto',
+      'Zavorrato',
+    ],
+  ],
+  [
+    'sissy-squat',
+    [
+      'Con due mani d’appoggio',
+      'Con una mano d’appoggio',
+      'A corpo libero',
+      'Con pausa 2" in basso',
+      'A braccia incrociate',
+      'Con eccentrica 5"',
+    ],
+  ],
+];
+
+describe('progressions.ts — 13 scale da 6 livelli', () => {
+  it('copre tutti e soli gli schemi motori dichiarati', () => {
+    expect(PROGRESSION_SCALES).toHaveLength(13);
     expect(PROGRESSION_SCALES.map((s) => s.pattern)).toEqual([...MOTOR_PATTERNS]);
+  });
+
+  it('le otto del foglio e le cinque aggiunte coprono tutto, senza sovrapporsi', () => {
+    const dalFoglio = EXPECTED.map(([pattern]) => pattern);
+    const aggiunte = AGGIUNTE.map(([pattern]) => pattern);
+    expect(dalFoglio).toHaveLength(8);
+    expect(aggiunte).toHaveLength(5);
+    expect([...dalFoglio, ...aggiunte].sort()).toEqual([...MOTOR_PATTERNS].sort());
   });
 
   it.each(EXPECTED)('la scala %s corrisponde alla scheda', (pattern, names) => {
@@ -108,10 +184,16 @@ describe('progressions.ts — 8 scale da 6 livelli', () => {
     expect(scale.steps.map((s) => s.level)).toEqual([1, 2, 3, 4, 5, 6]);
   });
 
+  it.each(AGGIUNTE)('la scala aggiunta %s corrisponde a quella dichiarata', (pattern, names) => {
+    const scale = getProgressionScale(pattern);
+    expect(scale.steps.map((s) => s.name)).toEqual(names);
+    expect(scale.steps.map((s) => s.level)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
   it('usa slug di livello unici in tutto il seed', () => {
     const slugs = PROGRESSION_SCALES.flatMap((s) => s.steps.map((step) => step.slug));
-    expect(slugs).toHaveLength(48);
-    expect(new Set(slugs).size).toBe(48);
+    expect(slugs).toHaveLength(78);
+    expect(new Set(slugs).size).toBe(78);
   });
 
   it('getProgressionStep restituisce il gradino richiesto', () => {
@@ -133,7 +215,23 @@ describe('progressions.ts — 8 scale da 6 livelli', () => {
       scale.steps.some((step) => step.name.toLowerCase().includes('zavorr')),
     ).map((scale) => scale.pattern);
     expect([...zavorrati].sort()).toEqual(
-      ['dip', 'horizontal-push', 'single-leg-squat', 'vertical-pull'].sort(),
+      [
+        'dip',
+        'horizontal-push',
+        'single-leg-squat',
+        'vertical-pull',
+        /*
+         * Le quattro aggiunte dove il carico è la progressione naturale: un
+         * manubrio sull'anca nell'hip thrust, in mano nel single-leg RDL e nel
+         * calf, sulle spalle nello step-up. Il sissy squat non c'è: un peso su
+         * un ginocchio già molto flesso aggiunge taglio senza aggiungere
+         * lavoro ai quadricipiti.
+         */
+        'hip-thrust',
+        'hip-hinge',
+        'calf',
+        'step-up',
+      ].sort(),
     );
   });
 

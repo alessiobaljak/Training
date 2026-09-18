@@ -80,6 +80,66 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Hanging leg raise',
       'Ab wheel completo / L-sit',
     ],
+
+    /*
+     * Le cinque scale aggiunte. Non vengono dal foglio Scale_Progressioni: il
+     * foglio prescriveva questi sei esercizi già nella loro forma avanzata e
+     * non offriva nessun gradino più facile. Sono dichiarate in
+     * `SCALE_AGGIUNTE` con il motivo.
+     */
+    'hip-thrust': [
+      'Glute bridge a terra, due gambe',
+      'Hip thrust spalle su panca, due gambe',
+      'Glute bridge monopodalico a terra',
+      'Hip thrust monopodalico, spalle su panca',
+      'Hip thrust monopodalico con pausa 2"',
+      'Hip thrust monopodalico zavorrato',
+    ],
+    'hip-hinge': [
+      'Hip hinge a due gambe con bastone',
+      'RDL a due gambe a corpo libero',
+      'Single-leg RDL con mano d’appoggio',
+      'Single-leg RDL a corpo libero',
+      'Single-leg RDL con pausa 2" in basso',
+      'Single-leg RDL zavorrato',
+    ],
+    /*
+     * I gradini non nominano la posizione, perché la scala serve sia al calf
+     * in piedi su rialzo sia a quello seduto: il gesto è lo stesso, la
+     * posizione la dice il nome dell'esercizio. Nominarla qui avrebbe dato
+     * «Calf monopodalico seduto» con variante «Monopodalico su rialzo».
+     */
+    calf: [
+      'Due gambe, range parziale',
+      'Due gambe, range completo',
+      'Monopodalico, range parziale',
+      'Monopodalico, range completo',
+      'Monopodalico con pausa 2" in basso',
+      'Monopodalico zavorrato',
+    ],
+    'step-up': [
+      'Box a metà tibia',
+      'Box all’altezza del ginocchio',
+      'Ginocchio+, discesa 2" senza slancio',
+      'Box sopra il ginocchio',
+      'Con pausa 2" in alto',
+      'Zavorrato',
+    ],
+    /*
+     * Il gradino 6 non è zavorrato, ed è una scelta: un peso in mano su un
+     * ginocchio già molto flesso aggiunge taglio sull'articolazione senza
+     * aggiungere molto ai quadricipiti. Sopra al braccia incrociate si sale
+     * rallentando l'eccentrica, come fa il gradino 6 della trazione
+     * orizzontale per un motivo diverso.
+     */
+    'sissy-squat': [
+      'Con due mani d’appoggio',
+      'Con una mano d’appoggio',
+      'A corpo libero',
+      'Con pausa 2" in basso',
+      'A braccia incrociate',
+      'Con eccentrica 5"',
+    ],
   });
 
 function buildSteps(
@@ -126,6 +186,13 @@ const SCALE_PER_SIDE: Readonly<
   /* Solo il glute bridge del gradino 1; i nordic sono a due gambe. */
   'posterior-chain': [true, false, false, false, false, false],
   core: [false, false, false, false, false, false],
+  /* Bilaterali i primi due gradini, poi si passa a una gamba per volta. */
+  'hip-thrust': [false, false, true, true, true, true],
+  'hip-hinge': [false, false, true, true, true, true],
+  calf: [false, false, true, true, true, true],
+  /* Lo step-up è su una gamba a ogni altezza di box. */
+  'step-up': [true, true, true, true, true, true],
+  'sissy-squat': [false, false, false, false, false, false],
 });
 
 export const PROGRESSION_SCALES: readonly ProgressionScale[] = Object.freeze(
