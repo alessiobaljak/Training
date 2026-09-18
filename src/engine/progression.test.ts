@@ -6,6 +6,7 @@ import {
   effectiveTempo,
   evaluateProgression,
   initialExerciseState,
+  startingLevel,
 } from './progression.ts';
 import { latestTestResults, resolveBlockRange, testResultSingle } from './ranges.ts';
 import { getExercise } from '../data/exercises.ts';
@@ -19,7 +20,7 @@ import type {
 } from '../types/index.ts';
 import type { ProgressionInput } from './progression.ts';
 import { OVERLOAD_LEVERS } from '../types/index.ts';
-import { loggedExercise, perSideSets, sets } from './__fixtures.ts';
+import { loggedExercise, perSideSets, set, sets } from './__fixtures.ts';
 
 const DEFAULT_TESTS: TestResult[] = [
   testResultSingle('pull-up', '2026-09-14', 0, 10),
@@ -570,5 +571,164 @@ describe('avviso sulla resistenza', () => {
       currentMaxReps: null,
     });
     expect(evaluation.enduranceWarning).toContain('resistenza');
+  });
+});
+
+describe('livello di partenza dal test', () => {
+  /*
+   * Il test misura una variante precisa, e quella è il tetto.
+   *
+   * Prima il livello di partenza era il gradino che la scheda prescrive, e su
+   * cinque blocchi quel gradino stava sopra il test — fino a tre gradini. Il
+   * caso più chiaro: il test dei push-up si fa a terra, gradino 2, e il
+   * giovedì partiva dagli archer push-up, gradino 5, col range calcolato sui
+   * push-up a terra. Ventiquattro push-up non dicono niente sugli archer.
+   */
+  it('non parte sopra il gradino a cui il test ha misurato', () => {
+    const archer = getExercise('pushup-archer-o-pseudo-planche');
+    expect(archer.defaultLevel).toBe(5);
+    expect(startingLevel(archer)).toBe(2);
+
+    const monobraccio = getExercise('rematore-trx-monobraccio');
+    expect(monobraccio.defaultLevel).toBe(5);
+    expect(startingLevel(monobraccio)).toBe(2);
+
+    const hspu = getExercise('negative-hspu-muro-o-pike-pushup');
+    expect(hspu.defaultLevel).toBe(3);
+    expect(startingLevel(hspu)).toBe(2);
+  });
+
+  it('è un tetto, non un’assegnazione: chi sta più in basso resta più in basso', () => {
+    /* I dip su panca dei finisher: gradino 1 contro il 3 del test. */
+    const finisher = getExercise('dip-panche-o-diamond-pushup');
+    expect(finisher.defaultLevel).toBe(1);
+    expect(startingLevel(finisher)).toBe(1);
+  });
+
+  it('non abbassa attraverso misure diverse', () => {
+    /*
+     * La scala del core passa dalle tenute in secondi alle ripetizioni:
+     * abbassare l'hanging leg raise fino all'hollow hold darebbe «10-15
+     * ripetizioni» di una tenuta.
+     */
+    const legRaise = getExercise('hanging-leg-raise');
+    expect(legRaise.measurement).toBe('reps');
+    expect(startingLevel(legRaise)).toBe(legRaise.defaultLevel);
+  });
+
+  it('non tocca chi è già al gradino del test', () => {
+    const trazioni = getExercise('trazioni-prona-presa-media');
+    expect(startingLevel(trazioni)).toBe(trazioni.defaultLevel);
+  });
+
+  it('lo stato iniziale usa il gradino del test', () => {
+    expect(initialExerciseState(getExercise('pushup-archer-o-pseudo-planche')).level).toBe(2);
+  });
+});
+
+describe('la variante scavalca quando il gradino è troppo facile', () => {
+  /*
+   * L'ordine del metodo è giusto finché il gradino è tarato: allungare
+   * l'eccentrica e aggiungere una pausa spremono la variante che si sta
+   * facendo. Ma tempo e pausa non riducono il numero di ripetizioni, e a
+   * trenta ripetizioni il problema non è il tempo: è che il gradino non fa
+   * più resistenza. Quattro passi intermedi prima della variante significano
+   * mesi sullo stesso gradino.
+   */
+  it('a ripetizioni da resistenza propone la variante, non il tempo', () => {
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([26, 26, 26]) }),
+    );
+    expect(evaluation.triggered).toBe(true);
+    expect(evaluation.enduranceWarning).toContain('resistenza');
+    expect(evaluation.suggestion?.lever).toBe('variant');
+  });
+
+  it('dentro ripetizioni normali resta l’ordine del metodo', () => {
+    /* Range 4-6 dal test pike: toccare il 6 è la leva 1 esaurita, non di più. */
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([6, 6, 6]) }),
+    );
+    expect(evaluation.triggered).toBe(true);
+    expect(evaluation.enduranceWarning).toBeNull();
+    expect(evaluation.suggestion?.lever).toBe('tempo');
+  });
+
+  it('chiudere il range con più margine di quello prescritto basta', () => {
+    /* Il B1 chiede RIR 1: tre serie chiuse al massimo del range a RIR 3. */
+    const conMargine = [set(1, 6, { rir: 3 }), set(2, 6, { rir: 3 }), set(3, 6, { rir: 3 })];
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: conMargine }),
+    );
+    expect(evaluation.suggestion?.lever).toBe('variant');
+  });
+
+  it('il margine dentro quello prescritto non scavalca niente', () => {
+    const aTarget = [set(1, 6, { rir: 1 }), set(2, 6, { rir: 1 }), set(3, 6, { rir: 1 })];
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: aTarget }),
+    );
+    expect(evaluation.suggestion?.lever).toBe('tempo');
+  });
+
+  it('scavalcando, tempo e pausa dicono perché sono state salvate', () => {
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([26, 26, 26]) }),
+    );
+    for (const lever of ['tempo', 'iso-pause'] as const) {
+      const entry = evaluation.levers.find((row) => row.lever === lever);
+      expect(entry?.available, lever).toBe(false);
+      expect(entry?.reason, lever).toContain('Scavalcata');
+    }
+  });
+
+  it('su un’isometria non scavalca niente: i secondi non sono ripetizioni', () => {
+    /*
+     * Sulla skill isometrica la variante è la prima leva disponibile comunque,
+     * perché tempo e pausa non si applicano a una tenuta. Quello che si
+     * verifica qui è che non ci arrivi scavalcando: la soglia della resistenza
+     * è in ripetizioni e 45 secondi non sono 45 ripetizioni.
+     */
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'shadow', code: 'A', loggedSets: sets([45, 45, 45]) }),
+    );
+    expect(evaluation.enduranceWarning).toBeNull();
+    for (const lever of ['tempo', 'iso-pause'] as const) {
+      const entry = evaluation.levers.find((row) => row.lever === lever);
+      expect(entry?.reason ?? '', lever).not.toContain('Scavalcata');
+    }
+  });
+});
+
+describe('andare oltre il range', () => {
+  /*
+   * Toccare il massimo e superarlo sono due cose diverse.
+   *
+   * Toccarlo è la leva 1 esaurita, e il metodo passa al tempo: giusto, perché
+   * il gradino sta ancora limitando. Superarlo a ogni serie vuol dire che non
+   * limita più niente, e rallentare l'eccentrica non riduce le ripetizioni.
+   */
+  it('superare il massimo su tutte le serie propone la variante', () => {
+    /* Il B1 dell'Upper A ha range 4-6 dal test pike: sei serie da 9. */
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([9, 9, 9]) }),
+    );
+    expect(evaluation.triggered).toBe(true);
+    expect(evaluation.suggestion?.lever).toBe('variant');
+  });
+
+  it('toccare il massimo senza superarlo resta sul tempo', () => {
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([6, 6, 6]) }),
+    );
+    expect(evaluation.triggered).toBe(true);
+    expect(evaluation.suggestion?.lever).toBe('tempo');
+  });
+
+  it('una sola serie sopra il massimo non basta', () => {
+    const evaluation = evaluateProgression(
+      makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([9, 6, 6]) }),
+    );
+    expect(evaluation.suggestion?.lever).toBe('tempo');
   });
 });

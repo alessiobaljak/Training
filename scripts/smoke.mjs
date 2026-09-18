@@ -525,27 +525,62 @@ try {
     return false;
   };
 
-  if (await vaiAlBlocco('B1')) {
+  /*
+   * Il livello di partenza esce dal test, non dalla scheda.
+   *
+   * Il test dei push-up si fa a terra, gradino 2 della spinta orizzontale. Il
+   * giovedì partiva dagli archer push-up, gradino 5, col range calcolato sui
+   * push-up a terra: ventiquattro push-up a terra non dicono niente sugli
+   * archer, che hanno una tecnica diversa. Ora la scheda resta l'obiettivo e
+   * il gradino è quello misurato.
+   */
+  if (await vaiAlBlocco('A2')) {
+    const a2 = await page.locator('main').innerText();
     check(
-      (await page.getByText('Sinistra').count()) > 0,
-      'Il rematore monobraccio si registra per lato: devono comparire sinistra e destra.',
+      a2.includes('Push-up archer o pseudo-planche'),
+      'Il blocco deve continuare a dire cosa prescrive la scheda.',
+    );
+    check(
+      a2.includes('Liv. 2 · Push-up a terra'),
+      `Il gradino di partenza è quello del test, non quello della scheda: letto ${JSON.stringify((/Liv\. \d+ · [^\n]+/.exec(a2) ?? ['(nessuno)'])[0])}.`,
+    );
+    check(
+      a2.includes('Obiettivo della scheda: Archer push-up (liv. 5)'),
+      'Partendo più in basso la seduta deve dire a quale gradino la scheda vuole arrivare.',
+    );
+    check(
+      a2.includes('Target 17-23'),
+      `Il range esce dal test dei push-up e ora è coerente col gradino: letto ${JSON.stringify((/Target [^\n]+/.exec(a2) ?? ['?'])[0])}.`,
+    );
+  }
+
+  if (await vaiAlBlocco('B1')) {
+    /*
+     * Il B1 prescrive il rematore monobraccio, gradino 5, ma il test misura il
+     * rematore a 45°, gradino 2: si parte da lì, a due braccia. Salendo a mano
+     * al monobraccio la seduta deve tornare a chiedere due lati — `perSide`
+     * segue il gradino, non la riga della scheda.
+     */
+    check(
+      (await page.locator('input[type=number]').count()) === 1,
+      'Al gradino del test il rematore è a due braccia: un campo solo.',
     );
 
     const matita = page.locator('main button').filter({ hasText: '✎' }).first();
     if ((await matita.count()) > 0) {
       await matita.click();
       await page.waitForTimeout(600);
-      const a45 = page.getByRole('button', { name: /Rematore TRX a 45/ }).first();
-      if ((await a45.count()) > 0) {
-        await a45.click();
+      const mono = page.getByRole('button', { name: /Rematore monobraccio TRX/ }).first();
+      if ((await mono.count()) > 0) {
+        await mono.click();
         await page.waitForTimeout(1200);
         check(
-          (await page.getByText('Sinistra').count()) === 0,
-          'Scelto un gradino a due braccia, la seduta non deve più chiedere due lati per un gesto solo.',
+          (await page.getByText('Sinistra').count()) > 0,
+          'Salito al monobraccio, la seduta deve chiedere sinistra e destra.',
         );
         check(
-          (await page.locator('input[type=number]').count()) === 1,
-          `Un gesto a due braccia ha un campo, non due: trovati ${String(await page.locator('input[type=number]').count())}.`,
+          (await page.locator('input[type=number]').count()) === 2,
+          `Un gesto a un braccio ha due campi: trovati ${String(await page.locator('input[type=number]').count())}.`,
         );
       }
     }

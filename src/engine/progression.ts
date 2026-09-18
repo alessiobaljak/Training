@@ -1,5 +1,6 @@
 import { getProgressionStep } from '../data/progressions.ts';
 import { ENDURANCE_REP_THRESHOLD } from '../data/method.ts';
+import { testBaseline } from '../data/tests.ts';
 import {
   ECCENTRIC_TEMPO_LADDER,
   ISO_PAUSE_LADDER,
@@ -18,7 +19,7 @@ import type {
   Tut,
   TutNotation,
 } from '../types/index.ts';
-import { isTempoBreakdown, parseTut } from './notation.ts';
+import { isTempoBreakdown, parseRir, parseTut } from './notation.ts';
 import { getLoadAvailability, assessLoadNeed, stepLoad } from './loading.ts';
 import type { RangeResolution } from './ranges.ts';
 import { formatRange } from './ranges.ts';
@@ -37,10 +38,38 @@ export const MAX_ECCENTRIC_SECONDS = ECCENTRIC_TEMPO_LADDER.at(-1) ?? 5;
 /** Tetto della leva pause: la pausa in allungamento non va oltre 2". */
 export const MAX_ISO_PAUSE_SECONDS = ISO_PAUSE_LADDER.at(-1) ?? 2;
 
+/**
+ * Il gradino da cui si parte: mai sopra quello a cui il test ha misurato.
+ *
+ * Prima era il gradino che la scheda prescrive, e su sette blocchi su
+ * diciannove quel gradino stava sopra il test — fino a tre gradini sopra. Il
+ * caso più chiaro: il test dei push-up si fa a terra, gradino 2, e il giovedì
+ * prescriveva archer push-up, gradino 5, col range calcolato sui push-up a
+ * terra. Ventiquattro push-up non dicono niente sugli archer, che hanno una
+ * tecnica diversa.
+ *
+ * È un tetto e non un'assegnazione: dove la scheda prescrive più in basso —
+ * i dip su panca dei finisher, gradino 1 contro il 3 del test — resta in
+ * basso, perché lì la scelta è voluta.
+ */
+export function startingLevel(exercise: Exercise): LevelIndex | null {
+  const prescritto = exercise.defaultLevel;
+  if (exercise.pattern === null || prescritto === null) return prescritto;
+  const prova = testBaseline(exercise.pattern);
+  if (prova === null) return prescritto;
+  /*
+   * Solo dentro la stessa misura. La scala del core passa dalle tenute in
+   * secondi alle ripetizioni: abbassare l'hanging leg raise fino all'hollow
+   * hold darebbe «10-15 ripetizioni» di una tenuta.
+   */
+  if (prova.measurement !== exercise.measurement) return prescritto;
+  return (prescritto < prova.level ? prescritto : prova.level) as LevelIndex;
+}
+
 export function initialExerciseState(exercise: Exercise): ExerciseState {
   return {
     exercise: exercise.slug,
-    level: exercise.defaultLevel,
+    level: startingLevel(exercise),
     eccentricBonusSeconds: 0,
     bottomPauseBonusSeconds: 0,
     loadKg: 0,
@@ -371,7 +400,46 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
   // Le ripetizioni sono già marcate esaurite qui sopra, quindi non vengono
   // mai riproposte: la regola sta nella disponibilità, non in un indice.
   const byLever = new Map(levers.map((entry) => [entry.lever, entry]));
-  const next = OVERLOAD_LEVERS.find((lever) => byLever.get(lever)?.available === true);
+
+  /*
+   * Quando il gradino è troppo facile la variante passa davanti.
+   *
+   * L'ordine del metodo — ripetizioni, tempo, pausa, variante, carico — è
+   * giusto finché il gradino è tarato: allungare l'eccentrica e aggiungere una
+   * pausa spreme la variante che si sta facendo. Ma tempo e pausa non riducono
+   * il numero di ripetizioni, e a trenta ripetizioni il problema non è il
+   * tempo: è che il gradino non fa più resistenza. Il metodo lo dice da sé
+   * nell'avviso sulla resistenza, «cambia leva»; qui la leva che risolve
+   * davvero è la variante, e quattro passi intermedi prima di arrivarci
+   * significano mesi sullo stesso gradino.
+   *
+   * Tre segnali, tutti misurati e nessuno dichiarato:
+   *
+   * 1. ogni serie è andata *sopra* il massimo del range, non solo a toccarlo.
+   *    Toccare il massimo è la leva 1 esaurita e il metodo passa al tempo;
+   *    superarlo a ogni serie vuol dire che il gradino non sta limitando
+   *    niente;
+   * 2. la media entra nel territorio della resistenza (25+ ripetizioni);
+   * 3. il massimo del range è chiuso su tutte le serie *con più margine di
+   *    quello prescritto*, cioè ogni serie registrata con un RIR sopra il
+   *    tetto richiesto: se avanzavano ripetizioni a ogni serie, il gradino
+   *    non era il limite.
+   */
+  const sopraIlRange =
+    logged.sets.length > 0 && logged.sets.every((set) => set.value > range.range.max);
+  const rirTarget = parseRir(input.block.rir);
+  const conMargine =
+    rirTarget !== null &&
+    logged.sets.length > 0 &&
+    logged.sets.every((set) => set.rir !== null && set.rir > rirTarget.max);
+  const gradinoTroppoFacile =
+    input.exercise.measurement === 'reps' &&
+    (sopraIlRange || enduranceWarning !== null || conMargine) &&
+    byLever.get('variant')?.available === true;
+
+  const next = gradinoTroppoFacile
+    ? 'variant'
+    : OVERLOAD_LEVERS.find((lever) => byLever.get(lever)?.available === true);
 
   if (next === undefined) {
     return {
@@ -384,6 +452,20 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
         'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.',
       enduranceWarning,
     };
+  }
+
+  /*
+   * Se la variante ha saltato la coda, tempo e pausa restano disponibili ma
+   * scavalcate: la schermata deve dire perché, non lasciarle lì come se fossero
+   * la prossima cosa da fare.
+   */
+  if (gradinoTroppoFacile) {
+    const motivo = `Scavalcata: a queste ripetizioni il gradino non fa più resistenza, e rallentare il tempo non le riduce.`;
+    for (const [indice, entry] of levers.entries()) {
+      if (entry.lever === 'tempo' || entry.lever === 'iso-pause') {
+        levers[indice] = { ...entry, available: false, reason: motivo };
+      }
+    }
   }
 
   return {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getExercise } from '../../data/exercises.ts';
+import { getProgressionStep } from '../../data/progressions.ts';
 import { repository } from '../../db/repository.ts';
 import {
   closeSession,
@@ -205,6 +206,20 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const prevStep = plan[stepIndex - 1];
   const nextStep = plan[stepIndex + 1];
 
+  /*
+   * Il gradino a cui la scheda vuole arrivare, quando è più su di quello
+   * attuale. Serve a non far sembrare un errore un livello più basso: la
+   * scheda prescrive la meta, il test dice da dove si parte.
+   */
+  const gradinoAttuale = logged?.level ?? exerciseState?.level ?? null;
+  const obiettivo =
+    exercise.pattern !== null &&
+    exercise.defaultLevel !== null &&
+    gradinoAttuale !== null &&
+    exercise.defaultLevel > gradinoAttuale
+      ? `${getProgressionStep(exercise.pattern, exercise.defaultLevel).name} (liv. ${String(exercise.defaultLevel)})`
+      : null;
+
   const stepKey = `${step.blockCode}-${String(step.setIndex)}`;
   const stepValues = valori.get(stepKey) ?? initialSetValues(suggestion, load);
   const stepLogged = isStepLogged(draft, step);
@@ -344,9 +359,23 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
         */}
         <Card tone="accent">
           <div className="flex items-start justify-between gap-3">
+            {/*
+              In alto il blocco come lo scrive la scheda, sotto la variante che
+              si sta davvero facendo. Prima l'intestazione mostrava la variante
+              *al posto* del nome: da quando il livello di partenza esce dal
+              test, il giovedì diceva «Liv. 2 · Push-up a terra» e «Push-up
+              archer o pseudo-planche» non compariva più da nessuna parte, cioè
+              spariva l'obiettivo del blocco.
+            */}
             <div className="min-w-0">
               <p className="font-mono text-xs text-accent">{block.code}</p>
-              <p className="text-xl font-semibold">{logged?.variantLabel ?? exercise.name}</p>
+              <p className="text-xl font-semibold">{exercise.name}</p>
+              {logged !== undefined && logged.variantLabel !== exercise.name ? (
+                <p className="mt-1 truncate text-sm text-dim">{logged.variantLabel}</p>
+              ) : null}
+              {obiettivo !== null ? (
+                <p className="mt-1 text-xs text-dim">Obiettivo della scheda: {obiettivo}</p>
+              ) : null}
             </div>
             <button
               type="button"
