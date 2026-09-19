@@ -16,7 +16,7 @@ import {
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import { describeTut, parseTut } from '../../engine/notation.ts';
-import { effectiveTempo } from '../../engine/progression.ts';
+import { effectiveTempo, initialExerciseState } from '../../engine/progression.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
 import { getWeekState } from '../../engine/schedule.ts';
 import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
@@ -30,7 +30,7 @@ import { SetEntry, initialSetValues } from './SetEntry.tsx';
 import type { SetValues } from './SetEntry.tsx';
 import { VariantPicker } from './VariantPicker.tsx';
 import { useSessionDraft } from './useSessionDraft.ts';
-import type { LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
+import type { ExerciseSlug, LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
 import type { RestDecision, SessionStep } from '../../engine/rest.ts';
 import type { ProgressionSuggestion } from '../../engine/progression.ts';
 
@@ -43,8 +43,19 @@ import type { ProgressionSuggestion } from '../../engine/progression.ts';
  */
 export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) {
   const state = useSessionDraft(sessionId);
-  const { program, draft, plan, week, states, previous, tests, update, confirmExercise, discard } =
-    state;
+  const {
+    program,
+    draft,
+    plan,
+    week,
+    states,
+    confirmed,
+    previous,
+    tests,
+    update,
+    confirmExercise,
+    discard,
+  } = state;
 
   const [stepIndex, setStepIndex] = useState(0);
   /*
@@ -179,7 +190,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   if (declaredBlock === undefined) return null;
 
   /* L'esercizio davvero scelto, non quello dichiarato dalla scheda. */
-  const alternative = declaredBlock.alternative;
+  const alternatives = declaredBlock.alternatives ?? [];
   const chosenSlug = findLoggedExercise(draft, declaredBlock.code)?.exercise ?? declaredBlock.exercise;
   const block = effectiveBlock(declaredBlock, draft);
 
@@ -228,6 +239,24 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     exercise.defaultLevel > gradinoAttuale
       ? `${getProgressionStep(exercise.pattern, exercise.defaultLevel).name} (liv. ${String(exercise.defaultLevel)})`
       : null;
+
+  /*
+   * Scegliere un'alternativa a mano non passa dal tetto del test.
+   *
+   * Il tetto serve dove è la scheda ad assegnare un gradino che potresti non
+   * reggere. Un'alternativa la scegli tu: se scegli il L-sit vuoi fare il
+   * L-sit, non l'hollow hold che è il gradino a cui il test ti ha misurato.
+   * Si scrive lo stato al livello proprio di quell'esercizio — ma solo se non
+   * ne esiste già uno, altrimenti un lavoro già fatto su quella variante
+   * verrebbe azzerato.
+   */
+  const scegliEsercizio = (slug: ExerciseSlug): void => {
+    const scelto = getExercise(slug);
+    update((session) => setBlockExercise(session, declaredBlock.code, slug, scelto.name));
+    if (!confirmed.has(slug) && scelto.defaultLevel !== null) {
+      confirmExercise({ ...initialExerciseState(scelto), level: scelto.defaultLevel });
+    }
+  };
 
   const stepKey = `${step.blockCode}-${String(step.setIndex)}`;
   const stepValues = valori.get(stepKey) ?? initialSetValues(suggestion, load);
@@ -451,17 +480,22 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
         </Card>
 
         {/*
-          Dove la scheda ammette due esercizi diversi — non due livelli dello
+          Dove la scheda ammette più esercizi diversi — non più livelli dello
           stesso — la scelta sta qui, prima dei campi: cambia anche l'unità di
           misura di quello che si registra, quindi va fatta prima di scrivere.
         */}
-        {alternative !== undefined ? (
+        {alternatives.length > 0 ? (
           <Card>
-            <p className="text-sm font-semibold">Quale dei due stai facendo</p>
-            <div className="mt-3 flex gap-2">
+            <p className="text-sm font-semibold">
+              {alternatives.length === 1 ? 'Quale dei due stai facendo' : 'Quale stai facendo'}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
               {[
                 { slug: declaredBlock.exercise, prescription: declaredBlock.prescription },
-                { slug: alternative.exercise, prescription: alternative.prescription },
+                ...alternatives.map((entry) => ({
+                  slug: entry.exercise,
+                  prescription: entry.prescription,
+                })),
               ].map((option) => {
                 const optionExercise = getExercise(option.slug);
                 const active = chosenSlug === option.slug;
@@ -479,11 +513,9 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                         return;
                       }
                       setCambioEsercizio(null);
-                      update((session) =>
-                        setBlockExercise(session, declaredBlock.code, option.slug, optionExercise.name),
-                      );
+                      scegliEsercizio(option.slug);
                     }}
-                    className={`min-h-20 flex-1 rounded-2xl border px-3 py-2 text-left ${
+                    className={`min-h-20 min-w-[9rem] flex-1 rounded-2xl border px-3 py-2 text-left ${
                       active ? 'border-accent bg-accent/20 text-ink' : 'border-line bg-panel text-dim'
                     }`}
                   >
@@ -503,11 +535,8 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                     <Button
                       variant="danger"
                       onClick={() => {
-                        const target = getExercise(cambioEsercizio);
                         setCambioEsercizio(null);
-                        update((session) =>
-                          setBlockExercise(session, declaredBlock.code, cambioEsercizio, target.name),
-                        );
+                        scegliEsercizio(cambioEsercizio);
                       }}
                     >
                       Sì, cambia esercizio

@@ -140,6 +140,36 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'A braccia incrociate',
       'Con eccentrica 5"',
     ],
+    /*
+     * Tre scale per tre tenute. Si misurano tutte in secondi, quindi la
+     * progressione non può essere «più ripetizioni»: è una posizione più dura
+     * a parità di tempo. Nessuna arriva alla zavorra, che su una tenuta
+     * cambierebbe l'esercizio invece di renderlo più difficile.
+     */
+    handstand: [
+      'Plank a mani alte contro il muro',
+      'Verticale al muro, schiena al muro',
+      'Verticale al muro, pancia al muro',
+      'Verticale al muro con una gamba staccata',
+      'Tentativi di verticale libera',
+      'Verticale libera tenuta',
+    ],
+    'wall-sit': [
+      'Sopra il parallelo',
+      'Cosce parallele a 90°',
+      'A 90° con le braccia incrociate',
+      'A 90° con una gamba sollevata',
+      'Monopodalico, coscia parallela',
+      'Monopodalico con il piede su un rialzo',
+    ],
+    hang: [
+      'Sospensione con i piedi che sfiorano terra',
+      'Dead hang a due mani',
+      'Dead hang con presa a pinza sulla trave',
+      'Dead hang a una mano con l’altra sul polso',
+      'Dead hang a una mano',
+      'Dead hang a una mano su asciugamano',
+    ],
   });
 
 function buildSteps(
@@ -193,6 +223,11 @@ const SCALE_PER_SIDE: Readonly<
   /* Lo step-up è su una gamba a ogni altezza di box. */
   'step-up': [true, true, true, true, true, true],
   'sissy-squat': [false, false, false, false, false, false],
+  handstand: [false, false, false, false, false, false],
+  /* Dal quarto gradino in poi si tiene una gamba per volta. */
+  'wall-sit': [false, false, false, true, true, true],
+  /* Dal quarto gradino in poi si resta appesi a una mano per volta. */
+  hang: [false, false, false, true, true, true],
 });
 
 export const PROGRESSION_SCALES: readonly ProgressionScale[] = Object.freeze(

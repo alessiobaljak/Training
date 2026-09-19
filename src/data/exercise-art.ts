@@ -4,13 +4,14 @@ import type { ExerciseSlug } from '../types/index.ts';
  * Le illustrazioni di RepDB, una coppia per esercizio.
  *
  * Sono disegni fatti da illustratori, non figure generate da questo codice:
- * coprono trentuno dei trentotto esercizi del programma, compresi quelli dove
+ * coprono trenta dei trentanove esercizi del programma, compresi quelli dove
  * un disegno serve davvero e che nessun altro archivio ha, come archer
  * push-up, nordic curl, pike push-up e hollow hold.
  *
- * Per i sette scoperti restano le figure in `src/assets/exercises/`. Quattro
- * non sono esercizi (camminata, corsa, mobilità, zona 2); gli altri tre sono
- * shrimp squat, sissy squat e croci con manubri, che RepDB non ha.
+ * Per i nove scoperti restano le figure in `src/assets/exercises/`. Quattro
+ * non sono esercizi (camminata, corsa, mobilità, zona 2); gli altri cinque
+ * sono shrimp squat, sissy squat, croci con manubri, L-sit e verticale al
+ * muro, che RepDB non ha.
  *
  * **Licenza.** Uso libero dentro l'applicazione, anche commerciale, con una
  * attribuzione visibile: la trovi nella schermata «App e dati». Due vincoli
@@ -217,11 +218,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     source: 'dead-hang',
     label: 'Dead Hang',
     frames: ['dead-hang-main.webp'],
-  },
-  'skill-isometrica': {
-    source: 'planche',
-    label: 'Planche',
-    frames: ['planche-main.webp'],
   },
   'alzate-laterali-elastico': {
     source: 'lateral-raise',

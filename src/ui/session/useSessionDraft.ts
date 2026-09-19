@@ -88,11 +88,10 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
        */
       const slugs = [
         ...new Set(
-          program.blocks.flatMap((block) =>
-            block.alternative === undefined
-              ? [block.exercise]
-              : [block.exercise, block.alternative.exercise],
-          ),
+          program.blocks.flatMap((block) => [
+            block.exercise,
+            ...(block.alternatives ?? []).map((entry) => entry.exercise),
+          ]),
         ),
       ];
       const stateEntries = await Promise.all(

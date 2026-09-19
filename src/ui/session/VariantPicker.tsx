@@ -23,6 +23,20 @@ export interface VariantPickerProps {
   readonly onConfirm: (state: ExerciseState) => void;
 }
 
+/** Come si sale su un esercizio che non sta in nessuna scala. */
+function comeSiProgredisce(exercise: Exercise): string {
+  if (exercise.measurement === 'duration') {
+    return 'Attività a durata: qui si progredisce allungando i minuti, non cambiando variante.';
+  }
+  if (exercise.loadPolicy === 'inherent') {
+    return 'Qui la progressione è il peso: quando chiudi il massimo del range a RIR 0-1, sali di manubrio.';
+  }
+  if (exercise.loadPolicy === 'allowed') {
+    return 'Qui la progressione è la zavorra: quando chiudi il massimo del range, aggiungi 2,5 kg.';
+  }
+  return 'Qui non c’è una variante più dura: si progredisce rallentando il tempo e aggiungendo le pause, che sono le leve 2 e 3 del metodo.';
+}
+
 export function VariantPicker({
   exercise,
   state,
@@ -79,9 +93,14 @@ export function VariantPicker({
       </p>
 
       {scale === null ? (
-        <p className="mt-2 text-sm text-dim">
-          {exercise.name} non appartiene a una scala di progressione: qui si scrive a mano.
-        </p>
+        /*
+         * Senza scala non basta dire «qui si scrive a mano»: ogni esercizio
+         * deve dire come si progredisce. Dove il peso è l'esercizio — manubri,
+         * elastici — la progressione è il carico e una scala di sei gradini
+         * inventati sarebbe rumore; dove il carico è vietato restano il tempo
+         * e le pause, che sono le leve 2 e 3 del metodo.
+         */
+        <p className="mt-2 text-sm leading-relaxed text-dim">{comeSiProgredisce(exercise)}</p>
       ) : (
         <ul className="mt-2 space-y-1">
           {LEVEL_INDEXES.map((level) => {

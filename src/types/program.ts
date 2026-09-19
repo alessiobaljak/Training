@@ -103,8 +103,14 @@ export interface ProgramBlock {
   readonly perSide: boolean;
   /** Precisazione della scheda sulla variante da usare in questo blocco. */
   readonly variantNote?: string;
-  /** L'altro esercizio che la scheda ammette qui, quando ce n'è uno. */
-  readonly alternative?: BlockAlternative;
+  /**
+   * Gli altri esercizi che la scheda ammette qui.
+   *
+   * Erano uno solo, poi la riga «Skill: hollow hold / L-sit / verticale al
+   * muro» ne ha chiesti due: un titolo che nomina tre esercizi non dice quale
+   * stai facendo, e ognuno dei tre ha il proprio storico.
+   */
+  readonly alternatives?: readonly BlockAlternative[];
 }
 
 export interface ProgramSession {

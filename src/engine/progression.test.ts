@@ -539,7 +539,7 @@ describe('avviso sulla resistenza', () => {
     /* Il C2 del Lower A fatto come wall sit: il blocco effettivo, non quello
        dichiarato dalla scheda, che è il sissy squat a ripetizioni. */
     const declared = blockOf('lower-a', 'C2');
-    const alternative = declared.alternative;
+    const alternative = declared.alternatives?.[0];
     if (alternative === undefined) throw new Error('Il C2 del Lower A deve avere un’alternativa.');
     const block = { ...declared, exercise: alternative.exercise, prescription: alternative.prescription };
     const exercise = getExercise(block.exercise);

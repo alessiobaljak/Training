@@ -51,7 +51,10 @@ export type MotorPattern =
   | 'hip-hinge'
   | 'calf'
   | 'step-up'
-  | 'sissy-squat';
+  | 'sissy-squat'
+  | 'handstand'
+  | 'wall-sit'
+  | 'hang';
 
 export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
   'vertical-pull',
@@ -67,6 +70,9 @@ export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
   'calf',
   'step-up',
   'sissy-squat',
+  'handstand',
+  'wall-sit',
+  'hang',
 ] as const);
 
 export const MOTOR_PATTERN_LABELS: Readonly<Record<MotorPattern, string>> = Object.freeze({
@@ -83,6 +89,9 @@ export const MOTOR_PATTERN_LABELS: Readonly<Record<MotorPattern, string>> = Obje
   calf: 'Polpaccio',
   'step-up': 'Step-up (quadricipiti)',
   'sissy-squat': 'Sissy squat (quadricipiti)',
+  handstand: 'Verticale (spalle)',
+  'wall-sit': 'Wall sit (quadricipiti)',
+  hang: 'Sospensione (presa)',
 });
 
 /** Livello nella scala di progressione. Sempre 1..6. */

@@ -191,18 +191,17 @@ describe('program.ts — trascrizione delle 6 sedute', () => {
     expect(c2?.prescription).toEqual({ kind: 'reps', min: 12, max: 15 });
     expect(getExercise('sissy-squat').measurement).toBe('reps');
 
-    expect(c2?.alternative).toEqual({
-      exercise: 'wall-sit',
-      prescription: { kind: 'seconds', min: 45, max: 45 },
-    });
+    expect(c2?.alternatives).toEqual([
+      { exercise: 'wall-sit', prescription: { kind: 'seconds', min: 45, max: 45 } },
+    ]);
     expect(getExercise('wall-sit').measurement).toBe('seconds');
   });
 
   it('nessun blocco offre un’alternativa che non cambia niente', () => {
     for (const session of PROGRAM_SESSIONS) {
       for (const block of session.blocks) {
-        if (block.alternative === undefined) continue;
-        expect(block.alternative.exercise, block.code).not.toBe(block.exercise);
+        const scelte = [block.exercise, ...(block.alternatives ?? []).map((a) => a.exercise)];
+        expect(new Set(scelte).size, block.code).toBe(scelte.length);
       }
     }
   });

@@ -220,10 +220,9 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
          * La scheda scrive «Sissy squat o wall sit isometrico 45"». Sono due
          * esercizi con due misure: le ripetizioni qui, i secondi nell'altro.
          */
-        alternative: {
-          exercise: 'wall-sit',
-          prescription: { kind: 'seconds', min: 45, max: 45 },
-        },
+        alternatives: [
+          { exercise: 'wall-sit', prescription: { kind: 'seconds', min: 45, max: 45 } },
+        ],
         reference: 'RIR 0-1',
         tut: '3-1-1-0',
         rir: '0-1',
@@ -396,10 +395,9 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
          * Sono due esercizi: le croci si fanno con un peso in mano, il push-up
          * a corpo libero, e la politica del carico non può essere la stessa.
          */
-        alternative: {
-          exercise: 'pushup-presa-larga-lento',
-          prescription: { kind: 'reps', min: 12, max: 15 },
-        },
+        alternatives: [
+          { exercise: 'pushup-presa-larga-lento', prescription: { kind: 'reps', min: 12, max: 15 } },
+        ],
         reference: 'RIR 0-1',
         tut: '4-1-1-0',
         rir: '0-1',
@@ -548,9 +546,18 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         code: 'A',
         group: 'A',
         pairing: 'single',
-        exercise: 'skill-isometrica',
+        exercise: 'hollow-hold',
         sets: 3,
         prescription: { kind: 'seconds', min: 30, max: 45 },
+        /*
+         * La scheda scrive «Skill: hollow hold / L-sit / verticale al muro»:
+         * tre esercizi in un titolo solo. Ognuno ha la sua scala e il suo
+         * storico, e si sceglie qui.
+         */
+        alternatives: [
+          { exercise: 'l-sit', prescription: { kind: 'seconds', min: 30, max: 45 } },
+          { exercise: 'verticale-al-muro', prescription: { kind: 'seconds', min: 30, max: 45 } },
+        ],
         reference: 'Test hollow',
         tut: 'isometrico',
         rir: '1-2',

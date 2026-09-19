@@ -115,9 +115,16 @@ describe('volume settimanale del seed per gruppo muscolare', () => {
   };
 
   it('corrisponde ai totali attesi', () => {
+    /*
+     * Le spalle sono scese da 23,5 a 22 quando il blocco skill dello Shadow ha
+     * smesso di essere «hollow hold / L-sit / verticale al muro» ed è diventato
+     * l'hollow hold, che è lavoro di core e non di spalle. Il conto guarda
+     * l'esercizio dichiarato dal blocco: se si sceglie la verticale le spalle
+     * lavorano davvero, ma questo è il volume del programma sulla carta.
+     */
     expect(weeklyVolume()).toEqual({
       braccia: 30.5,
-      spalle: 23.5,
+      spalle: 22,
       dorsali: 20,
       'femorali-glutei': 20,
       petto: 14,

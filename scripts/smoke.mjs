@@ -769,6 +769,86 @@ try {
     `Cambiando seduta il player non deve finire fuori dal piano (veniva da ${JSON.stringify(finePiano)}).`,
   );
 
+  /* ------------------ Un titolo, un esercizio --------------------------- */
+
+  /*
+   * La riga della scheda dice «Skill: hollow hold / L-sit / verticale al
+   * muro»: tre esercizi in un titolo solo, che non dice quale stai facendo.
+   * Ora sono tre skill separate e si sceglie quale.
+   *
+   * E scegliere un'alternativa a mano non passa dal tetto del test: il tetto
+   * serve dove è la scheda ad assegnare un gradino, non dove scegli tu. Chi
+   * sceglie il L-sit vuole il L-sit, non l'hollow hold che è il gradino a cui
+   * il test lo ha misurato.
+   */
+  await page.goto(`${BASE}/#/seduta/shadow`, { waitUntil: 'load' });
+  await page.waitForTimeout(1700);
+
+  const testaBloccoA = async () => (await page.locator('main').innerText()).split('\nA\n\n')[1] ?? '';
+
+  check(
+    (await testaBloccoA()).startsWith('Hollow hold'),
+    `Il titolo deve nominare un esercizio solo: letto ${JSON.stringify((await testaBloccoA()).split('\n')[0])}.`,
+  );
+  check(
+    !(await page.locator('main').innerText()).includes('Skill: hollow hold / L-sit'),
+    'Il titolo con tre esercizi in uno non deve più comparire.',
+  );
+  for (const skill of ['Hollow hold', 'L-sit', 'Verticale al muro']) {
+    check(
+      (await page.getByRole('button', { name: new RegExp(`^${skill}`) }).count()) > 0,
+      `Il blocco A deve offrire ${skill} come scelta.`,
+    );
+  }
+
+  const sceltaLSit = page.getByRole('button', { name: /^L-sit/ }).first();
+  if ((await sceltaLSit.count()) > 0) {
+    await sceltaLSit.click();
+    await page.waitForTimeout(1100);
+    check(
+      (await testaBloccoA()).startsWith('L-sit'),
+      'Scelto il L-sit, il blocco deve dire che stai facendo il L-sit.',
+    );
+
+    const matitaA = page.locator('main button').filter({ hasText: '✎' }).first();
+    if ((await matitaA.count()) > 0) {
+      await matitaA.click();
+      await page.waitForTimeout(700);
+      const gradino = await page
+        .locator('main li button[aria-pressed="true"]')
+        .first()
+        .innerText()
+        .catch(() => '');
+      check(
+        gradino.startsWith('6'),
+        `Scegliendo un’alternativa a mano si va al suo gradino, non a quello del tetto: selezionato ${JSON.stringify(gradino.replace(/\n/g, ' '))}.`,
+      );
+    }
+  }
+
+  /*
+   * Dove non c'è una scala, la seduta deve dire come si progredisce: sui
+   * manubri è il peso, e sei gradini inventati sarebbero rumore.
+   */
+  await page.goto(`${BASE}/#/seduta/upper-b`, { waitUntil: 'load' });
+  await page.waitForTimeout(1500);
+  for (let i = 0; i < 30; i += 1) {
+    if ((await page.locator('h1').first().innerText()).includes('· C2')) break;
+    const avantiC2 = page.getByRole('button', { name: /serie \d+ ›$/ });
+    if ((await avantiC2.count()) === 0) break;
+    await avantiC2.click();
+    await page.waitForTimeout(170);
+  }
+  const matitaCurl = page.locator('main button').filter({ hasText: '✎' }).first();
+  if ((await matitaCurl.count()) > 0) {
+    await matitaCurl.click();
+    await page.waitForTimeout(700);
+    check(
+      (await page.getByText('la progressione è il peso').count()) > 0,
+      'Un esercizio senza scala deve dire qual è la sua progressione, non lasciare un campo vuoto.',
+    );
+  }
+
   /* -------- Recupero tra i blocchi e ritorno sulla serie giusta ---------- */
 
   /*

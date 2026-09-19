@@ -97,8 +97,8 @@ const EXERCISE_LIST = [
   {
     slug: 'dead-hang',
     name: 'Dead hang',
-    pattern: null,
-    defaultLevel: null,
+    pattern: 'hang',
+    defaultLevel: 2,
     primaryMuscles: [],
     secondaryMuscles: ['braccia', 'dorsali'],
     measurement: 'seconds',
@@ -489,8 +489,8 @@ const EXERCISE_LIST = [
   {
     slug: 'wall-sit',
     name: 'Wall sit isometrico',
-    pattern: null,
-    defaultLevel: null,
+    pattern: 'wall-sit',
+    defaultLevel: 2,
     primaryMuscles: ['quadricipiti'],
     secondaryMuscles: [],
     measurement: 'seconds',
@@ -706,23 +706,50 @@ const EXERCISE_LIST = [
       videoQuery: 'trx rollout proper form tutorial',
     },
   },
+  /*
+   * La riga della scheda dice «Skill: hollow hold / L-sit / verticale al
+   * muro»: tre esercizi diversi in un titolo solo, che non dice quale stai
+   * facendo. Sono tre skill separate, ognuna con la propria scala e il proprio
+   * storico; il blocco A dello Shadow le offre tutte e tre e tu ne scegli una.
+   * L'hollow hold è quello già misurato dal test della settimana 0, quindi è
+   * lo stesso esercizio: il progresso non si sdoppia.
+   */
   {
-    slug: 'skill-isometrica',
-    name: 'Skill: hollow hold / L-sit / verticale al muro',
+    slug: 'l-sit',
+    name: 'L-sit',
     pattern: 'core',
-    defaultLevel: 3,
+    defaultLevel: 6,
     primaryMuscles: ['core'],
-    secondaryMuscles: ['spalle'],
+    secondaryMuscles: ['spalle', 'braccia'],
     measurement: 'seconds',
     loadPolicy: 'forbidden',
     cues: [
-      'Scegli una sola skill per ciclo e registrala nel campo Variante/Livello: cambiarla ogni settimana azzera il confronto.',
-      'Hollow hold: lombare a terra. L-sit: spalle depresse e ginocchia alte. Verticale: costole chiuse e bacino sotto le spalle.',
-      'La skill va a inizio seduta, da fresco: dopo il cedimento non si impara nulla.',
-      'Errore tipico: tenere la posizione oltre il punto in cui la forma si rompe, per far salire il cronometro.',
-      'Misura valida: il tempo si ferma alla prima perdita di posizione, non all’esaurimento.',
+      'Mani a terra o su due rialzi, spalle depresse: non scrollare verso le orecchie.',
+      'Parti in tuck, ginocchia al petto, e apri le gambe solo quando la posizione regge.',
+      'Bacino leggermente retroverso e lombare chiusa, altrimenti le gambe scendono da sole.',
+      'Errore tipico: braccia piegate e spalle alte, che trasformano il L-sit in una sospensione.',
+      'Misura valida: il tempo si ferma quando i talloni toccano o le spalle salgono.',
     ],
-    videoQuery: 'l sit hollow hold wall handstand skill progression tutorial',
+    videoQuery: 'l sit progression tuck to full tutorial',
+    alternative: null,
+  },
+  {
+    slug: 'verticale-al-muro',
+    name: 'Verticale al muro',
+    pattern: 'handstand',
+    defaultLevel: 2,
+    primaryMuscles: ['spalle'],
+    secondaryMuscles: ['core'],
+    measurement: 'seconds',
+    loadPolicy: 'forbidden',
+    cues: [
+      'Mani a larghezza spalle, dita aperte: si corregge spingendo sui polpastrelli.',
+      'Costole chiuse e bacino sotto le spalle: la schiena inarcata scarica sulle lombari.',
+      'Spingi attivamente il pavimento, spalle lontane dalle orecchie.',
+      'Errore tipico: appoggiarsi al muro e restarci, che allena l’attesa e non la posizione.',
+      'Misura valida: il tempo si ferma alla prima perdita di allineamento, non alla caduta.',
+    ],
+    videoQuery: 'wall handstand hold progression tutorial',
     alternative: null,
   },
 

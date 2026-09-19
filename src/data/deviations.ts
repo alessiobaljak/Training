@@ -51,6 +51,12 @@ export const DEVIAZIONI: readonly Deviazione[] = [
       'Scelta dell’utente: con l’elastico il carico era troppo leggero per arrivare a RIR 0-1 dentro 12-15 ripetizioni. Il peso si registra sempre ma non è zavorra, come per le alzate laterali: non segue i passi da 2,5 kg e non entra nell’ordine delle leve. L’illustrazione era già quella con i manubri.',
   },
   {
+    scheda: 'Skill: hollow hold / L-sit / verticale al muro',
+    app: 'Hollow hold',
+    motivo:
+      'Un titolo che nomina tre esercizi non dice quale stai facendo, e i tre hanno tecniche e storici diversi. Divisi su richiesta dell’utente: hollow hold, L-sit e verticale al muro sono tre skill separate, ognuna con la propria scala, e il blocco A dello Shadow le offre tutte e tre. L’hollow hold è quello già misurato dal test della settimana 0, quindi è lo stesso esercizio e il progresso non si sdoppia.',
+  },
+  {
     scheda: 'Sissy squat o wall sit isometrico 45"',
     app: 'Sissy squat',
     motivo:

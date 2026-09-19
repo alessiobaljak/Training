@@ -162,19 +162,52 @@ const AGGIUNTE: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
       'Con eccentrica 5"',
     ],
   ],
+  [
+    'handstand',
+    [
+      'Plank a mani alte contro il muro',
+      'Verticale al muro, schiena al muro',
+      'Verticale al muro, pancia al muro',
+      'Verticale al muro con una gamba staccata',
+      'Tentativi di verticale libera',
+      'Verticale libera tenuta',
+    ],
+  ],
+  [
+    'wall-sit',
+    [
+      'Sopra il parallelo',
+      'Cosce parallele a 90°',
+      'A 90° con le braccia incrociate',
+      'A 90° con una gamba sollevata',
+      'Monopodalico, coscia parallela',
+      'Monopodalico con il piede su un rialzo',
+    ],
+  ],
+  [
+    'hang',
+    [
+      'Sospensione con i piedi che sfiorano terra',
+      'Dead hang a due mani',
+      'Dead hang con presa a pinza sulla trave',
+      'Dead hang a una mano con l’altra sul polso',
+      'Dead hang a una mano',
+      'Dead hang a una mano su asciugamano',
+    ],
+  ],
 ];
 
-describe('progressions.ts — 13 scale da 6 livelli', () => {
+describe('progressions.ts — 16 scale da 6 livelli', () => {
   it('copre tutti e soli gli schemi motori dichiarati', () => {
-    expect(PROGRESSION_SCALES).toHaveLength(13);
+    expect(PROGRESSION_SCALES).toHaveLength(16);
     expect(PROGRESSION_SCALES.map((s) => s.pattern)).toEqual([...MOTOR_PATTERNS]);
   });
 
-  it('le otto del foglio e le cinque aggiunte coprono tutto, senza sovrapporsi', () => {
+  it('le otto del foglio e le otto aggiunte coprono tutto, senza sovrapporsi', () => {
     const dalFoglio = EXPECTED.map(([pattern]) => pattern);
     const aggiunte = AGGIUNTE.map(([pattern]) => pattern);
     expect(dalFoglio).toHaveLength(8);
-    expect(aggiunte).toHaveLength(5);
+    expect(aggiunte).toHaveLength(8);
     expect([...dalFoglio, ...aggiunte].sort()).toEqual([...MOTOR_PATTERNS].sort());
   });
 
@@ -192,8 +225,8 @@ describe('progressions.ts — 13 scale da 6 livelli', () => {
 
   it('usa slug di livello unici in tutto il seed', () => {
     const slugs = PROGRESSION_SCALES.flatMap((s) => s.steps.map((step) => step.slug));
-    expect(slugs).toHaveLength(78);
-    expect(new Set(slugs).size).toBe(78);
+    expect(slugs).toHaveLength(96);
+    expect(new Set(slugs).size).toBe(96);
   });
 
   it('getProgressionStep restituisce il gradino richiesto', () => {

@@ -65,7 +65,7 @@ describe('exercises.ts — anagrafica', () => {
       ...PROGRAM_SESSIONS.flatMap((s) => s.blocks.map((b) => b.exercise)),
       /* Anche la seconda scelta di un blocco è un esercizio usato. */
       ...PROGRAM_SESSIONS.flatMap((s) =>
-        s.blocks.flatMap((b) => (b.alternative === undefined ? [] : [b.alternative.exercise])),
+        s.blocks.flatMap((b) => (b.alternatives ?? []).map((entry) => entry.exercise)),
       ),
       ...WEEK_ZERO_TESTS.map((t) => t.exercise),
     ]);
@@ -83,7 +83,8 @@ describe('politica zavorra', () => {
       'hanging-leg-raise',
       'hollow-hold',
       'ab-wheel-o-rollout-trx',
-      'skill-isometrica',
+      'l-sit',
+      'verticale-al-muro',
     ]) {
       expect(getExercise(slug).loadPolicy, slug).toBe('forbidden');
     }
@@ -124,7 +125,7 @@ describe('politica zavorra', () => {
 
 describe('misurazione', () => {
   it('misura in secondi le isometrie', () => {
-    for (const slug of ['hollow-hold', 'dead-hang', 'skill-isometrica']) {
+    for (const slug of ['hollow-hold', 'dead-hang', 'l-sit', 'verticale-al-muro', 'wall-sit']) {
       expect(getExercise(slug).measurement, slug).toBe('seconds');
     }
   });

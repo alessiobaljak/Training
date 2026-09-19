@@ -413,7 +413,7 @@ export function SettingsScreen() {
             >
               repdb.co
             </a>
-            . Trentuno esercizi su trentotto; per gli altri le figure sono disegnate qui.
+            . Trenta esercizi su trentanove; per gli altri le figure sono disegnate qui.
           </p>
         </Card>
 

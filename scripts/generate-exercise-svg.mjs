@@ -165,6 +165,17 @@ const ARCHETYPES = {
     ];
   },
 
+  /* Isometria: una posa sola, il corpo in linea sopra le mani contro il muro. */
+  handstand: () => [
+    wall(88) + floor() +
+      figure({
+        he: [60, 84], ne: [58, 76], hi: [56, 46],
+        sh: [58, 76], el: [58, 90], ha: [58, FLOOR - 2],
+        sh2: [58, 76], el2: [58, 90], ha2: [58, FLOOR - 2],
+        kn: [56, 28], fo: [56, 10],
+      }),
+  ],
+
   hspu: () => [
     wall(90) + floor() +
       figure({
@@ -391,7 +402,8 @@ const EXERCISES = {
   'hollow-hold': ['hollow', {}, 'Hollow hold: lombare a terra, braccia e gambe distese'],
   'hanging-leg-raise': ['leg-raise', {}, 'Hanging leg raise: gambe distese, poi anche a 90 gradi'],
   'ab-wheel-o-rollout-trx': ['ab-wheel', {}, 'Ab wheel: in ginocchio, poi corpo esteso con lombare neutra'],
-  'skill-isometrica': ['lsit', {}, 'Skill isometrica: posizione tenuta, spalle depresse'],
+  'l-sit': ['lsit', {}, 'L-sit: mani a terra, gambe distese davanti, spalle depresse'],
+  'verticale-al-muro': ['handstand', {}, 'Verticale al muro: corpo in linea sopra le mani'],
   'alzate-laterali-elastico': ['band-raise', {}, 'Alzate laterali: braccia lungo i fianchi, poi all altezza delle spalle'],
   'face-pull-elastico': ['face-pull', {}, 'Face pull: braccia distese, poi gomiti alti verso la fronte'],
   'curl-elastico-presa-neutra': ['curl', {}, 'Curl con elastico: braccia distese, poi avambraccio flesso'],

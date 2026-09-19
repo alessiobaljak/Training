@@ -139,10 +139,10 @@ export function setVariant(
  * ripetizioni di sissy squat. Una volta sola, per tutti.
  */
 export function effectiveBlock(block: ProgramBlock, session: LoggedSession): ProgramBlock {
-  const alternative = block.alternative;
-  if (alternative === undefined) return block;
   const chosen = findLoggedExercise(session, block.code)?.exercise;
-  if (chosen !== alternative.exercise) return block;
+  if (chosen === undefined || chosen === block.exercise) return block;
+  const alternative = (block.alternatives ?? []).find((entry) => entry.exercise === chosen);
+  if (alternative === undefined) return block;
   return { ...block, exercise: alternative.exercise, prescription: alternative.prescription };
 }
 

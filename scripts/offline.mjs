@@ -236,7 +236,7 @@ try {
   await open(page, `${BASE}/#/esercizi`);
   await page.waitForTimeout(900);
   check(
-    (await page.getByText('38 schede').count()) > 0,
+    (await page.getByText('39 schede').count()) > 0,
     'Senza rete la libreria deve elencare tutti gli esercizi.',
   );
 
@@ -247,7 +247,7 @@ try {
   /*
    * L'illustrazione deve comparire davvero, non solo essere nel markup.
    *
-   * Trentuno esercizi su trentotto usano un'immagine webp, che il service
+   * Trenta esercizi su trentanove usano un'immagine webp, che il service
    * worker mette in cache insieme al resto del build. Contare gli elementi non
    * basterebbe: un'immagine non caricata è un elemento presente e un rettangolo
    * vuoto. `naturalWidth` è maggiore di zero solo se i byte sono arrivati.
