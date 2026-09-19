@@ -258,7 +258,37 @@ export function buildSessionPlan(
     }
   });
 
-  return steps;
+  /*
+   * Tra un blocco e il successivo il recupero non è zero.
+   *
+   * L'ultima serie di ogni blocco nasceva senza recupero, perché il piano lo
+   * leggeva come «qui finisce il blocco». Il risultato in palestra era che tra
+   * la quarta serie di B e la prima di C non compariva nessuna pausa: si
+   * passava da un esercizio all'altro a freddo. La colonna della scheda dice
+   * quanto recuperare dopo una serie di quel blocco, e l'ultima serie è
+   * comunque una serie di quel blocco.
+   *
+   * Solo l'ultimo passo della seduta resta senza: dopo non c'è più niente. E
+   * dove la scheda non prescrive nessun recupero — i blocchi a durata della
+   * zona 2 — `straightRest` e `roundRest` restituiscono comunque «nessuno», per
+   * cui qui non si inventa niente.
+   */
+  const ultimo = steps.length - 1;
+  return steps.map((step, index) => {
+    if (index === ultimo || step.rest.kind !== 'none') return step;
+    const block = session.blocks.find((entry) => entry.code === step.blockCode);
+    if (block === undefined) return step;
+    const recupero = block.pairing === 'superset' ? roundRest(block) : straightRest(block);
+    if (recupero.kind === 'none') return step;
+    const dopo = steps[index + 1];
+    const stessoBlocco = dopo !== undefined && dopo.blockCode === step.blockCode;
+    return {
+      ...step,
+      rest: stessoBlocco
+        ? recupero
+        : { ...recupero, hint: 'Ultima serie del blocco: recupera prima di passare al prossimo esercizio.' },
+    };
+  });
 }
 
 /** Numero di serie da eseguire in una seduta, scarico compreso. */

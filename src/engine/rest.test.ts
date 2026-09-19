@@ -26,9 +26,19 @@ describe('piano della seduta — superserie', () => {
     expect(groupA[1]?.rest.seconds).toBe(90);
   });
 
-  it('dopo l’ultimo giro della coppia non c’è recupero prescritto', () => {
+  /*
+   * L'ultima serie di un blocco ha il recupero del blocco, non zero.
+   *
+   * Prima nasceva senza: in palestra voleva dire passare dall'ultima serie di
+   * un esercizio alla prima del successivo senza nessuna pausa. La colonna
+   * della scheda dice quanto recuperare dopo una serie di quel blocco, e
+   * l'ultima serie è comunque una serie di quel blocco.
+   */
+  it('dopo l’ultimo giro della coppia si recupera come negli altri giri', () => {
     const groupA = plan.filter((step) => step.group === 'A');
-    expect(groupA.at(-1)?.rest.kind).toBe('none');
+    expect(groupA.at(-1)?.rest.kind).toBe('round');
+    expect(groupA.at(-1)?.rest.seconds).toBe(90);
+    expect(groupA.at(-1)?.rest.hint).toContain('prossimo esercizio');
   });
 
   it('quando i due esercizi hanno serie diverse, l’ultimo giro si fa da soli', () => {
@@ -36,7 +46,7 @@ describe('piano della seduta — superserie', () => {
     const groupC = plan.filter((step) => step.group === 'C');
     expect(codesOf(groupC)).toEqual(['C1', 'C2', 'C1', 'C2', 'C1', 'C2', 'C1']);
     expect(groupC.at(-1)?.setIndex).toBe(4);
-    expect(groupC.at(-1)?.rest.kind).toBe('none');
+    expect(groupC.at(-1)?.rest.kind).toBe('round');
   });
 
   it('il recupero lungo resta anche nel giro che precede quello spaiato', () => {
@@ -145,14 +155,32 @@ describe('coerenza del piano su tutte le sedute', () => {
     }
   });
 
-  it('ogni gruppo si chiude senza recupero prescritto', () => {
+  /*
+   * Solo l'ultimo passo della seduta resta senza recupero: dopo non c'è più
+   * niente. Tutti gli altri hanno quello che la scheda prescrive per il loro
+   * blocco — e dove la scheda non ne prescrive nessuno, come i blocchi a
+   * durata della zona 2, resta nessuno.
+   */
+  it('solo l’ultimo passo della seduta resta senza recupero', () => {
     for (const session of PROGRAM_SESSIONS) {
       const plan = buildSessionPlan(session, 1);
-      const groups = [...new Set(plan.map((step) => step.group))];
-      for (const group of groups) {
-        const last = plan.filter((step) => step.group === group).at(-1);
-        expect(last?.rest.kind, `${session.id}/${group}`).toBe('none');
+      for (const [index, step] of plan.entries()) {
+        if (index === plan.length - 1) continue;
+        const block = session.blocks.find((entry) => entry.code === step.blockCode);
+        const prescriveRecupero = block !== undefined && block.rest.kind !== 'none';
+        if (!prescriveRecupero) continue;
+        expect(step.rest.kind, `${session.id}/${step.blockCode} serie ${String(step.setIndex)}`).not.toBe(
+          'none',
+        );
       }
+      expect(plan.at(-1)?.rest.kind, `${session.id}/fine`).toBe('none');
+    }
+  });
+
+  it('dove la scheda non prescrive recuperi non se ne inventano', () => {
+    /* La zona 2: camminata, corsa e mobilità di seguito, senza pause. */
+    for (const step of buildSessionPlan(getSession('zona-2'), 1)) {
+      expect(step.rest.kind, step.blockCode).toBe('none');
     }
   });
 

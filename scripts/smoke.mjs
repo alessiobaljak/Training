@@ -769,6 +769,78 @@ try {
     `Cambiando seduta il player non deve finire fuori dal piano (veniva da ${JSON.stringify(finePiano)}).`,
   );
 
+  /* -------- Recupero tra i blocchi e ritorno sulla serie giusta ---------- */
+
+  /*
+   * Due cose viste nello stesso sabato.
+   *
+   * L'ultima serie di ogni blocco nasceva senza recupero: si passava
+   * dall'ultima serie di un esercizio alla prima del successivo senza nessuna
+   * pausa, su tutti i blocchi di tutte le sedute.
+   *
+   * E le lettere dei blocchi riportavano sempre alla serie 1: chi andava a
+   * sbirciare un altro esercizio e tornava si ritrovava all'inizio del
+   * proprio, con le serie già registrate da riattraversare a una a una.
+   */
+  await page.goto(`${BASE}/#/seduta/shadow`, { waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+
+  const serieMostrata = async () =>
+    (/Serie\n\n(\d+\/\d+)/.exec(await page.locator('main').innerText()))?.[1] ?? '?';
+
+  /* Le tre serie del blocco A: anche l'ultima deve avere un recupero. */
+  const recuperiA = [];
+  for (let k = 0; k < 3; k += 1) {
+    const campiA = page.locator('input[type=number]');
+    for (let j = 0; j < (await campiA.count()); j += 1) await campiA.nth(j).fill('35');
+    await page.waitForTimeout(140);
+    const fattaA = page.getByRole('button', { name: 'Serie fatta' });
+    if ((await fattaA.count()) === 0 || (await fattaA.isDisabled())) break;
+    const quale = await serieMostrata();
+    await fattaA.click();
+    await page.waitForTimeout(400);
+    const barra = page.getByTestId('rest-bar');
+    recuperiA.push(`${quale}:${(await barra.count()) > 0 ? String(await barra.getAttribute('data-total')) : 'nessuno'}`);
+    const saltaA = page.getByRole('button', { name: /Salta/ }).first();
+    if ((await saltaA.count()) > 0) { await saltaA.click(); await page.waitForTimeout(150); }
+  }
+  check(
+    recuperiA.length === 3 && !recuperiA.some((riga) => riga.endsWith('nessuno')),
+    `Anche l’ultima serie di un blocco deve avere un recupero: ${recuperiA.join(', ')}.`,
+  );
+
+  /* Registro due serie di B, ne scrivo una terza, esco e torno. */
+  await page.getByRole('button', { name: 'B', exact: true }).click();
+  await page.waitForTimeout(500);
+  for (let k = 0; k < 2; k += 1) {
+    const campiB = page.locator('input[type=number]');
+    for (let j = 0; j < (await campiB.count()); j += 1) await campiB.nth(j).fill('18');
+    await page.waitForTimeout(140);
+    await page.getByRole('button', { name: 'Serie fatta' }).click();
+    await page.waitForTimeout(380);
+    const saltaB = page.getByRole('button', { name: /Salta/ }).first();
+    if ((await saltaB.count()) > 0) { await saltaB.click(); await page.waitForTimeout(150); }
+  }
+
+  const serieAperta = await serieMostrata();
+  const campiTerza = page.locator('input[type=number]');
+  for (let j = 0; j < (await campiTerza.count()); j += 1) await campiTerza.nth(j).fill('16');
+  await page.waitForTimeout(200);
+
+  await page.getByRole('button', { name: 'D', exact: true }).click();
+  await page.waitForTimeout(600);
+  await page.getByRole('button', { name: 'B', exact: true }).click();
+  await page.waitForTimeout(700);
+
+  check(
+    (await serieMostrata()) === serieAperta,
+    `Tornando su un blocco si riprende dalla serie da fare (${serieAperta}), non dalla prima: trovata ${await serieMostrata()}.`,
+  );
+  check(
+    (await page.locator('input[type=number]').evaluateAll((els) => els.map((el) => el.value))).includes('16'),
+    'Tornando sul blocco i valori scritti e non registrati devono essere ancora lì.',
+  );
+
   /* ---------------- Sedute doppie e sedute fantasma ---------------------- */
 
   /*

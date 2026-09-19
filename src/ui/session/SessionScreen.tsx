@@ -334,9 +334,19 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           </Card>
         ) : null}
 
+        {/*
+          Le lettere dei blocchi portano alla prima serie *da fare* di quel
+          blocco, non alla prima in assoluto. Prima riportavano sempre alla
+          serie 1: chi andava a sbirciare un altro esercizio e tornava si
+          ritrovava all'inizio del proprio, con le serie già registrate da
+          riattraversare una a una.
+        */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {groups.map((group) => {
             const first = plan.findIndex((entry) => entry.group === group);
+            const pending = plan.findIndex(
+              (entry) => entry.group === group && !isStepLogged(draft, entry),
+            );
             const groupSteps = plan.filter((entry) => entry.group === group);
             const groupDone = groupSteps.every((entry) => isStepLogged(draft, entry));
             const active = group === step.group;
@@ -344,7 +354,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
               <button
                 key={group}
                 type="button"
-                onClick={() => { goToStep(first); }}
+                onClick={() => { goToStep(pending === -1 ? first : pending); }}
                 aria-pressed={active}
                 className={`min-h-12 min-w-14 shrink-0 rounded-xl border px-3 font-mono text-sm font-semibold ${
                   active
