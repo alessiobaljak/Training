@@ -11,7 +11,7 @@ import type {
   ProgramSession,
   Side,
 } from '../types/index.ts';
-import { getExercise } from '../data/exercises.ts';
+import { findExercise, getExercise } from '../data/exercises.ts';
 import { effectiveSets } from './schedule.ts';
 import type { SessionStep } from './rest.ts';
 
@@ -277,4 +277,68 @@ export function suggestedSetValue(
 export function plannedSets(session: ProgramSession, blockCode: string, week: number): number {
   const block = session.blocks.find((entry) => entry.code === blockCode);
   return block === undefined ? 0 : effectiveSets(block.sets, week);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Quello che scrivi torna nello stato                                         */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Stati aggiornati con quello che la seduta ha davvero registrato.
+ *
+ * `ExerciseState` era scritto solo accettando un suggerimento, e il carico non
+ * lo leggeva nessuno: il player precompilava i kg dall'ultima riga di log, non
+ * dallo stato. Accettare «aggiungi zavorra» cambiava quindi un numero che
+ * nessuno guardava, e la volta dopo ricompariva il peso vecchio.
+ *
+ * Qui lo stato diventa quello che è sempre dovuto essere: il carico e il
+ * gradino attuali. Si sincronizza alla chiusura della seduta, così una
+ * correzione fatta a mano nel player — due kg in più di manubrio, un livello
+ * sceso perché oggi non ne usciva una — vale come una decisione presa, senza
+ * doverla ripetere in un'altra schermata.
+ *
+ * Restituisce solo gli stati cambiati: chi chiama li salva, e una seduta che
+ * non ha spostato niente non riscrive niente.
+ */
+export function syncStatesFromLog(
+  session: LoggedSession,
+  states: ReadonlyMap<ExerciseSlug, ExerciseState>,
+): ExerciseState[] {
+  const changed: ExerciseState[] = [];
+
+  for (const logged of session.exercises) {
+    if (logged.sets.length === 0) continue;
+
+    /*
+     * Una bozza aperta prima di un cambio di anagrafica può contenere uno slug
+     * che non esiste più — è successo davvero, spezzando «sissy squat o wall
+     * sit» in due esercizi a metà settimana. `getExercise` lancia: farlo qui
+     * vorrebbe dire una seduta che non si chiude più.
+     */
+    const exercise = findExercise(logged.exercise);
+    if (exercise === undefined) continue;
+
+    const before = states.get(logged.exercise) ?? {
+      exercise: logged.exercise,
+      level: logged.level,
+      eccentricBonusSeconds: 0,
+      bottomPauseBonusSeconds: 0,
+      loadKg: 0,
+    };
+
+    /*
+     * Il carico si prende dal massimo registrato, non dall'ultima serie: chi
+     * cala all'ultima serie perché era finita non ha cambiato manubrio.
+     * Dove il peso non è registrabile resta quello che c'era: uno zero scritto
+     * in un campo che non esiste cancellerebbe una zavorra vera.
+     */
+    const maxLoad = logged.sets.reduce((max, set) => Math.max(max, set.loadKg), 0);
+    const loadKg = exercise.loadPolicy === 'forbidden' ? before.loadKg : maxLoad;
+    const level = logged.level ?? before.level;
+
+    if (level === before.level && loadKg === before.loadKg) continue;
+    changed.push({ ...before, level, loadKg });
+  }
+
+  return changed;
 }

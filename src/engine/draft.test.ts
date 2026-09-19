@@ -15,6 +15,7 @@ import {
   setTempoRespected,
   setVariant,
   suggestedSetValue,
+  syncStatesFromLog,
   upsertLoggedSet,
   variantLabelFor,
 } from './draft.ts';
@@ -23,7 +24,7 @@ import { initialExerciseState } from './progression.ts';
 import { getSession } from '../data/program.ts';
 import { getExercise } from '../data/exercises.ts';
 import { loggedExercise, loggedSession, perSideSets, set, sets } from './__fixtures.ts';
-import type { ExerciseSlug, ExerciseState, LoggedExercise } from '../types/index.ts';
+import type { ExerciseSlug, ExerciseState, LevelIndex, LoggedExercise } from '../types/index.ts';
 
 const upperA = getSession('upper-a');
 const lowerA = getSession('lower-a');
@@ -378,5 +379,110 @@ describe('serie previste per blocco', () => {
 
   it('valgono zero per un blocco che non esiste', () => {
     expect(plannedSets(upperA, 'Z9', 1)).toBe(0);
+  });
+});
+
+describe('quello che scrivi torna nello stato', () => {
+  /*
+   * `ExerciseState` era scritto solo accettando un suggerimento, e il carico
+   * non lo leggeva nessuno: il player precompilava i kg dall'ultima riga di
+   * log. Accettare «aggiungi zavorra» cambiava un numero che nessuno guardava.
+   */
+  const stato = (slug: string, level: LevelIndex | null, loadKg: number): ExerciseState => ({
+    exercise: slug,
+    level,
+    eccentricBonusSeconds: 0,
+    bottomPauseBonusSeconds: 0,
+    loadKg,
+  });
+
+  it('porta nello stato il carico davvero usato', () => {
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('chin-up-presa-supina-stretta', sets([8, 8, 7], 5), { blockCode: 'D' }),
+    ]);
+
+    const changed = syncStatesFromLog(session, new Map([
+      ['chin-up-presa-supina-stretta', stato('chin-up-presa-supina-stretta', 3, 0)],
+    ]));
+
+    expect(changed).toHaveLength(1);
+    expect(changed[0]?.loadKg).toBe(5);
+  });
+
+  it('prende il massimo, non l’ultima serie', () => {
+    // Chi cala all'ultima serie perché era finita non ha cambiato manubrio.
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('alzate-laterali-elastico', [
+        set(1, 15, { loadKg: 8 }),
+        set(2, 14, { loadKg: 8 }),
+        set(3, 12, { loadKg: 6 }),
+      ], { blockCode: 'C1' }),
+    ]);
+
+    expect(syncStatesFromLog(session, new Map())[0]?.loadKg).toBe(8);
+  });
+
+  it('non tocca niente quando la seduta conferma quello che c’era', () => {
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('chin-up-presa-supina-stretta', sets([8, 8, 7], 5), { blockCode: 'D' }),
+    ]);
+
+    expect(syncStatesFromLog(session, new Map([
+      ['chin-up-presa-supina-stretta', stato('chin-up-presa-supina-stretta', 3, 5)],
+    ]))).toHaveLength(0);
+  });
+
+  it('ignora i blocchi senza serie registrate', () => {
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('chin-up-presa-supina-stretta', [], { blockCode: 'D' }),
+    ]);
+
+    expect(syncStatesFromLog(session, new Map())).toHaveLength(0);
+  });
+
+  it('dove la zavorra è vietata non azzera quella che c’era', () => {
+    /*
+     * Sugli esercizi fuori dalla whitelist il campo kg non viene nemmeno
+     * disegnato, quindi ogni serie registra zero. Leggere quello zero come
+     * «oggi ha usato zero» cancellerebbe un carico deciso altrove.
+     */
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('alzate-laterali-elastico', sets([15, 15, 15], 0), { blockCode: 'C1' }),
+    ]);
+    const primo = syncStatesFromLog(session, new Map([
+      ['alzate-laterali-elastico', stato('alzate-laterali-elastico', null, 8)],
+    ]));
+    // Le alzate registrano il peso: uno zero scritto lì è una correzione vera.
+    expect(primo[0]?.loadKg).toBe(0);
+
+    const vietata = loggedSession('2026-01-05', 1, [
+      loggedExercise('hollow-hold', sets([30, 30, 30], 0), { blockCode: 'A' }),
+    ]);
+    expect(syncStatesFromLog(vietata, new Map([
+      ['hollow-hold', stato('hollow-hold', 3, 2.5)],
+    ]))).toHaveLength(0);
+  });
+
+  it('non si ferma su un esercizio che non esiste più', () => {
+    // È successo: «sissy squat o wall sit» spezzato in due a metà settimana,
+    // con una bozza aperta che teneva ancora il vecchio slug.
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('sissy-squat-o-wall-sit', sets([12, 12, 12]), { blockCode: 'C2' }),
+      loggedExercise('chin-up-presa-supina-stretta', sets([8, 8, 7], 5), { blockCode: 'D' }),
+    ]);
+
+    const changed = syncStatesFromLog(session, new Map());
+    expect(changed.map((state) => state.exercise)).toEqual(['chin-up-presa-supina-stretta']);
+  });
+
+  it('porta nello stato il livello scelto nel player', () => {
+    const session = loggedSession('2026-01-05', 1, [
+      loggedExercise('chin-up-presa-supina-stretta', sets([8, 8, 7]), { blockCode: 'D' }),
+    ]);
+
+    // Il fixture registra il livello 3; lo stato era fermo al 2.
+    expect(syncStatesFromLog(session, new Map([
+      ['chin-up-presa-supina-stretta', stato('chin-up-presa-supina-stretta', 2, 0)],
+    ]))[0]?.level).toBe(3);
   });
 });

@@ -22,6 +22,7 @@ import {
   signInForTests,
   startEmulators,
   stopGroup,
+  updateInEmulator,
   writeToEmulator,
 } from './testenv.mjs';
 
@@ -769,6 +770,70 @@ try {
     `Cambiando seduta il player non deve finire fuori dal piano (veniva da ${JSON.stringify(finePiano)}).`,
   );
 
+  /* ------------------ La scala si tocca, non si guarda ------------------- */
+
+  /*
+   * Nella scheda di un esercizio i gradini erano righe morte: si vedeva a che
+   * livello si è e non si poteva toccare nient'altro, mentre la cosa che si
+   * vuole fare guardando una scala è capire cosa c'è prima e cosa c'è dopo, e
+   * spostarsi senza dover aprire una seduta.
+   */
+  await page.goto(`${BASE}/#/esercizi/trazioni-presa-larga`, { waitUntil: 'load' });
+  await page.waitForTimeout(1400);
+
+  /*
+   * Niente filtro sul nome: il gradino 5 della trazione verticale si chiama
+   * «Archer / L-sit pull-up» e un filtro su «Trazioni» ne trovava cinque su
+   * sei. Nella pagina l'unica lista di pulsanti è la scala.
+   */
+  const gradini = page.locator('main ul li > button');
+  check(
+    (await gradini.count()) === 6,
+    `I sei gradini della scala devono essere pulsanti, non righe da guardare. Trovati ${String(await gradini.count())}.`,
+  );
+
+  if ((await gradini.count()) === 6) {
+    /* Il gradino attuale porta il badge "Ora": se ne tocca un altro. */
+    const indiceAttuale = await page.evaluate(() =>
+      [...document.querySelectorAll('main ul li > button')].findIndex((nodo) =>
+        nodo.innerText.includes('Ora'),
+      ),
+    );
+    check(indiceAttuale >= 0, 'La scala deve dire su quale gradino sei ora.');
+
+    const altro = indiceAttuale === 0 ? 1 : 0;
+    const nomeAltro = (await gradini.nth(altro).innerText()).split('\n')[1] ?? '';
+    await gradini.nth(altro).click();
+    await page.waitForTimeout(400);
+
+    const aperto = await page.locator('main').innerText();
+    check(
+      aperto.includes('più facile di dove sei') || aperto.includes('più difficile di dove sei'),
+      `Toccando un gradino si deve capire com'è rispetto a dove sei. Letto: ${JSON.stringify(aperto.slice(0, 400))}`,
+    );
+
+    const passa = page.getByRole('button', { name: 'Passa a questo livello' });
+    check(
+      (await passa.count()) === 1,
+      'Da un gradino diverso dal proprio si deve poter passare a quel livello.',
+    );
+
+    if ((await passa.count()) === 1) {
+      await passa.click();
+      await page.waitForTimeout(1500);
+      const dopoIlSalto = await page.evaluate(() => {
+        const nodo = [...document.querySelectorAll('main ul li > button')].find((b) =>
+          b.innerText.includes('Ora'),
+        );
+        return nodo === undefined ? '' : nodo.innerText;
+      });
+      check(
+        dopoIlSalto.includes(nomeAltro) && nomeAltro !== '',
+        `Cambiato livello dalla scheda, la scala deve mostrare "${nomeAltro}" come gradino attuale. Legge "${dopoIlSalto.replace(/\n/g, ' ')}".`,
+      );
+    }
+  }
+
   /* ------------------ Un titolo, un esercizio --------------------------- */
 
   /*
@@ -1164,6 +1229,99 @@ try {
     custom === 'https://example.com/il-mio-video',
     `Salvando un link valido il pulsante deve aprirlo. Letto "${String(custom)}".`,
   );
+
+  /* ------------------ La settimana chiusa si rivede --------------------- */
+
+  /*
+   * Finita la settimana 1, la settimana 2 era identica alla settimana 1.
+   *
+   * Il motore delle leve proponeva solo a fine seduta, una volta, e solo se si
+   * rispondeva alla domanda sul tempo: chi chiudeva l'app prima del riepilogo
+   * si rifaceva sette giorni uguali. La revisione guarda i numeri di tutta la
+   * settimana e resta lì finché non è stata guardata.
+   *
+   * Qui si sposta indietro di sette giorni la data di inizio: la seduta
+   * registrata sopra resta quella che è, con la sua settimana 1 scritta
+   * dentro, e oggi diventa settimana 2.
+   */
+  const impostazioni = await readFromEmulator('settings');
+  const riga = impostazioni[0];
+  if (riga !== undefined) {
+    const lunedi = new Date();
+    lunedi.setDate(lunedi.getDate() - (((lunedi.getDay() + 6) % 7) + 7));
+    const inizio = lunedi.toISOString().slice(0, 10);
+    await updateInEmulator(riga.name, { programStartDate: { stringValue: inizio } });
+
+    await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+    await page.waitForTimeout(2200);
+    const homeRevisione = await page.locator('main').innerText();
+
+    check(
+      homeRevisione.includes('Settimana 1 chiusa'),
+      `Chiusa la settimana, la Home deve proporre di rivederla. Legge: ${JSON.stringify(homeRevisione.slice(0, 300))}`,
+    );
+
+    const apri = page.getByRole('button', { name: 'Rivedi la settimana' });
+    if ((await apri.count()) === 1) {
+      await apri.click();
+      await page.waitForTimeout(1800);
+      const revisione = await page.locator('main').innerText();
+
+      /* Il conteggio sta nel sottotitolo, che vive nell'intestazione. */
+      check(
+        (await page.locator('header').innerText()).includes('serie lette'),
+        'La revisione deve dire su quante serie si regge.',
+      );
+      /*
+       * Il giudizio senza i numeri non si può contestare: la pagina deve
+       * citare le serie e il range su cui si basa.
+       */
+      check(
+        revisione.includes('su un range di'),
+        `Ogni verdetto deve citare i numeri su cui si regge. Legge: ${JSON.stringify(revisione.slice(0, 400))}`,
+      );
+
+      const applica = page.getByRole('button', { name: 'Applica' });
+      const quanti = await applica.count();
+      check(quanti > 0, 'La settimana registrata fuori range deve produrre almeno un verdetto.');
+
+      if (quanti > 0) {
+        /*
+         * L'esercizio, non il titolo del verdetto: applicando si cambia il
+         * livello, e con il livello cambia anche il titolo che la revisione
+         * scriverebbe la volta dopo. Il nome dell'esercizio invece resta.
+         */
+        const primoEsercizio = await page.locator('main span.rounded-full').first().innerText();
+        await applica.first().click();
+        await page.waitForTimeout(1500);
+
+        check(
+          (await page.getByRole('button', { name: 'Applica' }).count()) === quanti - 1,
+          'Deciso un verdetto, quello deve sparire dalla lista.',
+        );
+
+        /* E non deve tornare al prossimo giro: la decisione è registrata. */
+        await page.reload({ waitUntil: 'load' });
+        await page.waitForTimeout(2200);
+        const dopoIlRicarico = await page.locator('main').innerText();
+        check(
+          (await page.getByRole('button', { name: 'Applica' }).count()) === quanti - 1,
+          'Ricaricata la pagina, un verdetto già deciso non deve ripresentarsi.',
+        );
+        check(
+          !dopoIlRicarico.includes(primoEsercizio),
+          `L’esercizio già deciso non deve tornare nella lista. Torna "${primoEsercizio}".`,
+        );
+
+        /* La decisione è finita nello stato, non solo nello schermo. */
+        const stati = await readFromEmulator('exerciseStates');
+        check(
+          stati.length > 0,
+          'Applicando un verdetto lo stato dell’esercizio deve essere scritto nel database.',
+        );
+      }
+    }
+  }
 
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {

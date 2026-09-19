@@ -165,6 +165,28 @@ export async function writeToEmulator(parentPath, collection, documentId, fields
   }
 }
 
+/**
+ * Aggiorna i campi indicati di un documento che esiste già.
+ *
+ * `writeToEmulator` crea, e su un documento esistente l'emulatore risponde
+ * 409: la riga delle impostazioni nasce con l'onboarding e va modificata, non
+ * creata una seconda volta.
+ */
+export async function updateInEmulator(documentName, fields) {
+  const mask = Object.keys(fields)
+    .map((field) => `updateMask.fieldPaths=${encodeURIComponent(field)}`)
+    .join('&');
+  const url = `http://127.0.0.1:${String(FIRESTORE_PORT)}/v1/${documentName}?${mask}`;
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+  if (!response.ok) {
+    throw new Error(`Aggiornamento nell'emulatore fallito: ${String(response.status)}`);
+  }
+}
+
 export async function readFromEmulator(collection) {
   const project = TEST_ENV.VITE_FIREBASE_PROJECT_ID;
   const url =

@@ -365,6 +365,7 @@ mutare quelli in ingresso. La UI non contiene formule.
 |---|---|
 | `ranges.ts` | Range di lavoro dal massimale, offset, posizione della serie |
 | `progression.ts` | Quando scatta l'avanzamento e quale leva proporre |
+| `review.ts` | Cosa cambiare per la settimana prossima, letti sette giorni |
 | `loading.ts` | Se la zavorra è ammessa, quanta, quando calibrarla |
 | `metrics.ts` | Media mobile, delta settimanali, volume, aderenza |
 | `schedule.ts` | Scarico, ritest, settimana del mesociclo |
@@ -375,6 +376,52 @@ mutare quelli in ingresso. La UI non contiene formule.
 
 Il motore **suggerisce, non applica**: `evaluateProgression` restituisce lo
 stato che si otterrebbe accettando, e tocca all'utente accettare o rimandare.
+
+### La revisione di fine settimana
+
+`evaluateProgression` guarda una seduta sola e propone alla fine di quella,
+una volta: chi chiude l'app prima del riepilogo, o non risponde alla domanda
+sul tempo, non vede niente. Il risultato era una settimana 2 identica alla
+settimana 1 anche dopo sette giorni passati sopra il massimo del range — il
+piano della settimana 2 è byte per byte quello della settimana 1, perché il
+programma cambia da solo solo in settimana 3 (zavorra) e 6 (scarico e ritest).
+
+`reviewWeek` guarda invece tutte le serie della settimana insieme e legge una
+cosa sola: dove sono finiti i numeri scritti rispetto al range prescritto.
+
+| Cosa dicono i numeri | Cosa propone |
+|---|---|
+| Sopra il massimo su **tutte** le serie | Il gradino successivo della scala |
+| Sotto il minimo su **tutte** le serie | Il gradino precedente |
+| Sotto il minimo al gradino 1 | Niente: è il test da rifare, non la variante |
+| Massimo chiuso su tutte le serie, con carico disponibile | Il peso successivo |
+
+Due regole tengono il giudizio onesto: servono almeno tre serie sull'esercizio
+nella settimana, e vale la parola «tutte» — una serie storta in mezzo a due
+buone è la settimana normale di chiunque, non un gradino sbagliato.
+
+La direzione verso il basso non esiste nel metodo, che ha cinque leve e vanno
+tutte in salita. È stata aggiunta perché il caso opposto capita davvero: un
+gradino prescritto più alto di quello che si regge produce tre mezze
+ripetizioni a serie per sei settimane, e nessuna leva del metodo lo dice.
+
+La revisione compare sulla Home quando la settimana precedente ha lasciato
+qualcosa da decidere, e resta finché non è stata decisa: una decisione per
+esercizio e per settimana, registrata nella stessa tabella dei suggerimenti di
+fine seduta.
+
+### Quello che scrivi torna nello stato
+
+`ExerciseState` era scritto solo accettando un suggerimento, e il carico non lo
+leggeva nessuno: il player precompilava i kg dall'ultima riga di log.
+Accettare «aggiungi zavorra» cambiava quindi un numero invisibile, e la
+settimana dopo ricompariva il peso vecchio.
+
+Adesso `syncStatesFromLog` sincronizza lo stato alla chiusura di ogni seduta:
+il carico diventa il massimo registrato — non l'ultima serie, perché chi cala
+all'ultima non ha cambiato manubrio — e il livello diventa quello scelto nel
+player. Una correzione fatta a mano vale come una decisione presa, senza
+doverla ripetere altrove.
 
 ### Un campo che la scheda non ha
 

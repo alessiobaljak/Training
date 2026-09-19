@@ -11,6 +11,7 @@ const ROUTES: readonly Route[] = [
   { name: 'measures' },
   { name: 'library' },
   { name: 'exercise', slug: 'dip-parallele-anelli' },
+  { name: 'review', week: 2 },
   { name: 'settings' },
 ];
 
@@ -61,5 +62,18 @@ describe('rotte', () => {
       name: 'exercise',
       slug: 'nordic-curl',
     });
+  });
+});
+
+describe('revisione di fine settimana', () => {
+  it('porta il numero della settimana nella rotta', () => {
+    expect(parseRoute('#/revisione/1')).toEqual({ name: 'review', week: 1 });
+    expect(routeToHash({ name: 'review', week: 3 })).toBe('#/revisione/3');
+  });
+
+  it('una settimana che non è un numero torna alla Home', () => {
+    expect(parseRoute('#/revisione/uno')).toEqual(HOME);
+    expect(parseRoute('#/revisione')).toEqual(HOME);
+    expect(parseRoute('#/revisione/0')).toEqual(HOME);
   });
 });

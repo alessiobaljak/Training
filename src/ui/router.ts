@@ -19,6 +19,8 @@ export type Route =
   | { readonly name: 'measures' }
   | { readonly name: 'library' }
   | { readonly name: 'exercise'; readonly slug: string }
+  /** Revisione di fine settimana: `week` è la settimana appena chiusa. */
+  | { readonly name: 'review'; readonly week: number }
   | { readonly name: 'settings' };
 
 export const HOME: Route = { name: 'home' };
@@ -43,6 +45,8 @@ export function routeToHash(route: Route): string {
       return '#/esercizi';
     case 'exercise':
       return `#/esercizi/${route.slug}`;
+    case 'review':
+      return `#/revisione/${String(route.week)}`;
     case 'settings':
       return '#/impostazioni';
   }
@@ -74,6 +78,10 @@ export function parseRoute(hash: string): Route {
       return second === undefined || second === ''
         ? { name: 'library' }
         : { name: 'exercise', slug: second };
+    case 'revisione': {
+      const week = Number.parseInt(second ?? '', 10);
+      return Number.isInteger(week) && week > 0 ? { name: 'review', week } : HOME;
+    }
     case 'impostazioni':
       return { name: 'settings' };
     default:

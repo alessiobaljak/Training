@@ -1,6 +1,6 @@
 import { repository } from '../../db/repository.ts';
 import { useStoreQuery } from './useStoreQuery.ts';
-import type { AppSettings } from '../../db/db.ts';
+import type { AppSettings, SuggestionRecord } from '../../db/db.ts';
 import type { TestRound } from '../../engine/ranges.ts';
 import type {
   ExerciseSlug,
@@ -60,6 +60,11 @@ export function useExerciseStates(): ExerciseState[] | undefined {
 
 export function useExerciseState(slug: ExerciseSlug): ExerciseState | undefined {
   return useStoreQuery(() => repository.getExerciseState(slug), [slug]);
+}
+
+/** Decisioni già prese sui suggerimenti, di seduta e di fine settimana. */
+export function useSuggestions(): SuggestionRecord[] | undefined {
+  return useStoreQuery(() => repository.listSuggestions(), []);
 }
 
 export function useExerciseVideo(slug: ExerciseSlug): string | null | undefined {

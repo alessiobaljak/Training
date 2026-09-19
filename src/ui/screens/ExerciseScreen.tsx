@@ -4,6 +4,7 @@ import { getProgressionScale } from '../../data/progressions.ts';
 import { MOTOR_PATTERN_LABELS } from '../../types/index.ts';
 import { repository } from '../../db/repository.ts';
 import { exerciseHistory } from '../../engine/history.ts';
+import { initialExerciseState } from '../../engine/progression.ts';
 import { resolveVideoLink, youtubeSearchUrl } from '../../engine/media.ts';
 import { getLoadThreshold } from '../../data/method.ts';
 import { navigate } from '../router.ts';
@@ -26,6 +27,8 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
   const sessions = useSessions();
 
   const [draftUrl, setDraftUrl] = useState('');
+  /* Quale gradino della scala è aperto, per vedere cosa cambia rispetto a dove sei. */
+  const [espanso, setEspanso] = useState<LevelIndex | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (exercise === undefined) {
@@ -63,6 +66,13 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
           <ExerciseArt slug={slug} />
         </Card>
 
+        {/*
+          I gradini sono pulsanti, non righe morte.
+          Erano una lista sola da guardare: si vedeva a che livello si è e non
+          si poteva toccare nient'altro, mentre la cosa che si vuole fare
+          guardando una scala è capire cosa c'è prima e cosa c'è dopo, e
+          spostarsi senza dover aprire una seduta.
+        */}
         {scale !== null && level !== null ? (
           <>
             <SectionTitle>Dove sei nella scala</SectionTitle>
@@ -70,29 +80,63 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
               <ul className="space-y-1">
                 {scale.steps.map((step) => {
                   const current = step.level === level;
-                  const near = Math.abs(step.level - level) === 1;
+                  const aperto = step.level === espanso;
+                  const distanza = step.level - level;
                   return (
-                    <li
-                      key={step.slug}
-                      className={`flex min-h-12 items-center gap-3 rounded-xl border px-3 text-sm ${
-                        current
-                          ? 'border-accent bg-accent/15 font-semibold'
-                          : near
-                            ? 'border-line bg-panel text-ink'
-                            : 'border-transparent text-dim'
-                      }`}
-                    >
-                      <span className={`w-5 shrink-0 font-mono ${current ? 'text-accent' : ''}`}>
-                        {step.level}
-                      </span>
-                      <span className="flex-1">{step.name}</span>
-                      {current ? <Badge tone="accent">Ora</Badge> : null}
+                    <li key={step.slug}>
+                      <button
+                        type="button"
+                        aria-pressed={aperto}
+                        onClick={() => { setEspanso(aperto ? null : step.level); }}
+                        className={`flex min-h-12 w-full items-center gap-3 rounded-xl border px-3 text-left text-sm ${
+                          current
+                            ? 'border-accent bg-accent/15 font-semibold'
+                            : aperto
+                              ? 'border-line bg-panel text-ink'
+                              : 'border-line/40 bg-panel/40 text-dim'
+                        }`}
+                      >
+                        <span className={`w-5 shrink-0 font-mono ${current ? 'text-accent' : ''}`}>
+                          {step.level}
+                        </span>
+                        <span className="flex-1">{step.name}</span>
+                        {current ? <Badge tone="accent">Ora</Badge> : null}
+                      </button>
+
+                      {aperto ? (
+                        <div className="mt-1 rounded-xl border border-line bg-surface p-3">
+                          <p className="text-sm leading-relaxed text-dim">
+                            {current
+                              ? 'È il gradino su cui stai lavorando adesso.'
+                              : distanza < 0
+                                ? `${distanza === -1 ? 'Un gradino' : `${String(-distanza)} gradini`} più facile di dove sei.`
+                                : `${distanza === 1 ? 'Un gradino' : `${String(distanza)} gradini`} più difficile di dove sei.`}
+                            {step.perSide ? ' Si esegue un lato per volta.' : ''}
+                          </p>
+                          {current ? null : (
+                            <div className="mt-3">
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setEspanso(null);
+                                  void repository.saveExerciseState({
+                                    ...(state ?? initialExerciseState(exercise)),
+                                    level: step.level,
+                                  });
+                                }}
+                              >
+                                Passa a questo livello
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
                     </li>
                   );
                 })}
               </ul>
               <p className="mt-3 text-xs leading-relaxed text-dim">
-                Il livello si cambia dal player, alla riga Variante/Livello, oppure accettando un
+                Il livello cambia anche dal player, alla riga Variante/Livello, o accettando un
                 suggerimento a fine seduta.
               </p>
             </Card>

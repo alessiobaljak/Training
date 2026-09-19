@@ -10,6 +10,7 @@ import {
   isStepLogged,
   sessionProgress,
   setBlockExercise,
+  syncStatesFromLog,
   setVariant,
   suggestedSetValue,
   upsertLoggedSet,
@@ -107,6 +108,13 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const goHome = (): void => { navigate({ name: 'home' }); };
 
   const saveAndExit = (): void => {
+    /*
+     * Chiudere una seduta è anche una decisione sul carico e sul gradino.
+     * Quello che è stato scritto serie per serie diventa lo stato dell'app:
+     * due kg in più di manubrio, o un livello sceso perché oggi non ne usciva
+     * una, valgono senza doverli ridire in un'altra schermata.
+     */
+    for (const state of syncStatesFromLog(draft, states)) confirmExercise(state);
     update((session) => closeSession(session));
     goHome();
   };
@@ -214,11 +222,27 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const nothingLoggedYet = progress.done === 0;
 
   const past = previous.get(block.code);
+  /*
+   * I kg li decide lo stato, non l'ultima riga di log.
+   *
+   * Prima il campo si precompilava solo dall'ultima volta, e lo stato del
+   * carico non lo leggeva nessuno: accettare «aggiungi zavorra» a fine seduta
+   * cambiava un numero invisibile, e la settimana dopo ricompariva il peso
+   * vecchio. Ora lo stato viene sincronizzato con quello che si scrive a ogni
+   * chiusura di seduta, quindi i due numeri coincidono sempre — tranne quando
+   * una decisione presa fuori dal player, un suggerimento accettato o la
+   * revisione di fine settimana, ha alzato il carico apposta.
+   *
+   * Lo zero resta la porta di servizio per lo storico vecchio, registrato
+   * prima che lo stato venisse sincronizzato.
+   */
+  const kgDalLog = suggestedSetValue(past, step.setIndex, step.perSide ? 'left' : null)?.loadKg ?? 0;
+  const kgDalloStato = exerciseState?.loadKg ?? 0;
   const suggestion = {
     value: suggestedSetValue(past, step.setIndex, null)?.value ?? 0,
     left: suggestedSetValue(past, step.setIndex, 'left')?.value ?? 0,
     right: suggestedSetValue(past, step.setIndex, 'right')?.value ?? 0,
-    loadKg: suggestedSetValue(past, step.setIndex, step.perSide ? 'left' : null)?.loadKg ?? 0,
+    loadKg: kgDalloStato > 0 ? kgDalloStato : kgDalLog,
   };
 
   const tempo = exerciseState === undefined ? parseTut(block.tut) : effectiveTempo(block.tut, exerciseState);

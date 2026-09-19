@@ -4,12 +4,20 @@ import { getExercise } from '../../data/exercises.ts';
 import { daysBetween, isoWeekday, todayIso } from '../../engine/dates.ts';
 import type { NextTraining } from '../../engine/schedule.ts';
 import { getWeekState, isRetestDue, nextTrainingDay, programWeek } from '../../engine/schedule.ts';
+import { pendingVerdicts, reviewWeek } from '../../engine/review.ts';
 import { totalWorkSets } from '../../engine/rest.ts';
 import type { LoggedSession, ProgramSession } from '../../types/index.ts';
 import { WEEKDAY_LABELS } from '../../types/index.ts';
 import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
-import { useIsOnboarded, useSessions, useSettings } from '../hooks/useData.ts';
+import {
+  useExerciseStates,
+  useIsOnboarded,
+  useLatestTests,
+  useSessions,
+  useSettings,
+  useSuggestions,
+} from '../hooks/useData.ts';
 import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 
@@ -30,6 +38,9 @@ export function HomeScreen() {
   const onboarded = useIsOnboarded();
   const settings = useSettings();
   const sessions = useSessions();
+  const exerciseStates = useExerciseStates();
+  const latestTests = useLatestTests();
+  const suggestions = useSuggestions();
   const snapshots = useSnapshots();
   /* Quale seduta fuori posto sta aspettando conferma di eliminazione. */
   const [daEliminare, setDaEliminare] = useState<string | null>(null);
@@ -119,6 +130,30 @@ export function HomeScreen() {
   const lastSnapshot = snapshots?.[0] ?? null;
   const backupAgeDays = lastSnapshot === null ? null : daysBetween(lastSnapshot.id, today);
 
+  /*
+   * La settimana chiusa va rivista prima di rifarla uguale.
+   *
+   * Senza questa scheda la settimana 2 era identica alla settimana 1 anche
+   * dopo sette giorni passati sopra il massimo del range: il motore delle leve
+   * proponeva solo a fine seduta, una volta, e se non rispondevi alla domanda
+   * sul tempo non proponeva affatto. Qui la revisione resta finché non è stata
+   * guardata, e guarda i numeri di tutta la settimana insieme.
+   */
+  const settimanaChiusa = week - 1;
+  const revisione =
+    settimanaChiusa >= 1 && sessions !== undefined && exerciseStates !== undefined && latestTests !== undefined
+      ? reviewWeek({
+          week: settimanaChiusa,
+          sessions,
+          states: new Map(exerciseStates.map((state) => [state.exercise, state])),
+          tests: latestTests,
+        })
+      : null;
+  const daDecidere =
+    revisione === null || suggestions === undefined
+      ? []
+      : pendingVerdicts(revisione, new Set(suggestions.map((record) => record.id)));
+
   return (
     <Screen
       title={WEEKDAY_LABELS[weekday]}
@@ -150,6 +185,30 @@ export function HomeScreen() {
           {!notStartedYet && weekState.isDeload ? <Badge tone="warn">Scarico</Badge> : null}
           {!notStartedYet && weekState.isRetestWeek ? <Badge tone="good">Ritest</Badge> : null}
         </div>
+
+        {daDecidere.length > 0 ? (
+          <Card tone="accent">
+            <p className="text-sm font-semibold">
+              Settimana {String(settimanaChiusa)} chiusa:{' '}
+              {daDecidere.length === 1 ? '1 cosa da cambiare' : `${String(daDecidere.length)} cose da cambiare`}
+            </p>
+            <ul className="mt-2 space-y-1">
+              {daDecidere.slice(0, 3).map((verdict) => (
+                <li key={verdict.exercise} className="text-sm leading-relaxed text-dim">
+                  {verdict.title}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3">
+              <Button
+                full
+                onClick={() => { navigate({ name: 'review', week: settimanaChiusa }); }}
+              >
+                Rivedi la settimana
+              </Button>
+            </div>
+          </Card>
+        ) : null}
 
         {notStartedYet ? (
           <Notice>

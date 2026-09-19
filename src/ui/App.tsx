@@ -7,6 +7,7 @@ import { LibraryScreen } from './screens/LibraryScreen.tsx';
 import { LogScreen } from './screens/LogScreen.tsx';
 import { MeasuresScreen } from './screens/MeasuresScreen.tsx';
 import { ProgressScreen } from './screens/ProgressScreen.tsx';
+import { ReviewScreen } from './screens/ReviewScreen.tsx';
 import { SessionScreen } from './session/SessionScreen.tsx';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import {
@@ -60,6 +61,7 @@ export function App() {
         {route.name === 'measures' ? <MeasuresScreen /> : null}
         {route.name === 'library' ? <LibraryScreen /> : null}
         {route.name === 'exercise' ? <ExerciseScreen slug={route.slug} /> : null}
+        {route.name === 'review' ? <ReviewScreen week={route.week} /> : null}
       </div>
       {showNav ? <BottomNav current={route} /> : null}
     </div>
