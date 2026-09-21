@@ -538,7 +538,7 @@ try {
   if (await vaiAlBlocco('A2')) {
     const a2 = await page.locator('main').innerText();
     check(
-      a2.includes('Push-up archer o pseudo-planche'),
+      a2.includes('Push-up archer'),
       'Il blocco deve continuare a dire cosa prescrive la scheda.',
     );
     check(
@@ -770,6 +770,61 @@ try {
     `Cambiando seduta il player non deve finire fuori dal piano (veniva da ${JSON.stringify(finePiano)}).`,
   );
 
+  /* ------------------ Un titolo, un esercizio (tutti) ------------------- */
+
+  /*
+   * Il primo giro ne aveva sistemati tre, quelli che l'utente aveva visto.
+   * Ne restavano sei: «Dip alle parallele o agli anelli», «Push-up archer o
+   * pseudo-planche», «Negative di HSPU al muro o pike push-up», «Shrimp squat
+   * o skater squat», «Ab wheel o rollout TRX» e il C2 del lunedì, «Diamond
+   * push-up o dip tra due panche». Un titolo che ne nomina due non dice quale
+   * stai facendo.
+   *
+   * Il controllo sta sull'elenco e non su una riga sola: è l'unico modo
+   * perché il prossimo nome a due teste venga trovato senza che qualcuno lo
+   * vada a cercare.
+   */
+  await page.goto(`${BASE}/#/esercizi`, { waitUntil: 'load' });
+  await page.waitForTimeout(1200);
+
+  const nomi = await page.evaluate(() =>
+    [...document.querySelectorAll('main button')].map((nodo) => nodo.innerText.split('\n')[0] ?? ''),
+  );
+  check(nomi.length > 20, `L’elenco deve mostrare tutti gli esercizi: trovati ${String(nomi.length)}.`);
+  const dueTeste = nomi.filter((nome) => / o | oppure | \/ /i.test(nome));
+  check(
+    dueTeste.length === 0,
+    `Nessun titolo deve nominare due esercizi. Trovati: ${JSON.stringify(dueTeste)}.`,
+  );
+
+  /* E la seconda metà non deve essere sparita: ha una scheda sua. */
+  await page.goto(`${BASE}/#/esercizi/dip-panche`, { waitUntil: 'load' });
+  await page.waitForTimeout(900);
+  check(
+    (await page.locator('header h1').first().innerText()).toLowerCase().includes('dip tra due panche'),
+    'Il dip tra due panche deve avere una scheda sua, non essere sparito insieme al titolo.',
+  );
+
+  /* La serie spaiata della superserie va spiegata, non subita. */
+  await page.goto(`${BASE}/#/seduta/lower-b`, { waitUntil: 'load' });
+  await page.waitForTimeout(1600);
+
+  let spiegata = false;
+  for (let giro = 0; giro < 30; giro += 1) {
+    if ((await page.locator('main').innerText()).includes('Ultimo giro da solo')) {
+      spiegata = true;
+      break;
+    }
+    const avanti = page.getByRole('button', { name: /serie \d+ ›$/ });
+    if ((await avanti.count()) === 0) break;
+    await avanti.click();
+    await page.waitForTimeout(160);
+  }
+  check(
+    spiegata,
+    'Nel Lower B il blocco B è 4 serie di hip thrust e 3 di shrimp squat: la serie rimasta sola deve dire perché.',
+  );
+
   /* ------------------ La scala si tocca, non si guarda ------------------- */
 
   /*
@@ -884,8 +939,13 @@ try {
         .first()
         .innerText()
         .catch(() => '');
+      /*
+       * Il 5 è il gradino dell'L-sit nella scala dell'L-sit, che ora esiste:
+       * prima stava sul 6 del core, cioè sull'ab wheel, e il gradino più
+       * facile che l'app sapeva offrirgli era un plank.
+       */
       check(
-        gradino.startsWith('6'),
+        gradino.startsWith('5'),
         `Scegliendo un’alternativa a mano si va al suo gradino, non a quello del tetto: selezionato ${JSON.stringify(gradino.replace(/\n/g, ' '))}.`,
       );
     }

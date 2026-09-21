@@ -130,6 +130,14 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         exercise: 'dip-panche-o-diamond-pushup',
         sets: 3,
         prescription: { kind: 'reps', min: 12, max: 15 },
+        /*
+         * La scheda scrive «Dip tra due panche o diamond push-up»: due
+         * esercizi in un titolo solo, che non dice quale stai facendo. Sono
+         * due righe distinte, con lo stesso range, e si sceglie quale.
+         */
+        alternatives: [
+          { exercise: 'dip-panche', prescription: { kind: 'reps', min: 12, max: 15 } },
+        ],
         reference: 'RIR 0-1',
         tut: '3-0-1-0',
         rir: '0-1',
@@ -519,6 +527,10 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         exercise: 'ab-wheel-o-rollout-trx',
         sets: 3,
         prescription: { kind: 'reps', min: 8, max: 12 },
+        /* «Ab wheel o rollout TRX»: stesso gesto, due attrezzi, due righe. */
+        alternatives: [
+          { exercise: 'rollout-trx', prescription: { kind: 'reps', min: 8, max: 12 } },
+        ],
         reference: 'RIR 1',
         tut: 'controllato',
         rir: '1',

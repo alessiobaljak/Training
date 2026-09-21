@@ -600,7 +600,7 @@ describe('livello di partenza dal test', () => {
 
   it('è un tetto, non un’assegnazione: chi sta più in basso resta più in basso', () => {
     /* I dip su panca dei finisher: gradino 1 contro il 3 del test. */
-    const finisher = getExercise('dip-panche-o-diamond-pushup');
+    const finisher = getExercise('dip-panche');
     expect(finisher.defaultLevel).toBe(1);
     expect(startingLevel(finisher)).toBe(1);
   });

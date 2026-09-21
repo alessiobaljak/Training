@@ -40,16 +40,15 @@ export interface RepDbFrames {
   readonly frames: readonly string[];
 }
 
-export interface RepDbArt extends RepDbFrames {
-  /**
-   * Il disegno della seconda variante, quando la riga della scheda ne offre
-   * due e RepDB ha anche quella. Senza, la variante alternativa resterebbe
-   * descritta a parole e mostrata con il disegno di un altro esercizio.
-   */
-  readonly alternative?: RepDbFrames;
-}
-
-export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
+/*
+ * Un esercizio, un disegno.
+ *
+ * C'era un campo `alternative` per la seconda variante di una riga a due nomi.
+ * Le righe a due nomi non esistono più: o sono due esercizi, e allora ognuno
+ * ha la sua voce qui, o sono due gradini della stessa scala, e allora la
+ * seconda immagine andrebbe legata al gradino, non all'esercizio.
+ */
+export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
   'trazioni-prona-presa-media': {
     source: 'pull-up',
     label: 'Pull-Up',
@@ -94,11 +93,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     source: 'archer-push-ups',
     label: 'Archer Push Ups',
     frames: ['archer-push-ups-start.webp', 'archer-push-ups-peak.webp'],
-    alternative: {
-      source: 'pseudo-planche-push-ups',
-      label: 'Pseudo Planche Push Ups',
-      frames: ['pseudo-planche-push-ups-start.webp', 'pseudo-planche-push-ups-peak.webp'],
-    },
   },
   /*
    * RepDB non ha le croci con elastico. Il disegno che avevamo è quello del
@@ -118,21 +112,16 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     source: 'dips',
     label: 'Chest Dips',
     frames: ['dips-start.webp', 'dips-peak.webp'],
-    alternative: {
-      source: 'ring-dips',
-      label: 'Ring Dips',
-      frames: ['ring-dips-start.webp', 'ring-dips-peak.webp'],
-    },
   },
   'dip-panche-o-diamond-pushup': {
     source: 'diamond-push-ups',
     label: 'Diamond Push Ups',
     frames: ['diamond-push-ups-start.webp', 'diamond-push-ups-peak.webp'],
-    alternative: {
-      source: 'bench-dips',
-      label: 'Bench Dips',
-      frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
-    },
+  },
+  'dip-panche': {
+    source: 'bench-dips',
+    label: 'Bench Dips',
+    frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
   },
   'dip-panche-piedi-rialzati': {
     source: 'bench-dips',
@@ -148,11 +137,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbArt>> = {
     source: 'handstand-push-ups',
     label: 'Handstand Push Ups',
     frames: ['handstand-push-ups-start.webp', 'handstand-push-ups-peak.webp'],
-    alternative: {
-      source: 'pike-push-ups',
-      label: 'Pike Push Ups',
-      frames: ['pike-push-ups-start.webp', 'pike-push-ups-peak.webp'],
-    },
   },
   'bulgarian-split-squat': {
     source: 'bulgarian-split-squat',

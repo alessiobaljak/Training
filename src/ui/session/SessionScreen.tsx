@@ -448,6 +448,18 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
               {obiettivo !== null ? (
                 <p className="mt-1 text-xs text-dim">Obiettivo della scheda: {obiettivo}</p>
               ) : null}
+              {/*
+                Nella superserie i due esercizi non hanno sempre lo stesso
+                numero di serie: il blocco C dell'Upper A è 4 serie di alzate
+                laterali e 3 di diamond push-up, così l'ultimo giro è una serie
+                sola. Senza dirlo sembra che l'app abbia perso l'altro
+                esercizio.
+              */}
+              {step.aloneInRound ? (
+                <p className="mt-1 text-xs text-dim">
+                  Ultimo giro da solo: la scheda dà una serie in più a questo esercizio.
+                </p>
+              ) : null}
             </div>
             <button
               type="button"

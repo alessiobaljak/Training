@@ -15,7 +15,7 @@
  * su tutto il resto: qualunque altra differenza continua a farli fallire.
  */
 
-import type { SessionId } from '../types/index.ts';
+import type { LevelIndex, MotorPattern, SessionId } from '../types/index.ts';
 
 export interface Deviazione {
   /** Come lo scrive la scheda. */
@@ -34,9 +34,39 @@ export const DEVIAZIONI: readonly Deviazione[] = [
   },
   {
     scheda: 'Dip tra due panche o diamond push-up',
-    app: 'Diamond push-up o dip tra due panche',
+    app: 'Diamond push-up',
     motivo:
-      'Scelta dell’utente: stesse due varianti della scheda, ordine invertito. Il blocco arriva terzo a RIR 0-1 dopo dip alle parallele e pike push-up, e il dip su panca porta la spalla stanca in estensione e rotazione interna profonda. Il diamond push-up allena gli stessi tricipiti senza quella posizione. Il dip su panca resta come alternativa.',
+      'Divisi in due esercizi: un titolo che ne nomina due non dice quale stai facendo. Il diamond push-up è il primo perché il blocco arriva terzo a RIR 0-1, dopo dip alle parallele e pike push-up, e il dip su panca porta la spalla stanca in estensione e rotazione interna profonda, che è la posizione con meno spazio nell’articolazione. Il dip su panca resta scegliibile nel blocco, come esercizio suo: ha i suoi cue, il suo disegno e il suo storico, ed è il gradino 1 della scala dei dip, dove il diamond push-up non sta.',
+  },
+  {
+    scheda: 'Dip alle parallele o agli anelli',
+    app: 'Dip alle parallele',
+    motivo:
+      'Un titolo, un esercizio. Gli anelli non sono un secondo nome della stessa cosa: sono il gradino 5 della scala dei dip, due gradini sopra le parallele. Stavano nel titolo e nella scala insieme, e nel titolo davano l’idea che fossero equivalenti.',
+  },
+  {
+    scheda: 'Push-up archer o pseudo-planche',
+    app: 'Push-up archer',
+    motivo:
+      'Un titolo, un esercizio. Lo pseudo-planche è il gradino 4 della spinta orizzontale, l’archer il 5: la scelta tra i due è un livello della scala, non un secondo nome, e dalla riga Variante/Livello si scende di un gradino in un tap.',
+  },
+  {
+    scheda: 'Negative di HSPU al muro (5") o pike push-up',
+    app: 'Negative di HSPU al muro (5")',
+    motivo:
+      'Un titolo, un esercizio. Il pike push-up è il gradino 1-2 della spinta verticale, le negative il 3: sono gradini della stessa scala, e tenerli nello stesso titolo nascondeva proprio il salto che rendeva la riga impossibile da tarare.',
+  },
+  {
+    scheda: 'Shrimp squat o skater squat',
+    app: 'Shrimp squat',
+    motivo:
+      'Un titolo, un esercizio. Lo skater squat è il gradino 4 della scala dello squat monopodalico, lo shrimp il 5: chi non regge lo shrimp scende di un gradino dalla riga Variante/Livello.',
+  },
+  {
+    scheda: 'Ab wheel o rollout TRX',
+    app: 'Ab wheel',
+    motivo:
+      'Divisi in due esercizi: stesso gesto, attrezzo diverso, e chi ha il TRX ma non la ruota non aveva dove registrare le sue serie. Il rollout al TRX resta scegliibile nel blocco.',
   },
   {
     scheda: 'Croci con elastico o push-up presa larga lenta',
@@ -136,6 +166,62 @@ export interface ScalaAggiunta {
   readonly motivo: string;
 }
 
+/** Un gradino di scala che l'app scrive diversamente dal foglio Progressioni. */
+export interface DeviazioneGradino {
+  readonly schema: MotorPattern;
+  readonly livello: LevelIndex;
+  readonly scheda: string;
+  readonly app: string;
+  readonly motivo: string;
+}
+
+export const DEVIAZIONI_GRADINO: readonly DeviazioneGradino[] = [
+  {
+    schema: 'vertical-pull',
+    livello: 5,
+    scheda: 'Archer / L-sit pull-up',
+    app: 'Archer pull-up',
+    motivo:
+      'Un gradino, un esercizio: l’archer pull-up e l’L-sit pull-up sono due gesti diversi, e un gradino che ne nomina due non dice cosa fare. Resta l’archer, che è la progressione della trazione; l’L-sit ha una scala sua.',
+  },
+  {
+    schema: 'horizontal-push',
+    livello: 6,
+    scheda: 'Push-up zavorrati / anelli',
+    app: 'Push-up zavorrati',
+    motivo:
+      'Gli anelli non sono un secondo nome della zavorra: sono un altro attrezzo. E la zavorra è la leva 5 del metodo, che si aggiunge a qualunque gradino: nominarla nel gradino la faceva sembrare una variante.',
+  },
+  {
+    schema: 'single-leg-squat',
+    livello: 6,
+    scheda: 'Pistol squat / zavorra',
+    app: 'Pistol squat',
+    motivo:
+      'Stesso motivo: la zavorra è una leva, non una variante. Il pistol squat è il gesto più difficile della scala e il gradino porta il suo nome; il carico si aggiunge dalla leva 5 quando la settimana lo sblocca.',
+  },
+  {
+    schema: 'core',
+    livello: 6,
+    scheda: 'Ab wheel completo / L-sit',
+    app: 'Ab wheel completo',
+    motivo:
+      'L’L-sit non è l’ab wheel con un altro nome: si progredisce aprendo le gambe, non allungando la leva del busto. Ha una scala sua, e il gradino del core torna a nominare un gesto solo.',
+  },
+];
+
+/** Il nome che l'app dà a un gradino, se diverso da quello della scheda. */
+export function applicaDeviazioneGradino(
+  schema: MotorPattern,
+  livello: LevelIndex,
+  nomeDaScheda: string,
+): string {
+  const trovata = DEVIAZIONI_GRADINO.find(
+    (d) => d.schema === schema && d.livello === livello && d.scheda === nomeDaScheda,
+  );
+  return trovata?.app ?? nomeDaScheda;
+}
+
 export const SCALE_AGGIUNTE: readonly ScalaAggiunta[] = [
   {
     schema: 'hip-thrust',
@@ -164,6 +250,13 @@ export const SCALE_AGGIUNTE: readonly ScalaAggiunta[] = [
     obiettivo: 'Ginocchio+, discesa 2" senza slancio (gradino 3)',
     motivo:
       'La scheda partiva dal box all’altezza del ginocchio o più. L’altezza del box è la progressione più naturale che esista su questo esercizio, e il gradino 3 è quello che la scheda chiede: sopra ci sono il box più alto, la pausa e la zavorra.',
+  },
+  {
+    schema: 'l-sit',
+    esercizi: ['l-sit'],
+    obiettivo: 'L-sit completo (gradino 5)',
+    motivo:
+      'Il foglio non ha una scala per l’L-sit: lo nomina come terzo nome del gradino 6 del core e nella riga «Skill» dello Shadow. Ma l’L-sit non si progredisce come il core: si sale aprendo le gambe — tuck, advanced tuck, una gamba distesa — e finché stava sul gradino dell’ab wheel il gradino più facile che l’app sapeva offrire era un plank.',
   },
   {
     schema: 'sissy-squat',

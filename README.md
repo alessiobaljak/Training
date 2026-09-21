@@ -159,7 +159,7 @@ cambia mai da solo.
 | File | Contenuto |
 |---|---|
 | `program.ts` | Le 6 sedute: blocchi, serie, ripetizioni, TUT, RIR, recuperi |
-| `progressions.ts` | Le 8 scale di progressione a 6 livelli |
+| `progressions.ts` | Le 17 scale di progressione a 6 livelli |
 | `tests.ts` | I 9 test della Settimana 0 |
 | `exercises.ts` | Anagrafica: slug, nome, cue, schema motorio, query video |
 | `method.ts` | Regole dei fogli Istruzioni e Zavorra: percentuali del range, soglie, calibrazione |
@@ -617,8 +617,15 @@ registra peso, media a 7 giorni, girovita e delta, e si ferma lì.
 Punti in cui la specifica lasciava spazio a più letture. Sono documentati anche
 nei commenti dei file interessati.
 
-- **"X o Y"**: quando un blocco elenca due varianti, l'esercizio è mappato al
-  livello della prima citata, che è la prescrizione principale.
+- **"X o Y"**: non esiste più come titolo. Un nome che ne contiene due non dice
+  quale esercizio stai facendo: i cue valgono per metà, il disegno ne mostra uno
+  solo e lo storico li somma. Ogni riga della scheda scritta così è stata
+  sciolta, e un test rifiuta qualunque nome nuovo che ne contenga due. Le
+  varianti stanno in due posti: i gradini della scala, quando le due metà sono
+  due livelli dello stesso gesto (gli anelli sono il gradino 5 dei dip, lo
+  pseudo-planche il 4 della spinta orizzontale); `ProgramBlock.alternatives`,
+  quando sono due esercizi diversi ammessi dalla stessa riga (diamond push-up e
+  dip su panca, ab wheel e rollout al TRX, sissy squat e wall sit).
 - **`plannedSets` nei test**: la colonna "Serie previste" della tabella dei test
   indica quante serie quello schema riceve nel programma, non le serie del test.
   Il test è sempre una serie sola a cedimento tecnico.
@@ -628,7 +635,10 @@ nei commenti dei file interessati.
   sui secondari. Senza questa distinzione una trazione conterebbe come una serie
   piena di bicipiti e il totale settimanale diventerebbe inservibile.
 - **Zavorra**: consentita solo sulla whitelist esplicita del metodo (trazioni,
-  chin-up, dip, push-up, split squat, step-up). Su tutto il resto il campo non
-  esiste.
+  chin-up, dip, push-up, split squat, step-up) più i quattro esercizi delle
+  scale aggiunte dove il carico è la progressione naturale. Su tutto il resto il
+  campo non esiste. Non compare nel nome di un gradino: è la leva 5, si aggiunge
+  a qualunque variante, e scriverla in un gradino la faceva sembrare un
+  esercizio diverso.
 - **Livello iniziale**: viene dal programma, non da un calcolo. La scheda non
   contiene la formula e la sua colonna dei livelli si contraddice.

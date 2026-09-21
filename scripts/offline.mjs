@@ -235,9 +235,17 @@ try {
 
   await open(page, `${BASE}/#/esercizi`);
   await page.waitForTimeout(900);
+  /*
+   * Il numero non si scrive qui: si legge dal sottotitolo e si confronta con
+   * le righe davvero disegnate. Un «39 schede» fisso diventa falso appena
+   * l'anagrafica cambia, e il controllo fallisce per il motivo sbagliato.
+   */
+  const intestazione = await page.locator('header').innerText();
+  const dichiarate = Number.parseInt(/(\d+)\s+schede/.exec(intestazione)?.[1] ?? '0', 10);
+  const disegnate = await page.locator('main button').count();
   check(
-    (await page.getByText('39 schede').count()) > 0,
-    'Senza rete la libreria deve elencare tutti gli esercizi.',
+    dichiarate > 20 && disegnate === dichiarate,
+    `Senza rete la libreria deve elencare tutti gli esercizi: ne dichiara ${String(dichiarate)} e ne disegna ${String(disegnate)}.`,
   );
 
   // Rotta profonda, non un clic: senza rete deve funzionare anche riaprendo

@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PROGRESSION_SCALES, getProgressionScale, getProgressionStep } from './progressions.ts';
+import { DEVIAZIONI_GRADINO, applicaDeviazioneGradino } from './deviations.ts';
 import { MOTOR_PATTERNS, OVERLOAD_LEVERS, ECCENTRIC_TEMPO_LADDER, ISO_PAUSE_LADDER } from '../types/index.ts';
-import type { MotorPattern } from '../types/index.ts';
+import type { LevelIndex, MotorPattern } from '../types/index.ts';
 
 /** Seconda trascrizione, indipendente, della tabella delle scale di progressione. */
 const EXPECTED: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
@@ -97,7 +98,7 @@ const EXPECTED: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
 ];
 
 /**
- * Le cinque scale che il foglio non ha.
+ * Le nove scale che il foglio non ha.
  *
  * Tenute in una tabella separata apposta: `EXPECTED` qui sopra è la seconda
  * trascrizione del foglio Scale_Progressioni e resta il confronto con la
@@ -185,6 +186,17 @@ const AGGIUNTE: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
     ],
   ],
   [
+    'l-sit',
+    [
+      'Appoggio a terra, piedi che sfiorano',
+      'Tuck sit: ginocchia al petto',
+      'Advanced tuck: bacino sotto, ginocchia avanti',
+      'Una gamba distesa, l’altra raccolta',
+      'L-sit completo',
+      'L-sit ai parallettes, 20"',
+    ],
+  ],
+  [
     'hang',
     [
       'Sospensione con i piedi che sfiorano terra',
@@ -197,24 +209,43 @@ const AGGIUNTE: ReadonlyArray<readonly [MotorPattern, readonly string[]]> = [
   ],
 ];
 
-describe('progressions.ts — 16 scale da 6 livelli', () => {
+describe('progressions.ts — 17 scale da 6 livelli', () => {
   it('copre tutti e soli gli schemi motori dichiarati', () => {
-    expect(PROGRESSION_SCALES).toHaveLength(16);
+    expect(PROGRESSION_SCALES).toHaveLength(17);
     expect(PROGRESSION_SCALES.map((s) => s.pattern)).toEqual([...MOTOR_PATTERNS]);
   });
 
-  it('le otto del foglio e le otto aggiunte coprono tutto, senza sovrapporsi', () => {
+  it('le otto del foglio e le nove aggiunte coprono tutto, senza sovrapporsi', () => {
     const dalFoglio = EXPECTED.map(([pattern]) => pattern);
     const aggiunte = AGGIUNTE.map(([pattern]) => pattern);
     expect(dalFoglio).toHaveLength(8);
-    expect(aggiunte).toHaveLength(8);
+    expect(aggiunte).toHaveLength(9);
     expect([...dalFoglio, ...aggiunte].sort()).toEqual([...MOTOR_PATTERNS].sort());
   });
 
   it.each(EXPECTED)('la scala %s corrisponde alla scheda', (pattern, names) => {
     const scale = getProgressionScale(pattern);
-    expect(scale.steps.map((s) => s.name)).toEqual(names);
+    /*
+     * Le differenze volute passano da `DEVIAZIONI_GRADINO`, non da una
+     * correzione di questa tabella: `EXPECTED` è la trascrizione del foglio e
+     * riscriverla per far passare un test cancellerebbe la prova.
+     */
+    const attesi = names.map((name, index) =>
+      applicaDeviazioneGradino(pattern, (index + 1) as LevelIndex, name),
+    );
+    expect(scale.steps.map((s) => s.name)).toEqual(attesi);
     expect(scale.steps.map((s) => s.level)).toEqual([1, 2, 3, 4, 5, 6]);
+  });
+
+  it('ogni deviazione dichiarata sui gradini corrisponde a una riga vera del foglio', () => {
+    // Una deviazione che non trova la sua riga non devia niente: resta scritta
+    // nel registro e nasconde il fatto che il nome è cambiato altrove.
+    for (const deviazione of DEVIAZIONI_GRADINO) {
+      const dalFoglio = EXPECTED.find(([pattern]) => pattern === deviazione.schema);
+      expect(dalFoglio, deviazione.schema).toBeDefined();
+      expect(dalFoglio?.[1][deviazione.livello - 1], deviazione.scheda).toBe(deviazione.scheda);
+      expect(getProgressionStep(deviazione.schema, deviazione.livello).name).toBe(deviazione.app);
+    }
   });
 
   it.each(AGGIUNTE)('la scala aggiunta %s corrisponde a quella dichiarata', (pattern, names) => {
@@ -225,8 +256,8 @@ describe('progressions.ts — 16 scale da 6 livelli', () => {
 
   it('usa slug di livello unici in tutto il seed', () => {
     const slugs = PROGRESSION_SCALES.flatMap((s) => s.steps.map((step) => step.slug));
-    expect(slugs).toHaveLength(96);
-    expect(new Set(slugs).size).toBe(96);
+    expect(slugs).toHaveLength(102);
+    expect(new Set(slugs).size).toBe(102);
   });
 
   it('getProgressionStep restituisce il gradino richiesto', () => {
@@ -251,8 +282,12 @@ describe('progressions.ts — 16 scale da 6 livelli', () => {
       [
         'dip',
         'horizontal-push',
-        'single-leg-squat',
         'vertical-pull',
+        /*
+         * Lo squat monopodalico non c'è più: il gradino 6 era «Pistol squat /
+         * zavorra» e ora è «Pistol squat». La zavorra resta ammessa
+         * sull'esercizio, ma come leva 5, non come nome di una variante.
+         */
         /*
          * Le quattro aggiunte dove il carico è la progressione naturale: un
          * manubrio sull'anca nell'hip thrust, in mano nel single-leg RDL e nel

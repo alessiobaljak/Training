@@ -53,6 +53,15 @@ export interface SessionStep {
   readonly totalSets: number;
   /** Giro della superserie. `null` sugli esercizi isolati. */
   readonly round: number | null;
+  /**
+   * Serie di una superserie in cui l'altro esercizio ha già finito.
+   *
+   * Nella scheda i due esercizi accoppiati non hanno sempre lo stesso numero
+   * di serie: il blocco C dell'Upper A è 4 serie di alzate laterali e 3 di
+   * diamond push-up. L'ultimo giro è quindi una serie sola, e senza dirlo
+   * sembra che l'app abbia perso l'altro esercizio.
+   */
+  readonly aloneInRound: boolean;
   /** `true` quando la serie si registra separatamente per lato. */
   readonly perSide: boolean;
   /** Cosa fare dopo aver chiuso questa serie. */
@@ -195,6 +204,7 @@ export function buildSessionPlan(
             setIndex: index + 1,
             totalSets: total,
             round: null,
+            aloneInRound: false,
             perSide: blockPerSide(block, states),
             rest: isLastStep ? NO_REST : straightRest(block),
           });
@@ -215,6 +225,7 @@ export function buildSessionPlan(
           setIndex,
           totalSets: sets,
           round: null,
+          aloneInRound: false,
           perSide: blockPerSide(block, states),
           rest: isLastSet ? NO_REST : straightRest(block),
         });
@@ -251,6 +262,7 @@ export function buildSessionPlan(
           setIndex: round,
           totalSets: group.setsByBlock.get(block.code) ?? block.sets,
           round,
+          aloneInRound: inRound.length === 1,
           perSide: blockPerSide(block, states),
           rest,
         });

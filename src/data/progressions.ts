@@ -17,7 +17,7 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Trazioni negative 5"',
       'Trazioni complete',
       'Trazioni con pausa 1" in alto',
-      'Archer / L-sit pull-up',
+      'Archer pull-up',
       'Trazioni zavorrate',
     ],
     'horizontal-pull': [
@@ -38,7 +38,7 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Push-up declinati',
       'Pseudo-planche push-up',
       'Archer push-up',
-      'Push-up zavorrati / anelli',
+      'Push-up zavorrati',
     ],
     'vertical-push': [
       'Pike push-up a terra',
@@ -62,7 +62,7 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Bulgarian con pausa 2"',
       'Skater squat',
       'Shrimp squat',
-      'Pistol squat / zavorra',
+      'Pistol squat',
     ],
     'posterior-chain': [
       'Glute bridge monopodalico',
@@ -78,7 +78,7 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Hollow hold completo',
       'Hanging knee raise',
       'Hanging leg raise',
-      'Ab wheel completo / L-sit',
+      'Ab wheel completo',
     ],
 
     /*
@@ -162,6 +162,21 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Monopodalico, coscia parallela',
       'Monopodalico con il piede su un rialzo',
     ],
+    /*
+     * Scala aggiunta: il foglio non ha l'L-sit, lo nomina soltanto come terzo
+     * nome del gradino 6 del core e della riga «Skill» dello Shadow. Ma la sua
+     * progressione non è quella del core: si sale aprendo le gambe, non
+     * allungando la leva del busto, e mettere l'L-sit sul gradino dell'ab
+     * wheel voleva dire che il gradino più facile offerto era un plank.
+     */
+    'l-sit': [
+      'Appoggio a terra, piedi che sfiorano',
+      'Tuck sit: ginocchia al petto',
+      'Advanced tuck: bacino sotto, ginocchia avanti',
+      'Una gamba distesa, l’altra raccolta',
+      'L-sit completo',
+      'L-sit ai parallettes, 20"',
+    ],
     hang: [
       'Sospensione con i piedi che sfiorano terra',
       'Dead hang a due mani',
@@ -226,6 +241,8 @@ const SCALE_PER_SIDE: Readonly<
   handstand: [false, false, false, false, false, false],
   /* Dal quarto gradino in poi si tiene una gamba per volta. */
   'wall-sit': [false, false, false, true, true, true],
+  /* Il gradino 4 tiene una gamba distesa per volta. */
+  'l-sit': [false, false, false, true, false, false],
   /* Dal quarto gradino in poi si resta appesi a una mano per volta. */
   hang: [false, false, false, true, true, true],
 });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EXERCISES, getExercise } from './exercises.ts';
 import { PROGRAM_SESSIONS } from './program.ts';
 import { WEEK_ZERO_TESTS } from './tests.ts';
-import { getProgressionScale } from './progressions.ts';
+import { PROGRESSION_SCALES, getProgressionScale } from './progressions.ts';
 
 const URL_PATTERN = /https?:\/\/|www\.|youtu\.?be|youtube\.com|\.gif\b|\.mp4\b/i;
 
@@ -94,10 +94,15 @@ describe('politica zavorra', () => {
     const allowed = EXERCISES.filter((e) => e.loadPolicy === 'allowed').map((e) => e.slug);
     expect([...allowed].sort()).toEqual(
       [
-        /* La whitelist del metodo, dal foglio Zavorra. */
+        /*
+         * La whitelist del metodo, dal foglio Zavorra. `dip-panche` è il dip
+         * su panca uscito dalla riga a due nomi: stesso esercizio della
+         * whitelist, che prima stava dentro `dip-panche-o-diamond-pushup`.
+         */
         'bulgarian-split-squat',
         'chin-up-presa-supina',
         'chin-up-presa-supina-stretta',
+        'dip-panche',
         'dip-panche-o-diamond-pushup',
         'dip-panche-piedi-rialzati',
         'dip-parallele-anelli',
@@ -170,52 +175,64 @@ describe('getExercise', () => {
   });
 });
 
-describe('righe con due varianti', () => {
+describe('un titolo, un esercizio', () => {
   /**
-   * La scheda scrive righe come «Dip tra due panche **o** diamond push-up».
-   * Sono due esercizi, non uno con un nome lungo.
+   * La regola. Il nome di un esercizio ne deve nominare uno solo.
    *
-   * Per mesi l'app ne ha conosciuto solo il primo: niente cue, niente disegno
-   * e niente da scegliere per il secondo. Se ne è accorto l'utente, in
-   * palestra, guardando il blocco C2 del lunedì. Questi test fanno in modo che
-   * non possa succedere di nuovo su nessuna delle altre righe.
+   * La scheda scrive righe come «Dip tra due panche **o** diamond push-up» e
+   * «Skill: hollow hold / L-sit / verticale al muro». Sono due o tre esercizi
+   * in un titolo, e un titolo così non dice quale stai facendo: i cue valgono
+   * per metà, il disegno ne mostra uno solo, e lo storico li somma come se
+   * fossero la stessa cosa.
+   *
+   * Il primo giro di correzioni ne aveva sistemati tre, quelli che l'utente
+   * aveva visto. Ne restavano sei. Questo controllo li trova tutti, oggi e
+   * quando la scheda cambierà.
+   *
+   * Le varianti hanno due posti, e nessuno dei due è il nome: i gradini della
+   * scala per «più facile / più difficile», `ProgramBlock.alternatives` per
+   * «un altro esercizio, ammesso dalla stessa riga».
    */
-  const conDueVarianti = EXERCISES.filter((exercise) => / o /.test(exercise.name));
+  const DUE_NOMI = / o | oppure | \/ /i;
 
-  it('ce ne sono, altrimenti questo controllo non controlla niente', () => {
-    expect(conDueVarianti.length).toBeGreaterThan(5);
+  it('nessun nome di esercizio ne contiene due', () => {
+    const colpevoli = EXERCISES.filter((exercise) => DUE_NOMI.test(exercise.name)).map(
+      (exercise) => exercise.name,
+    );
+    expect(colpevoli).toEqual([]);
   });
 
-  it('ogni riga con due varianti dichiara la seconda', () => {
-    for (const exercise of conDueVarianti) {
-      expect(exercise.alternative, exercise.name).not.toBeNull();
-    }
+  it('nessun gradino di scala ne contiene due', () => {
+    const colpevoli = PROGRESSION_SCALES.flatMap((scale) =>
+      scale.steps.filter((step) => DUE_NOMI.test(step.name)).map((step) => step.name),
+    );
+    expect(colpevoli).toEqual([]);
   });
 
-  it('la seconda variante ha cue suoi, non quelli della prima', () => {
-    for (const exercise of conDueVarianti) {
-      const alternative = exercise.alternative;
-      if (alternative === null) continue;
-      expect(alternative.cues.length, exercise.name).toBeGreaterThanOrEqual(4);
-      for (const cue of alternative.cues) {
-        expect(exercise.cues, `${exercise.name}: cue copiato`).not.toContain(cue);
-      }
-    }
+  it('la regola morde: un nome a due teste verrebbe scoperto', () => {
+    // Senza questo, un giorno in cui `DUE_NOMI` smettesse di riconoscere
+    // qualcosa i due controlli qui sopra resterebbero verdi per sempre.
+    expect(DUE_NOMI.test('Dip tra due panche o diamond push-up')).toBe(true);
+    expect(DUE_NOMI.test('Skill: hollow hold / L-sit')).toBe(true);
+    expect(DUE_NOMI.test('Push-up archer')).toBe(false);
   });
 
-  it('la seconda variante ha una ricerca video sua', () => {
-    for (const exercise of conDueVarianti) {
-      const alternative = exercise.alternative;
-      if (alternative === null) continue;
-      expect(alternative.videoQuery, exercise.name).not.toBe(exercise.videoQuery);
-      expect(alternative.videoQuery.length, exercise.name).toBeGreaterThan(15);
-    }
-  });
-
-  it('chi non ha due varianti non dichiara un’alternativa a vuoto', () => {
-    for (const exercise of EXERCISES) {
-      if (/ o /.test(exercise.name)) continue;
-      expect(exercise.alternative, exercise.name).toBeNull();
+  it('gli esercizi divisi restano scegliibili dal blocco che li ammetteva', () => {
+    /*
+     * Dividere un titolo non deve far sparire la seconda metà: se «o diamond
+     * push-up» esce dal nome e non entra tra le alternative del blocco,
+     * l'esercizio è stato cancellato, non diviso.
+     */
+    const ammessi = new Set(
+      PROGRAM_SESSIONS.flatMap((session) =>
+        session.blocks.flatMap((block) => [
+          block.exercise,
+          ...(block.alternatives ?? []).map((entry) => entry.exercise),
+        ]),
+      ),
+    );
+    for (const slug of ['dip-panche', 'rollout-trx', 'wall-sit', 'l-sit', 'verticale-al-muro']) {
+      expect(ammessi.has(slug), slug).toBe(true);
     }
   });
 });

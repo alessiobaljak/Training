@@ -54,6 +54,7 @@ export type MotorPattern =
   | 'sissy-squat'
   | 'handstand'
   | 'wall-sit'
+  | 'l-sit'
   | 'hang';
 
 export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
@@ -72,6 +73,7 @@ export const MOTOR_PATTERNS: readonly MotorPattern[] = Object.freeze([
   'sissy-squat',
   'handstand',
   'wall-sit',
+  'l-sit',
   'hang',
 ] as const);
 
@@ -91,6 +93,7 @@ export const MOTOR_PATTERN_LABELS: Readonly<Record<MotorPattern, string>> = Obje
   'sissy-squat': 'Sissy squat (quadricipiti)',
   handstand: 'Verticale (spalle)',
   'wall-sit': 'Wall sit (quadricipiti)',
+  'l-sit': 'L-sit (core e tricipiti)',
   hang: 'Sospensione (presa)',
 });
 

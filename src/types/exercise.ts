@@ -4,20 +4,6 @@ import type { LevelIndex, LoadPolicy, MeasurementKind, MotorPattern, MuscleGroup
 export type ExerciseSlug = string;
 
 /**
- * La seconda variante che la scheda offre nella stessa riga.
- *
- * Righe come «Dip tra due panche **o** diamond push-up» sono due esercizi, non
- * uno con un nome lungo. Finché l'app ne conosceva solo il primo, la seconda
- * metà della riga non esisteva: niente cue, niente disegno, niente da
- * scegliere. È il difetto che l'utente ha trovato sul blocco C2 del lunedì.
- */
-export interface ExerciseAlternative {
-  readonly name: string;
-  readonly cues: readonly string[];
-  readonly videoQuery: string;
-}
-
-/**
  * Anagrafica di un esercizio. È dato statico: nessun valore qui dipende
  * dall'utente. Livello attuale, video personale e storico stanno in IndexedDB.
  *
@@ -26,7 +12,19 @@ export interface ExerciseAlternative {
  */
 export interface Exercise {
   readonly slug: ExerciseSlug;
-  /** Nome mostrato in UI, in italiano, identico alla scheda. */
+  /**
+   * Nome mostrato in UI, in italiano.
+   *
+   * **Un titolo, un esercizio.** Righe come «Dip tra due panche o diamond
+   * push-up» sono due esercizi, non uno con un nome lungo: il titolo non dice
+   * quale stai facendo, i cue valgono per metà, il disegno ne mostra uno solo
+   * e lo storico li somma. Chi legge il titolo deve sapere cosa fare.
+   *
+   * Le varianti stanno in due posti, nessuno dei quali è il nome: i gradini
+   * più facili e più difficili nella scala dello schema motorio, gli esercizi
+   * diversi ammessi dalla stessa riga in `ProgramBlock.alternatives`. Un test
+   * rifiuta qualunque nome che ne contenga due.
+   */
   readonly name: string;
   /** Schema motorio di appartenenza, `null` per gli accessori fuori scala. */
   readonly pattern: MotorPattern | null;
@@ -63,10 +61,4 @@ export interface Exercise {
    * Nel codebase non esiste alcun URL di video hardcodato.
    */
   readonly videoQuery: string;
-  /**
-   * La seconda variante della stessa riga, quando la scheda ne offre due.
-   * `null` quando l'esercizio è uno solo. Un test verifica che ogni nome con
-   * due varianti la dichiari.
-   */
-  readonly alternative: ExerciseAlternative | null;
 }

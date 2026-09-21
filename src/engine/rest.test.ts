@@ -325,3 +325,36 @@ describe('le scale aggiunte e i due lati', () => {
     }
   });
 });
+
+describe('superserie con serie spaiate', () => {
+  /*
+   * Nella scheda i due esercizi accoppiati non hanno sempre lo stesso numero
+   * di serie: il blocco C dell'Upper A è 4 serie di alzate laterali e 3 di
+   * diamond push-up, il blocco D del Lower A 4 di calf e 3 di leg raise.
+   * L'ultimo giro è quindi una serie sola, e va detto: senza, in palestra
+   * sembra che l'app abbia perso l'altro esercizio.
+   */
+  const plan = buildSessionPlan(getSession('upper-a'), 1);
+  const bloccoC = plan.filter((step) => step.group === 'C');
+
+  it('alterna finché tutti e due hanno serie da fare', () => {
+    expect(bloccoC.map((step) => step.blockCode)).toEqual([
+      'C1', 'C2', 'C1', 'C2', 'C1', 'C2', 'C1',
+    ]);
+  });
+
+  it('marca come solitaria solo la serie senza compagna', () => {
+    expect(bloccoC.filter((step) => step.aloneInRound).map((step) => step.setIndex)).toEqual([4]);
+  });
+
+  it('non marca niente dove le serie sono pari', () => {
+    const bloccoA = plan.filter((step) => step.group === 'A');
+    expect(bloccoA).toHaveLength(8);
+    expect(bloccoA.some((step) => step.aloneInRound)).toBe(false);
+  });
+
+  it('un esercizio isolato non è una superserie con la compagna assente', () => {
+    const bloccoD = plan.filter((step) => step.group === 'D');
+    expect(bloccoD.every((step) => !step.aloneInRound)).toBe(true);
+  });
+});
