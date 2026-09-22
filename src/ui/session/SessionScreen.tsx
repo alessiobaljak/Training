@@ -414,7 +414,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                     ? 'border-accent bg-accent/20 text-ink'
                     : groupDone
                       ? 'border-good/40 bg-panel text-good'
-                      : 'border-line bg-panel text-dim'
+                      : 'border-line-strong bg-panel text-dim'
                 }`}
               >
                 {group}
@@ -464,7 +464,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             <button
               type="button"
               onClick={() => { navigate({ name: 'exercise', slug: exercise.slug }); }}
-              className="min-h-12 shrink-0 rounded-xl border border-line px-3 text-xs text-dim"
+              className="min-h-12 shrink-0 rounded-xl border border-line-strong px-3 text-xs text-dim"
             >
               Scheda
             </button>
@@ -552,7 +552,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                       scegliEsercizio(option.slug);
                     }}
                     className={`min-h-20 min-w-[9rem] flex-1 rounded-2xl border px-3 py-2 text-left ${
-                      active ? 'border-accent bg-accent/20 text-ink' : 'border-line bg-panel text-dim'
+                      active ? 'border-accent bg-accent/20 text-ink' : 'border-line-strong bg-panel text-dim'
                     }`}
                   >
                     <span className="block text-sm font-semibold">{optionExercise.name}</span>

@@ -80,7 +80,7 @@ export function LogScreen() {
         <select
           value={exercise}
           onChange={(event) => { setExercise(event.target.value); }}
-          className="min-h-14 w-full rounded-2xl border border-line bg-surface px-4 text-sm text-ink"
+          className="min-h-14 w-full rounded-2xl border border-line-strong bg-surface px-4 text-sm text-ink"
           aria-label="Filtra per esercizio"
         >
           <option value="">Tutti gli esercizi</option>
@@ -101,7 +101,7 @@ export function LogScreen() {
               className={`min-h-12 flex-1 rounded-xl border text-sm font-semibold ${
                 period === entry.key
                   ? 'border-accent bg-accent/20 text-ink'
-                  : 'border-line bg-panel text-dim'
+                  : 'border-line-strong bg-panel text-dim'
               }`}
             >
               {entry.label}

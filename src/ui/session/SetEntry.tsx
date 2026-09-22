@@ -228,7 +228,7 @@ export function SetEntry({
                       ? 'border-accent bg-accent/20 text-ink'
                       : onTarget
                         ? 'border-good/40 bg-panel text-dim'
-                        : 'border-line bg-panel text-dim'
+                        : 'border-line-strong bg-panel text-dim'
                   }`}
                 >
                   {choice === null ? '—' : choice === 3 ? '3+' : String(choice)}
@@ -271,7 +271,7 @@ export function SetEntry({
             value={note}
             onChange={(event) => { setNote(event.target.value); }}
             placeholder="facoltativa"
-            className="mt-1 min-h-14 w-full rounded-2xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-dim/60"
+            className="mt-1 min-h-14 w-full rounded-2xl border border-line-strong bg-surface px-4 text-sm text-ink placeholder:text-dim/60"
           />
         </label>
       </div>

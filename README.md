@@ -213,6 +213,37 @@ arrivano già calcolati dal motore.
 | `hooks/` | Letture reattive dal database, cronometri basati sugli istanti |
 | `router.ts` | Rotte via hash, senza librerie |
 
+### Chiaro di default, scuro a richiesta
+
+L'app nasce chiara. In palestra la luce arriva da dove capita — neon sopra la
+testa, una finestra di lato — e uno schermo scuro sotto quella luce si riempie
+di riflessi, mentre uno chiaro alza il contrasto reale invece di abbassarlo.
+
+Il tema scuro non è stato buttato: sta in Impostazioni insieme a «come il
+telefono», e la scelta vive in `localStorage`, non nell'account. Il tema è una
+proprietà del posto in cui stai guardando lo schermo, non di chi sei: lo stesso
+account usa il telefono sotto i neon e il portatile la sera.
+
+I due temi non sono uno l'inverso dell'altro, e non potrebbero esserlo:
+
+| | Scuro | Chiaro |
+|---|---|---|
+| Elevazione | La superficie più vicina è **più chiara** del fondo | Il bianco è già il massimo: la staccano **bordo e ombra** |
+| Bordi | Uno solo: il fondo scuro fa da separatore | **Due**: leggero per i divisori, da 3:1 per ciò che si tocca |
+| Marche dei grafici | Più **chiare** del fondo | Più **scure** del fondo, con un'altra rampa |
+
+Tutti i colori stanno in `src/index.css` e da nessun'altra parte. I rapporti di
+contrasto delle coppie che l'app disegna davvero — testo su ogni superficie,
+pastiglie colorate sulla propria tinta al 15%, testo del pulsante principale,
+bordo dei controlli, marche dei grafici sulla card — sono verificati da
+`src/ui/theme.test.ts`, che **legge quel file**: abbassare un valore sotto la
+soglia WCAG fa fallire la suite. Il controllo ha trovato due punti deboli nel
+tema scuro che nessuno aveva mai misurato — il bordo dei controlli e l'ultimo
+gradino della rampa, entrambi sotto 3:1 — e li ha fatti correggere.
+
+`npm run shots` fotografa le schermate principali nei due temi in
+`.screenshots/`: una modifica ai colori non si verifica leggendo il diff.
+
 Tre vincoli che attraversano tutta la UI:
 
 - **Aree toccabili da 56 px in su.** Si usa con il telefono a terra e le mani

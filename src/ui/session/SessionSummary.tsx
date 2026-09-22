@@ -267,7 +267,7 @@ export function SessionSummary({
           onChange={(event) => { setNote(event.target.value); }}
           rows={3}
           placeholder="Come è andata, cosa cambiare la prossima volta"
-          className="w-full rounded-2xl border border-line bg-surface p-4 text-sm text-ink placeholder:text-dim/60"
+          className="w-full rounded-2xl border border-line-strong bg-surface p-4 text-sm text-ink placeholder:text-dim/60"
         />
       </div>
     </Screen>

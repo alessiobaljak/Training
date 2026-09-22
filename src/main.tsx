@@ -4,6 +4,7 @@ import './index.css';
 import { App } from './ui/App.tsx';
 import { ErrorBoundary } from './ui/ErrorBoundary.tsx';
 import { startPwa } from './pwa/platform.ts';
+import { startTheme } from './ui/theme.ts';
 
 /**
  * Avvio dell'app.
@@ -19,14 +20,14 @@ function showFatalError(cause: unknown): void {
 
   const box = document.createElement('div');
   box.style.cssText =
-    'padding:24px;font:14px/1.6 system-ui;color:#eef3f8;background:#0b0f14;min-height:100vh';
+    'padding:24px;font:14px/1.6 system-ui;color:#0f1720;background:#f2f5f9;min-height:100vh';
   box.innerHTML =
     '<p style="font-size:20px;font-weight:600;margin:0 0 12px">L’app non è partita</p>' +
-    '<p style="color:#9fb0c0;margin:0 0 16px">Ricaricare di solito basta. Se torna, questo è il motivo:</p>';
+    '<p style="color:#556375;margin:0 0 16px">Ricaricare di solito basta. Se torna, questo è il motivo:</p>';
 
   const detail = document.createElement('pre');
   detail.style.cssText =
-    'white-space:pre-wrap;word-break:break-word;background:#151b23;border:1px solid #2c3846;border-radius:12px;padding:12px;color:#ff6b6b;font-size:12px';
+    'white-space:pre-wrap;word-break:break-word;background:#ffffff;border:1px solid #dae2ec;border-radius:12px;padding:12px;color:#b12727;font-size:12px';
   detail.textContent = message;
   box.appendChild(detail);
   document.body.appendChild(box);
@@ -38,6 +39,11 @@ try {
     throw new Error('Elemento #root non trovato');
   }
 
+  /*
+   * Prima di React: il tema deve essere già quello giusto quando compare il
+   * primo pixel, altrimenti a ogni avvio si vede un lampo dell'altro.
+   */
+  startTheme();
   startPwa();
 
   createRoot(container).render(

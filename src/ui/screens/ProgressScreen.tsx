@@ -106,7 +106,7 @@ export function ProgressScreen() {
             <select
               value={chosen}
               onChange={(event) => { setSlug(event.target.value); }}
-              className="min-h-14 w-full rounded-2xl border border-line bg-panel px-4 text-sm text-ink"
+              className="min-h-14 w-full rounded-2xl border border-line-strong bg-panel px-4 text-sm text-ink"
               aria-label="Scegli l’esercizio"
             >
               {slugs.map((entry) => (

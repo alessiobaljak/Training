@@ -15,7 +15,7 @@ type ButtonSize = 'md' | 'lg' | 'xl';
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-accent text-accent-ink active:brightness-90',
-  secondary: 'bg-panel text-ink border border-line active:bg-line',
+  secondary: 'bg-panel text-ink border border-line-strong active:bg-line',
   ghost: 'bg-transparent text-dim active:text-ink',
   danger: 'bg-transparent text-danger border border-danger/40 active:bg-danger/10',
 };
@@ -76,7 +76,7 @@ export interface CardProps {
 }
 
 const CARD_TONES: Record<NonNullable<CardProps['tone']>, string> = {
-  default: 'bg-surface border-line',
+  default: 'bg-surface border-line card-lift',
   muted: 'bg-canvas border-line',
   accent: 'bg-accent/10 border-accent/40',
   warn: 'bg-warn/10 border-warn/40',

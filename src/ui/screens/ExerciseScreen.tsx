@@ -92,7 +92,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
                           current
                             ? 'border-accent bg-accent/15 font-semibold'
                             : aperto
-                              ? 'border-line bg-panel text-ink'
+                              ? 'border-line-strong bg-panel text-ink'
                               : 'border-line/40 bg-panel/40 text-dim'
                         }`}
                       >
@@ -170,7 +170,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
               value={draftUrl}
               onChange={(event) => { setDraftUrl(event.target.value); }}
               placeholder="incolla qui un link"
-              className="mt-1 min-h-14 w-full rounded-2xl border border-line bg-panel px-4 text-sm text-ink placeholder:text-dim/60"
+              className="mt-1 min-h-14 w-full rounded-2xl border border-line-strong bg-panel px-4 text-sm text-ink placeholder:text-dim/60"
             />
           </label>
 

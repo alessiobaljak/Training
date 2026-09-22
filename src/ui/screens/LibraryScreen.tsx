@@ -53,7 +53,7 @@ export function LibraryScreen() {
         onChange={(event) => { setQuery(event.target.value); }}
         placeholder="Cerca un esercizio"
         aria-label="Cerca un esercizio"
-        className="min-h-14 w-full rounded-2xl border border-line bg-surface px-4 text-sm text-ink placeholder:text-dim/60"
+        className="min-h-14 w-full rounded-2xl border border-line-strong bg-surface px-4 text-sm text-ink placeholder:text-dim/60"
       />
 
       {groups.length === 0 ? (
@@ -73,7 +73,7 @@ export function LibraryScreen() {
                   <button
                     type="button"
                     onClick={() => { navigate({ name: 'exercise', slug: exercise.slug }); }}
-                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line bg-surface px-4 text-left active:bg-panel"
+                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface px-4 text-left active:bg-panel"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{exercise.name}</span>

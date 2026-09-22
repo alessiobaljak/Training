@@ -13,6 +13,14 @@ import { launchOptions } from './chromium.mjs';
 
 const OUT = 'public/icons';
 
+/*
+ * Il riquadro dell'icona resta scuro anche ora che l'app è chiara.
+ *
+ * L'icona non è una schermata: vive sulla home del telefono, sopra uno sfondo
+ * che non decidiamo noi. Un riquadro quasi bianco sparisce sugli sfondi
+ * chiari, mentre uno scuro con le barre azzurre si vede su tutti. Il fondo
+ * dell'app sta nel manifest, in `background_color`.
+ */
 const CANVAS = '#0b0f14';
 const BAR = '#3987e5';
 const BAR_TOP = '#4cc2ff';

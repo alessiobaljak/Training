@@ -83,7 +83,7 @@ export function NumberStepper({
           aria-label={`Diminuisci ${label}`}
           disabled={disabled || value <= min}
           onClick={() => { nudge(-step); }}
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-line bg-panel text-3xl font-semibold active:bg-line disabled:opacity-30"
+          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-panel text-3xl font-semibold active:bg-line disabled:opacity-30"
         >
           −
         </button>
@@ -116,7 +116,7 @@ export function NumberStepper({
               setEditing(false);
               commit(event.target.value);
             }}
-            className="tabular h-16 w-full rounded-2xl border border-line bg-surface text-center text-3xl font-semibold text-ink disabled:opacity-40"
+            className="tabular h-16 w-full rounded-2xl border border-line-strong bg-surface text-center text-3xl font-semibold text-ink disabled:opacity-40"
           />
           {unit !== undefined && unit !== '' ? (
             <span className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-sm text-dim">
@@ -130,7 +130,7 @@ export function NumberStepper({
           aria-label={`Aumenta ${label}`}
           disabled={disabled || value >= max}
           onClick={() => { nudge(step); }}
-          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-line bg-panel text-3xl font-semibold active:bg-line disabled:opacity-30"
+          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-line-strong bg-panel text-3xl font-semibold active:bg-line disabled:opacity-30"
         >
           +
         </button>

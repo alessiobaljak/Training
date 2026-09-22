@@ -17,7 +17,8 @@
     "offline": "node scripts/offline.mjs",
     "svg": "node scripts/generate-exercise-svg.mjs",
     "icons": "node scripts/generate-icons.mjs",
-    "emulators": "firebase emulators:start --only auth,firestore --project demo-shadow"
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-shadow",
+    "shots": "node scripts/screenshots.mjs"
   },
   "dependencies": {
     "dexie": "^4.4.5",

@@ -156,7 +156,7 @@ export function MeasuresScreen() {
                       isSelected
                         ? 'border-accent bg-accent/20 text-ink'
                         : value === undefined
-                          ? 'border-line bg-panel text-dim'
+                          ? 'border-line-strong bg-panel text-dim'
                           : 'border-good/40 bg-panel text-ink'
                     } disabled:opacity-30`}
                   >

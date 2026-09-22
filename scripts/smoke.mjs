@@ -1383,6 +1383,66 @@ try {
     }
   }
 
+  /* ------------------------- Chiaro e scuro ---------------------------- */
+
+  /*
+   * Il tema chiaro è quello che l'app monta da sola, e la scelta deve
+   * sopravvivere a un riavvio: un tema che torna indietro a ogni apertura è
+   * peggio di non averlo.
+   */
+  const temaAttivo = async () =>
+    page.evaluate(() => ({
+      attributo: document.documentElement.dataset.theme ?? 'nessuno',
+      fondo: getComputedStyle(document.body).backgroundColor,
+      barra: document.querySelector('meta[name="theme-color"]')?.getAttribute('content') ?? '',
+    }));
+
+  await page.goto(`${BASE}/#/impostazioni`, { waitUntil: 'load' });
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForTimeout(1300);
+
+  const diPartenza = await temaAttivo();
+  check(
+    diPartenza.attributo === 'nessuno',
+    `Senza scelte l’app deve partire chiara, senza attributo di tema. Legge "${diPartenza.attributo}".`,
+  );
+  check(
+    diPartenza.barra.toLowerCase() === '#f2f5f9',
+    `La barra di stato deve seguire il fondo chiaro. Legge "${diPartenza.barra}".`,
+  );
+
+  const scuro = page.getByRole('button', { name: 'Scuro', exact: true });
+  check((await scuro.count()) === 1, 'Le impostazioni devono far scegliere il tema.');
+
+  if ((await scuro.count()) === 1) {
+    await scuro.click();
+    await page.waitForTimeout(600);
+    const subito = await temaAttivo();
+    check(
+      subito.attributo === 'dark' && subito.fondo !== diPartenza.fondo,
+      `Scelto lo scuro, lo schermo deve cambiare subito. Legge ${JSON.stringify(subito)}.`,
+    );
+    check(
+      subito.barra.toLowerCase() === '#0b0f14',
+      `Anche la barra di stato deve passare allo scuro. Legge "${subito.barra}".`,
+    );
+
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForTimeout(1300);
+    check(
+      (await temaAttivo()).attributo === 'dark',
+      'Riaperta l’app, il tema scelto deve essere ancora quello.',
+    );
+
+    await page.getByRole('button', { name: 'Chiaro', exact: true }).click();
+    await page.waitForTimeout(600);
+    const tornato = await temaAttivo();
+    check(
+      tornato.attributo === 'nessuno' && tornato.fondo === diPartenza.fondo,
+      `Tornando al chiaro si deve tornare esattamente da dove si era partiti. Legge ${JSON.stringify(tornato)}.`,
+    );
+  }
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();

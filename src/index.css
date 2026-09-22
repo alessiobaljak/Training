@@ -1,15 +1,81 @@
 @import 'tailwindcss';
 
 /*
-  Mobile-first, tema scuro fisso.
+  Mobile-first, tema chiaro.
+
   L'app si usa in palestra, con il telefono a terra e le mani sudate: contrasto
-  alto, testo grande, aree toccabili da 56 px in su.
+  alto, testo grande, aree toccabili da 56 px in su. Il tema chiaro non è solo
+  una preferenza: sotto i neon di una palestra o alla luce di una finestra uno
+  schermo scuro si riempie di riflessi, mentre uno chiaro alza il contrasto
+  reale invece di abbassarlo.
+
+  Il buio non è stato buttato: si sceglie dalle Impostazioni e vive nel blocco
+  `[data-theme='dark']` qui sotto. Un solo posto per tema, e nessun colore
+  scritto a mano fuori da qui.
+
+  I rapporti di contrasto di ogni coppia che l'app usa davvero sono verificati
+  da `src/ui/theme.test.ts`, che legge questo file: cambiare un valore qui e
+  scendere sotto la soglia fa fallire la suite.
 */
 @theme {
+  /* Superfici, dalla più lontana alla più vicina. */
+  --color-canvas: #f2f5f9;
+  --color-surface: #ffffff;
+  --color-panel: #e9eef5;
+
+  /*
+   * Due bordi, non uno.
+   *
+   * Nel tema scuro un bordo solo bastava: una superficie più chiara del fondo
+   * si stacca da sola. Sul chiaro non è più vero — bianco su quasi-bianco non
+   * si distingue — e il bordo diventa l'unica cosa che dice dove finisce un
+   * controllo. Quello decorativo che divide una card resta leggero; quello di
+   * un campo o di un pulsante che si tocca sta sopra 3:1 su ogni superficie,
+   * che è la soglia richiesta per un confine di interfaccia.
+   */
+  --color-line: #dae2ec;
+  --color-line-strong: #78879a;
+
+  --color-ink: #0f1720;
+  --color-dim: #556375;
+  --color-accent: #0a5cc0;
+  --color-accent-ink: #ffffff;
+  --color-good: #0a6b4a;
+  --color-warn: #7d4a00;
+  --color-danger: #b12727;
+
+  /*
+   * Colori dei grafici, verificati contro la superficie delle card (#ffffff):
+   * banda di luminosità, separazione tra gradini vicini, contrasto. Sul chiaro
+   * la rampa va al contrario del tema scuro — le marche devono essere più
+   * scure del fondo, non più chiare — quindi non sono gli stessi valori
+   * riordinati: sono altri.
+   */
+  --color-mark: #1a63bd;
+  --color-set-1: #6493d1;
+  --color-set-2: #4079c4;
+  --color-set-3: #2a5b9e;
+  --color-set-4: #193f6d;
+
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/*
+  Il tema scuro, per chi si allena di sera.
+
+  Non è il tema chiaro con i valori scambiati: sul buio l'elevazione si fa con
+  la luminosità — più vicino, più chiaro — e le marche dei grafici devono
+  essere più chiare del fondo. Sono due sistemi, e stanno in due blocchi.
+*/
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
   --color-canvas: #0b0f14;
   --color-surface: #151b23;
   --color-panel: #1e2732;
   --color-line: #2c3846;
+  --color-line-strong: #617286;
   --color-ink: #eef3f8;
   --color-dim: #9fb0c0;
   --color-accent: #4cc2ff;
@@ -18,25 +84,21 @@
   --color-warn: #ffb02e;
   --color-danger: #ff6b6b;
 
-  /*
-   * Colori dei grafici, verificati con lo script di validazione contro la
-   * superficie #151b23: banda di luminosità, soglia di croma, contrasto.
-   * L'accento della UI (#4cc2ff) è troppo chiaro per fare da marca: resta
-   * per pulsanti ed etichette.
-   */
   --color-mark: #3987e5;
   --color-set-1: #86b6ef;
   --color-set-2: #5598e7;
   --color-set-3: #2a78d6;
-  --color-set-4: #1c5cab;
-
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /*
+   * Schiarito da #1c5cab: contro la superficie delle card stava a 2,6:1,
+   * sotto la soglia di 3:1 per una marca. Il tema scuro non era mai stato
+   * misurato su questo, e l'ultimo gradino della rampa spariva nel fondo.
+   */
+  --color-set-4: #2668bf;
 }
 
 html {
   background-color: var(--color-canvas);
-  color-scheme: dark;
+  color-scheme: light;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -69,4 +131,13 @@ input[type='number']::-webkit-inner-spin-button {
 
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/*
+  L'ombra che sul chiaro fa il lavoro che sul buio faceva la luminosità.
+  Appena percettibile: serve a staccare la card dal fondo, non a decorarla.
+  Sul tema scuro un'ombra nera su fondo nero non si vede, e va bene così.
+*/
+@utility card-lift {
+  box-shadow: 0 1px 2px rgb(15 23 32 / 0.06), 0 1px 1px rgb(15 23 32 / 0.04);
 }

@@ -19,6 +19,13 @@ import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { restoreSnapshot } from '../../db/snapshots.ts';
 import { ART_ATTRIBUTION } from '../../data/exercise-art.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
+import {
+  THEME_CHOICES,
+  THEME_LABELS,
+  readThemeChoice,
+  saveThemeChoice,
+  type ThemeChoice,
+} from '../theme.ts';
 import type { ImportMode, ImportReport } from '../../db/backup.ts';
 
 /**
@@ -31,6 +38,7 @@ import type { ImportMode, ImportReport } from '../../db/backup.ts';
  */
 export function SettingsScreen() {
   const settings = useSettings();
+  const [tema, setTema] = useState<ThemeChoice>(() => readThemeChoice());
   const sessions = useSessions();
   const pwa = usePwaStatus();
   const auth = useAuthStatus();
@@ -115,6 +123,34 @@ export function SettingsScreen() {
   return (
     <Screen title="App e dati" subtitle="Sincronizzati sul tuo account">
       <div className="space-y-4">
+        <SectionTitle>Aspetto</SectionTitle>
+        <Card>
+          <div className="flex gap-2">
+            {THEME_CHOICES.map((scelta) => (
+              <button
+                key={scelta}
+                type="button"
+                aria-pressed={tema === scelta}
+                onClick={() => {
+                  setTema(scelta);
+                  saveThemeChoice(scelta);
+                }}
+                className={`min-h-14 flex-1 rounded-2xl border px-2 text-sm font-semibold ${
+                  tema === scelta
+                    ? 'border-accent bg-accent/15 text-ink'
+                    : 'border-line-strong bg-panel text-dim'
+                }`}
+              >
+                {THEME_LABELS[scelta]}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs leading-relaxed text-dim">
+            Il tema resta su questo dispositivo e non segue l’account: sotto i neon della palestra
+            e sul divano la sera non serve lo stesso schermo.
+          </p>
+        </Card>
+
         <SectionTitle>Account</SectionTitle>
         <Card>
           <p className="text-sm font-semibold">
@@ -256,7 +292,7 @@ export function SettingsScreen() {
               {snapshots.map((snapshot) => (
                 <li
                   key={snapshot.id}
-                  className="rounded-2xl border border-line bg-panel px-4 py-3"
+                  className="rounded-2xl border border-line-strong bg-panel px-4 py-3"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -355,7 +391,7 @@ export function SettingsScreen() {
             ref={fileInput}
             type="file"
             accept="application/json,.json"
-            className="mt-3 block w-full text-sm text-dim file:mr-3 file:min-h-12 file:rounded-xl file:border file:border-line file:bg-panel file:px-4 file:text-ink"
+            className="mt-3 block w-full text-sm text-dim file:mr-3 file:min-h-12 file:rounded-xl file:border file:border-line-strong file:bg-panel file:px-4 file:text-ink"
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file !== undefined) handleImport(file);
