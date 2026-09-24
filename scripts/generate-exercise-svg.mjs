@@ -18,6 +18,7 @@ import { mkdirSync, readdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const OUT = new URL('../src/assets/exercises/', import.meta.url).pathname;
+const STEPS_OUT = new URL('../src/assets/steps/', import.meta.url).pathname;
 
 const PANEL = 100;
 const GAP = 10;
@@ -146,13 +147,22 @@ const ARCHETYPES = {
     return [rig + floor() + support + figure(start), rig + floor() + support + figure(end)];
   },
 
-  pushup: ({ feet = 0, wide = false } = {}) => {
+  /*
+   * `feet` alza i piedi (push-up declinati), `hands` alza le mani (push-up su
+   * rialzo, il primo gradino della scala). Sono i due modi in cui la scala
+   * cambia davvero la forma del gesto: tutto il resto — tempo, pause, zavorra
+   * — non si vede in una figura.
+   */
+  pushup: ({ feet = 0, wide = false, hands = 0 } = {}) => {
     const footY = FLOOR - 2 - feet;
+    const handY = FLOOR - 4 - hands;
     const handX = wide ? 20 : 28;
-    const support = feet > 0 ? box(76, footY - 2, 20, FLOOR - footY + 2) : '';
+    const rise = feet > 0 ? box(76, footY - 2, 20, FLOOR - footY + 2) : '';
+    const bench = hands > 0 ? box(handX - 10, handY - 2, 24, FLOOR - handY + 2) : '';
+    const lift = hands > 0 ? Math.round(hands * 0.6) : 0;
     return [
-      floor() + support + figure({ he: [26, 54], ne: [35, 58], hi: [64, 68], el: [28, 76], ha: [handX, FLOOR - 4], kn: [82, 74], fo: [93, footY] }),
-      floor() + support + figure({ he: [24, 76], ne: [34, 79], hi: [64, 84], el: [24, 86], ha: [handX, FLOOR - 4], kn: [82, 88], fo: [93, footY] }),
+      floor() + rise + bench + figure({ he: [26, 54 - lift], ne: [35, 58 - lift], hi: [64, 68 - Math.round(lift / 2)], el: [28, 76 - lift], ha: [handX, handY], kn: [82, 74], fo: [93, footY] }),
+      floor() + rise + bench + figure({ he: [24, 76 - lift], ne: [34, 79 - lift], hi: [64, 84 - Math.round(lift / 2)], el: [24, 86 - lift], ha: [handX, handY], kn: [82, 88], fo: [93, footY] }),
     ];
   },
 
@@ -224,8 +234,9 @@ const ARCHETYPES = {
     ];
   },
 
-  'step-up': () => {
-    const boxY = 60;
+  /* `height` è l'altezza del box: è la progressione dello step-up. */
+  'step-up': ({ height = 42 } = {}) => {
+    const boxY = FLOOR - height;
     return [
       floor() + box(58, boxY, 34, FLOOR - boxY) +
         figure({ he: [40, 34], ne: [40, 42], hi: [40, 68], el: [34, 54], ha: [32, 66], kn: [56, 66], fo: [66, boxY - 2], kn2: [40, 84], fo2: [38, FLOOR - 2] }),
@@ -415,6 +426,163 @@ const EXERCISES = {
   'zona-2-conclusiva': ['run', {}, 'Zona 2 conclusiva'],
 };
 
+
+/* -------------------------------------------------------------------------- */
+/* Mappa gradino → archetipo                                                   */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Una figura per gradino, non per esercizio.
+ *
+ * Il disegno seguiva l'esercizio: al blocco A2 del giovedì il titolo diceva
+ * «Push-up archer», il livello vero era il 3 — push-up declinati — e
+ * l'illustrazione continuava a mostrare gli archer. Scendere di livello non
+ * cambiava niente di quello che si vedeva.
+ *
+ * Molti gradini condividono la stessa posa, e non è una scorciatoia: fra
+ * «trazioni complete» e «trazioni con pausa 1" in alto» il corpo fa la stessa
+ * forma, la differenza è il tempo. La figura mostra la forma, il nome del
+ * gradino dice il tempo. Dove invece cambia la forma — piedi a terra o
+ * rialzati, due gambe o una, appoggio o libero — cambia anche il disegno.
+ */
+const STEPS = {
+  /* Trazione verticale: la forma è una sola, cambia assistenza e tempo. */
+  'vertical-pull-l1': ['hang-pull', {}, 'Trazioni assistite con elastico'],
+  'vertical-pull-l2': ['hang-pull', {}, 'Trazioni negative: discesa lenta dalla presa alta'],
+  'vertical-pull-l3': ['hang-pull', {}, 'Trazioni complete: braccia distese, poi mento sopra la sbarra'],
+  'vertical-pull-l4': ['hang-pull', {}, 'Trazioni con pausa in alto'],
+  'vertical-pull-l5': ['hang-pull', {}, 'Archer pull-up: salita spostata su un braccio'],
+  'vertical-pull-l6': ['hang-pull', {}, 'Trazioni zavorrate'],
+
+  /* Trazione orizzontale: cambiano l inclinazione, i piedi e le braccia. */
+  'horizontal-pull-l1': ['row', {}, 'Rematore inverso con i piedi a terra'],
+  'horizontal-pull-l2': ['row', {}, 'Rematore TRX a 45 gradi'],
+  'horizontal-pull-l3': ['row', {}, 'Rematore TRX orizzontale'],
+  'horizontal-pull-l4': ['row', { elevated: true }, 'Rematore con i piedi rialzati e pausa'],
+  'horizontal-pull-l5': ['row', { oneArm: true }, 'Rematore monobraccio'],
+  'horizontal-pull-l6': ['row', { elevated: true, oneArm: true }, 'Rematore monobraccio con i piedi rialzati'],
+
+  /* Spinta orizzontale: cambiano appoggio, piedi e larghezza delle mani. */
+  'horizontal-push-l1': ['pushup', { hands: 22 }, 'Push-up con le mani su un rialzo'],
+  'horizontal-push-l2': ['pushup', {}, 'Push-up a terra'],
+  'horizontal-push-l3': ['pushup', { feet: 22 }, 'Push-up declinati: piedi su un rialzo'],
+  'horizontal-push-l4': ['pushup', {}, 'Pseudo-planche push-up: mani basse, spalle avanti'],
+  'horizontal-push-l5': ['pushup', { wide: true }, 'Archer push-up: mani larghe, discesa su un braccio'],
+  'horizontal-push-l6': ['pushup', {}, 'Push-up zavorrati'],
+
+  /* Spinta verticale: dal pike alla verticale al muro. */
+  'vertical-push-l1': ['pike', { feet: 0 }, 'Pike push-up con i piedi a terra'],
+  'vertical-push-l2': ['pike', { feet: 20 }, 'Pike push-up con i piedi rialzati'],
+  'vertical-push-l3': ['hspu', {}, 'Negative di HSPU al muro: solo la discesa'],
+  'vertical-push-l4': ['hspu', {}, 'HSPU al muro parziali'],
+  'vertical-push-l5': ['hspu', {}, 'HSPU al muro complete'],
+  'vertical-push-l6': ['hspu', {}, 'HSPU con deficit'],
+
+  /* Dip: panca, parallele, anelli. */
+  'dip-l1': ['bench-dip', {}, 'Dip tra due panche'],
+  'dip-l2': ['dip', {}, 'Dip negativi alle parallele: solo la discesa'],
+  'dip-l3': ['dip', {}, 'Dip completi alle parallele'],
+  'dip-l4': ['dip', {}, 'Dip con pausa in basso'],
+  'dip-l5': ['dip', {}, 'Dip agli anelli'],
+  'dip-l6': ['dip', {}, 'Dip zavorrati'],
+
+  /* Squat monopodalico: dallo split squat al pistol. */
+  'single-leg-squat-l1': ['split-squat', { rearElevated: false }, 'Split squat con il piede dietro a terra'],
+  'single-leg-squat-l2': ['split-squat', {}, 'Bulgarian split squat: piede dietro sulla panca'],
+  'single-leg-squat-l3': ['split-squat', {}, 'Bulgarian split squat con pausa in basso'],
+  'single-leg-squat-l4': ['shrimp', {}, 'Skater squat: ginocchio dietro verso terra'],
+  'single-leg-squat-l5': ['shrimp', {}, 'Shrimp squat: ginocchio dietro che tocca terra'],
+  'single-leg-squat-l6': ['shrimp', {}, 'Pistol squat: accosciata su una gamba'],
+
+  /* Catena posteriore: glute bridge e nordic curl. */
+  'posterior-chain-l1': ['hip-thrust', {}, 'Glute bridge monopodalico a terra'],
+  'posterior-chain-l2': ['nordic', {}, 'Nordic eccentrico assistito con elastico'],
+  'posterior-chain-l3': ['nordic', {}, 'Nordic eccentrico completo'],
+  'posterior-chain-l4': ['nordic', {}, 'Nordic eccentrico lento'],
+  'posterior-chain-l5': ['nordic', {}, 'Nordic con risalita assistita'],
+  'posterior-chain-l6': ['nordic', {}, 'Nordic completo'],
+
+  /* Core: dal plank all ab wheel. */
+  'core-l1': ['hollow', {}, 'Plank: corpo in linea sugli avambracci'],
+  'core-l2': ['hollow', {}, 'Hollow hold con le ginocchia piegate'],
+  'core-l3': ['hollow', {}, 'Hollow hold completo'],
+  'core-l4': ['leg-raise', {}, 'Hanging knee raise: ginocchia al petto'],
+  'core-l5': ['leg-raise', {}, 'Hanging leg raise: gambe distese'],
+  'core-l6': ['ab-wheel', {}, 'Ab wheel completo'],
+
+  /* Hip thrust: due gambe, poi una. */
+  'hip-thrust-l1': ['hip-thrust', {}, 'Glute bridge a terra a due gambe'],
+  'hip-thrust-l2': ['hip-thrust', {}, 'Hip thrust con le spalle sulla panca, due gambe'],
+  'hip-thrust-l3': ['hip-thrust', {}, 'Glute bridge monopodalico a terra'],
+  'hip-thrust-l4': ['hip-thrust', {}, 'Hip thrust monopodalico con le spalle sulla panca'],
+  'hip-thrust-l5': ['hip-thrust', {}, 'Hip thrust monopodalico con pausa in alto'],
+  'hip-thrust-l6': ['hip-thrust', {}, 'Hip thrust monopodalico zavorrato'],
+
+  /* Hip hinge: il movimento d anca, a due gambe e poi a una. */
+  'hip-hinge-l1': ['rdl', {}, 'Hip hinge a due gambe con il bastone'],
+  'hip-hinge-l2': ['rdl', {}, 'Stacco rumeno a due gambe a corpo libero'],
+  'hip-hinge-l3': ['rdl', {}, 'Stacco rumeno su una gamba con mano d appoggio'],
+  'hip-hinge-l4': ['rdl', {}, 'Stacco rumeno su una gamba a corpo libero'],
+  'hip-hinge-l5': ['rdl', {}, 'Stacco rumeno su una gamba con pausa in basso'],
+  'hip-hinge-l6': ['rdl', {}, 'Stacco rumeno su una gamba zavorrato'],
+
+  /* Polpacci: in piedi, due gambe o una. */
+  'calf-l1': ['calf', {}, 'Calf a due gambe, range parziale'],
+  'calf-l2': ['calf', {}, 'Calf a due gambe, range completo'],
+  'calf-l3': ['calf', {}, 'Calf su una gamba, range parziale'],
+  'calf-l4': ['calf', {}, 'Calf su una gamba, range completo'],
+  'calf-l5': ['calf', {}, 'Calf su una gamba con pausa in basso'],
+  'calf-l6': ['calf', {}, 'Calf su una gamba zavorrato'],
+
+  /* Step-up: cambia l altezza del box. */
+  'step-up-l1': ['step-up', { height: 16 }, 'Step-up su box a meta tibia'],
+  'step-up-l2': ['step-up', { height: 24 }, 'Step-up su box all altezza del ginocchio'],
+  'step-up-l3': ['step-up', { height: 28 }, 'Step-up con discesa lenta'],
+  'step-up-l4': ['step-up', { height: 34 }, 'Step-up su box sopra il ginocchio'],
+  'step-up-l5': ['step-up', { height: 34 }, 'Step-up con pausa in alto'],
+  'step-up-l6': ['step-up', { height: 34 }, 'Step-up zavorrato'],
+
+  /* Sissy squat: cambia l appoggio. */
+  'sissy-squat-l1': ['sissy', {}, 'Sissy squat con due mani d appoggio'],
+  'sissy-squat-l2': ['sissy', {}, 'Sissy squat con una mano d appoggio'],
+  'sissy-squat-l3': ['sissy', {}, 'Sissy squat a corpo libero'],
+  'sissy-squat-l4': ['sissy', {}, 'Sissy squat con pausa in basso'],
+  'sissy-squat-l5': ['sissy', {}, 'Sissy squat a braccia incrociate'],
+  'sissy-squat-l6': ['sissy', {}, 'Sissy squat con eccentrica lenta'],
+
+  /* Verticale: dal plank a mani alte alla verticale libera. */
+  'handstand-l1': ['pike', { feet: 0 }, 'Plank a mani alte contro il muro'],
+  'handstand-l2': ['handstand', {}, 'Verticale al muro con la schiena al muro'],
+  'handstand-l3': ['handstand', {}, 'Verticale al muro con la pancia al muro'],
+  'handstand-l4': ['handstand', {}, 'Verticale al muro con una gamba staccata'],
+  'handstand-l5': ['handstand', {}, 'Tentativi di verticale libera'],
+  'handstand-l6': ['handstand', {}, 'Verticale libera tenuta'],
+
+  /* Wall sit: cambia l angolo e il numero di gambe. */
+  'wall-sit-l1': ['wallsit', {}, 'Wall sit sopra il parallelo'],
+  'wall-sit-l2': ['wallsit', {}, 'Wall sit con le cosce parallele a terra'],
+  'wall-sit-l3': ['wallsit', {}, 'Wall sit con le braccia incrociate'],
+  'wall-sit-l4': ['wallsit', {}, 'Wall sit con una gamba sollevata'],
+  'wall-sit-l5': ['wallsit', {}, 'Wall sit su una gamba'],
+  'wall-sit-l6': ['wallsit', {}, 'Wall sit su una gamba con il piede su un rialzo'],
+
+  /* L-sit: si sale aprendo le gambe. */
+  'l-sit-l1': ['lsit', {}, 'Appoggio a terra con i piedi che sfiorano'],
+  'l-sit-l2': ['lsit', {}, 'Tuck sit con le ginocchia al petto'],
+  'l-sit-l3': ['lsit', {}, 'Advanced tuck con il bacino sotto'],
+  'l-sit-l4': ['lsit', {}, 'L-sit con una gamba distesa'],
+  'l-sit-l5': ['lsit', {}, 'L-sit completo'],
+  'l-sit-l6': ['lsit', {}, 'L-sit ai parallettes'],
+
+  /* Sospensione: la forma è una, cambia la presa. */
+  'hang-l1': ['hang-hold', {}, 'Sospensione con i piedi che sfiorano terra'],
+  'hang-l2': ['hang-hold', {}, 'Dead hang a due mani'],
+  'hang-l3': ['hang-hold', {}, 'Dead hang con presa a pinza'],
+  'hang-l4': ['hang-hold', {}, 'Dead hang a una mano con l altra sul polso'],
+  'hang-l5': ['hang-hold', {}, 'Dead hang a una mano'],
+  'hang-l6': ['hang-hold', {}, 'Dead hang a una mano su asciugamano'],
+};
+
 /* -------------------------------------------------------------------------- */
 
 mkdirSync(OUT, { recursive: true });
@@ -430,4 +598,17 @@ for (const [slug, [archetype, options, label]] of Object.entries(EXERCISES)) {
   count += 1;
 }
 
-console.log(`Generate ${count} illustrazioni in src/assets/exercises/`);
+mkdirSync(STEPS_OUT, { recursive: true });
+for (const file of readdirSync(STEPS_OUT)) {
+  if (file.endsWith('.svg')) unlinkSync(join(STEPS_OUT, file));
+}
+
+let steps = 0;
+for (const [slug, [archetype, options, label]] of Object.entries(STEPS)) {
+  const build = ARCHETYPES[archetype];
+  if (build === undefined) throw new Error(`Archetipo sconosciuto: ${archetype}`);
+  writeFileSync(join(STEPS_OUT, `${slug}.svg`), `${render(build(options), label)}\n`, 'utf8');
+  steps += 1;
+}
+
+console.log(`Generate ${count} illustrazioni di esercizi e ${steps} di gradini.`);

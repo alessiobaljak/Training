@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getExercise } from '../../data/exercises.ts';
-import { getProgressionStep } from '../../data/progressions.ts';
 import { repository } from '../../db/repository.ts';
 import {
   closeSession,
@@ -17,7 +16,7 @@ import {
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import { describeTut, parseTut } from '../../engine/notation.ts';
-import { effectiveTempo, initialExerciseState } from '../../engine/progression.ts';
+import { effectiveTempo, initialExerciseState, isOwnLevel } from '../../engine/progression.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
 import { getWeekState } from '../../engine/schedule.ts';
 import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
@@ -250,19 +249,31 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const prevStep = plan[stepIndex - 1];
   const nextStep = plan[stepIndex + 1];
 
-  /*
-   * Il gradino a cui la scheda vuole arrivare, quando è più su di quello
-   * attuale. Serve a non far sembrare un errore un livello più basso: la
-   * scheda prescrive la meta, il test dice da dove si parte.
-   */
   const gradinoAttuale = logged?.level ?? exerciseState?.level ?? null;
-  const obiettivo =
-    exercise.pattern !== null &&
-    exercise.defaultLevel !== null &&
-    gradinoAttuale !== null &&
-    exercise.defaultLevel > gradinoAttuale
-      ? `${getProgressionStep(exercise.pattern, exercise.defaultLevel).name} (liv. ${String(exercise.defaultLevel)})`
-      : null;
+
+  /*
+   * Cosa fai adesso, e cosa dice la scheda: due righe, in quest'ordine.
+   *
+   * Dove non c'è una scala il nome della riga e quello dell'esercizio sono la
+   * stessa cosa — i manubri non hanno gradini — e la seconda riga non serve.
+   */
+  const variante = logged?.variantLabel ?? exercise.name;
+  const suoGradino = isOwnLevel(exercise, gradinoAttuale);
+  const titolo = suoGradino ? exercise.name : variante;
+  /*
+   * L'altra metà: quando comanda l'esercizio, il gradino; quando comanda il
+   * gradino, l'esercizio che la scheda prescrive e a che livello lo vuole.
+   * Il nome del gradino della scheda non serve ripeterlo — «Nella scheda:
+   * Push-up archer · obiettivo Archer push-up» diceva due volte la stessa
+   * cosa — e il nome dell'esercizio è comunque il più preciso dei due.
+   */
+  const scheda = suoGradino
+    ? variante === exercise.name
+      ? null
+      : variante
+    : `Nella scheda: ${exercise.name}${
+        exercise.defaultLevel === null ? '' : ` (liv. ${String(exercise.defaultLevel)})`
+      }`;
 
   /*
    * Scegliere un'alternativa a mano non passa dal tetto del test.
@@ -441,12 +452,19 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             */}
             <div className="min-w-0">
               <p className="font-mono text-xs text-accent">{block.code}</p>
-              <p className="text-xl font-semibold">{exercise.name}</p>
-              {logged !== undefined && logged.variantLabel !== exercise.name ? (
-                <p className="mt-1 truncate text-sm text-dim">{logged.variantLabel}</p>
-              ) : null}
-              {obiettivo !== null ? (
-                <p className="mt-1 text-xs text-dim">Obiettivo della scheda: {obiettivo}</p>
+              {/*
+                Il titolo è il gradino che stai facendo, non il nome che la
+                scheda dà alla riga.
+                Sono due cose diverse appena il test ti mette sotto quello che
+                la scheda prescrive: il giovedì l'intestazione diceva «Push-up
+                archer» in grande e «Liv. 3 · Push-up declinati» in piccolo
+                sotto. Gli archer erano la meta, i declinati erano l'esercizio
+                da fare — e il titolo diceva l'altro. La meta non sparisce:
+                scende di una riga, dove stava già.
+              */}
+              <p className="text-xl font-semibold">{titolo}</p>
+              {scheda !== null ? (
+                <p className="mt-1 text-xs leading-relaxed text-dim">{scheda}</p>
               ) : null}
               {/*
                 Nella superserie i due esercizi non hanno sempre lo stesso
@@ -471,7 +489,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
           </div>
 
           <div className="mt-3">
-            <ExerciseArt slug={exercise.slug} />
+            <ExerciseArt slug={exercise.slug} level={gradinoAttuale} />
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2 text-sm">

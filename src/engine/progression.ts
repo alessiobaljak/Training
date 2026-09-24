@@ -76,6 +76,20 @@ export function startingLevel(exercise: Exercise): LevelIndex | null {
   return (prescritto < prova.level ? prescritto : prova.level) as LevelIndex;
 }
 
+/**
+ * Il gradino attuale è quello per cui l'esercizio è scritto.
+ *
+ * Decide chi ha ragione fra il nome dell'esercizio e il nome del gradino, e lo
+ * decide una volta per il titolo e per la figura, che devono dire la stessa
+ * cosa. Quando coincidono vince il nome dell'esercizio, che è più preciso: dice
+ * anche quello che il gradino non nomina, la presa larga di una trazione o la
+ * panca di un dip. Quando non coincidono vince il gradino, perché il nome
+ * dell'esercizio a quel punto descrive un movimento che non stai facendo.
+ */
+export function isOwnLevel(exercise: Exercise, level: LevelIndex | null): boolean {
+  return exercise.pattern === null || level === null || level === exercise.defaultLevel;
+}
+
 export function initialExerciseState(exercise: Exercise): ExerciseState {
   return {
     exercise: exercise.slug,

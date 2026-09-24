@@ -40,6 +40,13 @@ async function waitForServer(timeoutMs = 90_000) {
 const PAGINE = [
   ['home', '#/'],
   ['seduta', '#/seduta/upper-a'],
+  /*
+   * Il blocco A2 dell'Upper B è la schermata dove il test tiene il gradino
+   * sotto quello che la scheda prescrive: la scheda vuole gli archer push-up,
+   * il test dice push-up declinati. È lì che si vede se titolo e figura
+   * seguono il gradino, quindi ci si arriva davvero, con un tocco su «avanti».
+   */
+  ['seduta-sotto-il-gradino', '#/seduta/upper-b', 1],
   ['esercizio', '#/esercizi/trazioni-prona-presa-media'],
   ['progressi', '#/progressi'],
   ['impostazioni', '#/impostazioni'],
@@ -71,7 +78,7 @@ try {
       window.localStorage.setItem('shadow:tema', scelta);
     }, tema);
 
-    for (const [nome, rotta] of PAGINE) {
+    for (const [nome, rotta, avanti = 0] of PAGINE) {
       /*
        * `goto` verso un indirizzo che cambia solo nell'hash non ricarica
        * niente: resta la pagina di prima, con la sua posizione di scorrimento
@@ -81,6 +88,21 @@ try {
       await page.goto(`${BASE}/${rotta}`, { waitUntil: 'load' });
       await page.reload({ waitUntil: 'load' });
       await page.waitForTimeout(1700);
+
+      for (let passo = 0; passo < avanti; passo += 1) {
+        const prossima = page.getByRole('button', { name: /serie \d+ ›$/ });
+        if ((await prossima.count()) === 0) break;
+        await prossima.click();
+        await page.waitForTimeout(700);
+      }
+
+      /* Dopo un tocco su «avanti» la pagina resta dov'era: la foto deve
+         partire dall'alto, altrimenti si fotografa il fondo della schermata. */
+      await page.evaluate(() => {
+        document.querySelector('main')?.closest('div.overflow-y-auto')?.scrollTo(0, 0);
+        window.scrollTo(0, 0);
+      });
+      await page.waitForTimeout(400);
       await page.screenshot({ path: `${OUT}/${tema}-${nome}.png` });
     }
   }

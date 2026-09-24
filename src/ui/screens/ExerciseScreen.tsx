@@ -63,7 +63,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
     >
       <div className="space-y-4">
         <Card>
-          <ExerciseArt slug={slug} />
+          <ExerciseArt slug={slug} level={level} />
         </Card>
 
         {/*
@@ -113,6 +113,14 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
                                 : `${distanza === 1 ? 'Un gradino' : `${String(distanza)} gradini`} più difficile di dove sei.`}
                             {step.perSide ? ' Si esegue un lato per volta.' : ''}
                           </p>
+                          {/*
+                            La figura del gradino aperto, non quella
+                            dell'esercizio: è la domanda a cui si risponde
+                            toccando un gradino — «e questo com'è?».
+                          */}
+                          <div className="mt-3">
+                            <ExerciseArt slug={slug} level={step.level} />
+                          </div>
                           {current ? null : (
                             <div className="mt-3">
                               <Button

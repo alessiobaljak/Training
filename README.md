@@ -255,6 +255,32 @@ Tre vincoli che attraversano tutta la UI:
   lettura: una scrittura lì dentro fa fallire l'intera schermata, senza dire
   perché.
 
+### Il titolo e la figura dicono il gradino, non la riga della scheda
+
+Il giovedì l'intestazione diceva «Push-up archer» in grande, «Liv. 3 · Push-up
+declinati» in piccolo sotto, e mostrava l'illustrazione degli archer push-up.
+Gli archer erano la meta, i declinati l'esercizio da fare: il titolo e la
+figura dicevano l'altro, e cambiare livello non cambiava niente di quello che
+si vedeva.
+
+Una regola sola decide, `isOwnLevel`, e vale per il titolo e per la figura
+insieme — se decidessero separatamente la schermata potrebbe contraddirsi:
+
+- **gradino attuale = gradino per cui l'esercizio è scritto** → comanda
+  l'esercizio. È più preciso: dice anche quello che il gradino non nomina, la
+  presa larga di una trazione o la panca di un dip.
+- **gradino diverso** → comanda il gradino, perché il nome dell'esercizio a
+  quel punto descrive un movimento che non stai facendo. La riga sotto dice
+  cosa prescrive la scheda e a che livello.
+
+`npm run svg` genera quindi **102 figure di gradino** oltre alle 41 di
+esercizio. Molti gradini condividono una posa, e non è una scorciatoia: fra
+«trazioni complete» e «trazioni con pausa 1" in alto» il corpo fa la stessa
+forma e la differenza è il tempo. La figura mostra la forma, il nome del
+gradino dice il tempo. Dove cambia la forma — piedi a terra o rialzati, due
+gambe o una, appoggio o libero — cambia anche il disegno. Ventitré gradini
+hanno l'illustrazione RepDB al posto della figura schematica.
+
 ## Le illustrazioni
 
 Due fonti, in ordine di preferenza.

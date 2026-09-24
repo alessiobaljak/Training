@@ -541,12 +541,45 @@ try {
       a2.includes('Push-up archer'),
       'Il blocco deve continuare a dire cosa prescrive la scheda.',
     );
+
+    /*
+     * Il titolo è il gradino, non il nome della riga.
+     *
+     * L'intestazione diceva «Push-up archer» in grande e «Liv. 3 · Push-up
+     * declinati» in piccolo sotto: gli archer erano la meta, i declinati
+     * l'esercizio da fare, e il titolo diceva l'altro.
+     */
+    const titoloA2 = await page.locator('main p.text-xl').first().innerText();
+    check(
+      titoloA2.startsWith('Liv.') && !titoloA2.includes('archer'),
+      `Il titolo deve dire il gradino che stai facendo. Legge "${titoloA2}".`,
+    );
+    check(
+      a2.includes('Nella scheda:'),
+      'La riga della scheda non deve sparire: scende, non se ne va.',
+    );
+
+    /*
+     * E la figura segue il titolo. Il disegno seguiva l'esercizio: al gradino
+     * 3 mostrava ancora gli archer push-up, cioè un altro movimento.
+     */
+    const figuraA2 = await page.evaluate(() => {
+      const nodo = document.querySelector('main figure img, main figure svg');
+      if (nodo === null) return '';
+      return nodo.tagName === 'IMG'
+        ? (nodo.getAttribute('src') ?? '')
+        : (nodo.querySelector('title')?.textContent ?? '');
+    });
+    check(
+      figuraA2 !== '' && !/archer/i.test(figuraA2),
+      `Al gradino 3 la figura non deve mostrare gli archer. Mostra "${figuraA2}".`,
+    );
     check(
       a2.includes('Liv. 2 · Push-up a terra'),
       `Il gradino di partenza è quello del test, non quello della scheda: letto ${JSON.stringify((/Liv\. \d+ · [^\n]+/.exec(a2) ?? ['(nessuno)'])[0])}.`,
     );
     check(
-      a2.includes('Obiettivo della scheda: Archer push-up (liv. 5)'),
+      a2.includes('Nella scheda: Push-up archer (liv. 5)'),
       'Partendo più in basso la seduta deve dire a quale gradino la scheda vuole arrivare.',
     );
     check(
@@ -660,7 +693,7 @@ try {
       `Senza un test sulla scala si parte dal primo gradino: letto ${JSON.stringify((/Liv\. \d+ · [^\n]+/.exec(b1) ?? ['(nessuno)'])[0])}.`,
     );
     check(
-      b1.includes('Obiettivo della scheda: Hip thrust monopodalico'),
+      b1.includes('Nella scheda: Hip thrust monopodalico'),
       'L’obiettivo della scheda deve restare scritto, altrimenti un gradino più basso sembra un errore.',
     );
     check(
@@ -906,9 +939,16 @@ try {
 
   const testaBloccoA = async () => (await page.locator('main').innerText()).split('\nA\n\n')[1] ?? '';
 
+  /*
+   * Un esercizio solo nel titolo, al posto di «Skill: hollow hold / L-sit /
+   * verticale al muro». Qui l'hollow hold è al proprio gradino, quindi il
+   * titolo è il nome dell'esercizio; sotto il proprio gradino sarebbe il nome
+   * del gradino, che pure ne nomina uno solo.
+   */
+  const testaA = await testaBloccoA();
   check(
-    (await testaBloccoA()).startsWith('Hollow hold'),
-    `Il titolo deve nominare un esercizio solo: letto ${JSON.stringify((await testaBloccoA()).split('\n')[0])}.`,
+    /^(Liv\. \d+ · )?Hollow hold/.test(testaA),
+    `Il titolo deve nominare un esercizio solo: letto ${JSON.stringify(testaA.split('\n')[0])}.`,
   );
   check(
     !(await page.locator('main').innerText()).includes('Skill: hollow hold / L-sit'),
@@ -926,7 +966,7 @@ try {
     await sceltaLSit.click();
     await page.waitForTimeout(1100);
     check(
-      (await testaBloccoA()).startsWith('L-sit'),
+      (await testaBloccoA()).includes('L-sit'),
       'Scelto il L-sit, il blocco deve dire che stai facendo il L-sit.',
     );
 

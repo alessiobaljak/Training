@@ -1,4 +1,6 @@
-import type { Exercise } from '../types/index.ts';
+import { getProgressionStep } from '../data/progressions.ts';
+import { isOwnLevel } from './progression.ts';
+import type { Exercise, ExerciseSlug, LevelIndex } from '../types/index.ts';
 
 /**
  * Link ai video, l'unico punto del codice che ne costruisce uno.
@@ -68,4 +70,32 @@ export function resolveVideoLink(exercise: Exercise, customUrl: string | null): 
     label: 'Cerca un video',
     hint: 'Ricerca su YouTube. Quando trovi un video che ti convince, salvalo in “Il mio video”.',
   };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Quale figura mostrare                                                       */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * L'illustrazione segue il gradino, non l'esercizio.
+ *
+ * Al blocco A2 del giovedì il titolo diceva «Push-up archer», il gradino vero
+ * era il 3 — push-up declinati — e l'illustrazione mostrava gli archer.
+ * Scendere di livello non cambiava niente di quello che si vedeva, e la figura
+ * diceva una cosa falsa a chi la guardava prima di una serie.
+ *
+ * L'unica eccezione è quando il gradino attuale è proprio quello per cui
+ * l'esercizio è scritto: lì la figura dell'esercizio è più precisa di quella
+ * del gradino, perché dice anche quello che il gradino non nomina — la presa
+ * larga di una trazione, la panca di un dip.
+ */
+export type ArtTarget =
+  | { readonly kind: 'exercise'; readonly key: ExerciseSlug }
+  | { readonly kind: 'step'; readonly key: string };
+
+export function artFor(exercise: Exercise, level: LevelIndex | null): ArtTarget {
+  if (isOwnLevel(exercise, level) || exercise.pattern === null || level === null) {
+    return { kind: 'exercise', key: exercise.slug };
+  }
+  return { kind: 'step', key: getProgressionStep(exercise.pattern, level).slug };
 }

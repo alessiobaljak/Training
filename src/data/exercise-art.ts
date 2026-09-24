@@ -48,6 +48,133 @@ export interface RepDbFrames {
  * ha la sua voce qui, o sono due gradini della stessa scala, e allora la
  * seconda immagine andrebbe legata al gradino, non all'esercizio.
  */
+/*
+ * Le illustrazioni legate al gradino, non all'esercizio.
+ *
+ * Il disegno seguiva l'esercizio: al blocco A2 del giovedì il titolo diceva
+ * «Push-up archer», il gradino vero era il 3 — push-up declinati — e
+ * l'illustrazione continuava a mostrare gli archer. Qui stanno i gradini di
+ * cui RepDB ha davvero il disegno; per tutti gli altri c'è la figura
+ * schematica, che è generata gradino per gradino.
+ */
+export const REPDB_STEP_ART: Readonly<Record<string, RepDbFrames>> = {
+  'vertical-pull-l3': {
+    source: 'pull-up',
+    label: 'Pull-Up',
+    frames: ['pull-up-start.webp', 'pull-up-peak.webp'],
+  },
+  'horizontal-pull-l1': {
+    source: 'inverted-row',
+    label: 'Inverted Row',
+    frames: ['inverted-row-start.webp', 'inverted-row-peak.webp'],
+  },
+  'horizontal-pull-l3': {
+    source: 'trx-row',
+    label: 'TRX Row',
+    frames: ['trx-row-start.webp', 'trx-row-peak.webp'],
+  },
+  'horizontal-push-l2': {
+    source: 'push-up',
+    label: 'Push-Up',
+    frames: ['push-up-start.webp', 'push-up-peak.webp'],
+  },
+  'horizontal-push-l4': {
+    source: 'pseudo-planche-push-ups',
+    label: 'Pseudo Planche Push Ups',
+    frames: ['pseudo-planche-push-ups-start.webp', 'pseudo-planche-push-ups-peak.webp'],
+  },
+  'horizontal-push-l5': {
+    source: 'archer-push-ups',
+    label: 'Archer Push Ups',
+    frames: ['archer-push-ups-start.webp', 'archer-push-ups-peak.webp'],
+  },
+  'vertical-push-l1': {
+    source: 'pike-push-ups',
+    label: 'Pike Push Ups',
+    frames: ['pike-push-ups-start.webp', 'pike-push-ups-peak.webp'],
+  },
+  'vertical-push-l5': {
+    source: 'handstand-push-ups',
+    label: 'Handstand Push Ups',
+    frames: ['handstand-push-ups-start.webp', 'handstand-push-ups-peak.webp'],
+  },
+  'dip-l1': {
+    source: 'bench-dips',
+    label: 'Bench Dips',
+    frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
+  },
+  'dip-l3': {
+    source: 'dips',
+    label: 'Dips',
+    frames: ['dips-start.webp', 'dips-peak.webp'],
+  },
+  'dip-l5': {
+    source: 'ring-dips',
+    label: 'Ring Dips',
+    frames: ['ring-dips-start.webp', 'ring-dips-peak.webp'],
+  },
+  'single-leg-squat-l2': {
+    source: 'bulgarian-split-squat',
+    label: 'Bulgarian Split Squat',
+    frames: ['bulgarian-split-squat-start.webp', 'bulgarian-split-squat-peak.webp'],
+  },
+  'posterior-chain-l1': {
+    source: 'single-leg-glute-bridge',
+    label: 'Single Leg Glute Bridge',
+    frames: ['single-leg-glute-bridge-start.webp', 'single-leg-glute-bridge-peak.webp'],
+  },
+  'posterior-chain-l6': {
+    source: 'nordic-hamstring-curl',
+    label: 'Nordic Hamstring Curl',
+    frames: ['nordic-hamstring-curl-start.webp', 'nordic-hamstring-curl-peak.webp'],
+  },
+  'hip-thrust-l3': {
+    source: 'single-leg-glute-bridge',
+    label: 'Single Leg Glute Bridge',
+    frames: ['single-leg-glute-bridge-start.webp', 'single-leg-glute-bridge-peak.webp'],
+  },
+  'hip-hinge-l4': {
+    source: 'single-leg-romanian-deadlift',
+    label: 'Single Leg Romanian Deadlift',
+    frames: ['single-leg-romanian-deadlift-start.webp', 'single-leg-romanian-deadlift-peak.webp'],
+  },
+  'calf-l2': {
+    source: 'bodyweight-calf-raise',
+    label: 'Bodyweight Calf Raise',
+    frames: ['bodyweight-calf-raise-start.webp', 'bodyweight-calf-raise-peak.webp'],
+  },
+  'step-up-l2': {
+    source: 'step-ups',
+    label: 'Step Ups',
+    frames: ['step-ups-start.webp', 'step-ups-peak.webp'],
+  },
+  'core-l3': {
+    source: 'hollow-body-hold',
+    label: 'Hollow Body Hold',
+    frames: ['hollow-body-hold-main.webp'],
+  },
+  'core-l5': {
+    source: 'hanging-leg-raise',
+    label: 'Hanging Leg Raise',
+    frames: ['hanging-leg-raise-start.webp', 'hanging-leg-raise-peak.webp'],
+  },
+  'core-l6': {
+    source: 'ab-wheel-rollout',
+    label: 'Ab Wheel Rollout',
+    frames: ['ab-wheel-rollout-start.webp', 'ab-wheel-rollout-peak.webp'],
+  },
+  'wall-sit-l2': {
+    source: 'wall-sit',
+    label: 'Wall Sit',
+    frames: ['wall-sit-main.webp'],
+  },
+  'hang-l2': {
+    source: 'dead-hang',
+    label: 'Dead Hang',
+    frames: ['dead-hang-main.webp'],
+  },
+};
+
 export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
   'trazioni-prona-presa-media': {
     source: 'pull-up',

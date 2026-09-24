@@ -1,4 +1,7 @@
-import { REPDB_ART } from '../../data/exercise-art.ts';
+import { REPDB_ART, REPDB_STEP_ART } from '../../data/exercise-art.ts';
+import { getExercise } from '../../data/exercises.ts';
+import { artFor } from '../../engine/media.ts';
+import type { LevelIndex } from '../../types/index.ts';
 
 /**
  * Illustrazione di un esercizio.
@@ -21,6 +24,13 @@ const SVG_MODULES: Record<string, unknown> = import.meta.glob('../../assets/exer
   eager: true,
 });
 
+/* Una figura per gradino: `npm run svg` ne genera una per ognuno dei 102. */
+const STEP_SVG_MODULES: Record<string, unknown> = import.meta.glob('../../assets/steps/*.svg', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+
 const PHOTO_MODULES: Record<string, unknown> = import.meta.glob(
   '../../assets/exercises-repdb/*.webp',
   { query: '?url', import: 'default', eager: true },
@@ -37,11 +47,12 @@ function byFileName(modules: Record<string, unknown>, strip: RegExp): ReadonlyMa
 }
 
 const SVG_BY_SLUG = byFileName(SVG_MODULES, /\.svg$/);
+const STEP_SVG_BY_SLUG = byFileName(STEP_SVG_MODULES, /\.svg$/);
 const PHOTO_BY_FILE = byFileName(PHOTO_MODULES, /$^/);
 
-/** Gli indirizzi dei fotogrammi di un esercizio, vuoto se non ne ha. */
-function framesFor(slug: string): string[] {
-  const art = REPDB_ART[slug as keyof typeof REPDB_ART];
+/** Gli indirizzi dei fotogrammi, vuoto quando quella voce non ne ha. */
+function framesFor(chiave: string, tabella: Readonly<Record<string, { readonly frames: readonly string[] }>>): string[] {
+  const art = tabella[chiave];
   if (art === undefined) return [];
   return art.frames.flatMap((file) => {
     const url = PHOTO_BY_FILE.get(file);
@@ -50,17 +61,25 @@ function framesFor(slug: string): string[] {
 }
 
 export function hasExerciseArt(slug: string): boolean {
-  return framesFor(slug).length > 0 || SVG_BY_SLUG.has(slug);
+  return framesFor(slug, REPDB_ART as Record<string, { frames: readonly string[] }>).length > 0 ||
+    SVG_BY_SLUG.has(slug);
 }
 
 export function ExerciseArt({
   slug,
+  level = null,
   label,
 }: {
   readonly slug: string;
+  /** Gradino attuale: la figura segue quello, non l'esercizio. */
+  readonly level?: LevelIndex | null;
   readonly label?: string;
 }) {
-  const frames = framesFor(slug);
+  const bersaglio = artFor(getExercise(slug), level);
+  const frames =
+    bersaglio.kind === 'step'
+      ? framesFor(bersaglio.key, REPDB_STEP_ART)
+      : framesFor(bersaglio.key, REPDB_ART as Record<string, { frames: readonly string[] }>);
   const caption = label ?? (frames.length === 1 ? 'La posizione da tenere' : 'Inizio e fine del range');
 
   if (frames.length > 0) {
@@ -82,7 +101,10 @@ export function ExerciseArt({
     );
   }
 
-  const markup = SVG_BY_SLUG.get(slug);
+  const markup =
+    bersaglio.kind === 'step'
+      ? STEP_SVG_BY_SLUG.get(bersaglio.key)
+      : SVG_BY_SLUG.get(bersaglio.key);
   if (markup === undefined) return null;
 
   return (
