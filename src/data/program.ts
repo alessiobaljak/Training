@@ -331,7 +331,7 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
     name: 'Upper B',
     focus: 'trazione dominante',
     kind: 'strength',
-    estimatedMinutes: 58,
+    estimatedMinutes: 53,
     warmup: [
       "3' cardio",
       'Scapular pull-up × 10',
@@ -400,12 +400,13 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         prescription: { kind: 'reps', min: 12, max: 15 },
         /*
          * La scheda scrive «Croci con elastico o push-up presa larga lenta».
-         * Sono due esercizi: le croci si fanno con un peso in mano, il push-up
-         * a corpo libero, e la politica del carico non può essere la stessa.
+         * Del push-up a presa larga non resta niente, ed è voluto: qui è la
+         * terza spinta orizzontale della seduta, dopo quattro serie al blocco
+         * A2 e tre di negative di HSPU al B2, tutte a RIR 0-1. Le croci
+         * restano perché sono l'unico movimento della settimana che carica il
+         * petto in allungamento senza passare dai tricipiti. Dichiarato in
+         * DEVIAZIONI.
          */
-        alternatives: [
-          { exercise: 'pushup-presa-larga-lento', prescription: { kind: 'reps', min: 12, max: 15 } },
-        ],
         reference: 'RIR 0-1',
         tut: '4-1-1-0',
         rir: '0-1',
@@ -424,20 +425,6 @@ export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
         rir: '0-1',
         rest: superset(45),
         perSide: false,
-      },
-      {
-        code: 'D',
-        group: 'D',
-        pairing: 'single',
-        exercise: 'alzate-laterali-elastico',
-        sets: 1,
-        prescription: { kind: 'myo-reps', activationReps: 15, miniSets: 4, miniSetReps: 4 },
-        reference: 'RIR 0',
-        tut: '2-0-1-0',
-        rir: '0',
-        rest: { kind: 'cluster', restSec: 20 },
-        perSide: false,
-        variantNote: 'Myo-reps: serie di attivazione da 15, poi 4 mini-serie da 4 con 20" di pausa',
       },
     ],
   },

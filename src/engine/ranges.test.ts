@@ -223,7 +223,17 @@ describe('risoluzione del range di un blocco', () => {
   });
 
   it('il cluster myo-reps non ha un range', () => {
-    const block = blockOf('upper-b', 'D');
+    /*
+     * Il programma in questo momento non ha blocchi myo-reps: l'unico era il D
+     * dell'Upper B, alzate laterali, tolto perché era il terzo giorno di
+     * alzate laterali della settimana. La tecnica resta nel metodo e nel
+     * motore, quindi il blocco lo si costruisce qui.
+     */
+    const block: ProgramBlock = {
+      ...blockOf('upper-b', 'C2'),
+      code: 'D',
+      prescription: { kind: 'myo-reps', activationReps: 15, miniSets: 4, miniSetReps: 4 },
+    };
     const resolved = resolveBlockRange(block, getExercise(block.exercise), tests);
     expect(resolved.kind).toBe('not-applicable');
   });

@@ -72,7 +72,7 @@ export const DEVIAZIONI: readonly Deviazione[] = [
     scheda: 'Croci con elastico o push-up presa larga lenta',
     app: 'Croci con manubri',
     motivo:
-      'Divisi in due esercizi su richiesta dell’utente: le croci si fanno con un peso in mano e il peso va scritto, il push-up a presa larga è a corpo libero. Uniti costringevano a una sola politica di carico per entrambi, e vinceva «niente carico»: chi usava i manubri non aveva dove registrarli. L’elastico è passato a manubri perché troppo leggero per stare dentro 12-15 a RIR 0-1. Il push-up resta la seconda scelta del blocco C1.',
+      'Restano solo le croci. L’elastico è passato a manubri perché troppo leggero per stare dentro 12-15 a RIR 0-1. Il push-up a presa larga è invece uscito del tutto: nell’Upper B è la terza spinta orizzontale della seduta, dopo quattro serie di push-up al blocco A2 e tre di negative di HSPU al B2, tutte a RIR 0-1. A quel punto i tricipiti e il deltoide anteriore sono il fattore limitante e un’altra spinta aggiunge fatica, non stimolo. Le croci no: sono l’unico movimento della settimana che carica il petto in allungamento senza passare dai tricipiti, e il petto è il gruppo più sotto la fascia fra quelli che si allenano (14 serie contro 16-20).',
   },
   {
     scheda: 'Curl con elastico presa neutra',
@@ -135,6 +135,42 @@ export const DEVIAZIONI_BLOCCO: readonly DeviazioneBlocco[] = [
       'Scelta dell’utente: voleva una seconda uscita di corsa il sabato. Allungare il blocco che c’è già costa quindici minuti e non toglie niente; sostituire la seduta avrebbe cancellato face pull e dead hang, che non compaiono altrove nella settimana, e la skill isometrica. La corsa resta dopo la parte di forza e non il giorno dopo i nordic curl del venerdì.',
   },
 ];
+
+/* -------------------------------------------------------------------------- */
+/* Blocchi tolti                                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Una riga della scheda che l'app non programma più.
+ *
+ * È la deviazione più pesante che esista — togliere lavoro — e per questo ha
+ * una forma sua: la trascrizione del foglio resta intatta, con la sua riga, e
+ * qui si dichiara che quella riga non viene eseguita e perché. Senza, l'unico
+ * modo di far passare i test sarebbe cancellare la riga dalla seconda
+ * trascrizione, cioè cancellare la prova che il blocco esisteva.
+ */
+export interface BloccoTolto {
+  readonly sessione: SessionId;
+  readonly codice: string;
+  /** Minuti stimati della seduta, prima e dopo. */
+  readonly minuti: { readonly scheda: number; readonly app: number };
+  readonly motivo: string;
+}
+
+export const BLOCCHI_TOLTI: readonly BloccoTolto[] = [
+  {
+    sessione: 'upper-b',
+    codice: 'D',
+    minuti: { scheda: 58, app: 53 },
+    motivo:
+      'Terzo giorno di alzate laterali nella stessa settimana, su una spalla che il conteggio del volume dà già sopra la fascia del metodo: 22 serie contro un bersaglio di 16-20, e nove di quelle sono alzate laterali (4 il lunedì, questo blocco il giovedì, 4 il sabato). Questo è per di più in myo-reps a RIR 0, quindi pesa più di quanto la colonna «serie» dica, e arriva dopo le negative di HSPU dello stesso giorno. Intanto petto (14), quadricipiti (13), core (10,5) e polpacci (8) restano sotto la fascia: il tempo di questo blocco vale di più altrove. Le alzate laterali restano due volte a settimana, otto serie, che su un muscolo piccolo bastano.',
+  },
+];
+
+/** `true` se quel blocco della scheda non viene programmato. */
+export function bloccoTolto(sessione: SessionId, codice: string): boolean {
+  return BLOCCHI_TOLTI.some((d) => d.sessione === sessione && d.codice === codice);
+}
 
 /* -------------------------------------------------------------------------- */
 /* Scale di progressione aggiunte                                              */
@@ -281,8 +317,13 @@ export function applicaDeviazioneBlocco(
 
 /** I minuti stimati che l'app dà a una seduta, se diversi da quelli della scheda. */
 export function applicaDeviazioneMinuti(sessione: SessionId, minutiDaScheda: number): number {
-  const trovata = DEVIAZIONI_BLOCCO.find(
+  const spostati = DEVIAZIONI_BLOCCO.find(
     (d) => d.sessione === sessione && d.minuti?.scheda === minutiDaScheda,
   );
-  return trovata?.minuti?.app ?? minutiDaScheda;
+  if (spostati?.minuti !== undefined && spostati.minuti !== null) return spostati.minuti.app;
+
+  const tolto = BLOCCHI_TOLTI.find(
+    (d) => d.sessione === sessione && d.minuti.scheda === minutiDaScheda,
+  );
+  return tolto?.minuti.app ?? minutiDaScheda;
 }

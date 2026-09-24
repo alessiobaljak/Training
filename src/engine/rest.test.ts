@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { blockPerSide, buildSessionPlan, totalWorkSets } from './rest.ts';
-import type { ExerciseState } from '../types/index.ts';
+import type { ExerciseState, ProgramSession } from '../types/index.ts';
 import { getSession, PROGRAM_SESSIONS } from '../data/program.ts';
 
 const codesOf = (steps: readonly { blockCode: string }[]) => steps.map((step) => step.blockCode);
@@ -75,8 +75,37 @@ describe('piano della seduta — esercizi isolati', () => {
   });
 });
 
+/*
+ * Il blocco myo-reps non è più nel programma: era il D dell'Upper B, alzate
+ * laterali, ed è stato tolto perché era il terzo giorno di alzate laterali
+ * della settimana su una spalla già sopra la fascia di volume. La tecnica
+ * resta nel metodo e nel motore, quindi resta anche il controllo — su un
+ * blocco costruito qui, che è l'unico modo onesto di provare un motore che
+ * il programma in questo momento non chiama.
+ */
+const upperB = getSession('upper-b');
+const conCluster: ProgramSession = {
+  ...upperB,
+  blocks: [
+    ...upperB.blocks,
+    {
+      code: 'D',
+      group: 'D',
+      pairing: 'single',
+      exercise: 'alzate-laterali-elastico',
+      sets: 1,
+      prescription: { kind: 'myo-reps', activationReps: 15, miniSets: 4, miniSetReps: 4 },
+      reference: 'RIR 0',
+      tut: '2-0-1-0',
+      rir: '0',
+      rest: { kind: 'cluster', restSec: 20 },
+      perSide: false,
+    },
+  ],
+};
+
 describe('piano della seduta — cluster myo-reps', () => {
-  const plan = buildSessionPlan(getSession('upper-b'), 1);
+  const plan = buildSessionPlan(conCluster, 1);
   const blockD = plan.filter((step) => step.blockCode === 'D');
 
   it('produce una serie di attivazione più quattro mini-serie', () => {
@@ -120,7 +149,7 @@ describe('piano della seduta — scarico', () => {
   });
 
   it('non tocca il cluster myo-reps, che nella scheda è una serie sola', () => {
-    const deload = buildSessionPlan(getSession('upper-b'), 6);
+    const deload = buildSessionPlan(conCluster, 6);
     expect(deload.filter((step) => step.blockCode === 'D')).toHaveLength(5);
   });
 });

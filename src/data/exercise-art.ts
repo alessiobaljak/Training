@@ -226,15 +226,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
    * push-up presa larga, che è la seconda variante della riga: sta al suo
    * posto, sotto l'alternativa. Per la prima resta la figura schematica.
    */
-  /*
-   * Divisi in due esercizi, quindi anche i disegni: RepDB ha il push-up a
-   * presa larga e non ha le croci, che restano con la figura schematica.
-   */
-  'pushup-presa-larga-lento': {
-    source: 'wide-grip-push-ups',
-    label: 'Wide Grip Push Ups',
-    frames: ['wide-grip-push-ups-start.webp', 'wide-grip-push-ups-peak.webp'],
-  },
   'dip-parallele-anelli': {
     source: 'dips',
     label: 'Chest Dips',

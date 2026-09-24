@@ -233,28 +233,6 @@ const EXERCISE_LIST = [
     videoQuery: 'dumbbell chest fly proper form tutorial',
   },
   {
-    slug: 'pushup-presa-larga-lento',
-    name: 'Push-up presa larga lento',
-    pattern: null,
-    defaultLevel: null,
-    primaryMuscles: ['petto'],
-    secondaryMuscles: ['braccia'],
-    measurement: 'reps',
-    /*
-     * Niente zavorra, come nell'esercizio unito da cui viene: questo blocco è
-     * un finisher a tempo 4-1-1-0 e il sovraccarico passa dalla lentezza, non
-     * da un peso addosso. La whitelist della zavorra resta quella del metodo.
-     */
-    loadPolicy: 'forbidden',
-    cues: [
-      'Mani più larghe delle spalle di una mano e mezza, gomiti a circa 45° dal busto.',
-      'Scendi in 4", tocca il petto a terra, risali in 1": è la lentezza a fare il lavoro.',
-      'Errore tipico: gomiti a 90° verso l’esterno, che carica la parte davanti della spalla.',
-      'Ripetizione valida: corpo in linea dalla testa ai talloni, nessun cedimento del bacino.',
-    ],
-    videoQuery: 'wide grip push up slow tempo proper form',
-  },
-  {
     slug: 'pike-pushup-piedi-rialzati',
     name: 'Pike push-up piedi rialzati',
     pattern: 'vertical-push',

@@ -39,7 +39,10 @@ describe('notazione TUT', () => {
 
   it('fa il giro completo su ogni TUT del programma', () => {
     const notations = PROGRAM_SESSIONS.flatMap((session) => session.blocks.map((block) => block.tut));
-    expect(notations.length).toBe(36);
+    /* Uno per blocco: il numero segue il programma, non una costante scritta qui. */
+    expect(notations.length).toBe(
+      PROGRAM_SESSIONS.reduce((somma, seduta) => somma + seduta.blocks.length, 0),
+    );
     for (const notation of notations) {
       expect(formatTut(parseTut(notation)), notation).toBe(notation);
     }

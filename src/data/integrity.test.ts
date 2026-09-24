@@ -121,10 +121,15 @@ describe('volume settimanale del seed per gruppo muscolare', () => {
      * l'hollow hold, che è lavoro di core e non di spalle. Il conto guarda
      * l'esercizio dichiarato dal blocco: se si sceglie la verticale le spalle
      * lavorano davvero, ma questo è il volume del programma sulla carta.
+     *
+     * Da 22 a 21 togliendo il blocco D dell'Upper B: era il terzo giorno di
+     * alzate laterali della settimana, su una spalla che questo stesso conto
+     * dava già sopra la fascia di 16-20. È il numero che ha deciso, non
+     * un'impressione.
      */
     expect(weeklyVolume()).toEqual({
       braccia: 30.5,
-      spalle: 22,
+      spalle: 21,
       dorsali: 20,
       'femorali-glutei': 20,
       petto: 14,

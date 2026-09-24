@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { DELOAD_WEEKS, PROGRAM_SESSIONS, REST_WEEKDAYS, RETEST_WEEKS, getSessionForWeekday, isRestDay } from './program.ts';
 import { getExercise } from './exercises.ts';
 import {
+  BLOCCHI_TOLTI,
   DEVIAZIONI,
   DEVIAZIONI_BLOCCO,
   applicaDeviazione,
   applicaDeviazioneBlocco,
   applicaDeviazioneMinuti,
+  bloccoTolto,
 } from './deviations.ts';
 import type { Prescription, RestPrescription, SessionId } from '../types/index.ts';
 
@@ -82,9 +84,17 @@ function actualRows(id: SessionId): Row[] {
   ]);
 }
 
-/** Le righe della scheda, con le differenze volute già applicate. */
+/**
+ * Le righe della scheda, con le differenze volute già applicate.
+ *
+ * Le righe che l'app non programma più spariscono qui, non dalla tabella:
+ * `EXPECTED` resta la trascrizione del foglio, e un blocco tolto si legge in
+ * `BLOCCHI_TOLTI` con il suo motivo.
+ */
 function attese(id: SessionId, rows: readonly Row[]): Row[] {
-  return rows.map(
+  return rows
+    .filter((row) => !bloccoTolto(id, row[0]))
+    .map(
     (row) =>
       [
         row[0],
@@ -206,9 +216,32 @@ describe('program.ts — trascrizione delle 6 sedute', () => {
     }
   });
 
-  it('ha 36 blocchi in totale', () => {
+  it('ha i 36 blocchi della scheda, meno quelli dichiarati tolti', () => {
     const total = PROGRAM_SESSIONS.reduce((sum, s) => sum + s.blocks.length, 0);
-    expect(total).toBe(36);
+    expect(total).toBe(36 - BLOCCHI_TOLTI.length);
+  });
+
+  it('ogni blocco dichiarato tolto era davvero una riga della scheda, e non c’è più', () => {
+    /*
+     * Togliere lavoro è la deviazione più pesante che esista. Questo controllo
+     * chiede che ogni riga dichiarata tolta esista davvero nella trascrizione
+     * del foglio — altrimenti si sta dichiarando la sparizione di qualcosa che
+     * non c'era — e che sia sparita davvero dal programma.
+     */
+    for (const tolto of BLOCCHI_TOLTI) {
+      const dalFoglio = EXPECTED.find(([id]) => id === tolto.sessione)?.[1] ?? [];
+      expect(
+        dalFoglio.some((row) => row[0] === tolto.codice),
+        `${tolto.sessione}/${tolto.codice} non è una riga della scheda`,
+      ).toBe(true);
+
+      const seduta = PROGRAM_SESSIONS.find((s) => s.id === tolto.sessione);
+      expect(
+        seduta?.blocks.some((b) => b.code === tolto.codice),
+        `${tolto.sessione}/${tolto.codice} è dichiarato tolto ma è ancora programmato`,
+      ).toBe(false);
+      expect(tolto.motivo.length).toBeGreaterThan(80);
+    }
   });
 
   it('rispetta le durate stimate della scheda', () => {

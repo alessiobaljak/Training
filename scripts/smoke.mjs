@@ -622,43 +622,40 @@ try {
 
   if (await vaiAlBlocco('C1')) {
     const c1 = await page.locator('main').innerText();
+
+    /*
+     * Il C1 è solo croci, e non è un'omissione.
+     *
+     * La scheda scrive «Croci con elastico o push-up presa larga lenta». Il
+     * push-up a presa larga qui è la terza spinta orizzontale della seduta,
+     * dopo quattro serie al blocco A2 e tre di negative di HSPU al B2, tutte a
+     * RIR 0-1: a quel punto aggiunge fatica ai tricipiti, non stimolo al
+     * petto. Le croci restano perché sono l'unico movimento della settimana
+     * che carica il petto in allungamento senza passare dai tricipiti.
+     */
     check(
-      c1.includes('Croci con manubri') && c1.includes('Push-up presa larga lento'),
-      'Il C1 deve far scegliere tra croci e push-up a presa larga: sono due esercizi.',
+      c1.includes('Croci con manubri'),
+      'Il C1 deve essere le croci con manubri.',
+    );
+    check(
+      !c1.includes('Push-up presa larga'),
+      'Il push-up a presa larga non deve più comparire: era la terza spinta della seduta.',
     );
     check(
       c1.includes('Zavorra'),
       'Sulle croci il peso è l’esercizio: ci deve essere dove scriverlo.',
     );
-
-    const larga = page.getByRole('button', { name: /Push-up presa larga/ }).first();
-    if ((await larga.count()) > 0) {
-      await larga.click();
-      await page.waitForTimeout(900);
-      /*
-       * Si conta il numero di campi, non la parola «zavorra»: la spiegazione
-       * di un esercizio senza carico la contiene, e `getByText` cerca per
-       * sottostringa senza distinguere le maiuscole.
-       */
-      check(
-        (await page.locator('input[type=number]').count()) === 1,
-        `Il push-up a presa larga è a corpo libero: solo le ripetizioni, invece trovati ${String(await page.locator('input[type=number]').count())} campi.`,
-      );
-      check(
-        (await page.getByText('la zavorra non si usa mai').count()) > 0,
-        'Sul push-up a presa larga la seduta deve dire perché il peso non si mette.',
-      );
-    }
   }
 
-  if (await vaiAlBlocco('C2')) {
-    const c2 = await page.locator('main').innerText();
-    check(
-      c2.includes('Curl con manubri presa neutra'),
-      'Il curl è passato ai manubri: il nome deve dirlo.',
-    );
-    check(c2.includes('Zavorra'), 'Sul curl con manubri il peso si deve poter scrivere.');
-  }
+  /*
+   * E il blocco D non c'è più: era il terzo giorno di alzate laterali della
+   * settimana, su una spalla che il conteggio del volume dava già sopra la
+   * fascia del metodo.
+   */
+  check(
+    !(await vaiAlBlocco('D')),
+    'L’Upper B non deve più avere il blocco D delle alzate laterali.',
+  );
 
   /* --------- Gli esercizi che non avevano un gradino da cui partire ------ */
 

@@ -669,6 +669,21 @@ dicono "chiudi il massimo del range", i fogli Istruzioni e Zavorra dicono
 il foglio Istruzioni rimanda a un piano alimentare. L'app non ha sezione dieta:
 registra peso, media a 7 giorni, girovita e delta, e si ferma lì.
 
+### Quando il programma toglie invece di aggiungere
+
+`BLOCCHI_TOLTI` dichiara le righe della scheda che l'app non programma più. È
+la deviazione più pesante che esista — togliere lavoro — e per questo ha una
+forma sua: la seconda trascrizione del foglio resta intatta, con la sua riga,
+e un test verifica che ogni riga dichiarata tolta **esistesse davvero** nella
+scheda e **non sia più** nel programma. Senza, l'unico modo di far passare i
+test sarebbe cancellare la riga dalla trascrizione, cioè cancellare la prova
+che il blocco esisteva.
+
+Finora ce n'è una: il blocco D dell'Upper B, alzate laterali in myo-reps. Il
+conteggio del volume settimanale del seed è quello che ha deciso, non
+un'impressione — spalle a 22 serie contro una fascia di 16-20, e nove di
+quelle erano alzate laterali su tre giorni diversi.
+
 ## Scelte di trascrizione
 
 Punti in cui la specifica lasciava spazio a più letture. Sono documentati anche
