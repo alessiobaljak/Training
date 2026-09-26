@@ -2,6 +2,7 @@ import { repository } from '../../db/repository.ts';
 import { useStoreQuery } from './useStoreQuery.ts';
 import type { AppSettings, SuggestionRecord } from '../../db/db.ts';
 import type { TestRound } from '../../engine/ranges.ts';
+import type { SessionMove } from '../../engine/calendar.ts';
 import type {
   ExerciseSlug,
   ExerciseState,
@@ -60,6 +61,11 @@ export function useExerciseStates(): ExerciseState[] | undefined {
 
 export function useExerciseState(slug: ExerciseSlug): ExerciseState | undefined {
   return useStoreQuery(() => repository.getExerciseState(slug), [slug]);
+}
+
+/** Le sedute spostate di giorno. */
+export function useSessionMoves(): SessionMove[] | undefined {
+  return useStoreQuery(() => repository.listSessionMoves(), []);
 }
 
 /** Decisioni già prese sui suggerimenti, di seduta e di fine settimana. */

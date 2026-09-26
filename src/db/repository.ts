@@ -4,6 +4,7 @@ import { latestCompleteRound, latestTestResults, openRound, testRounds } from '.
 import type { TestRound } from '../engine/ranges.ts';
 import { isIsoDate } from '../engine/dates.ts';
 import { normalizeVideoUrl } from '../engine/media.ts';
+import { applyMoves, swapDays, type SessionMove } from '../engine/calendar.ts';
 import type {
   ExerciseSlug,
   ExerciseState,
@@ -345,6 +346,38 @@ export class ShadowRepository {
   async listWaists(): Promise<WaistEntry[]> {
     const all = await this.store.all<WaistEntry>('waists');
     return all.sort((a, b) => (a.date < b.date ? -1 : 1));
+  }
+
+  /* ---------------------------------------------------------------------- */
+  /* Sedute spostate di giorno                                               */
+  /* ---------------------------------------------------------------------- */
+
+  async listSessionMoves(): Promise<SessionMove[]> {
+    const all = await this.store.all<SessionMove>('sessionMoves');
+    return all.sort((a, b) => (a.date < b.date ? -1 : 1));
+  }
+
+  /**
+   * Scambia quello che c'è in due giorni.
+   *
+   * Scrive le righe che servono e cancella quelle tornate a coincidere con il
+   * calendario: uno spostamento annullato non deve lasciare una riga che dice
+   * «qui c'è quello che ci sarebbe comunque».
+   */
+  async swapSessionDays(from: string, to: string): Promise<SessionMove[]> {
+    requireIsoDate(from, 'move.from');
+    requireIsoDate(to, 'move.to');
+
+    const prima = await this.listSessionMoves();
+    const cambi = swapDays(from, to, prima);
+    const dopo = applyMoves(prima, cambi);
+    const restano = new Set(dopo.map((move) => move.date));
+
+    for (const cambio of cambi) {
+      if (restano.has(cambio.date)) await this.store.put('sessionMoves', cambio);
+      else await this.store.remove('sessionMoves', cambio.date);
+    }
+    return dopo;
   }
 
   /* ---------------------------------------------------------------------- */

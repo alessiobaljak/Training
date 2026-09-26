@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import type { SessionMove } from '../engine/calendar.ts';
 import type {
   ExerciseSlug,
   ExerciseState,
@@ -19,7 +20,7 @@ import type {
 export const DATABASE_NAME = 'shadow-calisthenics';
 
 /** Versione del formato dei dati. La usa l'import del backup. */
-export const DATA_VERSION = 1;
+export const DATA_VERSION = 2;
 
 /* -------------------------------------------------------------------------- */
 /* Righe memorizzate                                                           */
@@ -99,6 +100,14 @@ export class ShadowDatabase extends Dexie {
       waists: 'date',
       suggestions: 'id, date, exercise, lever, decision',
     });
+    /*
+     * Versione 2: le sedute spostate di giorno. Dexie tiene le tabelle della
+     * versione precedente, quindi qui basta aggiungere quella nuova: i dati
+     * già sul telefono non si toccano.
+     */
+    this.version(2).stores({
+      sessionMoves: 'date',
+    });
   }
 
   /*
@@ -130,6 +139,9 @@ export class ShadowDatabase extends Dexie {
   get suggestions(): Table<SuggestionRecord, string> {
     return this.table('suggestions');
   }
+  get sessionMoves(): Table<SessionMove, string> {
+    return this.table('sessionMoves');
+  }
 }
 
 /** Nomi delle tabelle, nell'ordine usato dal backup. */
@@ -142,6 +154,7 @@ export const TABLE_NAMES = [
   'weights',
   'waists',
   'suggestions',
+  'sessionMoves',
 ] as const;
 
 /**

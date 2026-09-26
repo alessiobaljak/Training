@@ -39,6 +39,8 @@ async function waitForServer(timeoutMs = 90_000) {
 /** Le schermate che vale la pena guardare: sono quelle con più colore sopra. */
 const PAGINE = [
   ['home', '#/'],
+  /* La Home con il pannello per spostare la seduta aperto. */
+  ['sposta-seduta', '#/', 0, /sposta la seduta|Porta qui una seduta/],
   ['seduta', '#/seduta/upper-a'],
   /*
    * Il blocco A2 dell'Upper B è la schermata dove il test tiene il gradino
@@ -78,7 +80,7 @@ try {
       window.localStorage.setItem('shadow:tema', scelta);
     }, tema);
 
-    for (const [nome, rotta, avanti = 0] of PAGINE) {
+    for (const [nome, rotta, avanti = 0, apri = null] of PAGINE) {
       /*
        * `goto` verso un indirizzo che cambia solo nell'hash non ricarica
        * niente: resta la pagina di prima, con la sua posizione di scorrimento
@@ -88,6 +90,14 @@ try {
       await page.goto(`${BASE}/${rotta}`, { waitUntil: 'load' });
       await page.reload({ waitUntil: 'load' });
       await page.waitForTimeout(1700);
+
+      if (apri !== null) {
+        const pulsante = page.getByRole('button', { name: apri });
+        if ((await pulsante.count()) > 0) {
+          await pulsante.first().click();
+          await page.waitForTimeout(700);
+        }
+      }
 
       for (let passo = 0; passo < avanti; passo += 1) {
         const prossima = page.getByRole('button', { name: /serie \d+ ›$/ });

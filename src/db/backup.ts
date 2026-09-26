@@ -27,6 +27,7 @@ import {
   type SuggestionRecord,
   type TableName,
 } from './db.ts';
+import type { SessionMove } from '../engine/calendar.ts';
 import type { ShadowRepository } from './repository.ts';
 
 /**
@@ -48,6 +49,7 @@ export interface BackupData {
   readonly weights: readonly WeightEntry[];
   readonly waists: readonly WaistEntry[];
   readonly suggestions: readonly SuggestionRecord[];
+  readonly sessionMoves: readonly SessionMove[];
 }
 
 export interface BackupFile {
@@ -292,6 +294,26 @@ function readWaist(value: unknown, path: string): WaistEntry {
   };
 }
 
+/**
+ * Una seduta spostata di giorno.
+ *
+ * `sessionId` può essere `null` — vuol dire «quel giorno riposo» — ma non può
+ * essere una seduta che non esiste: un identificativo inventato farebbe
+ * sparire il giorno dal calendario senza dire perché.
+ */
+function readSessionMove(value: unknown, path: string): SessionMove {
+  const row = expectRecord(value, path);
+  const raw: unknown = row['sessionId'];
+  if (raw === null || raw === undefined) {
+    return { date: expectIsoDate(row['date'], `${path}.date`), sessionId: null };
+  }
+  const id = expectString(raw, `${path}.sessionId`);
+  if (!SESSION_IDS.includes(id as SessionId)) {
+    throw new BackupError(`${path}.sessionId: seduta sconosciuta "${id}".`, path);
+  }
+  return { date: expectIsoDate(row['date'], `${path}.date`), sessionId: id as SessionId };
+}
+
 function readSuggestion(value: unknown, path: string, warnings: string[]): SuggestionRecord {
   const row = expectRecord(value, path);
   const slug = expectString(row['exercise'], `${path}.exercise`);
@@ -369,6 +391,12 @@ export function validateBackup(value: unknown): ValidatedBackup {
       suggestions: readList(data, 'suggestions', (entry, path) =>
         readSuggestion(entry, path, warnings),
       ),
+      /*
+       * I file esportati prima della versione 2 non hanno questa chiave:
+       * `readList` la legge come lista vuota, e un backup vecchio continua a
+       * importarsi senza dire niente a nessuno.
+       */
+      sessionMoves: readList(data, 'sessionMoves', readSessionMove),
     },
   };
 
@@ -390,8 +418,17 @@ export function parseBackup(json: string): ValidatedBackup {
 /* -------------------------------------------------------------------------- */
 
 export async function exportBackup(repo: ShadowRepository): Promise<BackupFile> {
-  const [settings, sessions, testResults, exerciseStates, exerciseMedia, weights, waists, suggestions] =
-    await Promise.all([
+  const [
+    settings,
+    sessions,
+    testResults,
+    exerciseStates,
+    exerciseMedia,
+    weights,
+    waists,
+    suggestions,
+    sessionMoves,
+  ] = await Promise.all([
       repo.store.all<BackupFile['data']['settings'][number]>('settings'),
       repo.store.all<BackupFile['data']['sessions'][number]>('sessions'),
       repo.store.all<BackupFile['data']['testResults'][number]>('testResults'),
@@ -400,13 +437,24 @@ export async function exportBackup(repo: ShadowRepository): Promise<BackupFile> 
       repo.store.all<BackupFile['data']['weights'][number]>('weights'),
       repo.store.all<BackupFile['data']['waists'][number]>('waists'),
       repo.store.all<BackupFile['data']['suggestions'][number]>('suggestions'),
+      repo.store.all<BackupFile['data']['sessionMoves'][number]>('sessionMoves'),
     ]);
 
   return {
     format: BACKUP_FORMAT,
     version: DATA_VERSION,
     exportedAt: new Date().toISOString(),
-    data: { settings, sessions, testResults, exerciseStates, exerciseMedia, weights, waists, suggestions },
+    data: {
+      settings,
+      sessions,
+      testResults,
+      exerciseStates,
+      exerciseMedia,
+      weights,
+      waists,
+      suggestions,
+      sessionMoves,
+    },
   };
 }
 

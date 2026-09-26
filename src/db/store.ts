@@ -40,6 +40,7 @@ export const KEY_FIELD = {
   weights: 'date',
   waists: 'date',
   suggestions: 'id',
+  sessionMoves: 'date',
 } as const satisfies Record<TableName, string>;
 
 export function keyOf(table: TableName, doc: unknown): string {

@@ -1,6 +1,6 @@
-import { DELOAD_WEEKS, RETEST_WEEKS, isRestDay } from '../data/program.ts';
+import { DELOAD_WEEKS, RETEST_WEEKS } from '../data/program.ts';
 import { LOAD_UNLOCK_WEEK } from '../data/method.ts';
-import { addDays, daysBetween, isoWeekday, startOfWeek } from './dates.ts';
+import { daysBetween, startOfWeek } from './dates.ts';
 import type { WeekdayIndex } from '../types/index.ts';
 
 /**
@@ -67,33 +67,4 @@ export function programWeek(startDate: string, date: string): number {
 /** Il ritest si propone a fine settimana 6 e 12, mai prima. */
 export function isRetestDue(week: number, weekday: WeekdayIndex): boolean {
   return RETEST_WEEKS.includes(week) && weekday >= 6;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Il prossimo allenamento                                                     */
-/* -------------------------------------------------------------------------- */
-
-export interface NextTraining {
-  /** Data del prossimo giorno con una seduta, YYYY-MM-DD. */
-  readonly date: string;
-  readonly weekday: WeekdayIndex;
-  /** Quanti giorni mancano: 1 è domani. */
-  readonly inDays: number;
-}
-
-/**
- * Il primo giorno di allenamento dopo `date`.
- *
- * Serve alla Home quando la seduta del giorno è chiusa: dire «finita» senza
- * dire quando si torna lascia a metà. La domenica non si allena, quindi il
- * sabato il prossimo appuntamento è lunedì, non domani.
- */
-export function nextTrainingDay(date: string): NextTraining {
-  for (let inDays = 1; inDays <= 7; inDays += 1) {
-    const candidate = addDays(date, inDays);
-    const weekday = isoWeekday(candidate);
-    if (!isRestDay(weekday)) return { date: candidate, weekday, inDays };
-  }
-  // Irraggiungibile finché esiste almeno un giorno di allenamento a settimana.
-  throw new Error('Nessun giorno di allenamento nella settimana.');
 }

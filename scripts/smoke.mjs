@@ -108,6 +108,91 @@ try {
     'Con il giro di test completo la Home deve proporre la seduta del giorno.',
   );
 
+  /* --------------------- Spostare una seduta di giorno ------------------ */
+
+  /*
+   * «Oggi sabato non posso, la faccio domani.»
+   *
+   * Il calendario dava una seduta a ogni giorno e basta. L'unica strada era
+   * aprire la seduta del sabato di domenica e ritrovarsela segnata come «fuori
+   * posto», cioè come un errore. Lo spostamento è uno scambio: quello che c'è
+   * oggi va nel giorno scelto e quello che c'è lì torna oggi.
+   *
+   * Si prova qui, prima che la seduta di oggi venga chiusa: una seduta già
+   * fatta non ha senso spostarla, e infatti il pulsante non compare.
+   */
+  const sposta = page.getByRole('button', { name: /sposta la seduta|Porta qui una seduta/ });
+  check((await sposta.count()) === 1, 'La Home deve permettere di spostare la seduta di giorno.');
+
+  if ((await sposta.count()) === 1) {
+    const oggiAllena = (await sposta.innerText()).includes('sposta la seduta');
+    await sposta.click();
+    await page.waitForTimeout(600);
+
+    const giorni = page.locator('main ul li > button').filter({ hasText: /\d\d-\d\d/ });
+    check(
+      (await giorni.count()) === 7,
+      `Il pannello deve offrire i sette giorni seguenti: trovati ${String(await giorni.count())}.`,
+    );
+
+    /*
+     * Chi si allena oggi sposta sul giorno libero, che è quello di riposo;
+     * chi oggi riposa tira qui una seduta da un giorno che ce l'ha. In tutti e
+     * due i casi è lo stesso scambio.
+     */
+    const bersaglio = oggiAllena
+      ? giorni.filter({ hasText: 'libero' }).first()
+      : giorni.filter({ hasNotText: 'libero' }).first();
+    check((await bersaglio.count()) > 0, 'Il pannello deve avere un giorno su cui scambiare.');
+
+    if ((await bersaglio.count()) > 0) {
+      if (oggiAllena) {
+        check(
+          (await bersaglio.innerText()).includes('giorni di allenamento di fila'),
+          `Spostare nel giorno di riposo deve dire che il riposo sparisce. Legge ${JSON.stringify(await bersaglio.innerText())}.`,
+        );
+      }
+
+      await bersaglio.click();
+      await page.waitForTimeout(1800);
+
+      const righe = await readFromEmulator('sessionMoves');
+      check(
+        righe.length === 2,
+        `Uno scambio scrive due righe, una per giorno toccato: trovate ${String(righe.length)}.`,
+      );
+
+      const dopoLoSpostamento = await page.locator('main').innerText();
+      await page.reload({ waitUntil: 'load' });
+      await page.waitForTimeout(2000);
+      check(
+        (await page.locator('main').innerText()) === dopoLoSpostamento,
+        'Riaperta l’app, lo spostamento deve essere ancora lì: sta nel database, non a schermo.',
+      );
+
+      /*
+       * E si annulla rifacendolo: è uno scambio, e uno scambio fatto due volte
+       * è l'identità. Senza, «annullare» sarebbe un'operazione a parte, che è
+       * il modo in cui nascono i calendari che non tornano più indietro.
+       */
+      const rifai = page.getByRole('button', { name: /sposta la seduta|Porta qui una seduta/ });
+      if ((await rifai.count()) === 1) {
+        await rifai.click();
+        await page.waitForTimeout(600);
+        const indietro = page
+          .locator('main ul li > button')
+          .filter({ hasText: /\d\d-\d\d/ })
+          .first();
+        await indietro.click();
+        await page.waitForTimeout(1800);
+        check(
+          (await readFromEmulator('sessionMoves')).length === 0,
+          'Annullato lo spostamento, non deve restare nessuna riga nel database.',
+        );
+      }
+    }
+  }
+
   /* ---------------------------- Player ---------------------------------- */
 
   if ((await startButton.count()) > 0) {

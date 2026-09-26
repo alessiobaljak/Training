@@ -426,6 +426,7 @@ mutare quelli in ingresso. La UI non contiene formule.
 | `loading.ts` | Se la zavorra è ammessa, quanta, quando calibrarla |
 | `metrics.ts` | Media mobile, delta settimanali, volume, aderenza |
 | `schedule.ts` | Scarico, ritest, settimana del mesociclo |
+| `calendar.ts` | Che seduta si fa in una data, e spostarla di giorno |
 | `rest.ts` | Ordine delle serie e recupero da usare dopo ciascuna |
 | `notation.ts` | Lettura e scrittura di TUT e RIR |
 | `media.ts` | Link ai video: ricerca precompilata e validazione degli URL |
@@ -498,6 +499,41 @@ settimana.
 I test sono stati verificati per mutazione: si rompe una regola del motore di
 proposito e si controlla che la suite se ne accorga. Due mutazioni erano
 sopravvissute e hanno prodotto una semplificazione e un test in più.
+
+### Spostare una seduta di giorno
+
+Il programma dà una seduta a ogni giorno della settimana, e per sei settimane è
+bastato finché non è capitato un sabato in cui non si allena e una domenica in
+cui si allenerebbe volentieri. Senza un modo di dirlo, l'unica strada era aprire
+la seduta del sabato di domenica e ritrovarsela segnata come «fuori posto»,
+cioè come un errore.
+
+Uno spostamento è una riga sola — *in questa data si fa questa seduta* — e vive
+in una tabella sua. Il calendario del programma non viene mai riscritto: quello
+che cambia è dove lo si legge. Senza questa separazione, spostare una seduta
+una volta la sposterebbe per sempre, in tutte le settimane.
+
+**È uno scambio, non un trasloco**, e non è un dettaglio:
+
+- il giorno di arrivo è libero (la domenica) → lo scambio svuota il giorno di
+  partenza, che è esattamente «oggi non alleno, lo faccio domani»;
+- il giorno di arrivo è occupato → le due sedute si scambiano di posto invece
+  di sovrascriversi, che è l'unica cosa che si può fare senza far sparire del
+  lavoro;
+- **rifarlo lo annulla.** Uno scambio fatto due volte è l'identità, quindi
+  «annullare» non è un'operazione a parte — ed è il modo in cui non nascono i
+  calendari che non tornano più indietro. Le righe che tornano a coincidere col
+  calendario vengono cancellate, non riscritte.
+
+Sotto ogni giorno proposto c'è cosa comporta sceglierlo, e sono conti, non
+consigli: quanti giorni di allenamento di fila si farebbe, e quali gruppi
+muscolari si ripeterebbero rispetto al giorno prima. Spostare nel giorno di
+riposo toglie il riposo — sette giorni di fila — ed è una cosa da dire prima,
+non da scoprire il mercoledì dopo.
+
+La settimana del mesociclo non si sposta: parte dal lunedì, quindi una seduta
+fatta di domenica resta nella settimana a cui apparteneva e la revisione di
+fine settimana la conta dove deve.
 
 ## Copie automatiche
 

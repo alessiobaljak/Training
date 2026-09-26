@@ -1,9 +1,18 @@
 import { useState } from 'react';
-import { getSession, getSessionForWeekday, isRestDay } from '../../data/program.ts';
+import { getSession } from '../../data/program.ts';
 import { getExercise } from '../../data/exercises.ts';
-import { daysBetween, isoWeekday, todayIso } from '../../engine/dates.ts';
-import type { NextTraining } from '../../engine/schedule.ts';
-import { getWeekState, isRetestDue, nextTrainingDay, programWeek } from '../../engine/schedule.ts';
+import { addDays, daysBetween, isoWeekday, todayIso } from '../../engine/dates.ts';
+import { getWeekState, isRetestDue, programWeek } from '../../engine/schedule.ts';
+import type { NextTraining, SessionMove } from '../../engine/calendar.ts';
+import {
+  applyMoves,
+  isMoved,
+  moveWarning,
+  nextTrainingDay,
+  scheduledForDate,
+  sessionForDate,
+  swapDays,
+} from '../../engine/calendar.ts';
 import { pendingVerdicts, reviewWeek } from '../../engine/review.ts';
 import { totalWorkSets } from '../../engine/rest.ts';
 import type { LoggedSession, ProgramSession } from '../../types/index.ts';
@@ -14,6 +23,7 @@ import {
   useExerciseStates,
   useIsOnboarded,
   useLatestTests,
+  useSessionMoves,
   useSessions,
   useSettings,
   useSuggestions,
@@ -42,8 +52,11 @@ export function HomeScreen() {
   const latestTests = useLatestTests();
   const suggestions = useSuggestions();
   const snapshots = useSnapshots();
+  const moves = useSessionMoves();
   /* Quale seduta fuori posto sta aspettando conferma di eliminazione. */
   const [daEliminare, setDaEliminare] = useState<string | null>(null);
+  /* Il pannello per spostare la seduta di oggi su un altro giorno. */
+  const [spostando, setSpostando] = useState(false);
 
   const today = todayIso();
   const weekday = isoWeekday(today);
@@ -84,7 +97,15 @@ export function HomeScreen() {
   const week = startDate === null ? 1 : programWeek(startDate, today);
   const notStartedYet = week === 0 && startDate !== null;
   const weekState = getWeekState(Math.max(1, week));
-  const session = getSessionForWeekday(weekday);
+  /*
+   * La seduta di oggi la decide il calendario più gli spostamenti, non il
+   * giorno della settimana da solo. Finché gli spostamenti non sono arrivati
+   * dal database si legge il calendario: è la stessa risposta nel caso
+   * normale, e l'alternativa sarebbe una Home vuota a ogni avvio.
+   */
+  const spostamenti = moves ?? [];
+  const session = sessionForDate(today, spostamenti);
+  const oggiSpostato = isMoved(today, spostamenti);
   const retestDue = isRetestDue(week, weekday);
 
   /*
@@ -113,8 +134,8 @@ export function HomeScreen() {
     ),
   ].sort((a, b) => (a.date < b.date ? 1 : -1));
 
-  const next = nextTrainingDay(today);
-  const nextSession = getSessionForWeekday(next.weekday);
+  const next = nextTrainingDay(today, spostamenti);
+  const nextSession = next === null ? null : sessionForDate(next.date, spostamenti);
 
   /* Il pulsante apre la seduta di oggi secondo il calendario, non altre. */
   const apriSessione = session?.id ?? null;
@@ -355,12 +376,31 @@ export function HomeScreen() {
         ) : session === null ? (
           <Card>
             <p className="text-lg font-semibold">
-              {isRestDay(weekday) ? 'Riposo completo' : 'Nessuna seduta oggi'}
+              {oggiSpostato ? 'Oggi non si allena' : 'Riposo completo'}
             </p>
             <p className="mt-2 text-sm leading-relaxed text-dim">
-              Domenica non si allena. Il recupero non è tempo perso: è la parte in cui l’adattamento
-              avviene davvero.
+              {oggiSpostato
+                ? `La seduta di oggi è stata spostata. ${
+                    scheduledForDate(today)?.name ?? 'Quella del calendario'
+                  } non è persa: la trovi nel giorno dove l’hai messa.`
+                : 'Domenica non si allena. Il recupero non è tempo perso: è la parte in cui l’adattamento avviene davvero.'}
             </p>
+            <div className="mt-3">
+              <Button
+                full
+                variant="secondary"
+                onClick={() => { setSpostando(!spostando); }}
+              >
+                {spostando ? 'Lascia com’è' : 'Porta qui una seduta'}
+              </Button>
+            </div>
+            {spostando ? (
+              <SpostaSeduta
+                today={today}
+                moves={spostamenti}
+                onDone={() => { setSpostando(false); }}
+              />
+            ) : null}
           </Card>
         ) : (
           <Card>
@@ -384,6 +424,26 @@ export function HomeScreen() {
                 </p>
               </div>
             </div>
+
+            {/*
+              Spostare una seduta di giorno.
+              Il calendario dà una seduta a ogni giorno, e per sei settimane è
+              bastato finché non è capitato un sabato in cui non si allena. Senza
+              questo, l'unica strada era aprire la seduta del sabato di domenica
+              e ritrovarsela segnata come «fuori posto», cioè come un errore.
+            */}
+            <div className="mt-4">
+              <Button full variant="secondary" onClick={() => { setSpostando(!spostando); }}>
+                {spostando ? 'Lascia com’è' : 'Oggi non posso: sposta la seduta'}
+              </Button>
+            </div>
+            {spostando ? (
+              <SpostaSeduta
+                today={today}
+                moves={spostamenti}
+                onDone={() => { setSpostando(false); }}
+              />
+            ) : null}
 
             {session.warmup.length > 0 ? (
               <>
@@ -441,6 +501,78 @@ export function HomeScreen() {
 }
 
 /**
+ * Il pannello che sposta una seduta di giorno.
+ *
+ * Non è un trasloco ma uno scambio: quello che c'è oggi va nel giorno scelto e
+ * quello che c'è lì torna oggi. Quando il giorno scelto è libero — la domenica
+ * — lo scambio svuota oggi, che è esattamente «oggi non alleno, lo faccio
+ * domani». Quando è occupato, le due sedute si scambiano di posto invece di
+ * sovrascriversi: è l'unica cosa che si può fare senza far sparire del lavoro.
+ *
+ * Sotto ogni giorno c'è quello che comporta sceglierlo. Sono conti, non
+ * consigli: quanti giorni di fila si allenerebbe e cosa si ripete rispetto al
+ * giorno prima. Spostare nel giorno di riposo toglie il riposo, ed è una cosa
+ * che va detta prima, non scoperta il mercoledì dopo con le spalle a pezzi.
+ */
+function SpostaSeduta({
+  today,
+  moves,
+  onDone,
+}: {
+  readonly today: string;
+  readonly moves: readonly SessionMove[];
+  readonly onDone: () => void;
+}) {
+  const giorni = [1, 2, 3, 4, 5, 6, 7].map((delta) => addDays(today, delta));
+  const diOggi = sessionForDate(today, moves);
+
+  return (
+    <div className="mt-3 space-y-2">
+      <p className="text-xs leading-relaxed text-dim">
+        {diOggi === null
+          ? 'Scegli da quale giorno prendere la seduta: quel giorno resterà libero.'
+          : 'Scegli il giorno in cui farla. Se quel giorno ha già una seduta, le due si scambiano di posto.'}
+      </p>
+      <ul className="space-y-2">
+        {giorni.map((giorno) => {
+          const lì = sessionForDate(giorno, moves);
+          const dopo = moveWarning(giorno, applyMoves(moves, swapDays(today, giorno, moves)));
+          return (
+            <li key={giorno}>
+              <button
+                type="button"
+                onClick={() => {
+                  void repository.swapSessionDays(today, giorno);
+                  onDone();
+                }}
+                className="w-full rounded-xl border border-line-strong bg-panel px-3 py-3 text-left"
+              >
+                <span className="flex items-baseline justify-between gap-3">
+                  <span className="text-sm font-semibold">
+                    {WEEKDAY_LABELS[isoWeekday(giorno)]} {giorno.slice(5)}
+                  </span>
+                  <span className="text-xs text-dim">{lì?.name ?? 'libero'}</span>
+                </span>
+                {dopo !== null && (dopo.inARow >= 7 || dopo.backToBack.length > 0) ? (
+                  <span className="mt-1 block text-xs leading-relaxed text-warn">
+                    {dopo.inARow >= 7
+                      ? `${String(dopo.inARow)} giorni di allenamento di fila: sparisce il riposo. `
+                      : ''}
+                    {dopo.backToBack.length > 0
+                      ? `Due giorni di fila su ${dopo.backToBack.join(', ')}.`
+                      : ''}
+                  </span>
+                ) : null}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/**
  * Quando si torna in palestra.
  *
  * Conta i giorni invece di dare per scontato che il riposo sia sempre e solo
@@ -450,9 +582,10 @@ function NextTrainingBlock({
   next,
   nextSession,
 }: {
-  readonly next: NextTraining;
+  readonly next: NextTraining | null;
   readonly nextSession: ProgramSession | null;
 }) {
+  if (next === null) return null;
   const quando = next.inDays === 1 ? 'Domani' : WEEKDAY_LABELS[next.weekday];
   return (
     <div className="mt-4 border-t border-line pt-4">
