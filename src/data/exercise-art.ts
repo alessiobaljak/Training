@@ -57,7 +57,148 @@ export interface RepDbFrames {
  * cui RepDB ha davvero il disegno; per tutti gli altri c'è la figura
  * schematica, che è generata gradino per gradino.
  */
+/*
+ * Gli accoppiamenti scartati, e perché.
+ *
+ * Il catalogo ha un'immagine per esercizio, io ho un gradino per variante: a
+ * volte l'immagine più vicina mostra qualcosa che il gradino non prescrive, e
+ * allora non va bene. È lo stesso difetto che abbiamo appena tolto — mostrare
+ * un movimento per un altro — solo più difficile da notare.
+ *
+ * - `hip-thrust` e `romanian-deadlift`: hanno il bilanciere addosso, e i
+ *   gradini 2 dell'hip thrust e dell'hip hinge sono a corpo libero.
+ * - `dumbbell-calf-raise`: a due gambe, e il gradino 6 dei polpacci è
+ *   monopodalico.
+ * - `rings-inverted-row`: i piedi sono a terra, e il gradino 4 della trazione
+ *   orizzontale li vuole rialzati.
+ */
 export const REPDB_STEP_ART: Readonly<Record<string, RepDbFrames>> = {
+  'vertical-pull-l1': {
+    source: 'band-assisted-pull-ups',
+    label: 'Band Assisted Pull Ups',
+    frames: [
+      'band-assisted-pull-ups-start.webp',
+      'band-assisted-pull-ups-peak.webp',
+    ],
+  },
+  'vertical-pull-l2': {
+    source: 'negative-pull-ups',
+    label: 'Negative Pull Ups',
+    frames: [
+      'negative-pull-ups-start.webp',
+      'negative-pull-ups-peak.webp',
+    ],
+  },
+  'vertical-pull-l4': {
+    source: 'pause-pull-up',
+    label: 'Pause Pull-Up',
+    frames: [
+      'pause-pull-up-start.webp',
+      'pause-pull-up-peak.webp',
+    ],
+  },
+  'vertical-pull-l5': {
+    source: 'archer-pull-ups',
+    label: 'Archer Pull Ups',
+    frames: [
+      'archer-pull-ups-start.webp',
+      'archer-pull-ups-peak.webp',
+    ],
+  },
+  'vertical-pull-l6': {
+    source: 'weighted-pull-up',
+    label: 'Weighted Pull-Up',
+    frames: [
+      'weighted-pull-up-start.webp',
+      'weighted-pull-up-peak.webp',
+    ],
+  },
+  'horizontal-push-l1': {
+    source: 'incline-push-ups',
+    label: 'Incline Push Ups',
+    frames: [
+      'incline-push-ups-start.webp',
+      'incline-push-ups-peak.webp',
+    ],
+  },
+  'horizontal-push-l3': {
+    source: 'decline-push-up',
+    label: 'Decline Push-Up',
+    frames: [
+      'decline-push-up-start.webp',
+      'decline-push-up-peak.webp',
+    ],
+  },
+  'dip-l6': {
+    source: 'weighted-dips',
+    label: 'Weighted Dips',
+    frames: [
+      'weighted-dips-start.webp',
+      'weighted-dips-peak.webp',
+    ],
+  },
+  'single-leg-squat-l1': {
+    source: 'split-squat',
+    label: 'Split Squat',
+    frames: [
+      'split-squat-start.webp',
+      'split-squat-peak.webp',
+    ],
+  },
+  'single-leg-squat-l6': {
+    source: 'pistol-squat',
+    label: 'Pistol Squat',
+    frames: [
+      'pistol-squat-start.webp',
+      'pistol-squat-peak.webp',
+    ],
+  },
+  'core-l1': {
+    source: 'plank',
+    label: 'Plank',
+    frames: [
+      'plank-main.webp',
+    ],
+  },
+  'core-l4': {
+    source: 'hanging-knee-raise',
+    label: 'Hanging Knee Raise',
+    frames: [
+      'hanging-knee-raise-start.webp',
+      'hanging-knee-raise-peak.webp',
+    ],
+  },
+  'hip-thrust-l1': {
+    source: 'glute-bridge',
+    label: 'Glute Bridge',
+    frames: [
+      'glute-bridge-start.webp',
+      'glute-bridge-peak.webp',
+    ],
+  },
+  'hip-hinge-l6': {
+    source: 'one-arm-single-leg-dumbbell-romanian-deadlift',
+    label: 'One Arm Single Leg Dumbbell Romanian Deadlift',
+    frames: [
+      'one-arm-single-leg-dumbbell-romanian-deadlift-start.webp',
+      'one-arm-single-leg-dumbbell-romanian-deadlift-peak.webp',
+    ],
+  },
+  'calf-l4': {
+    source: 'single-leg-calf-raise',
+    label: 'Single Leg Calf Raise',
+    frames: [
+      'single-leg-calf-raise-start.webp',
+      'single-leg-calf-raise-peak.webp',
+    ],
+  },
+  'l-sit-l5': {
+    source: 'l-sit',
+    label: 'L-Sit',
+    frames: [
+      'l-sit-main.webp',
+    ],
+  },
   'vertical-pull-l3': {
     source: 'pull-up',
     label: 'Pull-Up',
@@ -235,6 +376,16 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
     source: 'diamond-push-ups',
     label: 'Diamond Push Ups',
     frames: ['diamond-push-ups-start.webp', 'diamond-push-ups-peak.webp'],
+  },
+  'croci-elastico-o-pushup-presa-larga': {
+    source: 'db-fly',
+    label: 'Dumbbell Fly',
+    frames: ['db-fly-start.webp', 'db-fly-peak.webp'],
+  },
+  'l-sit': {
+    source: 'l-sit',
+    label: 'L-Sit',
+    frames: ['l-sit-main.webp'],
   },
   'dip-panche': {
     source: 'bench-dips',

@@ -273,6 +273,20 @@ insieme — se decidessero separatamente la schermata potrebbe contraddirsi:
   quel punto descrive un movimento che non stai facendo. La riga sotto dice
   cosa prescrive la scheda e a che livello.
 
+**Metà delle figure sono illustrazioni vere**, 71 su 142: le altre 71 sono
+figure schematiche. La differenza non è il gusto, è che il catalogo RepDB ha
+un'immagine per *esercizio* e a noi ne serve una per *gradino*. I 102 gradini
+sono in gran parte varianti di tempo e assistenza di 17 movimenti, e «sissy
+squat con una mano d'appoggio» non sta in nessun catalogo al mondo. La scala
+delle trazioni verticali è completa, 6 gradini su 6; sissy squat, verticale e
+wall sit restano schematici per intero.
+
+Un accoppiamento si accetta solo se l'immagine mostra **quel** gradino: un hip
+thrust col bilanciere per un gradino a corpo libero, o un calf a due gambe per
+un gradino monopodalico, sono lo stesso difetto che abbiamo tolto — mostrare un
+movimento per un altro — solo più difficile da notare. Gli scarti sono
+elencati, con il motivo, in `exercise-art.ts`.
+
 `npm run svg` genera quindi **102 figure di gradino** oltre alle 41 di
 esercizio. Molti gradini condividono una posa, e non è una scorciatoia: fra
 «trazioni complete» e «trazioni con pausa 1" in alto» il corpo fa la stessa

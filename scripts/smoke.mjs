@@ -38,7 +38,23 @@ const PORT = 4181;
  */
 const SEDUTE_PER_GIORNO = ['upper-a', 'lower-a', 'zona-2', 'upper-b', 'lower-b', 'shadow'];
 const isoOggi = ((new Date().getDay() + 6) % 7) + 1;
-const SESSIONE_DI_OGGI = SEDUTE_PER_GIORNO[isoOggi - 1] ?? null;
+/*
+ * Non è una costante: la domenica il programma non prescrive niente, e la
+ * prova si porta qui una seduta con lo strumento che esiste apposta. Da quel
+ * momento la seduta di oggi è quella, e tutti i controlli che dipendono da
+ * «cosa prescrive oggi» devono leggere questa.
+ */
+let SESSIONE_DI_OGGI = SEDUTE_PER_GIORNO[isoOggi - 1] ?? null;
+
+/** Dal nome mostrato all'identificativo, per rileggere la seduta spostata. */
+const ID_PER_NOME = {
+  'Upper A': 'upper-a',
+  'Lower A': 'lower-a',
+  'Zona 2': 'zona-2',
+  'Upper B': 'upper-b',
+  'Lower B': 'lower-b',
+  Shadow: 'shadow',
+};
 const BASE = `http://localhost:${String(PORT)}`;
 
 async function waitForServer(timeoutMs = 90_000) {
@@ -101,12 +117,6 @@ try {
       );
     },
   });
-
-  const startButton = page.getByRole('button', { name: 'Inizia', exact: true });
-  check(
-    (await startButton.count()) > 0,
-    'Con il giro di test completo la Home deve proporre la seduta del giorno.',
-  );
 
   /* --------------------- Spostare una seduta di giorno ------------------ */
 
@@ -192,6 +202,42 @@ try {
       }
     }
   }
+
+  /*
+   * La domenica il programma non prescrive niente, e fino a oggi questa prova
+   * non ci aveva mai girato: si fermava al primo controllo, perché dava per
+   * scontato che ogni giorno avesse la sua seduta. Adesso quel giorno si
+   * riempie con lo strumento che esiste apposta — la prova usa la funzione che
+   * sta verificando, e da qui in poi vale qualunque giorno della settimana.
+   */
+  if ((await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0) {
+    const porta = page.getByRole('button', { name: 'Porta qui una seduta' });
+    check((await porta.count()) === 1, 'Un giorno di riposo deve poter ospitare una seduta.');
+    if ((await porta.count()) === 1) {
+      await porta.click();
+      await page.waitForTimeout(600);
+      const riga = page
+        .locator('main ul li > button')
+        .filter({ hasText: /\d\d-\d\d/ })
+        .filter({ hasNotText: 'libero' })
+        .first();
+      const nome = (await riga.innerText()).split('\n').at(-1)?.trim() ?? '';
+      await riga.click();
+      await page.waitForTimeout(1800);
+
+      SESSIONE_DI_OGGI = ID_PER_NOME[nome] ?? SESSIONE_DI_OGGI;
+      check(
+        SESSIONE_DI_OGGI !== null,
+        `Portata qui una seduta, la prova deve sapere quale: letto "${nome}".`,
+      );
+    }
+  }
+
+  const startButton = page.getByRole('button', { name: 'Inizia', exact: true });
+  check(
+    (await startButton.count()) > 0,
+    'Con il giro di test completo la Home deve proporre la seduta del giorno.',
+  );
 
   /* ---------------------------- Player ---------------------------------- */
 

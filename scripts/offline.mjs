@@ -164,6 +164,28 @@ try {
   await completeOnboarding(page, BASE);
 
   /*
+   * La domenica il programma non prescrive niente, e questa prova non ci aveva
+   * mai girato: si fermava a «la Home deve proporre la seduta del giorno»,
+   * perché dava per scontato che ogni giorno ne avesse una. Il giorno si
+   * riempie qui, con la rete ancora accesa e con lo strumento che esiste
+   * apposta, così da qui in poi la prova vale qualunque giorno della settimana.
+   */
+  if ((await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0) {
+    const porta = page.getByRole('button', { name: 'Porta qui una seduta' });
+    if ((await porta.count()) === 1) {
+      await porta.click();
+      await page.waitForTimeout(600);
+      await page
+        .locator('main ul li > button')
+        .filter({ hasText: /\d\d-\d\d/ })
+        .filter({ hasNotText: 'libero' })
+        .first()
+        .click();
+      await page.waitForTimeout(1800);
+    }
+  }
+
+  /*
    * Da quando i dati stanno su Firebase, «nessuna chiamata di rete» non è più
    * vero e non ha senso pretenderlo. Quello che resta vero, e che questo
    * controllo difende, è che l'app parli solo con sé stessa e con Firebase:
