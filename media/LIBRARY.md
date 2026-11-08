@@ -1,0 +1,303 @@
+# LIBRARY.md — registro della libreria
+
+Una riga per immagine. Si legge con `grep`, non a occhio.
+Stati: `da verificare` · `verificata` (checklist passata, non ancora
+approvata) · `approvata` (**solo Alessio**) · `da rifare` · `ritirata`.
+Nessuna immagine è oggi `approvata`: la libreria non era mai stata registrata.
+Le verifiche del 2026-11-08 sono **provvisorie**: le schede non hanno ancora i
+campi `equipment` e `frames` di EXERCISE_SCHEMA.md, quindi il confronto è
+fatto sui `cues`.
+
+| id | fotogramma | fonte | archetipo | stato | file | data | motivo / nota |
+|---|---|---|---|---|---|---|---|
+| trazioni-prona-presa-media | inizio+fine | generata | `hang-pull` | da verificare | src/assets/exercises/trazioni-prona-presa-media.svg | 2026-11-08 |  |
+| trazioni-presa-larga | inizio+fine | generata | `hang-pull` | da verificare | src/assets/exercises/trazioni-presa-larga.svg | 2026-11-08 |  |
+| chin-up-presa-supina-stretta | inizio+fine | generata | `hang-pull` | da verificare | src/assets/exercises/chin-up-presa-supina-stretta.svg | 2026-11-08 |  |
+| chin-up-presa-supina | inizio+fine | generata | `hang-pull` | da verificare | src/assets/exercises/chin-up-presa-supina.svg | 2026-11-08 |  |
+| dead-hang | unica | generata | `hang-hold` | da verificare | src/assets/exercises/dead-hang.svg | 2026-11-08 |  |
+| rematore-inverso-trx | inizio+fine | generata | `row` | da verificare | src/assets/exercises/rematore-inverso-trx.svg | 2026-11-08 |  |
+| rematore-inverso-trx-piedi-rialzati | inizio+fine | generata | `row` | da verificare | src/assets/exercises/rematore-inverso-trx-piedi-rialzati.svg | 2026-11-08 |  |
+| rematore-trx-monobraccio | inizio+fine | generata | `row` | da verificare | src/assets/exercises/rematore-trx-monobraccio.svg | 2026-11-08 |  |
+| push-up | inizio+fine | generata | `pushup` | da verificare | src/assets/exercises/push-up.svg | 2026-11-08 |  |
+| pushup-archer-o-pseudo-planche | inizio+fine | generata | `pushup` | da verificare | src/assets/exercises/pushup-archer-o-pseudo-planche.svg | 2026-11-08 |  |
+| croci-elastico-o-pushup-presa-larga | inizio+fine | generata | `fly` | da rifare | src/assets/exercises/croci-elastico-o-pushup-presa-larga.svg | 2026-11-08 | ripiego con attrezzo sbagliato: elastici per un esercizio con i manubri — spec 4.17 |
+| pike-pushup-piedi-rialzati | inizio+fine | generata | `pike` | da verificare | src/assets/exercises/pike-pushup-piedi-rialzati.svg | 2026-11-08 |  |
+| negative-hspu-muro-o-pike-pushup | inizio+fine | generata | `hspu` | da verificare | src/assets/exercises/negative-hspu-muro-o-pike-pushup.svg | 2026-11-08 |  |
+| dip-parallele-anelli | inizio+fine | generata | `dip` | da verificare | src/assets/exercises/dip-parallele-anelli.svg | 2026-11-08 |  |
+| dip-panche-o-diamond-pushup | inizio+fine | generata | `pushup` | da rifare | src/assets/exercises/dip-panche-o-diamond-pushup.svg | 2026-11-08 | ripiego: push-up a mani larghe per un diamond push-up (mani a rombo sotto lo sterno) |
+| dip-panche | inizio+fine | generata | `bench-dip` | da verificare | src/assets/exercises/dip-panche.svg | 2026-11-08 |  |
+| dip-panche-piedi-rialzati | inizio+fine | generata | `bench-dip` | da verificare | src/assets/exercises/dip-panche-piedi-rialzati.svg | 2026-11-08 |  |
+| bulgarian-split-squat | inizio+fine | generata | `split-squat` | da verificare | src/assets/exercises/bulgarian-split-squat.svg | 2026-11-08 |  |
+| step-up-box-alto | inizio+fine | generata | `step-up` | da verificare | src/assets/exercises/step-up-box-alto.svg | 2026-11-08 |  |
+| sissy-squat | inizio+fine | generata | `sissy` | da verificare | src/assets/exercises/sissy-squat.svg | 2026-11-08 |  |
+| wall-sit | unica | generata | `wallsit` | da verificare | src/assets/exercises/wall-sit.svg | 2026-11-08 |  |
+| shrimp-squat-o-skater-squat | inizio+fine | generata | `shrimp` | da verificare | src/assets/exercises/shrimp-squat-o-skater-squat.svg | 2026-11-08 |  |
+| nordic-curl | inizio+fine | generata | `nordic` | da verificare | src/assets/exercises/nordic-curl.svg | 2026-11-08 |  |
+| hip-thrust-monopodalico | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/exercises/hip-thrust-monopodalico.svg | 2026-11-08 | freccia disegnata dentro l-immagine — spec 4.1 |
+| single-leg-rdl | inizio+fine | generata | `rdl` | da verificare | src/assets/exercises/single-leg-rdl.svg | 2026-11-08 |  |
+| calf-monopodalico-rialzo | inizio+fine | generata | `calf` | da verificare | src/assets/exercises/calf-monopodalico-rialzo.svg | 2026-11-08 |  |
+| calf-monopodalico-seduto | inizio+fine | generata | `calf` | da verificare | src/assets/exercises/calf-monopodalico-seduto.svg | 2026-11-08 |  |
+| hollow-hold | unica | generata | `hollow` | da verificare | src/assets/exercises/hollow-hold.svg | 2026-11-08 |  |
+| hanging-leg-raise | inizio+fine | generata | `leg-raise` | da verificare | src/assets/exercises/hanging-leg-raise.svg | 2026-11-08 |  |
+| ab-wheel-o-rollout-trx | inizio+fine | generata | `ab-wheel` | da verificare | src/assets/exercises/ab-wheel-o-rollout-trx.svg | 2026-11-08 |  |
+| rollout-trx | inizio+fine | generata | `ab-wheel` | da rifare | src/assets/exercises/rollout-trx.svg | 2026-11-08 | archetipo non suo: ruota ab e appoggio in ginocchio invece di maniglie TRX in piedi — spec 4.5 |
+| l-sit | unica | generata | `lsit` | da verificare | src/assets/exercises/l-sit.svg | 2026-11-08 |  |
+| verticale-al-muro | unica | generata | `handstand` | da verificare | src/assets/exercises/verticale-al-muro.svg | 2026-11-08 |  |
+| alzate-laterali-elastico | inizio+fine | generata | `band-raise` | da rifare | src/assets/exercises/alzate-laterali-elastico.svg | 2026-11-08 | ripiego con attrezzo sbagliato: elastici per un esercizio con i manubri — spec 4.17 |
+| face-pull-elastico | inizio+fine | generata | `face-pull` | da verificare | src/assets/exercises/face-pull-elastico.svg | 2026-11-08 |  |
+| curl-elastico-presa-neutra | inizio+fine | generata | `curl` | da rifare | src/assets/exercises/curl-elastico-presa-neutra.svg | 2026-11-08 | ripiego con attrezzo sbagliato: elastici per un esercizio con i manubri — spec 4.17 |
+| camminata-mobilita-dinamica | unica | generata | `walk` | da verificare | src/assets/exercises/camminata-mobilita-dinamica.svg | 2026-11-08 |  |
+| corsa-continua-piano | unica | generata | `run` | da verificare | src/assets/exercises/corsa-continua-piano.svg | 2026-11-08 |  |
+| mobilita-anche-torace-spalle | unica | generata | `mobility` | da verificare | src/assets/exercises/mobilita-anche-torace-spalle.svg | 2026-11-08 |  |
+| zona-2-conclusiva | unica | generata | `run` | da verificare | src/assets/exercises/zona-2-conclusiva.svg | 2026-11-08 |  |
+| corda-battaglia-onde-alternate | inizio+fine | generata | `rope` | da rifare | src/assets/exercises/corda-battaglia-onde-alternate.svg | 2026-11-08 | attrezzo e postura: le onde leggono come un mantello, nessun ancoraggio, busto eretto invece del mezzo squat — spec 4.12 |
+| scapular-pull-up | inizio+fine | generata | `scap-pull` | verificata | src/assets/exercises/scapular-pull-up.svg | 2026-11-08 | braccia dritte in entrambi i pannelli, escursione minima: mostra cio che lo distingue dalla trazione (verifica provvisoria: scheda senza frames) |
+| circonduzioni-spalle | unica | generata | `mobility` | da rifare | src/assets/exercises/circonduzioni-spalle.svg | 2026-11-08 | archetipo non suo: identica a mobilita-anche-torace-spalle, non mostra la circonduzione — spec 4.3 |
+| affondo-con-rotazione | inizio+fine | generata | `lunge` | da rifare | src/assets/exercises/affondo-con-rotazione.svg | 2026-11-08 | tecnica: braccia piegate e rotazione verso la gamba dietro invece che avanti — spec 4.10 |
+| stacco-rumeno-manubri | inizio+fine | generata | `hinge` | da rifare | src/assets/exercises/stacco-rumeno-manubri.svg | 2026-11-08 | attrezzo: i due manubri si sovrappongono e leggono come un bilanciere — spec 4.14 |
+| goblet-squat | inizio+fine | generata | `goblet` | da rifare | src/assets/exercises/goblet-squat.svg | 2026-11-08 | tecnica: anca sopra il ginocchio (mezzo squat) e kettlebell che legge come pancia — spec 4.8 |
+| pull-over-trx | inizio+fine | generata | `pullover` | da rifare | src/assets/exercises/pull-over-trx.svg | 2026-11-08 | anatomia: il braccio attraversa il cerchio della testa — spec 4.2 |
+| rematore-manubrio-un-braccio | inizio+fine | generata | `db-row` | da rifare | src/assets/exercises/rematore-manubrio-un-braccio.svg | 2026-11-08 | tecnica: manca il ginocchio sulla panca prescritto dal cue 1 — spec 4.15 |
+| curl-martello-manubri | inizio+fine | generata | `db-curl` | da rifare | src/assets/exercises/curl-martello-manubri.svg | 2026-11-08 | tecnica: la presa neutra non si distingue da un curl supino — spec 4.13 |
+| estensione-tricipiti-sopra-testa | inizio+fine | generata | `overhead-ext` | da rifare | src/assets/exercises/estensione-tricipiti-sopra-testa.svg | 2026-11-08 | anatomia e leggibilita: le braccia attraversano la testa, peso di fianco invece che dietro, ordine pannelli invertito — spec 4.11 |
+| suitcase-carry | unica | generata | `carry` | da rifare | src/assets/exercises/suitcase-carry.svg | 2026-11-08 | inquadratura: di lato non si vede la linea delle spalle; il peso si sovrappone alla coscia — spec 4.7 |
+| pallof-press-elastico | inizio+fine | generata | `pallof` | da rifare | src/assets/exercises/pallof-press-elastico.svg | 2026-11-08 | inquadratura: di lato l-anti-rotazione non esiste; il tratteggio attraversa il tronco — spec 4.6 |
+| step-rapidi-box | inizio+fine | generata | `step-up` | da rifare | src/assets/exercises/step-rapidi-box.svg | 2026-11-08 | archetipo non suo: identica a step-up-box-alto, box alto invece del gradino basso e nessun cambio di piede — spec 4.4 |
+| mountain-climber | inizio+fine | generata | `mountain-climber` | da rifare | src/assets/exercises/mountain-climber.svg | 2026-11-08 | tecnica: polsi dietro le spalle, ginocchio che non arriva al petto — spec 4.16 |
+| jumping-jack | inizio+fine | generata | `jack` | verificata | src/assets/exercises/jumping-jack.svg | 2026-11-08 | range completo, braccia sopra la testa, atterraggio morbido leggibile (verifica provvisoria: scheda senza frames) |
+| kb-swing | inizio+fine | generata | `swing` | da rifare | src/assets/exercises/kb-swing.svg | 2026-11-08 | tecnica: in basso il peso e disegnato basso e davanti, la posizione che il cue chiama fine serie — spec 4.9 |
+| vertical-pull-l1 | inizio+fine | generata | `hang-pull` | da verificare | src/assets/steps/vertical-pull-l1.svg | 2026-11-08 |  |
+| vertical-pull-l2 | inizio+fine | generata | `hang-pull` | da verificare | src/assets/steps/vertical-pull-l2.svg | 2026-11-08 |  |
+| vertical-pull-l3 | inizio+fine | generata | `hang-pull` | da verificare | src/assets/steps/vertical-pull-l3.svg | 2026-11-08 |  |
+| vertical-pull-l4 | inizio+fine | generata | `hang-pull` | da verificare | src/assets/steps/vertical-pull-l4.svg | 2026-11-08 |  |
+| vertical-pull-l5 | inizio+fine | generata | `hang-pull` | da verificare | src/assets/steps/vertical-pull-l5.svg | 2026-11-08 |  |
+| vertical-pull-l6 | inizio+fine | generata | `hang-pull` | da verificare | src/assets/steps/vertical-pull-l6.svg | 2026-11-08 |  |
+| horizontal-pull-l1 | inizio+fine | generata | `row` | da verificare | src/assets/steps/horizontal-pull-l1.svg | 2026-11-08 |  |
+| horizontal-pull-l2 | inizio+fine | generata | `row` | da verificare | src/assets/steps/horizontal-pull-l2.svg | 2026-11-08 |  |
+| horizontal-pull-l3 | inizio+fine | generata | `row` | da verificare | src/assets/steps/horizontal-pull-l3.svg | 2026-11-08 |  |
+| horizontal-pull-l4 | inizio+fine | generata | `row` | da verificare | src/assets/steps/horizontal-pull-l4.svg | 2026-11-08 |  |
+| horizontal-pull-l5 | inizio+fine | generata | `row` | da verificare | src/assets/steps/horizontal-pull-l5.svg | 2026-11-08 |  |
+| horizontal-pull-l6 | inizio+fine | generata | `row` | da verificare | src/assets/steps/horizontal-pull-l6.svg | 2026-11-08 |  |
+| horizontal-push-l1 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l1.svg | 2026-11-08 |  |
+| horizontal-push-l2 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l2.svg | 2026-11-08 |  |
+| horizontal-push-l3 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l3.svg | 2026-11-08 |  |
+| horizontal-push-l4 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l4.svg | 2026-11-08 |  |
+| horizontal-push-l5 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l5.svg | 2026-11-08 |  |
+| horizontal-push-l6 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l6.svg | 2026-11-08 |  |
+| vertical-push-l1 | inizio+fine | generata | `pike` | da verificare | src/assets/steps/vertical-push-l1.svg | 2026-11-08 |  |
+| vertical-push-l2 | inizio+fine | generata | `pike` | da verificare | src/assets/steps/vertical-push-l2.svg | 2026-11-08 |  |
+| vertical-push-l3 | inizio+fine | generata | `hspu` | da verificare | src/assets/steps/vertical-push-l3.svg | 2026-11-08 |  |
+| vertical-push-l4 | inizio+fine | generata | `hspu` | da verificare | src/assets/steps/vertical-push-l4.svg | 2026-11-08 |  |
+| vertical-push-l5 | inizio+fine | generata | `hspu` | da verificare | src/assets/steps/vertical-push-l5.svg | 2026-11-08 |  |
+| vertical-push-l6 | inizio+fine | generata | `hspu` | da verificare | src/assets/steps/vertical-push-l6.svg | 2026-11-08 |  |
+| dip-l1 | inizio+fine | generata | `bench-dip` | da verificare | src/assets/steps/dip-l1.svg | 2026-11-08 |  |
+| dip-l2 | inizio+fine | generata | `dip` | da verificare | src/assets/steps/dip-l2.svg | 2026-11-08 |  |
+| dip-l3 | inizio+fine | generata | `dip` | da verificare | src/assets/steps/dip-l3.svg | 2026-11-08 |  |
+| dip-l4 | inizio+fine | generata | `dip` | da verificare | src/assets/steps/dip-l4.svg | 2026-11-08 |  |
+| dip-l5 | inizio+fine | generata | `dip` | da verificare | src/assets/steps/dip-l5.svg | 2026-11-08 |  |
+| dip-l6 | inizio+fine | generata | `dip` | da verificare | src/assets/steps/dip-l6.svg | 2026-11-08 |  |
+| single-leg-squat-l1 | inizio+fine | generata | `split-squat` | da verificare | src/assets/steps/single-leg-squat-l1.svg | 2026-11-08 |  |
+| single-leg-squat-l2 | inizio+fine | generata | `split-squat` | da verificare | src/assets/steps/single-leg-squat-l2.svg | 2026-11-08 |  |
+| single-leg-squat-l3 | inizio+fine | generata | `split-squat` | da verificare | src/assets/steps/single-leg-squat-l3.svg | 2026-11-08 |  |
+| single-leg-squat-l4 | inizio+fine | generata | `shrimp` | da verificare | src/assets/steps/single-leg-squat-l4.svg | 2026-11-08 |  |
+| single-leg-squat-l5 | inizio+fine | generata | `shrimp` | da verificare | src/assets/steps/single-leg-squat-l5.svg | 2026-11-08 |  |
+| single-leg-squat-l6 | inizio+fine | generata | `shrimp` | da verificare | src/assets/steps/single-leg-squat-l6.svg | 2026-11-08 |  |
+| posterior-chain-l1 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/posterior-chain-l1.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «a terra» ma la figura ha la panca — spec 4.18 |
+| posterior-chain-l2 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l2.svg | 2026-11-08 |  |
+| posterior-chain-l3 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l3.svg | 2026-11-08 |  |
+| posterior-chain-l4 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l4.svg | 2026-11-08 |  |
+| posterior-chain-l5 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l5.svg | 2026-11-08 |  |
+| posterior-chain-l6 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l6.svg | 2026-11-08 |  |
+| core-l1 | unica | generata | `hollow` | da verificare | src/assets/steps/core-l1.svg | 2026-11-08 |  |
+| core-l2 | unica | generata | `hollow` | da verificare | src/assets/steps/core-l2.svg | 2026-11-08 |  |
+| core-l3 | unica | generata | `hollow` | da verificare | src/assets/steps/core-l3.svg | 2026-11-08 |  |
+| core-l4 | inizio+fine | generata | `leg-raise` | da verificare | src/assets/steps/core-l4.svg | 2026-11-08 |  |
+| core-l5 | inizio+fine | generata | `leg-raise` | da verificare | src/assets/steps/core-l5.svg | 2026-11-08 |  |
+| core-l6 | inizio+fine | generata | `ab-wheel` | da verificare | src/assets/steps/core-l6.svg | 2026-11-08 |  |
+| hip-thrust-l1 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l1.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «a terra» ma la figura ha la panca — spec 4.18 |
+| hip-thrust-l2 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l2.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
+| hip-thrust-l3 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l3.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «a terra» ma la figura ha la panca — spec 4.18 |
+| hip-thrust-l4 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l4.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
+| hip-thrust-l5 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l5.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
+| hip-thrust-l6 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l6.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
+| hip-hinge-l1 | inizio+fine | generata | `rdl` | da verificare | src/assets/steps/hip-hinge-l1.svg | 2026-11-08 |  |
+| hip-hinge-l2 | inizio+fine | generata | `rdl` | da verificare | src/assets/steps/hip-hinge-l2.svg | 2026-11-08 |  |
+| hip-hinge-l3 | inizio+fine | generata | `rdl` | da verificare | src/assets/steps/hip-hinge-l3.svg | 2026-11-08 |  |
+| hip-hinge-l4 | inizio+fine | generata | `rdl` | da verificare | src/assets/steps/hip-hinge-l4.svg | 2026-11-08 |  |
+| hip-hinge-l5 | inizio+fine | generata | `rdl` | da verificare | src/assets/steps/hip-hinge-l5.svg | 2026-11-08 |  |
+| hip-hinge-l6 | inizio+fine | generata | `rdl` | da verificare | src/assets/steps/hip-hinge-l6.svg | 2026-11-08 |  |
+| calf-l1 | inizio+fine | generata | `calf` | da verificare | src/assets/steps/calf-l1.svg | 2026-11-08 |  |
+| calf-l2 | inizio+fine | generata | `calf` | da verificare | src/assets/steps/calf-l2.svg | 2026-11-08 |  |
+| calf-l3 | inizio+fine | generata | `calf` | da verificare | src/assets/steps/calf-l3.svg | 2026-11-08 |  |
+| calf-l4 | inizio+fine | generata | `calf` | da verificare | src/assets/steps/calf-l4.svg | 2026-11-08 |  |
+| calf-l5 | inizio+fine | generata | `calf` | da verificare | src/assets/steps/calf-l5.svg | 2026-11-08 |  |
+| calf-l6 | inizio+fine | generata | `calf` | da verificare | src/assets/steps/calf-l6.svg | 2026-11-08 |  |
+| step-up-l1 | inizio+fine | generata | `step-up` | da verificare | src/assets/steps/step-up-l1.svg | 2026-11-08 |  |
+| step-up-l2 | inizio+fine | generata | `step-up` | da verificare | src/assets/steps/step-up-l2.svg | 2026-11-08 |  |
+| step-up-l3 | inizio+fine | generata | `step-up` | da verificare | src/assets/steps/step-up-l3.svg | 2026-11-08 |  |
+| step-up-l4 | inizio+fine | generata | `step-up` | da verificare | src/assets/steps/step-up-l4.svg | 2026-11-08 |  |
+| step-up-l5 | inizio+fine | generata | `step-up` | da verificare | src/assets/steps/step-up-l5.svg | 2026-11-08 |  |
+| step-up-l6 | inizio+fine | generata | `step-up` | da verificare | src/assets/steps/step-up-l6.svg | 2026-11-08 |  |
+| sissy-squat-l1 | inizio+fine | generata | `sissy` | da verificare | src/assets/steps/sissy-squat-l1.svg | 2026-11-08 |  |
+| sissy-squat-l2 | inizio+fine | generata | `sissy` | da verificare | src/assets/steps/sissy-squat-l2.svg | 2026-11-08 |  |
+| sissy-squat-l3 | inizio+fine | generata | `sissy` | da verificare | src/assets/steps/sissy-squat-l3.svg | 2026-11-08 |  |
+| sissy-squat-l4 | inizio+fine | generata | `sissy` | da verificare | src/assets/steps/sissy-squat-l4.svg | 2026-11-08 |  |
+| sissy-squat-l5 | inizio+fine | generata | `sissy` | da verificare | src/assets/steps/sissy-squat-l5.svg | 2026-11-08 |  |
+| sissy-squat-l6 | inizio+fine | generata | `sissy` | da verificare | src/assets/steps/sissy-squat-l6.svg | 2026-11-08 |  |
+| handstand-l1 | inizio+fine | generata | `pike` | da verificare | src/assets/steps/handstand-l1.svg | 2026-11-08 |  |
+| handstand-l2 | unica | generata | `handstand` | da verificare | src/assets/steps/handstand-l2.svg | 2026-11-08 |  |
+| handstand-l3 | unica | generata | `handstand` | da verificare | src/assets/steps/handstand-l3.svg | 2026-11-08 |  |
+| handstand-l4 | unica | generata | `handstand` | da verificare | src/assets/steps/handstand-l4.svg | 2026-11-08 |  |
+| handstand-l5 | unica | generata | `handstand` | da verificare | src/assets/steps/handstand-l5.svg | 2026-11-08 |  |
+| handstand-l6 | unica | generata | `handstand` | da verificare | src/assets/steps/handstand-l6.svg | 2026-11-08 |  |
+| wall-sit-l1 | unica | generata | `wallsit` | da verificare | src/assets/steps/wall-sit-l1.svg | 2026-11-08 |  |
+| wall-sit-l2 | unica | generata | `wallsit` | da verificare | src/assets/steps/wall-sit-l2.svg | 2026-11-08 |  |
+| wall-sit-l3 | unica | generata | `wallsit` | da verificare | src/assets/steps/wall-sit-l3.svg | 2026-11-08 |  |
+| wall-sit-l4 | unica | generata | `wallsit` | da verificare | src/assets/steps/wall-sit-l4.svg | 2026-11-08 |  |
+| wall-sit-l5 | unica | generata | `wallsit` | da verificare | src/assets/steps/wall-sit-l5.svg | 2026-11-08 |  |
+| wall-sit-l6 | unica | generata | `wallsit` | da verificare | src/assets/steps/wall-sit-l6.svg | 2026-11-08 |  |
+| l-sit-l1 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l1.svg | 2026-11-08 |  |
+| l-sit-l2 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l2.svg | 2026-11-08 |  |
+| l-sit-l3 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l3.svg | 2026-11-08 |  |
+| l-sit-l4 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l4.svg | 2026-11-08 |  |
+| l-sit-l5 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l5.svg | 2026-11-08 |  |
+| l-sit-l6 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l6.svg | 2026-11-08 |  |
+| hang-l1 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l1.svg | 2026-11-08 |  |
+| hang-l2 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l2.svg | 2026-11-08 |  |
+| hang-l3 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l3.svg | 2026-11-08 |  |
+| hang-l4 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l4.svg | 2026-11-08 |  |
+| hang-l5 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l5.svg | 2026-11-08 |  |
+| hang-l6 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l6.svg | 2026-11-08 |  |
+| trazioni-prona-presa-media | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-start.webp | 2026-11-08 | sorgente RepDB `pull-up` |
+| trazioni-prona-presa-media | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-peak.webp | 2026-11-08 | sorgente RepDB `pull-up` |
+| trazioni-presa-larga | inizio | RepDB | — | verificata | src/assets/exercises-repdb/wide-grip-pull-ups-start.webp | 2026-11-08 | presa larga visibile: coerente |
+| trazioni-presa-larga | fine | RepDB | — | verificata | src/assets/exercises-repdb/wide-grip-pull-ups-peak.webp | 2026-11-08 | presa larga visibile: coerente |
+| chin-up-presa-supina | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/chin-ups-start.webp | 2026-11-08 | sorgente RepDB `chin-ups` |
+| chin-up-presa-supina | fine | RepDB | — | da verificare | src/assets/exercises-repdb/chin-ups-peak.webp | 2026-11-08 | sorgente RepDB `chin-ups` |
+| chin-up-presa-supina-stretta | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/close-grip-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `close-grip-pull-ups` |
+| chin-up-presa-supina-stretta | fine | RepDB | — | da verificare | src/assets/exercises-repdb/close-grip-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `close-grip-pull-ups` |
+| rematore-inverso-trx | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-start.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
+| rematore-inverso-trx | fine | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-peak.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
+| rematore-inverso-trx-piedi-rialzati | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/rings-inverted-row-start.webp | 2026-11-08 | foto agli anelli con i piedi a terra, la scheda dice TRX e piedi rialzati: rimappare o ritirare |
+| rematore-inverso-trx-piedi-rialzati | fine | RepDB | — | da rifare | src/assets/exercises-repdb/rings-inverted-row-peak.webp | 2026-11-08 | foto agli anelli con i piedi a terra, la scheda dice TRX e piedi rialzati: rimappare o ritirare |
+| rematore-trx-monobraccio | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-start.webp | 2026-11-08 | sorgente RepDB `trx-row` |
+| rematore-trx-monobraccio | fine | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-peak.webp | 2026-11-08 | sorgente RepDB `trx-row` |
+| push-up | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-start.webp | 2026-11-08 | sorgente RepDB `push-up` |
+| push-up | fine | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-peak.webp | 2026-11-08 | sorgente RepDB `push-up` |
+| pushup-archer-o-pseudo-planche | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/archer-push-ups-start.webp | 2026-11-08 | sorgente RepDB `archer-push-ups` |
+| pushup-archer-o-pseudo-planche | fine | RepDB | — | da verificare | src/assets/exercises-repdb/archer-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `archer-push-ups` |
+| dip-parallele-anelli | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/dips-start.webp | 2026-11-08 | sorgente RepDB `dips` |
+| dip-parallele-anelli | fine | RepDB | — | da verificare | src/assets/exercises-repdb/dips-peak.webp | 2026-11-08 | sorgente RepDB `dips` |
+| dip-panche-o-diamond-pushup | inizio | RepDB | — | verificata | src/assets/exercises-repdb/diamond-push-ups-start.webp | 2026-11-08 | foto diamond-push-ups, mani a rombo: coerente |
+| dip-panche-o-diamond-pushup | fine | RepDB | — | verificata | src/assets/exercises-repdb/diamond-push-ups-peak.webp | 2026-11-08 | foto diamond-push-ups, mani a rombo: coerente |
+| croci-elastico-o-pushup-presa-larga | inizio | RepDB | — | verificata | src/assets/exercises-repdb/db-fly-start.webp | 2026-11-08 | foto db-fly con manubri su panca: coerente col nome |
+| croci-elastico-o-pushup-presa-larga | fine | RepDB | — | verificata | src/assets/exercises-repdb/db-fly-peak.webp | 2026-11-08 | foto db-fly con manubri su panca: coerente col nome |
+| l-sit | unica | RepDB | — | da verificare | src/assets/exercises-repdb/l-sit-main.webp | 2026-11-08 | sorgente RepDB `l-sit` |
+| dip-panche | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-start.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
+| dip-panche | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
+| dip-panche-piedi-rialzati | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/bench-dips-start.webp | 2026-11-08 | foto con i piedi a terra, la scheda dice talloni su una seconda panca: rimappare o ritirare |
+| dip-panche-piedi-rialzati | fine | RepDB | — | da rifare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-08 | foto con i piedi a terra, la scheda dice talloni su una seconda panca: rimappare o ritirare |
+| pike-pushup-piedi-rialzati | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-start.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
+| pike-pushup-piedi-rialzati | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
+| negative-hspu-muro-o-pike-pushup | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-start.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
+| negative-hspu-muro-o-pike-pushup | fine | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
+| bulgarian-split-squat | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bulgarian-split-squat-start.webp | 2026-11-08 | sorgente RepDB `bulgarian-split-squat` |
+| bulgarian-split-squat | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bulgarian-split-squat-peak.webp | 2026-11-08 | sorgente RepDB `bulgarian-split-squat` |
+| wall-sit | unica | RepDB | — | da verificare | src/assets/exercises-repdb/wall-sit-main.webp | 2026-11-08 | sorgente RepDB `wall-sit` |
+| nordic-curl | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/nordic-hamstring-curl-start.webp | 2026-11-08 | sorgente RepDB `nordic-hamstring-curl` |
+| nordic-curl | fine | RepDB | — | da verificare | src/assets/exercises-repdb/nordic-hamstring-curl-peak.webp | 2026-11-08 | sorgente RepDB `nordic-hamstring-curl` |
+| hip-thrust-monopodalico | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/single-leg-glute-bridge-start.webp | 2026-11-08 | foto di un glute bridge a terra, la scheda dice spalle su panca: rimappare o ritirare |
+| hip-thrust-monopodalico | fine | RepDB | — | da rifare | src/assets/exercises-repdb/single-leg-glute-bridge-peak.webp | 2026-11-08 | foto di un glute bridge a terra, la scheda dice spalle su panca: rimappare o ritirare |
+| single-leg-rdl | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-romanian-deadlift-start.webp | 2026-11-08 | sorgente RepDB `single-leg-romanian-deadlift` |
+| single-leg-rdl | fine | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-romanian-deadlift-peak.webp | 2026-11-08 | sorgente RepDB `single-leg-romanian-deadlift` |
+| step-up-box-alto | inizio | RepDB | — | verificata | src/assets/exercises-repdb/step-ups-start.webp | 2026-11-08 | box all-altezza del ginocchio, piede intero: coerente |
+| step-up-box-alto | fine | RepDB | — | verificata | src/assets/exercises-repdb/step-ups-peak.webp | 2026-11-08 | box all-altezza del ginocchio, piede intero: coerente |
+| calf-monopodalico-rialzo | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bodyweight-calf-raise-start.webp | 2026-11-08 | sorgente RepDB `bodyweight-calf-raise` |
+| calf-monopodalico-rialzo | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bodyweight-calf-raise-peak.webp | 2026-11-08 | sorgente RepDB `bodyweight-calf-raise` |
+| calf-monopodalico-seduto | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/seated-calf-raise-start.webp | 2026-11-08 | sorgente RepDB `seated-calf-raise` |
+| calf-monopodalico-seduto | fine | RepDB | — | da verificare | src/assets/exercises-repdb/seated-calf-raise-peak.webp | 2026-11-08 | sorgente RepDB `seated-calf-raise` |
+| hollow-hold | unica | RepDB | — | da verificare | src/assets/exercises-repdb/hollow-body-hold-main.webp | 2026-11-08 | sorgente RepDB `hollow-body-hold` |
+| hanging-leg-raise | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/hanging-leg-raise-start.webp | 2026-11-08 | sorgente RepDB `hanging-leg-raise` |
+| hanging-leg-raise | fine | RepDB | — | da verificare | src/assets/exercises-repdb/hanging-leg-raise-peak.webp | 2026-11-08 | sorgente RepDB `hanging-leg-raise` |
+| ab-wheel-o-rollout-trx | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/ab-wheel-rollout-start.webp | 2026-11-08 | sorgente RepDB `ab-wheel-rollout` |
+| ab-wheel-o-rollout-trx | fine | RepDB | — | da verificare | src/assets/exercises-repdb/ab-wheel-rollout-peak.webp | 2026-11-08 | sorgente RepDB `ab-wheel-rollout` |
+| dead-hang | unica | RepDB | — | da verificare | src/assets/exercises-repdb/dead-hang-main.webp | 2026-11-08 | sorgente RepDB `dead-hang` |
+| alzate-laterali-elastico | inizio | RepDB | — | verificata | src/assets/exercises-repdb/lateral-raise-start.webp | 2026-11-08 | foto lateral-raise con manubri: coerente col nome |
+| alzate-laterali-elastico | fine | RepDB | — | verificata | src/assets/exercises-repdb/lateral-raise-peak.webp | 2026-11-08 | foto lateral-raise con manubri: coerente col nome |
+| curl-elastico-presa-neutra | inizio | RepDB | — | verificata | src/assets/exercises-repdb/hammer-curl-start.webp | 2026-11-08 | foto hammer-curl con manubri: coerente col nome, non con lo slug |
+| curl-elastico-presa-neutra | fine | RepDB | — | verificata | src/assets/exercises-repdb/hammer-curl-peak.webp | 2026-11-08 | foto hammer-curl con manubri: coerente col nome, non con lo slug |
+| face-pull-elastico | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/trx-face-pull-start.webp | 2026-11-08 | foto con le cinghie TRX, la scheda dice elastico: decisione di Alessio |
+| face-pull-elastico | fine | RepDB | — | da rifare | src/assets/exercises-repdb/trx-face-pull-peak.webp | 2026-11-08 | foto con le cinghie TRX, la scheda dice elastico: decisione di Alessio |
+| vertical-pull-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/band-assisted-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `band-assisted-pull-ups` |
+| vertical-pull-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/band-assisted-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `band-assisted-pull-ups` |
+| vertical-pull-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/negative-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `negative-pull-ups` |
+| vertical-pull-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/negative-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `negative-pull-ups` |
+| vertical-pull-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pause-pull-up-start.webp | 2026-11-08 | sorgente RepDB `pause-pull-up` |
+| vertical-pull-l4 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pause-pull-up-peak.webp | 2026-11-08 | sorgente RepDB `pause-pull-up` |
+| vertical-pull-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/archer-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `archer-pull-ups` |
+| vertical-pull-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/archer-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `archer-pull-ups` |
+| vertical-pull-l6 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/weighted-pull-up-start.webp | 2026-11-08 | sorgente RepDB `weighted-pull-up` |
+| vertical-pull-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/weighted-pull-up-peak.webp | 2026-11-08 | sorgente RepDB `weighted-pull-up` |
+| horizontal-push-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/incline-push-ups-start.webp | 2026-11-08 | sorgente RepDB `incline-push-ups` |
+| horizontal-push-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/incline-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `incline-push-ups` |
+| horizontal-push-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/decline-push-up-start.webp | 2026-11-08 | sorgente RepDB `decline-push-up` |
+| horizontal-push-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/decline-push-up-peak.webp | 2026-11-08 | sorgente RepDB `decline-push-up` |
+| dip-l6 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/weighted-dips-start.webp | 2026-11-08 | sorgente RepDB `weighted-dips` |
+| dip-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/weighted-dips-peak.webp | 2026-11-08 | sorgente RepDB `weighted-dips` |
+| single-leg-squat-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/split-squat-start.webp | 2026-11-08 | sorgente RepDB `split-squat` |
+| single-leg-squat-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/split-squat-peak.webp | 2026-11-08 | sorgente RepDB `split-squat` |
+| single-leg-squat-l6 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pistol-squat-start.webp | 2026-11-08 | sorgente RepDB `pistol-squat` |
+| single-leg-squat-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pistol-squat-peak.webp | 2026-11-08 | sorgente RepDB `pistol-squat` |
+| core-l1 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/plank-main.webp | 2026-11-08 | sorgente RepDB `plank` |
+| core-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/hanging-knee-raise-start.webp | 2026-11-08 | sorgente RepDB `hanging-knee-raise` |
+| core-l4 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/hanging-knee-raise-peak.webp | 2026-11-08 | sorgente RepDB `hanging-knee-raise` |
+| hip-thrust-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/glute-bridge-start.webp | 2026-11-08 | sorgente RepDB `glute-bridge` |
+| hip-thrust-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/glute-bridge-peak.webp | 2026-11-08 | sorgente RepDB `glute-bridge` |
+| hip-hinge-l6 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/one-arm-single-leg-dumbbell-romanian-deadlift-start.webp | 2026-11-08 | sorgente RepDB `one-arm-single-leg-dumbbell-romanian-deadlift` |
+| hip-hinge-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/one-arm-single-leg-dumbbell-romanian-deadlift-peak.webp | 2026-11-08 | sorgente RepDB `one-arm-single-leg-dumbbell-romanian-deadlift` |
+| calf-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-calf-raise-start.webp | 2026-11-08 | sorgente RepDB `single-leg-calf-raise` |
+| calf-l4 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-calf-raise-peak.webp | 2026-11-08 | sorgente RepDB `single-leg-calf-raise` |
+| l-sit-l5 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/l-sit-main.webp | 2026-11-08 | sorgente RepDB `l-sit` |
+| vertical-pull-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-start.webp | 2026-11-08 | sorgente RepDB `pull-up` |
+| vertical-pull-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-peak.webp | 2026-11-08 | sorgente RepDB `pull-up` |
+| horizontal-pull-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-start.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
+| horizontal-pull-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-peak.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
+| horizontal-pull-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-start.webp | 2026-11-08 | sorgente RepDB `trx-row` |
+| horizontal-pull-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-peak.webp | 2026-11-08 | sorgente RepDB `trx-row` |
+| horizontal-push-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-start.webp | 2026-11-08 | sorgente RepDB `push-up` |
+| horizontal-push-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-peak.webp | 2026-11-08 | sorgente RepDB `push-up` |
+| horizontal-push-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pseudo-planche-push-ups-start.webp | 2026-11-08 | sorgente RepDB `pseudo-planche-push-ups` |
+| horizontal-push-l4 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pseudo-planche-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `pseudo-planche-push-ups` |
+| horizontal-push-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/archer-push-ups-start.webp | 2026-11-08 | sorgente RepDB `archer-push-ups` |
+| horizontal-push-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/archer-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `archer-push-ups` |
+| vertical-push-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-start.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
+| vertical-push-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
+| vertical-push-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-start.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
+| vertical-push-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
+| dip-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-start.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
+| dip-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
+| dip-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/dips-start.webp | 2026-11-08 | sorgente RepDB `dips` |
+| dip-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/dips-peak.webp | 2026-11-08 | sorgente RepDB `dips` |
+| dip-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/ring-dips-start.webp | 2026-11-08 | sorgente RepDB `ring-dips` |
+| dip-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/ring-dips-peak.webp | 2026-11-08 | sorgente RepDB `ring-dips` |
+| single-leg-squat-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bulgarian-split-squat-start.webp | 2026-11-08 | sorgente RepDB `bulgarian-split-squat` |
+| single-leg-squat-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bulgarian-split-squat-peak.webp | 2026-11-08 | sorgente RepDB `bulgarian-split-squat` |
+| posterior-chain-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-glute-bridge-start.webp | 2026-11-08 | sorgente RepDB `single-leg-glute-bridge` |
+| posterior-chain-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-glute-bridge-peak.webp | 2026-11-08 | sorgente RepDB `single-leg-glute-bridge` |
+| posterior-chain-l6 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/nordic-hamstring-curl-start.webp | 2026-11-08 | sorgente RepDB `nordic-hamstring-curl` |
+| posterior-chain-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/nordic-hamstring-curl-peak.webp | 2026-11-08 | sorgente RepDB `nordic-hamstring-curl` |
+| hip-thrust-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-glute-bridge-start.webp | 2026-11-08 | sorgente RepDB `single-leg-glute-bridge` |
+| hip-thrust-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-glute-bridge-peak.webp | 2026-11-08 | sorgente RepDB `single-leg-glute-bridge` |
+| hip-hinge-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-romanian-deadlift-start.webp | 2026-11-08 | sorgente RepDB `single-leg-romanian-deadlift` |
+| hip-hinge-l4 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/single-leg-romanian-deadlift-peak.webp | 2026-11-08 | sorgente RepDB `single-leg-romanian-deadlift` |
+| calf-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bodyweight-calf-raise-start.webp | 2026-11-08 | sorgente RepDB `bodyweight-calf-raise` |
+| calf-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bodyweight-calf-raise-peak.webp | 2026-11-08 | sorgente RepDB `bodyweight-calf-raise` |
+| step-up-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/step-ups-start.webp | 2026-11-08 | sorgente RepDB `step-ups` |
+| step-up-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/step-ups-peak.webp | 2026-11-08 | sorgente RepDB `step-ups` |
+| core-l3 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/hollow-body-hold-main.webp | 2026-11-08 | sorgente RepDB `hollow-body-hold` |
+| core-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/hanging-leg-raise-start.webp | 2026-11-08 | sorgente RepDB `hanging-leg-raise` |
+| core-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/hanging-leg-raise-peak.webp | 2026-11-08 | sorgente RepDB `hanging-leg-raise` |
+| core-l6 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/ab-wheel-rollout-start.webp | 2026-11-08 | sorgente RepDB `ab-wheel-rollout` |
+| core-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/ab-wheel-rollout-peak.webp | 2026-11-08 | sorgente RepDB `ab-wheel-rollout` |
+| wall-sit-l2 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/wall-sit-main.webp | 2026-11-08 | sorgente RepDB `wall-sit` |
+| hang-l2 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/dead-hang-main.webp | 2026-11-08 | sorgente RepDB `dead-hang` |
