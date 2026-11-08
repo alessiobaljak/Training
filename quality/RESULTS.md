@@ -8,11 +8,13 @@ regola che si è mossa.
 
 | Data | Regole / catalogo | Set | C1 Sic. | C2 Rim. | C3 Fed. | C4 Coer. | C5 Pers. | C6 Concr. | C7 Progr. | C8 Dur. | Bloc. | Alti | Medi | Bassi | Nucleo | Rapporto |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 2026-11-08 | `circuit.ts` 4 circuiti, 56 esercizi, 13 scale · engine al 2026-11-08 | PERSONAS v1 (11 persone), SCENARIOS v1 (30 scenari) | 14% (1/7) | 0% (0/4) | 67% (2/3) | 43% (3/7) | 50% (1/2) | 50% (2/4) | 67% (4/6) | 100% (4/4) | 6 | 7 | 6 | 2 | 2 PASS / 3 FALLITI / 3 NON COPERTI | `quality/reports/2026-11-08-quality.md` |
+| 2026-11-08 | `circuit.ts` 4 circuiti, 56 esercizi, 13 scale · engine al 2026-11-08 | PERSONAS v1 (11 persone), SCENARIOS v1 (30 scenari) | 14% (1/7) | 0% (0/4) | 67% (2/3) | 43% (3/7) | 50% (1/2) | 50% (2/4) | 67% (4/6) | 100% (4/4) | 6 | 7 | 7 | 2 | 2 PASS / 3 FALLITI / 3 NON COPERTI | `quality/reports/2026-11-08-quality.md` |
 
 Soglie proposte in GRID.md: C1 100 · C2 100 · C3 100 · C4 ≥90 · C5 ≥80 ·
 C6 ≥90 · C7 100 · C8 100. **Nessuna soglia è ancora approvata da Alessio.**
 Esito del 2026-11-08 contro le soglie proposte: **NO-GO** (6 Bloccanti).
+Aggiornamento del 2026-11-08 (secondo giro, immagini): 1 figura giudicata,
+1 SCARTATA, 0 idonee. Difetto M7 aperto.
 
 ## Voci aperte
 
@@ -37,12 +39,20 @@ Esito del 2026-11-08 contro le soglie proposte: **NO-GO** (6 Bloccanti).
 | M4 | Medio | Nessun adattamento al rientro dopo una pausa lunga | S3 | `engine/rotation.ts`, manca la regola | 2026-11-08 |
 | M5 | Medio | Nessuna seduta sotto i 40 minuti | G6 | `data/circuit.ts` | 2026-11-08 |
 | M6 | Medio | Scarico e ritest arrivano per calendario, non per lavoro svolto | — | `engine/schedule.ts` `programWeek` | 2026-11-08 |
+| M7 | Medio | Schede esercizio incomplete (`equipment`, `frames` assenti su tutti e 56): ogni verifica immagine resta provvisoria e nessuna figura è approvabile | verifica immagini | `src/data/exercises.ts` vs `training/EXERCISE_SCHEMA.md` | 2026-11-08 |
 | L1 | Basso | CSV: una nota che comincia con `=` viene esportata come formula | U3 | `db/csv.ts` `escapeCell` | 2026-11-08 |
 | L2 | Basso | `syncStatesFromLog` azzera il carico di un esercizio `inherent` se le serie non hanno kg (ipotesi) | — | `engine/draft.ts` | 2026-11-08 |
 
 ## Voci chiuse (ultime 10)
 
 Nessuna: questa è la prima misura.
+
+## Verifiche tecniche delle immagini
+
+| Data | Immagine | Scheda | Esito | Punti con PROBLEMA | Dettaglio |
+|---|---|---|---|---|---|
+| 2026-11-08 | `test-fixtures/passo-7/stacco-schiena-curva.svg` | `stacco-rumeno-manubri` | **SCARTATA** | 1 corrispondenza · 2 archetipo · 3 anatomia · 4 tecnica · 6 coerenza (minore) | `IMAGES.md` |
+| 2026-11-08 | `src/assets/exercises/stacco-rumeno-manubri.svg` (confronto) | `stacco-rumeno-manubri` | 8/8 OK, *verificata provvisoria* (scheda incompleta, §0.2) | nessuno | `IMAGES.md` |
 
 ## Ricalcoli indipendenti eseguiti
 
