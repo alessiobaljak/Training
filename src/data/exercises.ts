@@ -1154,7 +1154,7 @@ const EXERCISE_LIST = [
       'Kettlebell una trentina di centimetri davanti ai piedi: inclinalo verso di te e lancialo indietro tra le gambe, alto e vicino all’inguine.',
       'Estendi le anche di colpo: glutei e addome si contraggono e il peso parte da solo fino all’altezza del petto, dove il corpo è un plank in piedi.',
       'Errore tipico: aprire le costole e inarcare la lombare in alto. È la via principale all’infortunio e basta a interrompere la serie.',
-      'Prima di metterlo in una serie a tempo serve impararlo a freddo: cerniera al muro, stacco con il peso, hike pass, poi swing.',
+      'Sotto fatica il gesto si sfalda in un modo preciso: il peso smette di andare indietro e comincia a scendere verso il pavimento. Quando succede la serie è finita, non rallentata.',
     ],
     videoQuery: 'hardstyle kettlebell swing proper form tutorial',
   },

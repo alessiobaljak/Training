@@ -28,10 +28,17 @@ import type {
  *    blocchi di forza, 12-18 in quelli di volume. È la stessa regola di prima,
  *    applicata nel verso giusto.
  *
- * Attrezzi non confermati — kettlebell e corda da battaglia — non sono mai
- * l'unica strada: ogni blocco che li usa dichiara l'alternativa in
- * `alternatives`, e la prima voce è sempre quella che non richiede di comprare
- * niente.
+ * Kettlebell e corda ci sono, e lo swing è un gesto che sai fare: entrambi
+ * sono prescrizioni vere, non ripieghi. Le alternative a corpo libero restano
+ * dichiarate in `alternatives` lo stesso, ma non più per la disponibilità:
+ * servono il giorno in cui la corda non ha spazio o ti alleni altrove.
+ *
+ * Lo swing resta fuori dai tri-set, e non è una questione di tecnica. È
+ * balistico: circa mezzo secondo di tensione a ripetizione, contro i tre o
+ * quattro di una serie controllata. Condiziona più di quanto costruisca,
+ * quindi il suo posto è la finitura — dove la frequenza cardiaca è
+ * l'obiettivo — e il riscaldamento, dove ripassa la cerniera d'anca prima che
+ * serva.
  */
 
 /* -------------------------------------------------------------------------- */
@@ -150,6 +157,23 @@ const AFFONDI: WarmupStep = {
   reps: 6,
   perSide: true,
   hint: 'Ruota il torace da fondo affondo, non prima.',
+};
+
+/**
+ * Dieci swing con il kettlebell da 16, eseguiti per la tecnica.
+ *
+ * «Tecnici» è terminologia di riscaldamento: si fanno per ripassare lo schema,
+ * non per fare fatica. Carico leggero, nessuno sforzo, attenzione tutta
+ * sull'esecuzione — l'opposto di una serie di lavoro. Il 16 è il peso della
+ * campana, non il numero di ripetizioni: quelle sono dieci.
+ */
+const SWING_TECNICO: WarmupStep = {
+  label: 'Swing con kettlebell 16 kg, tecnici',
+  exercise: 'kb-swing',
+  seconds: null,
+  reps: 10,
+  perSide: false,
+  hint: 'Cerniera, non squat: il peso va indietro tra le gambe, alto e vicino all’inguine. Nessuno sforzo.',
 };
 
 const CERNIERA: WarmupStep = {
@@ -339,16 +363,19 @@ const SEDUTA_1: readonly ProgramBlock[] = [
     code: 'F3',
     group: 'F',
     pairing: 'superset',
-    exercise: 'mountain-climber',
+    exercise: 'kb-swing',
     sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
+    prescription: { kind: 'reps', min: 15, max: 20 },
     reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
+    tut: 'controllato',
     rir: '—',
     rest: FINITURA,
     perSide: false,
     workSeconds: 30,
     excludeFromReview: true,
+    variantNote:
+      'Qui serve la forza d’anca, non il braccio: se in alto senti le spalle bruciare lo stai alzando invece di lanciarlo. La serie finisce quando la lombare comincia a inarcarsi, anche se il timer no.',
+    alternatives: [{ exercise: 'mountain-climber', prescription: { kind: 'seconds', min: 30, max: 30 } }],
   },
 ];
 
@@ -663,16 +690,19 @@ const SEDUTA_3: readonly ProgramBlock[] = [
     code: 'F2',
     group: 'F',
     pairing: 'superset',
-    exercise: 'jumping-jack',
+    exercise: 'kb-swing',
     sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
+    prescription: { kind: 'reps', min: 15, max: 20 },
     reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
+    tut: 'controllato',
     rir: '—',
     rest: FINITURA,
     perSide: false,
     workSeconds: 30,
     excludeFromReview: true,
+    variantNote:
+      'È l’unica catena posteriore della seduta: i blocchi di lavoro qui sono tutti spinta, quadricipiti e spalle.',
+    alternatives: [{ exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } }],
   },
   {
     code: 'F3',
@@ -841,10 +871,13 @@ const SEDUTA_4: readonly ProgramBlock[] = [
     perSide: false,
     workSeconds: 30,
     excludeFromReview: true,
-    alternatives: [
-      { exercise: 'kb-swing', prescription: { kind: 'reps', min: 12, max: 18 } },
-      { exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } },
-    ],
+    /*
+     * Niente swing qui, pur essendo disponibile: questa seduta ha già il
+     * single-leg RDL e l'hip thrust nel Tri-set A. Una terza cerniera d'anca
+     * a fine seduta, con la lombare stanca, è il modo in cui ci si fa male
+     * facendo tutto giusto.
+     */
+    alternatives: [{ exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } }],
   },
   {
     code: 'F3',
@@ -883,7 +916,7 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
       },
       SCAPOLE,
       CIRCONDUZIONI,
-      CERNIERA,
+      SWING_TECNICO,
       AFFONDI,
       ULTIMO_PASSO,
     ],
