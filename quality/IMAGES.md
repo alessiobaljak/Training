@@ -98,3 +98,97 @@ segmento: è esattamente il tipo di difetto che un diff testuale non segnala e
 che un test automatico non vede. Vale la pena che `art.test.ts` controlli
 almeno che il tronco sia un `polyline`/`line` e non un `path` con curva, dove
 la scheda chiede schiena neutra. Non lo chiedo come blocco: lo propongo.
+
+---
+
+## 2026-11-08 · verifica cieca `test-fixtures/passo-7/cieco/figura-a.svg`
+
+**Esito: SCARTATA.**
+Scheda di riferimento: `stacco-rumeno-manubri` (`src/data/exercises.ts`, `cues`).
+Verifica **provvisoria** (§0.2: schede senza `equipment`/`frames`).
+Render: `reports/immagini/2026-11-08-cieco-230.png` (4 col/230 px),
+`reports/immagini/2026-11-08-cieco-460-dubbi.png` (2 col/460 px).
+Geometria misurata con uno script indipendente sui comandi SVG, non a occhio.
+
+| # | punto | esito |
+|---|---|---|
+| 1 | Corrispondenza con la scheda | **PROBLEMA** |
+| 2 | Archetipo | **PROBLEMA** |
+| 3 | Anatomia | **PROBLEMA** |
+| 4 | Tecnica | **PROBLEMA** |
+| 5 | Attrezzo | **PROBLEMA** |
+| 6 | Coerenza | OK (spessore 3 uniforme sui due fotogrammi) |
+| 7 | Pulizia | OK (nessun testo/freccia; `<title>` non è reso) |
+| 8 | Leggibilità | OK |
+
+Motivi geometrici (fotogramma di destra, il basso del range):
+- **(4) colonna.** Il tronco è un `path Q` da spalla (29,59) ad anca (57,58) con
+  controllo (43,45): il punto medio della curva sta 6,75 unità **sopra** la
+  corda, su 28 di tronco (24%). Dorso convesso verso l'alto = flessione
+  lombare. La scheda dice «il punto di arrivo lo decide la schiena neutra» e
+  mette l'opposto fra gli errori tipici.
+- **(3) ginocchia.** Ginocchio a 13,1 e 14,7 unità **dietro** la corda
+  anca-caviglia (il soggetto guarda a sinistra): è iperestensione di ~20°, un
+  ginocchio piegato al contrario. Visibile a 230 px come una ">" rovesciata.
+- **(4) tibie.** 36,4° e 32,3° dalla verticale, contro «le tibie restano
+  verticali» della scheda.
+- **(2) archetipo.** Tronco a 88° (orizzontale pieno), testa 33,5° fuori
+  dall'asse della colonna, manubri a 13 unità da terra e 35 davanti alle gambe:
+  l'insieme legge come una flessione in avanti a toccare i piedi, non come
+  un'anca che spinge indietro. L'anca sta 2 unità **davanti** alle caviglie,
+  mai dietro.
+- **(1).** Il fotogramma mostra l'errore nominato nella scheda, non la
+  ripetizione valida; quindi non è il fotogramma giusto per quella voce.
+- **(5)** vedi la nota comune qui sotto.
+
+Regola §2: un solo PROBLEMA su 2, 3 o 4 basta. Qui sono tre. `da rifare`.
+
+## 2026-11-08 · verifica cieca `test-fixtures/passo-7/cieco/figura-b.svg`
+
+**Esito: SCARTATA** per la regola §2 (due PROBLEMI nel gruppo 5/6/8), **ma il
+gesto è giusto**: nessun rilievo su archetipo, anatomia e tecnica. I due difetti
+sono di forma e di convenzione, non di contenuto. Vedi la decisione per Alessio.
+
+| # | punto | esito |
+|---|---|---|
+| 1 | Corrispondenza con la scheda | OK |
+| 2 | Archetipo | OK |
+| 3 | Anatomia | OK |
+| 4 | Tecnica | OK |
+| 5 | Attrezzo | **PROBLEMA** |
+| 6 | Coerenza | **PROBLEMA** |
+| 7 | Pulizia | OK |
+| 8 | Leggibilità | OK |
+
+Cosa è corretto, misurato: tronco **rettilineo** (`polyline`, sagitta 0) a 66,8°
+dalla verticale; testa a 3,4° dall'asse della colonna; tibie a 6,3° dalla
+verticale su entrambe le gambe; ginocchia a 2,0 e 4,8 unità dietro la corda
+anca-caviglia, sotto lo spessore del tratto (3) e leggibili come «ginocchia
+morbide»; braccia appese verticali dalla spalla; manubri a 21 unità da terra,
+cioè all'altezza del ginocchio (20) — coerente con «scendi finché senti i
+femorali tirare, non più in basso».
+
+- **(6) coerenza.** La seconda gamba è disegnata con `stroke-width="2"` in
+  **entrambi** i fotogrammi, mentre ogni altro arto — compreso il braccio
+  lontano, che sarebbe il pari grado — sta a 3. Se fosse una convenzione di
+  profondità varrebbe anche per il braccio; non vale, quindi è un'incoerenza
+  interna di stile.
+- **(5) attrezzo.** Nota comune alle due figure: i manubri sono due barre da 11
+  unità alla **stessa** quota, sovrapposte per 2, per un ingombro continuo di
+  20 unità = 2,4 volte la larghezza delle spalle (8). L'unico segno che li
+  distingue è il tratto di sovrapposizione, più scuro (grigio 118 contro 173)
+  ma largo 2 px alla dimensione dichiarata di 210 px. Alla dimensione d'uso si
+  contano come **uno**, cioè come un bilanciere: è il caso che il punto 5 della
+  checklist nomina per nome.
+
+Ipotesi di correzione per `exercise-media-lead`: separare i due manubri di 2-3
+unità in verticale (vicino/lontano) oppure accorciarli a 8 unità perché non si
+tocchino; e portare la gamba lontana a `stroke-width` 3 o applicare la
+convenzione «arto lontano più sottile» anche al braccio.
+
+### Nota di metodo su questa verifica
+Il punto 5 non è un difetto di *questa* figura ma della convenzione con cui la
+libreria disegna i manubri: lo stesso costrutto compare identico in tutti e
+quattro i fotogrammi giudicati oggi. Lo segno comunque PROBLEMA perché la
+checklist lo nomina, e porto ad Alessio la domanda che ne discende invece di
+deciderla io.

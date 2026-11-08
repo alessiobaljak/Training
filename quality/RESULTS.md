@@ -15,6 +15,9 @@ C6 ≥90 · C7 100 · C8 100. **Nessuna soglia è ancora approvata da Alessio.**
 Esito del 2026-11-08 contro le soglie proposte: **NO-GO** (6 Bloccanti).
 Aggiornamento del 2026-11-08 (secondo giro, immagini): 1 figura giudicata,
 1 SCARTATA, 0 idonee. Difetto M7 aperto.
+Aggiornamento del 2026-11-08 (terzo giro, verifica cieca di 2 figure):
+2 giudicate, 2 SCARTATE, 0 idonee. Nuovo rilievo di convenzione sui manubri
+(punto 5), comune a tutte le figure viste finora: decisione aperta per Alessio.
 
 ## Voci aperte
 
@@ -53,6 +56,8 @@ Nessuna: questa è la prima misura.
 |---|---|---|---|---|---|
 | 2026-11-08 | `test-fixtures/passo-7/stacco-schiena-curva.svg` | `stacco-rumeno-manubri` | **SCARTATA** | 1 corrispondenza · 2 archetipo · 3 anatomia · 4 tecnica · 6 coerenza (minore) | `IMAGES.md` |
 | 2026-11-08 | `src/assets/exercises/stacco-rumeno-manubri.svg` (confronto) | `stacco-rumeno-manubri` | 8/8 OK, *verificata provvisoria* (scheda incompleta, §0.2) | nessuno | `IMAGES.md` |
+| 2026-11-08 | `test-fixtures/passo-7/cieco/figura-a.svg` (cieca) | `stacco-rumeno-manubri` | **SCARTATA** | 1 corrispondenza · 2 archetipo · 3 anatomia · 4 tecnica · 5 attrezzo | `IMAGES.md` |
+| 2026-11-08 | `test-fixtures/passo-7/cieco/figura-b.svg` (cieca) | `stacco-rumeno-manubri` | **SCARTATA** per §2 (2 problemi nel gruppo 5/6/8); gesto corretto, difetti di sola forma | 5 attrezzo · 6 coerenza | `IMAGES.md` |
 
 ## Ricalcoli indipendenti eseguiti
 
