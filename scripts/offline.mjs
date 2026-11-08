@@ -218,10 +218,21 @@ try {
     'Senza rete la barra di navigazione deve esserci.',
   );
 
-  const startButton = page.getByRole('button', { name: 'Inizia', exact: true });
+  /*
+   * Senza rete la Home deve proporre comunque la prossima seduta.
+   *
+   * Non c'è più nessuna «seduta del giorno»: le quattro del circuito stanno in
+   * un ordine e «prossima» è la successiva all'ultima chiusa, che si legge dal
+   * diario locale. È esattamente il genere di risposta che deve funzionare in
+   * aereo, perché non dipende da niente che stia sulla rete.
+   */
   check(
-    (await startButton.count()) > 0,
-    'Senza rete la Home deve proporre la seduta del giorno, con i dati già salvati.',
+    (await page.getByRole('button', { name: /^Apri Seduta [1-4]$/ }).count()) === 1,
+    'Senza rete la Home deve proporre la prossima seduta, con i dati già salvati.',
+  );
+  check(
+    (await page.locator('main').innerText()).includes('Seduta 4'),
+    'Senza rete la Home deve elencare tutte e quattro le sedute: sono dati del programma, non della rete.',
   );
 
   /*

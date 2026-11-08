@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EXERCISES, getExercise } from './exercises.ts';
 import { PROGRAM_SESSIONS } from './program.ts';
+import { ALL_SESSIONS } from './sessions.ts';
 import { WEEK_ZERO_TESTS } from './tests.ts';
 import { PROGRESSION_SCALES, getProgressionScale } from './progressions.ts';
 
@@ -62,10 +63,14 @@ describe('exercises.ts — anagrafica', () => {
 
   it('non lascia esercizi orfani: ognuno è usato dal programma o da un test', () => {
     const used = new Set<string>([
-      ...PROGRAM_SESSIONS.flatMap((s) => s.blocks.map((b) => b.exercise)),
+      ...ALL_SESSIONS.flatMap((s) => s.blocks.map((b) => b.exercise)),
       /* Anche la seconda scelta di un blocco è un esercizio usato. */
-      ...PROGRAM_SESSIONS.flatMap((s) =>
+      ...ALL_SESSIONS.flatMap((s) =>
         s.blocks.flatMap((b) => (b.alternatives ?? []).map((entry) => entry.exercise)),
+      ),
+      /* Anche i passi del riscaldamento: ognuno cita un esercizio vero. */
+      ...ALL_SESSIONS.flatMap((s) =>
+        (s.warmupSteps ?? []).flatMap((step) => (step.exercise === undefined ? [] : [step.exercise])),
       ),
       ...WEEK_ZERO_TESTS.map((t) => t.exercise),
     ]);

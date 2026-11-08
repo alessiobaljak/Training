@@ -6,8 +6,16 @@ interface Tab {
   readonly glyph: string;
 }
 
+/*
+ * «Oggi» non vuol dire più niente.
+ *
+ * Era giusto finché il programma assegnava una seduta a ogni giorno: la prima
+ * schermata rispondeva alla domanda «cosa tocca oggi?». Il circuito non ha
+ * giorni, e quella schermata adesso risponde a «cosa alleno adesso»: il nome
+ * della voce deve dire la stessa cosa, o promette un calendario che non c'è.
+ */
 const TABS: readonly Tab[] = [
-  { route: { name: 'home' }, label: 'Oggi', glyph: '◆' },
+  { route: { name: 'home' }, label: 'Allena', glyph: '◆' },
   { route: { name: 'log' }, label: 'Log', glyph: '≡' },
   { route: { name: 'progress' }, label: 'Progressi', glyph: '◱' },
   { route: { name: 'measures' }, label: 'Misure', glyph: '◐' },
@@ -17,7 +25,8 @@ const TABS: readonly Tab[] = [
 export function BottomNav({ current }: { current: Route }) {
   const isActive = (tab: Tab): boolean =>
     tab.route.name === current.name ||
-    (tab.route.name === 'library' && current.name === 'exercise');
+    (tab.route.name === 'library' && current.name === 'exercise') ||
+    (tab.route.name === 'home' && current.name === 'scheda');
 
   return (
     <nav className="safe-bottom shrink-0 border-t border-line bg-canvas">

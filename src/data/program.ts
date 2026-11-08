@@ -37,8 +37,22 @@ export const DELOAD_WEEKS: readonly number[] = Object.freeze([6, 12, 18] as cons
 export const RETEST_WEEKS: readonly number[] = Object.freeze([6, 12] as const);
 
 /* -------------------------------------------------------------------------- */
-/* Le 6 sedute                                                                 */
+/* Le 6 sedute dello Shadow — ARCHIVIATE                                       */
 /* -------------------------------------------------------------------------- */
+
+/*
+ * Programma archiviato.
+ *
+ * Il programma attivo e' in `circuit.ts`: quattro circuiti senza giorno
+ * assegnato. Queste sei sedute non vengono piu' proposte da nessuna parte, ma
+ * le loro definizioni restano, e devono restare: il diario di sei settimane
+ * cita questi `sessionId` e questi `blockCode`, e senza le definizioni la
+ * schermata Log mostrerebbe righe senza nome. Si leggono, non si fanno.
+ *
+ * Il calendario qui sotto — giorni, scarichi, ritest — vale per lo storico.
+ * Scarichi e ritest li usa anche il programma attivo, perche' sono proprieta'
+ * del mesociclo e non della scheda.
+ */
 
 export const PROGRAM_SESSIONS: readonly ProgramSession[] = Object.freeze([
   /* ====================================================================== */
@@ -659,8 +673,18 @@ const BY_ID: ReadonlyMap<SessionId, ProgramSession> = new Map(
   PROGRAM_SESSIONS.map((session) => [session.id, session]),
 );
 
+/*
+ * Le sedute per giorno della settimana.
+ *
+ * `weekday` ora puo' essere nullo, perche' il programma attivo non assegna
+ * giorni. Qui dentro finiscono solo le sedute che un giorno ce l'hanno, cioe'
+ * le sei dello Shadow: questa mappa serve a leggere lo storico, non a dire
+ * cosa si fa oggi.
+ */
 const BY_WEEKDAY: ReadonlyMap<WeekdayIndex, ProgramSession> = new Map(
-  PROGRAM_SESSIONS.map((session) => [session.weekday, session]),
+  PROGRAM_SESSIONS.flatMap((session) =>
+    session.weekday === null ? [] : [[session.weekday, session] as const],
+  ),
 );
 
 export function getSession(id: SessionId): ProgramSession {

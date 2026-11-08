@@ -118,126 +118,174 @@ try {
     },
   });
 
-  /* --------------------- Spostare una seduta di giorno ------------------ */
+  /* ------------------------- Rotazione senza giorni --------------------- */
 
   /*
-   * «Oggi sabato non posso, la faccio domani.»
+   * Il programma attivo non assegna giorni.
    *
-   * Il calendario dava una seduta a ogni giorno e basta. L'unica strada era
-   * aprire la seduta del sabato di domenica e ritrovarsela segnata come «fuori
-   * posto», cioè come un errore. Lo spostamento è uno scambio: quello che c'è
-   * oggi va nel giorno scelto e quello che c'è lì torna oggi.
-   *
-   * Si prova qui, prima che la seduta di oggi venga chiusa: una seduta già
-   * fatta non ha senso spostarla, e infatti il pulsante non compare.
+   * Qui c'erano due sezioni che verificavano lo spostamento di una seduta da
+   * un giorno all'altro: tutta quella macchina esisteva per rimediare a un
+   * vincolo — «oggi è il giorno della Upper B» — che nessuno aveva chiesto.
+   * Tolto il vincolo, non c'è più niente da spostare, e quello che il
+   * calendario proteggeva si legge dal diario.
    */
-  const sposta = page.getByRole('button', { name: /sposta la seduta|Porta qui una seduta/ });
-  check((await sposta.count()) === 1, 'La Home deve permettere di spostare la seduta di giorno.');
+  const home = await page.locator('main').innerText();
+  check(
+    home.includes('LE QUATTRO SEDUTE') || home.includes('Le quattro sedute'),
+    `La Home deve elencare le quattro sedute del programma. Legge: ${JSON.stringify(home.slice(0, 200))}`,
+  );
+  for (const nome of ['Seduta 1', 'Seduta 2', 'Seduta 3', 'Seduta 4']) {
+    check(home.includes(nome), `La Home deve nominare ${nome}.`);
+  }
+  check(
+    !/lunedì|martedì|mercoledì|giovedì|venerdì|sabato|domenica/i.test(home),
+    'La Home non deve più parlare di giorni della settimana.',
+  );
 
-  if ((await sposta.count()) === 1) {
-    const oggiAllena = (await sposta.innerText()).includes('sposta la seduta');
-    await sposta.click();
-    await page.waitForTimeout(600);
+  /* Diario vuoto: la rotazione parte dalla prima e lo dice. */
+  const apriProssima = page.getByRole('button', { name: /^Apri Seduta 1$/ });
+  check(
+    (await apriProssima.count()) === 1,
+    'Con il diario vuoto la Home deve proporre la prima seduta della rotazione.',
+  );
 
-    const giorni = page.locator('main ul li > button').filter({ hasText: /\d\d-\d\d/ });
+  /* ---------------------- Player guidato, dal vivo ---------------------- */
+
+  /*
+   * Il percorso che si fa davvero: scheda, poi una sequenza sola dal
+   * riscaldamento alla fine. È la funzione nuova, ed è quella che i test
+   * unitari non possono vedere — lì si verifica il piano, non che premendo i
+   * pulsanti nell'ordine giusto la serie finisca nel diario.
+   */
+  if ((await apriProssima.count()) === 1) {
+    await apriProssima.click();
+    await page.waitForTimeout(1400);
+
+    const scheda = await page.locator('main').innerText();
     check(
-      (await giorni.count()) === 7,
-      `Il pannello deve offrire i sette giorni seguenti: trovati ${String(await giorni.count())}.`,
+      /\d+′\d*″?/.test(scheda),
+      `La scheda deve dire quanto dura. Legge: ${JSON.stringify(scheda.slice(0, 160))}`,
+    );
+    check(
+      scheda.includes('RISCALDAMENTO') || scheda.includes('Riscaldamento'),
+      'La scheda deve mostrare il riscaldamento prima dei blocchi.',
+    );
+    check(
+      scheda.includes('TRI-SET A') || scheda.includes('Tri-set A'),
+      'La scheda deve nominare i tri-set.',
+    );
+    check(
+      /finitura metabolica/i.test(scheda),
+      'La scheda deve arrivare fino alla finitura metabolica.',
     );
 
-    /*
-     * Chi si allena oggi sposta sul giorno libero, che è quello di riposo;
-     * chi oggi riposa tira qui una seduta da un giorno che ce l'ha. In tutti e
-     * due i casi è lo stesso scambio.
-     */
-    const bersaglio = oggiAllena
-      ? giorni.filter({ hasText: 'libero' }).first()
-      : giorni.filter({ hasNotText: 'libero' }).first();
-    check((await bersaglio.count()) > 0, 'Il pannello deve avere un giorno su cui scambiare.');
+    const inizia = page.getByRole('button', { name: 'Inizia', exact: true });
+    check((await inizia.count()) === 1, 'La scheda deve avere un solo pulsante per iniziare.');
 
-    if ((await bersaglio.count()) > 0) {
-      if (oggiAllena) {
-        check(
-          (await bersaglio.innerText()).includes('giorni di allenamento di fila'),
-          `Spostare nel giorno di riposo deve dire che il riposo sparisce. Legge ${JSON.stringify(await bersaglio.innerText())}.`,
-        );
-      }
+    if ((await inizia.count()) === 1) {
+      await inizia.click();
+      await page.waitForTimeout(1400);
 
-      await bersaglio.click();
-      await page.waitForTimeout(1800);
-
-      const righe = await readFromEmulator('sessionMoves');
+      const primo = await page.locator('main').innerText();
       check(
-        righe.length === 2,
-        `Uno scambio scrive due righe, una per giorno toccato: trovate ${String(righe.length)}.`,
-      );
-
-      const dopoLoSpostamento = await page.locator('main').innerText();
-      await page.reload({ waitUntil: 'load' });
-      await page.waitForTimeout(2000);
-      check(
-        (await page.locator('main').innerText()) === dopoLoSpostamento,
-        'Riaperta l’app, lo spostamento deve essere ancora lì: sta nel database, non a schermo.',
+        primo.includes('Riscaldamento'),
+        `La seduta guidata deve aprirsi sul riscaldamento. Legge: ${JSON.stringify(primo.slice(0, 160))}`,
       );
 
       /*
-       * E si annulla rifacendolo: è uno scambio, e uno scambio fatto due volte
-       * è l'identità. Senza, «annullare» sarebbe un'operazione a parte, che è
-       * il modo in cui nascono i calendari che non tornano più indietro.
+       * Si attraversa il riscaldamento fino alla prima stazione vera. Il
+       * passaggio si riconosce dal pulsante: «Avanti» nel riscaldamento,
+       * «Via» su una serie da cronometrare.
        */
-      const rifai = page.getByRole('button', { name: /sposta la seduta|Porta qui una seduta/ });
-      if ((await rifai.count()) === 1) {
-        await rifai.click();
-        await page.waitForTimeout(600);
-        const indietro = page
-          .locator('main ul li > button')
-          .filter({ hasText: /\d\d-\d\d/ })
-          .first();
-        await indietro.click();
-        await page.waitForTimeout(1800);
+      let arrivato = false;
+      for (let passo = 0; passo < 24 && !arrivato; passo += 1) {
+        if ((await page.getByRole('button', { name: 'Via', exact: true }).count()) > 0) {
+          arrivato = true;
+          break;
+        }
+        const avanti = page.getByRole('button', {
+          name: /^(Avanti|Salta il recupero)$/,
+        });
+        if ((await avanti.count()) === 0) break;
+        await avanti.first().click();
+        await page.waitForTimeout(350);
+      }
+      check(arrivato, 'Dal riscaldamento si deve arrivare alla prima serie.');
+
+      if (arrivato) {
+        const lavoro = await page.locator('main').innerText();
+        /*
+         * Il countdown dell'esercizio è un minimo, non un tetto: deve dirlo.
+         * È la ragione per cui esiste — otto ripetizioni a 3-0-1-0 sono
+         * trentadue secondi, e chiuderle in diciotto vuol dire che il tempo
+         * prescritto non c'era.
+         */
         check(
-          (await readFromEmulator('sessionMoves')).length === 0,
-          'Annullato lo spostamento, non deve restare nessuna riga nel database.',
+          /Almeno \d+"/.test(lavoro),
+          `La stazione deve dichiarare la durata minima. Legge: ${JSON.stringify(lavoro.slice(0, 200))}`,
         );
+        check(
+          /TUT/.test(lavoro) && /RIR/.test(lavoro),
+          'La stazione deve mostrare tempo e RIR prescritti.',
+        );
+        check(
+          (await page.locator('input[type=number]').count()) === 0,
+          'Prima di cominciare non ci sono numeri da scrivere: c’è solo da partire.',
+        );
+
+        await page.getByRole('button', { name: 'Via', exact: true }).click();
+        await page.waitForTimeout(700);
+
+        const campi = page.locator('input[type=number]');
+        check(
+          (await campi.count()) > 0,
+          'Partita la serie, deve comparire dove scrivere quante ne hai fatte.',
+        );
+        for (let k = 0; k < (await campi.count()); k += 1) await campi.nth(k).fill('7');
+        await page.waitForTimeout(200);
+
+        const fatto = page.getByRole('button', { name: 'Fatto', exact: true });
+        check((await fatto.count()) === 1, 'Deve esserci un solo modo di chiudere la serie.');
+        await fatto.click();
+        await page.waitForTimeout(1200);
+
+        const dopo = await page.locator('main').innerText();
+        check(
+          dopo.includes('Prossima'),
+          `Chiusa la serie si passa al recupero, che dice cosa arriva dopo. Legge: ${JSON.stringify(dopo.slice(0, 200))}`,
+        );
+        check(
+          /Transizione|Recupero di giro|Pausa di blocco/.test(dopo),
+          'Il recupero deve dire di che livello è: transizione e recupero di giro non sono la stessa cosa.',
+        );
+
+        /* E la serie deve essere finita nel diario, non solo a schermo. */
+        const salvate = await readFromEmulator('sessions');
+        const circuito = salvate.filter((doc) =>
+          (doc.fields?.sessionId?.stringValue ?? '').startsWith('circuito-'),
+        );
+        check(
+          circuito.length === 1,
+          `La seduta a circuito deve esistere nel database: trovate ${String(circuito.length)}.`,
+        );
+        const conSerie = circuito.some((doc) =>
+          JSON.stringify(doc.fields?.exercises ?? {}).includes('"7"'),
+        );
+        check(conSerie, 'Le ripetizioni scritte nel player devono finire nel diario.');
       }
     }
   }
 
+  await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+  await page.waitForTimeout(1400);
+
+
   /*
-   * La domenica il programma non prescrive niente, e fino a oggi questa prova
-   * non ci aveva mai girato: si fermava al primo controllo, perché dava per
-   * scontato che ogni giorno avesse la sua seduta. Adesso quel giorno si
-   * riempie con lo strumento che esiste apposta — la prova usa la funzione che
-   * sta verificando, e da qui in poi vale qualunque giorno della settimana.
+   * Le sedute dello Shadow sono archiviate: non si propongono piu', ma le
+   * loro definizioni restano e il player a serie deve continuare a leggerle
+   * senza cadere. Da qui in poi si entra per indirizzo, non dalla Home.
    */
-  if ((await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0) {
-    const porta = page.getByRole('button', { name: 'Porta qui una seduta' });
-    check((await porta.count()) === 1, 'Un giorno di riposo deve poter ospitare una seduta.');
-    if ((await porta.count()) === 1) {
-      await porta.click();
-      await page.waitForTimeout(600);
-      const riga = page
-        .locator('main ul li > button')
-        .filter({ hasText: /\d\d-\d\d/ })
-        .filter({ hasNotText: 'libero' })
-        .first();
-      const nome = (await riga.innerText()).split('\n').at(-1)?.trim() ?? '';
-      await riga.click();
-      await page.waitForTimeout(1800);
-
-      SESSIONE_DI_OGGI = ID_PER_NOME[nome] ?? SESSIONE_DI_OGGI;
-      check(
-        SESSIONE_DI_OGGI !== null,
-        `Portata qui una seduta, la prova deve sapere quale: letto "${nome}".`,
-      );
-    }
-  }
-
-  const startButton = page.getByRole('button', { name: 'Inizia', exact: true });
-  check(
-    (await startButton.count()) > 0,
-    'Con il giro di test completo la Home deve proporre la seduta del giorno.',
-  );
+  const startButton = { count: async () => 1 };
 
   /* ---------------------------- Player ---------------------------------- */
 
@@ -401,42 +449,24 @@ try {
         await page.waitForTimeout(1200);
 
         /* innerText applica il CSS: quel titolo è in maiuscolo, il confronto no. */
-        const home = (await page.locator('main').innerText()).toLowerCase();
+        const homeDopoChiusura = (await page.locator('main').innerText()).toLowerCase();
 
-        if (SESSIONE_DI_OGGI === 'upper-a') {
-          check(
-            home.includes('è finita'),
-            `A seduta chiusa la Home deve dire che è finita, invece mostra: ${home.slice(0, 220)}`,
-          );
-          check(
-            home.includes('prossimo allenamento'),
-            'A seduta chiusa la Home deve dire quando è il prossimo allenamento.',
-          );
-          check(
-            (await page.getByRole('button', { name: 'Inizia', exact: true }).count()) === 0,
-            'A seduta chiusa la Home non deve più proporre «Inizia».',
-          );
-        } else {
-          /*
-           * Upper A chiusa in un giorno che non è il suo non è la seduta di
-           * oggi. Prima bastava una seduta qualunque registrata oggi perché la
-           * Home dicesse «è finita» e facesse sparire quella del giorno: chi
-           * chiudeva una Lower A di mercoledì si vedeva «Lower A è finita,
-           * domani Upper B» e la corsa del mercoledì da nessuna parte.
-           */
-          check(
-            !home.includes('è finita'),
-            'Una seduta chiusa fuori dal suo giorno non è la seduta di oggi: la Home non deve darla per fatta.',
-          );
-          check(
-            home.includes('fuori posto'),
-            'Una seduta registrata fuori dal suo giorno deve comparire tra quelle fuori posto.',
-          );
-          check(
-            (await page.getByRole('button', { name: 'Inizia', exact: true }).count()) > 0,
-            'La seduta di oggi deve restare proponibile anche se se ne è chiusa un’altra.',
-          );
-        }
+        /*
+         * Chiudere una seduta archiviata non muove la rotazione.
+         *
+         * Lo Shadow sta nel diario e nient'altro: se una sua seduta contasse
+         * come «ultima chiusa», la prossima del circuito uscirebbe da un id
+         * che la rotazione non conosce e si tornerebbe sempre alla Seduta 1.
+         */
+        check(
+          !homeDopoChiusura.includes('upper a') && !homeDopoChiusura.includes('upper-a'),
+          'La Home non deve proporre le sedute archiviate dello Shadow.',
+        );
+        check(
+          /apri seduta [1-4]/.test(homeDopoChiusura) ||
+            (await page.getByRole('button', { name: /^Apri Seduta [1-4]$/ }).count()) === 1,
+          'Chiusa una seduta d’archivio, la Home deve continuare a proporre la rotazione del circuito.',
+        );
       }
     }
   }
@@ -1271,13 +1301,21 @@ try {
     await page.waitForTimeout(2000);
 
     check(
-      (await page.getByText('fuori posto').count()) > 0,
-      'Una seduta aperta in un giorno passato deve comparire tra quelle fuori posto.',
+      (await page.getByText(/rimasta aperta|rimaste aperte/).count()) > 0,
+      'Una seduta lasciata aperta in un giorno passato deve comparire tra quelle aperte.',
     );
-    /* `exact` apposta: «Riprendi la seduta» è il pulsante di oggi, non è quello. */
+    /*
+     * «Riprendi» solo su quella di oggi.
+     *
+     * Il pulsante apre la seduta di *oggi* con quel nome, non quella vecchia:
+     * offrirlo su una riga del 2020 vorrebbe dire prometterne una e aprirne
+     * un'altra. Il controllo è sulla riga, non sulla pagina: una seduta aperta
+     * oggi, che a questo punto esiste, il suo «Riprendi» ce l'ha e va bene.
+     */
+    const rigaVecchia = page.getByRole('listitem').filter({ hasText: '2020-01-02' });
     check(
-      (await page.getByRole('button', { name: 'Riprendi', exact: true }).count()) === 0,
-      'La Home non deve più offrire di riprendere una seduta vecchia: apriva quella di oggi, non quella.',
+      (await rigaVecchia.getByRole('button', { name: 'Riprendi', exact: true }).count()) === 0,
+      'La Home non deve offrire di riprendere una seduta vecchia: aprirebbe quella di oggi, non quella.',
     );
 
     /* La riga della seduta seminata, non una qualunque delle tre. */

@@ -5,7 +5,7 @@ import { exerciseHistory, loggedExerciseSlugs } from '../../engine/history.ts';
 import { adherenceFromSessions, sessionsInWeek, volumeByGroup } from '../../engine/metrics.ts';
 import { addDays, startOfWeek, todayIso } from '../../engine/dates.ts';
 import { programWeek } from '../../engine/schedule.ts';
-import { PROGRAM_SESSIONS } from '../../data/program.ts';
+import { ACTIVE_SESSIONS } from '../../data/sessions.ts';
 import { useSessions, useSettings } from '../hooks/useData.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 import { StackedColumns } from '../charts/StackedColumns.tsx';
@@ -18,7 +18,7 @@ import type { ColumnDatum } from '../charts/StackedColumns.tsx';
  * Le sedute settimanali del programma sono sei: è il denominatore
  * dell'aderenza.
  */
-const SESSIONS_PER_WEEK = PROGRAM_SESSIONS.length;
+const SESSIONS_PER_WEEK = ACTIVE_SESSIONS.length;
 
 function shortDate(iso: string): string {
   const [, month, day] = iso.split('-');

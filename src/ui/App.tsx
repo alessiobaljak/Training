@@ -9,6 +9,10 @@ import { MeasuresScreen } from './screens/MeasuresScreen.tsx';
 import { ProgressScreen } from './screens/ProgressScreen.tsx';
 import { ReviewScreen } from './screens/ReviewScreen.tsx';
 import { SessionScreen } from './session/SessionScreen.tsx';
+import { GuidedSession } from './session/GuidedSession.tsx';
+import { CircuitOverview } from './screens/CircuitOverview.tsx';
+import { getAnySession } from '../data/sessions.ts';
+import type { SessionId } from '../types/index.ts';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
 import {
   ConfigMissingScreen,
@@ -32,7 +36,23 @@ export function App() {
   if (auth.state === 'signed-out') return <LoginScreen auth={auth} />;
   if (auth.state === 'locked') return <LockScreen auth={auth} />;
 
-  const showNav = route.name !== 'onboarding' && route.name !== 'session';
+  /*
+   * La barra in basso sparisce dove c'è già un'azione principale in fondo:
+   * nella seduta, nei test, e nella scheda che ha il suo «Inizia».
+   */
+  const showNav =
+    route.name !== 'onboarding' && route.name !== 'session' && route.name !== 'scheda';
+
+  /*
+   * Due player, scelti dal tipo di seduta.
+   *
+   * Il circuito usa quello guidato: una sequenza sola, un passo alla volta,
+   * niente da scegliere mentre ci si allena. Le sedute archiviate dello Shadow
+   * tengono il loro, che mostra tutto insieme e lascia navigare — lì serve,
+   * perché una seduta di forza si interrompe e si riprende.
+   */
+  const eCircuito = (sessionId: SessionId): boolean =>
+    getAnySession(sessionId).kind === 'circuit';
 
   /*
    * Una sola colonna alta quanto lo schermo: il contenuto scorre nel mezzo e
@@ -54,7 +74,14 @@ export function App() {
           seduta vuoto», perché quell'indice nell'altro piano non esiste.
         */}
         {route.name === 'session' ? (
-          <SessionScreen key={route.sessionId} sessionId={route.sessionId} />
+          eCircuito(route.sessionId) ? (
+            <GuidedSession key={route.sessionId} sessionId={route.sessionId} />
+          ) : (
+            <SessionScreen key={route.sessionId} sessionId={route.sessionId} />
+          )
+        ) : null}
+        {route.name === 'scheda' ? (
+          <CircuitOverview key={route.sessionId} sessionId={route.sessionId} />
         ) : null}
         {route.name === 'log' ? <LogScreen /> : null}
         {route.name === 'progress' ? <ProgressScreen /> : null}

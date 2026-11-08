@@ -1,5 +1,5 @@
 import { findExercise } from '../data/exercises.ts';
-import { PROGRAM_SESSIONS } from '../data/program.ts';
+import { ALL_SESSIONS } from '../data/sessions.ts';
 import { summarizeExercise } from './metrics.ts';
 import type {
   ExerciseSlug,
@@ -16,7 +16,7 @@ import type {
  */
 
 const SESSION_NAMES: ReadonlyMap<SessionId, string> = new Map(
-  PROGRAM_SESSIONS.map((session) => [session.id, session.name]),
+  ALL_SESSIONS.map((session) => [session.id, session.name]),
 );
 
 export interface LogRow {

@@ -1,6 +1,6 @@
 import { getExercise } from '../data/exercises.ts';
 import { getProgressionStep } from '../data/progressions.ts';
-import { getSession } from '../data/program.ts';
+import { getAnySession } from '../data/sessions.ts';
 import { effectiveBlock } from './draft.ts';
 import { getLoadAvailability, stepLoad } from './loading.ts';
 import { initialExerciseState } from './progression.ts';
@@ -121,7 +121,7 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
   let setsCounted = 0;
 
   for (const session of sedute) {
-    const program = getSession(session.sessionId);
+    const program = getAnySession(session.sessionId);
     for (const logged of session.exercises) {
       if (logged.sets.length === 0) continue;
       const declared = program.blocks.find((entry) => entry.code === logged.blockCode);

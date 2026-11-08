@@ -1,5 +1,5 @@
 import { findExercise } from '../data/exercises.ts';
-import { PROGRAM_SESSIONS } from '../data/program.ts';
+import { ALL_SESSIONS } from '../data/sessions.ts';
 import { WEEK_ZERO_TESTS } from '../data/tests.ts';
 import { isIsoDate } from '../engine/dates.ts';
 import { OVERLOAD_LEVERS } from '../types/index.ts';
@@ -145,7 +145,7 @@ function expectNullableLevel(value: unknown, path: string): LevelIndex | null {
 /* Insiemi noti                                                                */
 /* -------------------------------------------------------------------------- */
 
-const SESSION_IDS: readonly SessionId[] = PROGRAM_SESSIONS.map((session) => session.id);
+const SESSION_IDS: readonly SessionId[] = ALL_SESSIONS.map((session) => session.id);
 const SESSION_STATUSES: readonly SessionStatus[] = ['in-progress', 'completed', 'abandoned'];
 const SIDES: readonly Side[] = ['left', 'right'];
 const TEST_IDS: readonly TestId[] = WEEK_ZERO_TESTS.map((test) => test.id);

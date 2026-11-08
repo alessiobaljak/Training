@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { getSession } from '../../data/program.ts';
+import { getAnySession } from '../../data/sessions.ts';
 import { getExercise } from '../../data/exercises.ts';
 import { repository } from '../../db/repository.ts';
 import {
@@ -56,7 +56,7 @@ export interface SessionDraft {
 }
 
 export function useSessionDraft(sessionId: SessionId): SessionDraft {
-  const program = useMemo(() => getSession(sessionId), [sessionId]);
+  const program = useMemo(() => getAnySession(sessionId), [sessionId]);
 
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState<LoggedSession | null>(null);

@@ -39,16 +39,22 @@ async function waitForServer(timeoutMs = 90_000) {
 /** Le schermate che vale la pena guardare: sono quelle con più colore sopra. */
 const PAGINE = [
   ['home', '#/'],
-  /* La Home con il pannello per spostare la seduta aperto. */
-  ['sposta-seduta', '#/', 0, /sposta la seduta|Porta qui una seduta/],
-  ['seduta', '#/seduta/upper-a'],
+  /* La scheda del circuito: tutto quello che si vede prima di iniziare. */
+  ['scheda', '#/scheda/circuito-1'],
   /*
-   * Il blocco A2 dell'Upper B è la schermata dove il test tiene il gradino
-   * sotto quello che la scheda prescrive: la scheda vuole gli archer push-up,
-   * il test dice push-up declinati. È lì che si vede se titolo e figura
-   * seguono il gradino, quindi ci si arriva davvero, con un tocco su «avanti».
+   * Il player guidato si apre sul primo passo di riscaldamento. Le altre due
+   * facce — la stazione di lavoro con il countdown e il recupero — si
+   * raggiungono avanzando, perché sono quelle che si guardano davvero durante
+   * la seduta e sono le uniche in cui il cronometro è grande come deve essere.
    */
-  ['seduta-sotto-il-gradino', '#/seduta/upper-b', 1],
+  ['guidata-riscaldamento', '#/seduta/circuito-1'],
+  ['guidata-lavoro', '#/seduta/circuito-1', 11],
+  ['guidata-recupero', '#/seduta/circuito-1', 1],
+  /*
+   * Il player a serie delle sedute archiviate: non si usa più, ma deve
+   * continuare a leggere lo storico senza cadere.
+   */
+  ['archivio-seduta', '#/seduta/upper-a'],
   ['esercizio', '#/esercizi/trazioni-prona-presa-media'],
   ['progressi', '#/progressi'],
   ['impostazioni', '#/impostazioni'],
@@ -100,10 +106,23 @@ try {
       }
 
       for (let passo = 0; passo < avanti; passo += 1) {
-        const prossima = page.getByRole('button', { name: /serie \d+ ›$/ });
-        if ((await prossima.count()) === 0) break;
-        await prossima.click();
-        await page.waitForTimeout(700);
+        /*
+         * Due player, due modi di avanzare. Quello a serie ha i pulsanti
+         * «B1 · serie 2 ›»; quello guidato ha un passo alla volta e lo si
+         * attraversa con «Avanti», «Salta il recupero» o «Via» + «Fatto».
+         */
+        const aSerie = page.getByRole('button', { name: /serie \d+ ›$/ });
+        if ((await aSerie.count()) > 0) {
+          await aSerie.click();
+          await page.waitForTimeout(700);
+          continue;
+        }
+        const guidato = page.getByRole('button', {
+          name: /^(Avanti|Salta il recupero|Via|Fatto)$/,
+        });
+        if ((await guidato.count()) === 0) break;
+        await guidato.first().click();
+        await page.waitForTimeout(500);
       }
 
       /* Dopo un tocco su «avanti» la pagina resta dov'era: la foto deve

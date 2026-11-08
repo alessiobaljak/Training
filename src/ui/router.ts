@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { PROGRAM_SESSIONS } from '../data/program.ts';
+import { ALL_SESSION_IDS } from '../data/sessions.ts';
 import type { SessionId } from '../types/index.ts';
 
 /**
@@ -14,6 +14,8 @@ export type Route =
   | { readonly name: 'home' }
   | { readonly name: 'onboarding' }
   | { readonly name: 'session'; readonly sessionId: SessionId }
+  /** La scheda prima di iniziare: tutti gli esercizi, poi «Inizia». */
+  | { readonly name: 'scheda'; readonly sessionId: SessionId }
   | { readonly name: 'log' }
   | { readonly name: 'progress' }
   | { readonly name: 'measures' }
@@ -25,7 +27,8 @@ export type Route =
 
 export const HOME: Route = { name: 'home' };
 
-const SESSION_IDS: readonly string[] = PROGRAM_SESSIONS.map((session) => session.id);
+/* Anche le sedute archiviate: un link allo storico deve restare apribile. */
+const SESSION_IDS: readonly string[] = ALL_SESSION_IDS;
 
 export function routeToHash(route: Route): string {
   switch (route.name) {
@@ -35,6 +38,8 @@ export function routeToHash(route: Route): string {
       return '#/test';
     case 'session':
       return `#/seduta/${route.sessionId}`;
+    case 'scheda':
+      return `#/scheda/${route.sessionId}`;
     case 'log':
       return '#/log';
     case 'progress':
@@ -66,6 +71,11 @@ export function parseRoute(hash: string): Route {
     case 'seduta':
       if (second !== undefined && SESSION_IDS.includes(second)) {
         return { name: 'session', sessionId: second as SessionId };
+      }
+      return HOME;
+    case 'scheda':
+      if (second !== undefined && SESSION_IDS.includes(second)) {
+        return { name: 'scheda', sessionId: second as SessionId };
       }
       return HOME;
     case 'log':
