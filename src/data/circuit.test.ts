@@ -55,15 +55,38 @@ describe('circuit.ts — il programma attivo', () => {
       const passi = session.warmupSteps ?? [];
       expect(passi.length, session.id).toBeGreaterThan(3);
       for (const passo of passi) {
-        /* O secondi o ripetizioni, mai nessuno dei due e mai tutti e due. */
-        expect(
-          (passo.seconds === null) !== (passo.reps === null),
-          `${session.id}/${passo.label}`,
-        ).toBe(true);
+        /*
+         * Ogni passo ha una durata, sempre. Le ripetizioni sono un bersaglio
+         * dentro quella finestra, non un conto aperto: è la differenza tra un
+         * passo che a zero va avanti e uno che a zero resta fermo scrivendo
+         * «Fatto».
+         */
+        expect(passo.seconds, `${session.id}/${passo.label}`).toBeGreaterThan(0);
+        if (passo.reps !== null) {
+          expect(passo.reps, `${session.id}/${passo.label}`).toBeGreaterThan(0);
+        }
         if (passo.exercise !== undefined) {
           expect(findExercise(passo.exercise), passo.exercise).toBeDefined();
         }
       }
+    }
+  });
+
+  it('chiude il riscaldamento con un giro di prova del primo blocco', () => {
+    /*
+     * `rampGroup` non è un'etichetta: il player lo apre in un passo per ogni
+     * esercizio del blocco. Scritto come riga unica chiedeva «un giro del
+     * Tri-set A» senza nominare nessuno dei tre esercizi, con quarantacinque
+     * secondi di conto alla rovescia che non bastavano nemmeno a provarne uno.
+     */
+    for (const session of CIRCUIT_SESSIONS) {
+      const passi = session.warmupSteps ?? [];
+      const ultimo = passi.at(-1);
+      expect(ultimo?.rampGroup, session.id).toBe('A');
+      expect(
+        session.blocks.some((block) => block.group === 'A'),
+        session.id,
+      ).toBe(true);
     }
   });
 

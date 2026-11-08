@@ -364,18 +364,28 @@ function PassoRiscaldamento({
   const countdown = useCountdown(step.workSeconds, { autoStart: true });
   useSegnali(countdown.remaining, true);
 
-  /* I passi a tempo avanzano da soli; quelli a ripetizioni aspettano il tap. */
+  /*
+   * Finito il conto, si va avanti da soli.
+   *
+   * Prima avanzavano solo i passi a tempo e quelli a ripetizioni aspettavano
+   * un tocco — ma mostravano lo stesso conto alla rovescia, che arrivava a
+   * zero e scriveva «Fatto» in verde. Una schermata che si dichiara finita e
+   * non si muove è un'app che sembra bloccata.
+   */
   useEffect(() => {
-    if (step.timed && countdown.done) onDone();
-  }, [step.timed, countdown.done, onDone]);
+    if (countdown.done) onDone();
+  }, [countdown.done, onDone]);
 
   return (
     <div className="flex flex-1 flex-col">
-      <Badge tone="accent">Riscaldamento</Badge>
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge tone="accent">Riscaldamento</Badge>
+        {step.inRamp ? <Badge tone="neutral">Giro di prova</Badge> : null}
+      </div>
       <h2 className="mt-3 text-2xl leading-tight font-semibold">{step.label}</h2>
       {step.reps !== null ? (
         <p className="mt-1 text-sm text-dim">
-          {step.reps} ripetizioni{step.perSide ? ' per lato' : ''}
+          {step.reps} ripetizioni{step.perSide ? ' per lato' : ''} in {step.workSeconds}″
         </p>
       ) : null}
 
@@ -391,7 +401,13 @@ function PassoRiscaldamento({
         <Orologio
           seconds={countdown.remaining}
           tone={countdown.done ? 'pronto' : 'neutro'}
-          caption={countdown.done ? 'Fatto' : step.timed ? 'Tieni il tempo' : 'Tempo indicativo'}
+          caption={
+            countdown.done
+              ? 'Fatto'
+              : step.reps === null
+                ? 'Tieni il tempo'
+                : 'Falle entro il tempo, poi si va avanti'
+          }
         />
       </div>
 

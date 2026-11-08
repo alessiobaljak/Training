@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import {
+  RAMP_MAX_SEC,
+  RAMP_MIN_SEC,
   WARMUP_TO_WORK_SEC,
   blockRestSeconds,
   buildGuidedPlan,
@@ -167,6 +169,35 @@ describe('buildGuidedPlan — la sequenza della seduta', () => {
     const dopo = plan[(ultimoDelPrimoGiro?.i ?? 0) + 1];
     /* Subito la prima stazione del giro seguente, senza recupero in mezzo. */
     expect(dopo?.kind).toBe('work');
+  });
+
+  it('apre il giro di prova in un passo per ogni esercizio del blocco', () => {
+    const riscaldamenti = plan.filter(
+      (step): step is Extract<GuidedStep, { kind: 'warmup' }> => step.kind === 'warmup',
+    );
+    const rampa = riscaldamenti.filter((step) => step.inRamp);
+    const blocchiA = seduta.blocks.filter((block) => block.group === 'A');
+    expect(rampa).toHaveLength(blocchiA.length);
+    /* Ogni passo nomina il suo esercizio: è la consegna che prima mancava. */
+    expect(rampa.map((step) => step.exercise)).toEqual(blocchiA.map((block) => block.exercise));
+    for (const passo of rampa) {
+      expect(passo.workSeconds).toBeGreaterThanOrEqual(RAMP_MIN_SEC);
+      expect(passo.workSeconds).toBeLessThanOrEqual(RAMP_MAX_SEC);
+      expect(passo.reps, passo.label).not.toBeNull();
+    }
+  });
+
+  it('non mette recuperi dentro il giro di prova', () => {
+    /* È un giro: tra una stazione e l'altra non ci si ferma. */
+    for (let i = 0; i < plan.length - 2; i += 1) {
+      const uno = plan[i];
+      const due = plan[i + 1];
+      if (uno?.kind !== 'warmup' || !uno.inRamp) continue;
+      const prossimoRiscaldamento = plan[i + 1];
+      if (prossimoRiscaldamento?.kind === 'warmup' && prossimoRiscaldamento.inRamp) {
+        expect(due?.kind, `passo ${String(i)}`).not.toBe('rest');
+      }
+    }
   });
 
   it('conta le serie di lavoro senza il riscaldamento', () => {

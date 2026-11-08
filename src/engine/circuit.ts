@@ -115,10 +115,16 @@ export interface GuidedWarmupStep {
   readonly reps: number | null;
   readonly perSide: boolean;
   readonly hint: string;
-  /** Durata del countdown. Sui passi a ripetizioni è una stima. */
+  /**
+   * Durata del passo. Finita, si va avanti da soli.
+   *
+   * Prima i passi a ripetizioni ne avevano una stimata e **non** avanzavano:
+   * il conto arrivava a zero, scriveva «Fatto» in verde e lì restava. Adesso
+   * la durata è prescritta dalla scheda e lo zero vuol dire una cosa sola.
+   */
   readonly workSeconds: number;
-  /** `true` quando la durata è prescritta e non stimata. */
-  readonly timed: boolean;
+  /** Il passo fa parte di un giro di prova di un blocco. */
+  readonly inRamp: boolean;
 }
 
 export interface GuidedWorkStep {
@@ -157,17 +163,103 @@ export type GuidedStep = GuidedWarmupStep | GuidedWorkStep | GuidedRestStep;
 /** Tra un passo di riscaldamento e il successivo: solo il tempo di spostarsi. */
 export const WARMUP_TRANSITION_SEC = 10;
 
-/** Dopo l'ultimo passo di riscaldamento, prima della prima serie vera. */
-export const WARMUP_TO_WORK_SEC = 40;
+/**
+ * Dopo l'ultimo passo di riscaldamento, prima della prima serie vera.
+ *
+ * Trenta e non quaranta da quando il riscaldamento finisce con il giro di
+ * prova: quel giro *è* il ponte verso il lavoro, e una pausa lunga dopo
+ * averlo fatto disfa quello che è appena servito a costruire.
+ */
+export const WARMUP_TO_WORK_SEC = 30;
 
-/** Stima per un passo di riscaldamento a ripetizioni, che non ha un tempo suo. */
-const WARMUP_SECONDS_PER_REP = 3;
+/**
+ * Durata minima di un passo del giro di prova.
+ *
+ * Tre ripetizioni a metà carico durano dodici secondi e sono finite prima che
+ * tu abbia finito di leggere cosa fare. Il minimo serve a quello.
+ */
+export const RAMP_MIN_SEC = 15;
 
-function warmupSeconds(warmup: WarmupStep): number {
-  if (warmup.seconds !== null) return warmup.seconds;
-  if (warmup.reps === null) return WARMUP_TRANSITION_SEC;
-  const base = warmup.reps * WARMUP_SECONDS_PER_REP;
-  return warmup.perSide ? base * 2 : base;
+/**
+ * Durata massima di un passo del giro di prova.
+ *
+ * Senza un tetto una stazione unilaterale lenta si prende mezzo minuto di
+ * riscaldamento da sola, e il giro di prova comincia a somigliare a un giro
+ * vero — che è esattamente quello che non deve essere.
+ */
+export const RAMP_MAX_SEC = 25;
+
+/* -------------------------------------------------------------------------- */
+/* Espansione del riscaldamento                                                */
+/* -------------------------------------------------------------------------- */
+
+interface PassoRiscaldamento {
+  readonly label: string;
+  readonly exercise: ExerciseSlug | null;
+  readonly seconds: number;
+  readonly reps: number | null;
+  readonly perSide: boolean;
+  readonly hint: string;
+  /**
+   * Il passo fa parte di un giro di prova.
+   *
+   * Dentro un giro non c'è transizione: è un giro, non una lista di cose da
+   * fare con una pausa in mezzo.
+   */
+  readonly inRamp: boolean;
+}
+
+/** Metà delle ripetizioni minime, mai meno di due. */
+function mezzeRipetizioni(block: ProgramBlock): number | null {
+  const prescription = block.prescription;
+  if (prescription.kind !== 'reps') return null;
+  return Math.max(2, Math.ceil(prescription.min / 2));
+}
+
+/**
+ * Il riscaldamento, con i giri di prova aperti.
+ *
+ * Un passo con `rampGroup` diventa un passo per ogni esercizio di quel blocco,
+ * con il suo nome e la sua figura. Scritto come riga unica — «un giro del
+ * Tri-set A a metà carico» — chiedeva tre esercizi senza nominarne nessuno.
+ */
+function expandWarmup(
+  session: ProgramSession,
+  warmups: readonly WarmupStep[],
+): PassoRiscaldamento[] {
+  return warmups.flatMap((warmup): PassoRiscaldamento[] => {
+    if (warmup.rampGroup === undefined) {
+      return [
+        {
+          label: warmup.label,
+          exercise: warmup.exercise ?? null,
+          seconds: warmup.seconds,
+          reps: warmup.reps,
+          perSide: warmup.perSide,
+          hint: warmup.hint,
+          inRamp: false,
+        },
+      ];
+    }
+
+    const blocchi = session.blocks.filter((block) => block.group === warmup.rampGroup);
+    return blocchi.map((block): PassoRiscaldamento => {
+      const esercizio = getExercise(block.exercise);
+      const ripetizioni = mezzeRipetizioni(block);
+      const perRipetizione = repDurationSeconds(parseTut(block.tut)) ?? 0;
+      const stimato =
+        ripetizioni === null ? 0 : ripetizioni * perRipetizione * (block.perSide ? 2 : 1);
+      return {
+        label: esercizio.name,
+        exercise: block.exercise,
+        seconds: Math.min(RAMP_MAX_SEC, Math.max(RAMP_MIN_SEC, Math.round(stimato))),
+        reps: ripetizioni,
+        perSide: block.perSide,
+        hint: warmup.hint,
+        inRamp: true,
+      };
+    });
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -283,7 +375,7 @@ export function buildGuidedPlan(
     });
   };
 
-  const warmups = session.warmupSteps ?? [];
+  const warmups = expandWarmup(session, session.warmupSteps ?? []);
   const work = buildSessionPlan(session, week, states);
 
   warmups.forEach((warmup, index) => {
@@ -293,25 +385,28 @@ export function buildGuidedPlan(
       id: `warmup-${String(index)}`,
       order,
       label: warmup.label,
-      exercise: warmup.exercise ?? null,
+      exercise: warmup.exercise,
       reps: warmup.reps,
       perSide: warmup.perSide,
       hint: warmup.hint,
-      workSeconds: warmupSeconds(warmup),
-      timed: warmup.seconds !== null,
+      workSeconds: warmup.seconds,
+      inRamp: warmup.inRamp,
     });
 
     const prossimo = warmups[index + 1];
     if (prossimo !== undefined) {
-      pushRest(
-        {
-          tier: 'transizione',
-          seconds: WARMUP_TRANSITION_SEC,
-          maxSeconds: WARMUP_TRANSITION_SEC,
-          hint: 'Solo il tempo di spostarti.',
-        },
-        prossimo.label,
-      );
+      /* Dentro un giro di prova non si recupera: è un giro. */
+      if (!(warmup.inRamp && prossimo.inRamp)) {
+        pushRest(
+          {
+            tier: 'transizione',
+            seconds: WARMUP_TRANSITION_SEC,
+            maxSeconds: WARMUP_TRANSITION_SEC,
+            hint: 'Solo il tempo di spostarti.',
+          },
+          prossimo.label,
+        );
+      }
       return;
     }
 

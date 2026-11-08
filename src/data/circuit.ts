@@ -124,18 +124,28 @@ const isolato = (restSec: number): RestPrescription => ({ kind: 'straight', rest
  * che è la parte che la gente salta e che serve più di tutte.
  */
 
-const ULTIMO_PASSO: WarmupStep = {
-  label: 'Un giro del Tri-set A a metà carico e metà ripetizioni',
-  seconds: 45,
+/**
+ * Il giro di prova del Tri-set A.
+ *
+ * `rampGroup` non è decorazione: il player lo espande in un passo per ogni
+ * esercizio del blocco A, ognuno con il suo nome e la sua figura. Scritto come
+ * riga unica diceva «fai un giro di tre esercizi» senza dire quali, con un
+ * conto alla rovescia da quarantacinque secondi che non bastava nemmeno a
+ * provarne uno.
+ */
+const RAMPA_A: WarmupStep = {
+  label: 'Giro di prova del Tri-set A',
+  seconds: 20,
   reps: null,
   perSide: false,
-  hint: 'Non è una serie: è la prova che la prima vera non parta a freddo.',
+  rampGroup: 'A',
+  hint: 'Metà carico, metà ripetizioni. Non è una serie: è la prova che la prima vera non parta a freddo.',
 };
 
 const SCAPOLE: WarmupStep = {
   label: 'Scapular pull-up',
   exercise: 'scapular-pull-up',
-  seconds: null,
+  seconds: 25,
   reps: 8,
   perSide: false,
   hint: 'Braccia dritte: scendono solo le scapole, di due o tre centimetri.',
@@ -153,7 +163,7 @@ const CIRCONDUZIONI: WarmupStep = {
 const AFFONDI: WarmupStep = {
   label: 'Affondo con rotazione',
   exercise: 'affondo-con-rotazione',
-  seconds: null,
+  seconds: 40,
   reps: 6,
   perSide: true,
   hint: 'Ruota il torace da fondo affondo, non prima.',
@@ -170,7 +180,7 @@ const AFFONDI: WarmupStep = {
 const SWING_TECNICO: WarmupStep = {
   label: 'Swing con kettlebell 16 kg, tecnici',
   exercise: 'kb-swing',
-  seconds: null,
+  seconds: 30,
   reps: 10,
   perSide: false,
   hint: 'Cerniera, non squat: il peso va indietro tra le gambe, alto e vicino all’inguine. Nessuno sforzo.',
@@ -179,7 +189,7 @@ const SWING_TECNICO: WarmupStep = {
 const CERNIERA: WarmupStep = {
   label: 'Stacco rumeno con manubri leggeri, tecnico',
   exercise: 'stacco-rumeno-manubri',
-  seconds: null,
+  seconds: 30,
   reps: 10,
   perSide: false,
   hint: 'Anche indietro, tibie verticali. Serve la tecnica, non il carico.',
@@ -918,7 +928,7 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
       CIRCONDUZIONI,
       SWING_TECNICO,
       AFFONDI,
-      ULTIMO_PASSO,
+      RAMPA_A,
     ],
     blocks: SEDUTA_1,
   },
@@ -942,7 +952,7 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
       SCAPOLE,
       CIRCONDUZIONI,
       AFFONDI,
-      ULTIMO_PASSO,
+      RAMPA_A,
     ],
     blocks: SEDUTA_2,
   },
@@ -966,7 +976,7 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
       CIRCONDUZIONI,
       CERNIERA,
       AFFONDI,
-      ULTIMO_PASSO,
+      RAMPA_A,
     ],
     blocks: SEDUTA_3,
   },
@@ -990,7 +1000,7 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
       SCAPOLE,
       CIRCONDUZIONI,
       CERNIERA,
-      ULTIMO_PASSO,
+      RAMPA_A,
     ],
     blocks: SEDUTA_4,
   },

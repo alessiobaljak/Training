@@ -184,10 +184,31 @@ export interface WarmupStep {
    * una riga di testo.
    */
   readonly exercise?: ExerciseSlug;
-  /** Durata della stazione. `null` quando il passo e' a ripetizioni. */
-  readonly seconds: number | null;
-  /** Ripetizioni del passo. `null` quando il passo e' a tempo. */
+  /**
+   * Durata del passo, sempre dichiarata.
+   *
+   * Prima i passi a ripetizioni non ce l'avevano e il player ne stimava una.
+   * Il risultato a schermo era un conto alla rovescia che arrivava a zero,
+   * diventava verde e scriveva «Fatto» — e poi non succedeva niente, perché
+   * quel passo aspettava un tocco. Prometteva di essere finito e non lo era.
+   *
+   * In un riscaldamento la finestra è il modo giusto di prescrivere: otto
+   * scapular pull-up *entro* venticinque secondi, non otto scapular pull-up e
+   * poi si vedrà. Così lo zero vuol dire una cosa sola e si va avanti da soli.
+   */
+  readonly seconds: number;
+  /** Ripetizioni da fare dentro la finestra. `null` quando il passo è solo a tempo. */
   readonly reps: number | null;
+  /**
+   * Il passo è un giro di prova del gruppo di blocchi indicato.
+   *
+   * Non è un'etichetta: il player lo espande in un passo per ogni esercizio
+   * di quel blocco, con il suo nome, la sua figura e metà delle ripetizioni.
+   * «Un giro del Tri-set A a metà carico» scritto su una schermata sola, con
+   * quarantacinque secondi di conto alla rovescia e nessun esercizio in
+   * vista, era una consegna che non si può eseguire.
+   */
+  readonly rampGroup?: string;
   /** `true` quando le ripetizioni sono per lato. */
   readonly perSide: boolean;
   /** Cosa guardare mentre lo si fa. */

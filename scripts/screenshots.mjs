@@ -48,7 +48,9 @@ const PAGINE = [
    * la seduta e sono le uniche in cui il cronometro è grande come deve essere.
    */
   ['guidata-riscaldamento', '#/seduta/circuito-1'],
-  ['guidata-lavoro', '#/seduta/circuito-1', 11],
+  /* Il giro di prova: un passo per esercizio, con il suo nome e la sua figura. */
+  ['guidata-rampa', '#/seduta/circuito-1', 10],
+  ['guidata-lavoro', '#/seduta/circuito-1', 14],
   ['guidata-recupero', '#/seduta/circuito-1', 1],
   /*
    * Il player a serie delle sedute archiviate: non si usa più, ma deve
