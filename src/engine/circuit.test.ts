@@ -153,6 +153,31 @@ describe('buildGuidedPlan — la sequenza della seduta', () => {
     expect(lavori.length).toBeGreaterThan(0);
   });
 
+  it('la pausa di blocco nomina il blocco che finisce e quello che comincia', () => {
+    /*
+     * Dopo nove serie del Tri-set A compariva il pull-over al TRX senza che
+     * niente avesse detto che un blocco era finito e ne cominciava un altro:
+     * a dieci minuti dall'inizio, un esercizio che non ti aspetti sembra
+     * un'app che ti ha cambiato la scheda.
+     *
+     * Il test esiste perché la prima volta la correzione non è entrata nel
+     * file — una sostituzione di stringa che non ha trovato il suo bersaglio
+     * e non ha detto niente — e il typecheck è passato lo stesso, perché non
+     * era cambiato nulla. Un testo si verifica leggendolo, non scrivendolo.
+     */
+    const pause = plan.filter(
+      (step): step is Extract<GuidedStep, { kind: 'rest' }> =>
+        step.kind === 'rest' && step.tier === 'blocco',
+    );
+    /* La prima è quella tra riscaldamento e lavoro: le altre separano blocchi. */
+    const traBlocchi = pause.slice(1);
+    expect(traBlocchi.length).toBeGreaterThan(0);
+    for (const pausa of traBlocchi) {
+      expect(pausa.hint, pausa.hint).toMatch(/^(Tri-set|Coppia|Blocco|Finitura)/);
+      expect(pausa.hint, pausa.hint).toContain(' finito, ora ');
+    }
+  });
+
   it('non mette nessun recupero tra i giri della finitura', () => {
     /*
      * La finitura è l'unico blocco in cui si ricomincia senza fermarsi: 15"

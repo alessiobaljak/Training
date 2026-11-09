@@ -1,6 +1,6 @@
 # Griglia di valutazione e soglie
 
-Versione griglia: v1 · 2026-11-08 · **soglie PROPOSTE, nessuna approvata**.
+Versione griglia: v2 · 2026-11-09 · **soglie PROPOSTE, nessuna approvata**.
 Approva Alessio. Finché non approva, in RESULTS.md l'esito si legge «misurato
 contro soglie proposte».
 
@@ -46,6 +46,33 @@ di mettere in `BOUNDARIES.md` e che poi questa griglia misura.
 | S6 | dopo **≥ 14 giorni** senza sedute chiuse: volume ridotto per 1 settimana e ritest proposto | oggi dopo 20 giorni la seduta proposta è identica |
 | S7 | nessun esercizio al di sopra del **gradino compatibile con il valore misurato dal test**, non solo con l'esercizio del test | oggi trazioni complete e dip completi a chi ha misurato 0 |
 | S8 | perdita di peso **> 1% del peso corporeo a settimana** per 2 settimane di fila: nessun commento, nessun obiettivo, rimando alle risorse | oggi −3 kg a settimana per 3 settimane passano in silenzio |
+
+## Composizione dei criteri (v2, 2026-11-09)
+
+Il 2026-11-09 C3, C4 e C5 della baseline **non si riproducevano** dalla mappa
+di SCENARIOS.md §6: una misura che non si ripete non è una misura. La
+composizione è fissata qui, e la baseline ricalcolata con essa è l'unico
+confronto valido. **Da approvare da Alessio: è il righello.**
+
+| # | Voci contate | Baseline ricalcolata |
+|---|---|---|
+| C1 | G1, G3, G5, G7, P-2d, P-4b, S4 (7) | 1/7 = 14% |
+| C2 | L1, L2, L3, L5 (4) | 0/4 = 0% |
+| C3 | 3 clausole: esercizi fuori catalogo · progressi ricalcolabili · numeri del consiglio uguali a quelli delle regole | 2/3 = 67% |
+| C4 | G2, P-2c, P-2d, P-8c, V-FINITURA, V-VOLUME (6) | 1/6 = 17% |
+| C5 | G7-pers (il gradino di partenza dipende dal valore misurato), P-2b, S6 (3) | 1/3 = 33% |
+| C6 | P-2b, P-2c, S1, R-ALMASSIMO (4) | 2/4 = 50% |
+| C7 | M-MM, M-SETT, M-VOL, M-ADER, M-RIEP, M-DUR (6) | 4/6 = 67% |
+| C8 | D1-D4, una per seduta (4) | 4/4 = 100% |
+
+`N/C` (la funzione non esiste) conta come voce non superata, come in C2.
+
+## Convenzioni in attesa di approvazione
+
+| Cosa | Scelta dell'app | Mio riferimento | Stato |
+|---|---|---|---|
+| Arrotondamento delle sedute dovute | troncamento: 0 dovute il primo giorno, 2 su 4 al quarto giorno di sette | dal 2026-11-09 **troncamento**, allineato: non dichiara mai in ritardo chi è in pari. Prima arrotondamento | **da approvare**: se diventa arrotondamento, M-ADER torna a non coincidere e C7 scende a 67% |
+| «in pari» al posto della percentuale | compare con 0 sedute dovute | accettato come risposta, non come dato mancante | da confermare |
 
 ## Come si misura (riproducibilità)
 

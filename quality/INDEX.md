@@ -1,40 +1,39 @@
 # /quality/ — indice
-2026-11-08 · atleti **v1** · griglia **v1** · nucleo **v1**
+2026-11-09 · atleti **v1** · griglia **v2** · nucleo **v2**
 
-## Ultima misura (baseline) — 2026-11-08
-Regole: `circuit.ts` 4 circuiti + engine al 2026-11-08. **NO-GO contro soglie proposte** · Bloccanti 6 · Alti 7 · Medi 7 · Bassi 2.
-C1 sicurezza 14 · C2 rimandi 0 · C3 fedeltà 67 · C4 coerenza 43 · C5 personalizz. 50 · C6 concretezza 50 · C7 progressi 67 · **C8 durata 100** (%).
-Nucleo di sicurezza: **2 PASS · 3 FALLITI · 3 NON COPERTI** su 8.
-Rapporto: `quality/reports/2026-11-08-quality.md`
-Immagini: 3 giudicate (2°+3° giro), **3 SCARTATE**, 0 idonee → `IMAGES.md`. La
-`figura-b` del giro cieco ha il gesto corretto: cade su §2 per 2 difetti di
-forma (manubri che leggono come bilanciere, spessori disomogenei).
+## Ultima misura — 2026-11-09, commit `1802631`
+Engine al `1802631`, catalogo invariato. **NO-GO contro soglie proposte** ·
+Bloccanti 6 · Alti 4 · Medi 8 · Bassi 4.
+C1 sicurezza 14 · C2 rimandi 0 · C3 fedeltà 67 · C4 coerenza 33 · C5 personalizz.
+67 · C6 concretezza 75 · C7 progressi 83 · **C8 durata 100** (%).
+Nucleo di sicurezza: **2 PASS · 2 FALLITI · 4 NON COPERTI** su 8.
+Rapporto: `quality/reports/2026-11-09-quality.md` (baseline: `...-11-08-...`).
+Chiusi A1, A5, A6, M2. Ridotto B5 (zero → gradino 1; sopra lo zero niente).
+Nuovi M8, M9, L3, L4. Immagini: nessuna nuova, `src/assets` intatto; restano i
+3 SCARTI e M7 → `IMAGES.md`.
 
 ## Soglie
-**Nessuna approvata da Alessio**: quelle di GRID.md sono proposte, ogni esito si
-legge «misurato contro soglie proposte». Nessuno dei 30 scenari è validato
-(campione: SCENARIOS.md §7). Aperta: il manubrio «due barre sovrapposte» è
-convenzione approvata? Se sì il punto 5 cade e `figura-b` è idonea con riserva.
+**Nessuna approvata.** Dal 2026-11-09 va approvata anche la **composizione dei
+criteri** (GRID.md): quella della baseline non si riproduceva su C3, C4, C5.
+Aperte: arrotondamento dell'aderenza (troncamento) e manubrio «due barre
+sovrapposte». Nessuno dei 30 scenari è validato (SCENARIOS.md §7).
 
 ## Da ricordare
-Nessuna AI nel prodotto: stessa fixture, stesso numero, sempre — una misura che
-si muove è una regola che si è mossa, mai rumore. I 4 Bloccanti su dolore,
-condizioni mediche, cibo/corpo e minorenni aspettano `/training/BOUNDARIES.md`.
-I 2 non ovvi: gradino di partenza cieco ai 9 test (trazioni complete a chi ne fa
-zero); nessun modello dell'attrezzatura (32 blocchi su 48 senza alternativa).
+Stessa fixture, stesso numero, sempre: se un numero si muove è una regola che
+si è mossa — e se non si riproduce, il difetto è nella mia misura. Il caso 2 del
+nucleo risultava FALLITO dopo la correzione perché il **mio** script chiamava
+`startingLevel(e)` senza massimali: chiamare le funzioni del motore come le
+chiama l'app. I 4 Bloccanti su dolore, condizioni mediche, cibo/corpo e
+minorenni aspettano `/training/BOUNDARIES.md`.
 
 ## Cosa contiene ogni file
-- `PERSONAS.md` — 7 atleti (P1-P7) + 4 persone di limite (P8-P11), con massimali.
-- `SCENARIOS.md` — 30 scenari: atteso, esito, mappa verso i criteri, campione da validare.
-- `UNTRUSTED_INPUT.md` — i 4 campi di testo libero + il backup; verifica U1-U5 che nessuno entri in un calcolo.
-- `GRID.md` — 8 criteri con soglie proposte, 4 gravità, 8 soglie sulla progressione (S1-S8).
-- `RESULTS.md` — una riga per misura; 22 voci aperte (B1-B6, A1-A7, M1-M7, L1-L2); ricalcoli; tabella immagini (4 figure).
-- `IMAGES.md` — verifiche indipendenti delle figure, punto per punto sulla checklist di `media/REVIEW_CHECKLIST.md`.
-- `SAFETY_CORE.md` — gli 8 casi che `release-gate` esegue a ogni rilascio. **NON COPERTO non è PASS.**
-- `scripts/` — misure, nessuna legge il codice che produce la metrica che verifica. Dalla radice: `node --experimental-strip-types quality/scripts/X.mts` → `safety-core` (esce 1 se non tutti PASS), `01-durata-volume`, `02-revisione`, `03-metriche`, `04-input-non-fidato`, `05-rotazione-attrezzi`.
-- `reports/` — un rapporto per invocazione; render immagini in `reports/immagini/`. `ARCHIVE.md` non esiste ancora.
+- `PERSONAS.md` 7 atleti (P1-P7) + 4 di limite (P8-P11), con massimali · `SCENARIOS.md` 30 scenari (per i conteggi fa fede la composizione in GRID.md) · `UNTRUSTED_INPUT.md` i 4 campi di testo libero + backup, verifiche U1-U5.
+- `GRID.md` 8 criteri, soglie proposte, composizione, convenzioni da approvare, gravità, soglie S1-S8 · `RESULTS.md` una riga per misura, aperte (B1-B6, A2-A4, A7, M1, M3-M9, L1-L4) e 4 chiuse, ricalcoli, immagini · `IMAGES.md` verifiche delle figure · `SAFETY_CORE.md` gli 8 casi di `release-gate`, **NON COPERTO non è PASS**.
+- `scripts/` misure, nessuna legge il codice che produce la metrica che verifica: `node --experimental-strip-types quality/scripts/X.mts` dalla radice → `safety-core` (esce 1 se non tutti PASS), `01-durata-volume`, `02-revisione`, `03-metriche`, `04-input-non-fidato`, `05-rotazione-attrezzi` · `reports/` un rapporto per invocazione, render in `reports/immagini/`.
 
 ## Prossimo giro
-Rimisurare dopo `BOUNDARIES.md`. Immagini: checklist a 4 col/230 px, poi 2/460
-sui dubbi (`media/scripts/contact-sheet.mjs`, percorsi assoluti); la geometria
-si misura sui comandi SVG, non a occhio.
+Rimisurare dopo `BOUNDARIES.md` e dopo la mappatura valore → gradino (chiude B5
+e il caso 2); A7 quando `metrics.ts` filtra la finitura. Immagini: 4 col/230 px,
+poi 2/460 sui dubbi (`media/scripts/contact-sheet.mjs`, percorsi assoluti); la
+geometria si misura sui comandi SVG. Su telefono: la miniatura della scheda ora
+è ritagliata da `overflow-hidden`, non scalata.

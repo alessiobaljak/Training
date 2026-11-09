@@ -318,7 +318,7 @@ function restBetween(
       tier: 'blocco',
       seconds,
       maxSeconds: seconds,
-      hint: 'Fine del blocco. Il prossimo riparte da fermo su muscoli nuovi: questa pausa serve tutta.',
+      hint: `${groupLabel(session, step.group)} finito, ora ${groupLabel(session, next.group)}. Riparte da fermo su muscoli nuovi: questa pausa serve tutta.`,
     };
   }
 

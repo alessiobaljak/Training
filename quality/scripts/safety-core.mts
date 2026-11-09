@@ -15,6 +15,7 @@ import { join } from 'node:path';
 import { CIRCUIT_SESSIONS, findCircuitSession } from '../../src/data/circuit.ts';
 import { getExercise } from '../../src/data/exercises.ts';
 import { startingLevel } from '../../src/engine/progression.ts';
+import { testBaseline } from '../../src/data/tests.ts';
 import { evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
 import { reviewWeek } from '../../src/engine/review.ts';
@@ -84,22 +85,65 @@ function fileTesto(dir: string, ext: string[]): string[] {
 /* CASO 2 — principiante senza esercizi oltre il suo gradino              */
 /* ====================================================================== */
 {
-  /* Fixture P1: 0 trazioni, 0 dip, 0 nordic, 4 push-up, 12" hollow. */
+  /*
+   * Fixture dei nove test di Settimana 0, persona P1 (PERSONAS.md).
+   *
+   * Dal 2026-11-09 `startingLevel` accetta i massimali: chiamarla senza era
+   * il motivo per cui questo caso restava FALLITO anche dopo la correzione.
+   * Il rematore al TRX resta ASSENTE apposta: P1 non ha un TRX, quindi quel
+   * test non esiste e si vede cosa fa la funzione senza risultato.
+   */
   const misurato: Record<string, number> = {
-    'trazioni-prona-presa-media': 0, 'dip-parallele-anelli': 0, 'nordic-curl': 0,
-    'push-up': 4, 'hollow-hold': 12,
+    'pull-up': 0, 'dip': 0, 'nordic-curl': 0, 'push-up': 4,
+    'pike-push-up': 2, 'bulgarian-split-squat': 5, 'hollow-hold': 12, 'dead-hang': 8,
   };
-  const oltre: string[] = [];
-  for (const [slug, valore] of Object.entries(misurato)) {
-    const e = getExercise(slug);
-    const livello = startingLevel(e);
-    /* Regola attesa: con 0 ripetizioni misurate il gradino di partenza è 1. */
-    const atteso = valore === 0 ? 1 : (livello ?? 1);
-    if (livello !== null && livello > atteso) oltre.push(`${slug}: misurato ${String(valore)} → gradino ${String(livello)}, atteso ${String(atteso)}`);
+  const PROVE: ReadonlyMap<TestId, TestResult> = new Map(
+    Object.entries(misurato).map(([id, value]) => [
+      id as TestId,
+      { testId: id as TestId, date: '2026-01-05', week: 0, value },
+    ]),
+  );
+
+  /* Esercizi prescritti dalle 4 sedute, alternative comprese. */
+  const prescritti = new Set<ExerciseSlug>();
+  for (const sessione of CIRCUIT_SESSIONS) {
+    for (const blocco of sessione.blocks) {
+      prescritti.add(blocco.exercise);
+      for (const alt of blocco.alternatives ?? []) prescritti.add(alt.exercise);
+    }
   }
+
+  /* 2a — zero misurato vuol dire gradino 1, l'unica metà scritta nel metodo. */
+  const sopraLoZero: string[] = [];
+  /* 2b — il tetto del test non si applica fra misure diverse: resta scoperto. */
+  const fuoriMisura: string[] = [];
+  /* 2c — nessun test registrato per quel pattern: nessun tetto dal valore. */
+  const senzaTest: string[] = [];
+  for (const slug of [...prescritti].sort()) {
+    const e = getExercise(slug);
+    const livello = startingLevel(e, PROVE);
+    if (livello === null || e.pattern === null) continue;
+    const prova = testBaseline(e.pattern);
+    if (prova === null) continue;
+    const risultato = PROVE.get(prova.testId);
+    if (risultato === undefined) {
+      if (livello > 1) senzaTest.push(`${slug}: test ${prova.testId} non registrato → gradino ${String(livello)}`);
+      continue;
+    }
+    if (risultato.value <= 0 && livello > 1) {
+      sopraLoZero.push(`${slug}: misurato ${String(risultato.value)} → gradino ${String(livello)}, atteso 1`);
+      continue;
+    }
+    if (risultato.value > 0 && livello > prova.level) {
+      fuoriMisura.push(`${slug}: misurato ${String(risultato.value)} (${prova.measurement}) → gradino ${String(livello)}, sopra il gradino ${String(prova.level)} dell'esercizio del test`);
+    }
+  }
+
+  const coda = `2a zero → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato su tutti gli esercizi prescritti' : `${String(sopraLoZero.length)} violazioni → ${sopraLoZero.join(' | ')}`}. 2b mappatura valore → gradino sopra lo zero: NON SCRITTA nel metodo, quindi «nessun esercizio sopra il gradino compatibile con il valore misurato» non è decidibile${fuoriMisura.length === 0 ? '' : `; fuori misura: ${fuoriMisura.join(' | ')}`}. 2c test non registrato (P1 non ha il TRX): ${senzaTest.length === 0 ? 'nessun esercizio sopra il gradino 1' : senzaTest.join(' | ')}.`;
+
   registra('2', 'Principiante senza esercizi oltre il suo gradino',
-    oltre.length === 0 ? 'PASS' : 'FALLITO',
-    oltre.length === 0 ? 'nessun esercizio sopra il gradino compatibile con il valore misurato' : `${String(oltre.length)} esercizi sopra il gradino misurato → ${oltre.join(' | ')}`);
+    sopraLoZero.length > 0 ? 'FALLITO' : 'NON COPERTO',
+    coda);
 }
 
 /* ====================================================================== */

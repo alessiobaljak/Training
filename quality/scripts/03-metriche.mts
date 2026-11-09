@@ -21,10 +21,22 @@ const inizio = '2026-01-05'; // lunedi
 const giorni = ['2026-01-05','2026-01-06','2026-01-07','2026-01-08','2026-01-09','2026-01-10','2026-01-11'];
 for (const oggi of giorni) {
   const previste = plannedSessionsSoFar(inizio, oggi, 4);
-  // atteso, mio ricalcolo per un programma senza calendario: quota proporzionale
+  /*
+   * Mio ricalcolo per un programma senza giorni assegnati: quota
+   * proporzionale ai giorni trascorsi, troncata.
+   *
+   * Troncata e non arrotondata: col 2026-11-09 la mia prima versione usava
+   * `Math.round` e scriveva 1 seduta dovuta la sera del primo giorno, cioe'
+   * dava 0% a chi non e' in ritardo di niente. Il troncamento non dichiara
+   * mai in ritardo chi e' in pari, e in un programma che non assegna giorni
+   * e' l'unica lettura difendibile. Resta una convenzione da approvare
+   * (decisione aperta per Alessio): se la convenzione diventa l'arrotondamento,
+   * questa riga cambia e M-ADER torna a non coincidere.
+   */
   const indice = giorni.indexOf(oggi) + 1;
-  const proporzionale = Math.round((4 * indice) / 7);
-  console.log(`   ${oggi} (giorno ${String(indice)} della settimana 1): app=${String(previste)} previste | proporzionale=${String(proporzionale)}`);
+  const proporzionale = Math.floor((4 * indice) / 7);
+  const coincide = previste === proporzionale ? 'OK' : 'DIVERGE';
+  console.log(`   ${oggi} (giorno ${String(indice)} della settimana 1): app=${String(previste)} previste | mio ricalcolo=${String(proporzionale)} ${coincide}`);
 }
 {
   // atleta perfettamente in pari che si allena gio-ven-sab-dom
@@ -38,7 +50,22 @@ for (const oggi of giorni) {
   const vecchie = Array.from({ length: 24 }, (_, i) => s(`v${String(i)}`, `2025-11-${String(1 + (i % 28)).padStart(2, '0')}`, 1, 'completed'));
   const nuove = [s('n1','2026-01-05',1,'completed')];
   const a = adherenceFromSessions([...vecchie, ...nuove], 4, inizio, '2026-01-07');
-  console.log(`   24 sedute chiuse PRIMA della data di inizio + 1 dopo: aderenza=${String(a.percent)}% (${String(a.completed)}/${String(a.planned)}) — atteso 1/2 = 50%`);
+  console.log(`   24 sedute chiuse PRIMA della data di inizio + 1 dopo: aderenza=${String(a.percent)}% (${String(a.completed)}/${String(a.planned)}) — atteso 1/1 = 100%`);
+}
+{
+  /*
+   * Data di inizio che non cade di lunedi.
+   *
+   * Il denominatore conta i giorni dal lunedi della settimana di inizio, non
+   * dalla data di inizio: un programma che parte di venerdi arriva al primo
+   * giorno con due sedute gia' dovute su quattro. Oggi l'onboarding scrive
+   * sempre un lunedi (`startOfWeek`), quindi il difetto e' latente: lo
+   * raggiunge solo un backup reimportato con un'altra data.
+   */
+  const venerdi = '2026-01-09';
+  const previsteGiorno1 = plannedSessionsSoFar(venerdi, venerdi, 4);
+  const sedutaPrimaDellInizio = adherenceFromSessions([s('p','2026-01-06',1,'completed')], 4, venerdi, venerdi);
+  console.log(`   inizio di venerdi: al primo giorno previste=${String(previsteGiorno1)} (atteso 0) | una seduta del 6, prima dell'inizio, conta=${String(sedutaPrimaDellInizio.completed)} (atteso 0)`);
 }
 
 console.log('\n=== M2 — volume settimanale: stato della seduta ===');

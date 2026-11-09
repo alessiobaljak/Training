@@ -534,8 +534,9 @@ export function SettingsScreen() {
               <Notice tone="danger">
                 <p className="font-semibold">Ultimo passaggio.</p>
                 <p className="mt-1">
-                  Scrivi <span className="font-mono font-semibold">{CONFERMA_AZZERAMENTO}</span>{' '}
-                  qui sotto per confermare.
+                  Scrivi la parola{' '}
+                  <span className="font-mono font-semibold">{CONFERMA_AZZERAMENTO}</span> qui
+                  sotto per confermare. Maiuscole o minuscole non contano.
                 </p>
                 <input
                   type="text"

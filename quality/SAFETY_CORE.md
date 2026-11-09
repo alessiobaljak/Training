@@ -4,8 +4,8 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: v1 · 2026-11-08 · misurato su `src/data/circuit.ts` (4 circuiti) e
-`src/engine/` allo stato del 2026-11-08.
+Versione: v2 · 2026-11-09 · misurato su `src/data/circuit.ts` (4 circuiti) e
+`src/engine/` allo stato del commit `1802631`.
 
 ## Come si esegue
 
@@ -30,7 +30,7 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-08: 2 PASS · 3 FALLITI · 3 NON COPERTI
+## Esito del 2026-11-09: 2 PASS · 2 FALLITI · 4 NON COPERTI
 
 ---
 
@@ -52,20 +52,31 @@ regola sul dolore. Non c'è niente da mettere alla prova.
   Bloccante corrispondente è aperto (vedi RESULTS.md, difetto B1).
 
 ## Caso 2 — Principiante senza esercizi oltre il suo gradino
-**Stato oggi: FALLITO** — 3 esercizi su 5 della fixture.
+**Stato oggi: NON COPERTO** — metà verificata (lo zero), metà non decidibile
+(sopra lo zero). Era FALLITO il 2026-11-08.
 
-- **Input.** Persona P1, 9 test di Settimana 0 chiusi con: trazioni 0, dip 0,
-  nordic 0, push-up 4, hollow hold 12".
-- **Atteso.** Con 0 ripetizioni misurate, il gradino di partenza di quello
-  schema motorio è **1**. Nessun esercizio prescritto sopra il gradino
+- **Input.** Persona P1, 9 test di Settimana 0: trazioni 0, dip 0, nordic 0,
+  push-up 4, pike push-up 2, bulgarian 5 (lato debole), hollow 12", dead hang
+  8". Il rematore al TRX **non è registrato**: P1 non ha un TRX. La fixture sta
+  nello script e si passa a `startingLevel(exercise, tests)`.
+- **Atteso.** (2a) Con 0 ripetizioni misurate il gradino di partenza di quello
+  schema motorio è **1**. (2b) Nessun esercizio prescritto sopra il gradino
   compatibile con il **valore** misurato.
-- **Misurato oggi.** `startingLevel` non riceve nessun `TestResult`: il tetto
-  è il gradino *dell'esercizio del test*, non il risultato dell'atleta.
-  - `trazioni-prona-presa-media`: misurato 0 → gradino **3** (Trazioni complete)
-  - `dip-parallele-anelli`: misurato 0 → gradino **3** (Dip completi alle parallele)
-  - `nordic-curl`: misurato 0 → gradino **3** (Nordic eccentrico 5" completo)
-- **Nota.** `hanging-leg-raise` parte al gradino 5 per tutti, perché il test
-  del core è in secondi e il tetto non si applica fra misure diverse.
+- **Misurato oggi.** 2a **rispettato su tutti gli esercizi prescritti dalle 4
+  sedute, alternative comprese**: le sei scale di trazione/dip/nordic scendono
+  da 3 a 1. 2b **non decidibile**: la mappatura valore → gradino non è scritta
+  nel metodo. Resta fuori dal tetto `hanging-leg-raise`, gradino 5 con 12" di
+  hollow misurati, perché il tetto non si applica fra misure diverse (scelta
+  dichiarata nel codice). Dove il test non è registrato — P1 senza TRX — il
+  ripiego è il tetto dell'esercizio del test: gradino 2.
+- **Perché NON COPERTO e non PASS.** Metà caso verificato non fa un PASS: è la
+  stessa regola del caso 6. Diventa PASS o FALLITO quando esiste la mappatura
+  valore → gradino (soglia S7 di GRID.md, compito di `training-designer`).
+  Il difetto Bloccante B5 resta aperto, ridotto allo zero coperto.
+- **Nota su questo script, 2026-11-09.** Fino a oggi il caso chiamava
+  `startingLevel(e)` senza massimali, e con la mappa vuota la funzione torna
+  per costruzione al comportamento vecchio: il FALLITO che si leggeva dopo la
+  correzione era un difetto della mia misura, non del codice. Corretto.
 
 ## Caso 3 — Solo corpo libero: nessun esercizio fuori attrezzatura
 **Stato oggi: FALLITO** — 32 blocchi su 48, e metà del caso non è nemmeno
@@ -85,8 +96,9 @@ verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi: FALLITO** — 5 soglie proposte superate su 6 controlli.
-Le soglie sono quelle di GRID.md e **attendono l'approvazione di Alessio**.
+**Stato oggi: FALLITO** — 4 soglie proposte superate su 6 controlli
+(erano 5 il 2026-11-08: 4f è chiuso). Le soglie sono quelle di GRID.md e
+**attendono l'approvazione di Alessio**.
 
 - **Input e atteso, controllo per controllo:**
 
@@ -97,7 +109,7 @@ Le soglie sono quelle di GRID.md e **attendono l'approvazione di Alessio**.
 | 4c (S1) | 3 settimane di fila con 19-19-19 su 12-18, sissy squat | massimo 1 gradino ogni 2 settimane | **3 salite in 3 settimane** (da 1 a 4; da 1 a 6 in 5 settimane) |
 | 4d (S4) | 1 sola seduta, single-leg RDL, 2 serie per lato (4 righe) da 13 su 8-12 | nessun verdetto: servono 2 sedute e 3 serie vere | **verdetto emesso**: `MIN_SETS_FOR_VERDICT` conta le righe, non le serie |
 | 4e (S2) | chin-up gradino 6, zavorra 5 kg, massimo chiuso | passo di +2,5 kg | **+2,5 kg: corretto** |
-| 4f | sett. 1, `kb-swing` della finitura (blocco con `excludeFromReview: true`), 12-11-12 su range 15-20 | nessun verdetto: il blocco è escluso dalla revisione | **verdetto `range-da-rifare`**: `engine/review.ts` non legge mai `excludeFromReview` |
+| 4f | sett. 1, `kb-swing` della finitura (blocco con `excludeFromReview: true`), 12-11-12 su range 15-20 | nessun verdetto: il blocco è escluso dalla revisione | **nessun verdetto, nessuna uscita, `serie=0`: corretto dal 2026-11-09.** `review.ts` legge il flag; `effectiveBlock` lo conserva, quindi anche la stazione scambiata con l'alternativa resta fuori |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
 **Stato oggi: PASS.**
@@ -106,8 +118,9 @@ Le soglie sono quelle di GRID.md e **attendono l'approvazione di Alessio**.
 - **Atteso.** Zero occorrenze di: `diagnos`, `patolog`, `farmac`,
   `antinfiammator`, `ibuprofen`, `tachipirin`, `cortison`, `integrator`,
   `terapia/terapie`, `guarig`, `posolog`, «è solo una contrattura», «non è niente».
-- **Misurato oggi.** Zero occorrenze. Il controllo è una ricerca testuale, non
-  un giudizio: va rieseguito a ogni modifica dei testi dell'app.
+- **Misurato oggi.** Zero occorrenze, ricontrollate sui testi nuovi
+  dell'azzeramento totale. Il controllo è una ricerca testuale, non un
+  giudizio: va rieseguito a ogni modifica dei testi dell'app.
 
 ## Caso 6 — Nessuna immagine fuori dalla libreria approvata, nessuna generata a runtime
 **Stato oggi: NON COPERTO** — una metà verificata, l'altra no.
@@ -173,3 +186,4 @@ Le soglie sono quelle di GRID.md e **attendono l'approvazione di Alessio**.
 | Data | Versione | PASS | FALLITI | NON COPERTI | Chi |
 |---|---|---|---|---|---|
 | 2026-11-08 | v1 | 2 | 3 | 3 | training-quality (baseline) |
+| 2026-11-09 | v2 | 2 | 2 | 4 | training-quality (commit `1802631`) |

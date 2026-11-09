@@ -8,6 +8,15 @@ import type { ExerciseSlug, ExerciseState, LoggedExercise, LoggedSession, Logged
 
 const vuoto = new Map<TestId, TestResult>();
 
+/* I nove test di Settimana 0 di P1 (PERSONAS.md): zero trazioni, zero dip,
+ * zero nordic. Il rematore al TRX non c'e' perche' P1 non ha un TRX. */
+const P1_TEST: ReadonlyMap<TestId, TestResult> = new Map(
+  Object.entries({
+    'pull-up': 0, dip: 0, 'nordic-curl': 0, 'push-up': 4,
+    'pike-push-up': 2, 'bulgarian-split-squat': 5, 'hollow-hold': 12, 'dead-hang': 8,
+  }).map(([id, value]) => [id as TestId, { testId: id as TestId, date: '2026-01-05', week: 0, value }]),
+);
+
 function serie(valori: number[], opt: { rir?: number | null; kg?: number; side?: 'left' | 'right' | null; note?: string | null } = {}): LoggedSet[] {
   return valori.map((v, i) => ({
     setIndex: i + 1,
@@ -83,21 +92,21 @@ console.log('\n=== R3 — gradino 1, massimo del range chiuso esatto ===');
 }
 
 /* ===== R4 — da dove parte un principiante =============================== */
-console.log('\n=== R4 — livello di partenza, indipendente dal valore del test ===');
+console.log('\n=== R4 — livello di partenza, con e senza i massimali di P1 ===');
 {
   for (const slug of ['trazioni-prona-presa-media', 'dip-parallele-anelli', 'push-up', 'pushup-archer-o-pseudo-planche', 'single-leg-rdl', 'hip-thrust-monopodalico', 'nordic-curl', 'hanging-leg-raise', 'wall-sit', 'step-up-box-alto', 'rematore-inverso-trx-piedi-rialzati', 'sissy-squat']) {
     const e = getExercise(slug);
-    console.log(`   ${slug.padEnd(38)} defaultLevel=${String(e.defaultLevel)} → startingLevel=${String(startingLevel(e))} (stato iniziale lvl=${String(initialExerciseState(e).level)})`);
+    console.log(`   ${slug.padEnd(38)} defaultLevel=${String(e.defaultLevel)} → senza massimali=${String(startingLevel(e))} | con i massimali di P1=${String(startingLevel(e, P1_TEST))} (stato iniziale lvl=${String(initialExerciseState(e, P1_TEST).level)})`);
   }
-  console.log('   nota: startingLevel non riceve nessun TestResult. Stesso gradino per chi fa 0 trazioni e per chi ne fa 20.');
+  console.log('   nota: dal 2026-11-09 startingLevel legge i massimali. Zero misurato → gradino 1; sopra lo zero il tetto resta quello dell\'esercizio del test.');
 
   // quante settimane per scendere dal 3 al 1 facendo 0 ripetizioni
-  let livello: any = startingLevel(getExercise('trazioni-prona-presa-media'));
+  let livello: any = startingLevel(getExercise('trazioni-prona-presa-media'), P1_TEST);
   let settimane = 0;
   while (livello > 1 && settimane < 10) {
     const w = settimane + 1;
     const s = seduta(`r4-${String(w)}`, w, 'circuito-1', [esercizio('A1', 'trazioni-prona-presa-media', serie([0, 0, 0]), true, livello)]);
-    const r = reviewWeek({ week: w, sessions: [s], states: new Map([['trazioni-prona-presa-media', stato('trazioni-prona-presa-media', livello)]]), tests: vuoto });
+    const r = reviewWeek({ week: w, sessions: [s], states: new Map([['trazioni-prona-presa-media', stato('trazioni-prona-presa-media', livello)]]), tests: P1_TEST });
     const v = r.verdicts[0];
     settimane += 1;
     if (v === undefined) { console.log(`   settimana ${String(w)}: nessun verdetto, resta al livello ${String(livello)}`); break; }
