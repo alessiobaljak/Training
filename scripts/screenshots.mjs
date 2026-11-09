@@ -60,6 +60,8 @@ const PAGINE = [
   ['esercizio', '#/esercizi/trazioni-prona-presa-media'],
   ['progressi', '#/progressi'],
   ['impostazioni', '#/impostazioni'],
+  /* L'azzeramento totale, con la conferma aperta. */
+  ['azzeramento', '#/impostazioni', 0, /^Cancella tutti i dati$/],
 ];
 
 buildForTests();

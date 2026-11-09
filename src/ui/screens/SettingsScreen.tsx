@@ -19,6 +19,9 @@ import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { restoreSnapshot } from '../../db/snapshots.ts';
 import { ART_ATTRIBUTION } from '../../data/exercise-art.ts';
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
+
+/** La parola da scrivere per confermare l'azzeramento. */
+const CONFERMA_AZZERAMENTO = 'CANCELLA';
 import {
   THEME_CHOICES,
   THEME_LABELS,
@@ -50,6 +53,9 @@ export function SettingsScreen() {
   const [report, setReport] = useState<ImportReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  /* Azzeramento totale: due passaggi, e il secondo si scrive a mano. */
+  const [azzerando, setAzzerando] = useState(false);
+  const [conferma, setConferma] = useState('');
 
   const today = todayIso();
   const backup = backupAdvice(
@@ -118,6 +124,33 @@ export function SettingsScreen() {
         setBusy(false);
         if (fileInput.current !== null) fileInput.current.value = '';
       });
+  };
+
+  /**
+   * Cancella tutto e riparte dalla Settimana 0.
+   *
+   * Si ricarica la pagina invece di aggiornare lo stato: i dati stanno in una
+   * dozzina di punti diversi — impostazioni, sedute, test, misure, livelli,
+   * video — e ognuno ha la sua cache. Un ricaricamento e' l'unico modo onesto
+   * di garantire che non ne resti uno vivo a mostrare numeri che nel database
+   * non ci sono piu'.
+   */
+  const handleWipe = async (): Promise<void> => {
+    setBusy(true);
+    setError(null);
+    try {
+      await repository.clearAll();
+      window.location.hash = '#/';
+      window.location.reload();
+    } catch (cause) {
+      setBusy(false);
+      setAzzerando(false);
+      setError(
+        cause instanceof Error
+          ? `Non sono riuscito a cancellare: ${cause.message}`
+          : 'Non sono riuscito a cancellare.',
+      );
+    }
   };
 
   return (
@@ -461,6 +494,81 @@ export function SettingsScreen() {
               {settings?.programStartDate ?? 'non ancora impostato'}
             </span>
           </p>
+        </Card>
+
+        {/*
+          Ricominciare da zero.
+          `clearAll` esisteva da sempre e non la chiamava nessuno dall'app:
+          c'era il modo di cancellare tutto nei test e non per chi usa il
+          programma. Due passaggi, e il secondo si scrive a mano: una cosa
+          che svuota anche Firestore non deve stare a un tocco di distanza.
+        */}
+        <SectionTitle>Ricomincia da zero</SectionTitle>
+        <Card tone={azzerando ? 'warn' : 'muted'}>
+          <p className="text-sm leading-relaxed text-dim">
+            Cancella <span className="font-semibold text-ink">tutto</span>: sedute registrate,
+            test dei massimali, misure, livelli raggiunti e video salvati. L’app torna alla
+            Settimana 0 e richiede il giro dei nove test. Vale anche sul server, non solo su
+            questo telefono, e non si torna indietro.
+          </p>
+
+          {!azzerando ? (
+            <div className="mt-3 flex flex-col gap-2">
+              <Button full size="lg" disabled={busy} onClick={handleExportBackup}>
+                Prima scarica il backup
+              </Button>
+              <Button
+                full
+                variant="danger"
+                size="lg"
+                onClick={() => {
+                  setConferma('');
+                  setAzzerando(true);
+                }}
+              >
+                Cancella tutti i dati
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-3">
+              <Notice tone="danger">
+                <p className="font-semibold">Ultimo passaggio.</p>
+                <p className="mt-1">
+                  Scrivi <span className="font-mono font-semibold">{CONFERMA_AZZERAMENTO}</span>{' '}
+                  qui sotto per confermare.
+                </p>
+                <input
+                  type="text"
+                  value={conferma}
+                  onChange={(event) => { setConferma(event.target.value); }}
+                  aria-label={`Scrivi ${CONFERMA_AZZERAMENTO} per confermare`}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  className="mt-3 min-h-14 w-full rounded-xl border border-line-strong bg-surface px-4 font-mono text-lg"
+                />
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    variant="danger"
+                    size="lg"
+                    disabled={busy || conferma.trim().toUpperCase() !== CONFERMA_AZZERAMENTO}
+                    onClick={() => { void handleWipe(); }}
+                  >
+                    Sì, cancella tutto
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    onClick={() => {
+                      setAzzerando(false);
+                      setConferma('');
+                    }}
+                  >
+                    Annulla
+                  </Button>
+                </div>
+              </Notice>
+            </div>
+          )}
         </Card>
       </div>
     </Screen>

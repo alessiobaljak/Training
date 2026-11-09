@@ -69,18 +69,30 @@ export function ExerciseArt({
   slug,
   level = null,
   label,
+  caption: mostraDidascalia = true,
 }: {
   readonly slug: string;
   /** Gradino attuale: la figura segue quello, non l'esercizio. */
   readonly level?: LevelIndex | null;
   readonly label?: string;
+  /**
+   * La didascalia sotto la figura.
+   *
+   * `false` sulle miniature. «Inizio e fine del range» dentro un riquadro da
+   * 56 px non si legge, esce dal riquadro e si sovrappone al testo della riga
+   * sotto: nella scheda ogni esercizio aveva tre righe di didascalia rotta
+   * addosso al proprio nome. Una didascalia che non si legge non è una
+   * didascalia, è un difetto.
+   */
+  readonly caption?: boolean;
 }) {
   const bersaglio = artFor(getExercise(slug), level);
   const frames =
     bersaglio.kind === 'step'
       ? framesFor(bersaglio.key, REPDB_STEP_ART)
       : framesFor(bersaglio.key, REPDB_ART as Record<string, { frames: readonly string[] }>);
-  const caption = label ?? (frames.length === 1 ? 'La posizione da tenere' : 'Inizio e fine del range');
+  const didascalia =
+    label ?? (frames.length === 1 ? 'La posizione da tenere' : 'Inizio e fine del range');
 
   if (frames.length > 0) {
     return (
@@ -96,7 +108,9 @@ export function ExerciseArt({
             />
           ))}
         </div>
-        <figcaption className="mt-2 text-center text-xs text-dim">{caption}</figcaption>
+        {mostraDidascalia ? (
+          <figcaption className="mt-2 text-center text-xs text-dim">{didascalia}</figcaption>
+        ) : null}
       </figure>
     );
   }
@@ -117,7 +131,9 @@ export function ExerciseArt({
         className="w-full text-ink [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
         dangerouslySetInnerHTML={{ __html: markup }}
       />
-      <figcaption className="mt-2 text-center text-xs text-dim">{caption}</figcaption>
+      {mostraDidascalia ? (
+        <figcaption className="mt-2 text-center text-xs text-dim">{didascalia}</figcaption>
+      ) : null}
     </figure>
   );
 }

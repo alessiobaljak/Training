@@ -51,8 +51,8 @@ function Riga({ block }: { readonly block: ProgramBlock }) {
         onClick={() => { navigate({ name: 'exercise', slug: exercise.slug }); }}
         className="flex w-full items-center gap-3 rounded-2xl border border-line bg-panel p-3 text-left active:bg-line"
       >
-        <span className="h-14 w-14 shrink-0 text-ink">
-          <ExerciseArt slug={exercise.slug} level={null} />
+        <span className="flex h-14 w-20 shrink-0 items-center overflow-hidden rounded-xl bg-canvas text-ink">
+          <ExerciseArt slug={exercise.slug} level={null} caption={false} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-baseline gap-2">
