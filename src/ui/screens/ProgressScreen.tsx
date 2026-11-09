@@ -15,7 +15,7 @@ import type { ColumnDatum } from '../charts/StackedColumns.tsx';
 /**
  * Progressi.
  *
- * Le sedute settimanali del programma sono sei: è il denominatore
+ * Le sedute del programma attivo sono quattro: è il denominatore
  * dell'aderenza.
  */
 const SESSIONS_PER_WEEK = ACTIVE_SESSIONS.length;
@@ -84,10 +84,23 @@ export function ProgressScreen() {
       <div className="space-y-4">
         <SectionTitle>Aderenza</SectionTitle>
         <Card>
+          {/*
+            Il primo giorno non c'è ancora niente di dovuto, e «—» non lo
+            dice: sembra un dato mancante. Senza giorni assegnati le quattro
+            sedute stanno dentro sette come si vuole, quindi al primo giorno
+            non si è in ritardo di nulla — ed è una risposta, non un buco.
+          */}
           <p className="text-5xl font-semibold">
-            {adherence.percent === null ? '—' : `${String(adherence.percent)}%`}
+            {adherence.percent !== null
+              ? `${String(adherence.percent)}%`
+              : start === null
+                ? '—'
+                : 'in pari'}
           </p>
           <p className="mt-1 text-sm text-dim">
+            {adherence.planned === 0 && start !== null
+              ? 'Niente di dovuto finora: le quattro sedute stanno dentro i sette giorni come vuoi tu. '
+              : null}
             {adherence.completed} sedute chiuse su {adherence.planned} previste fino a oggi.{' '}
             {weeksElapsed <= 1 ? 'Prima settimana' : `Settimana ${String(weeksElapsed)}`}, con la
             settimana in corso contata solo per i giorni già passati.

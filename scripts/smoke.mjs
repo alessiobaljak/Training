@@ -162,9 +162,14 @@ try {
     await page.waitForTimeout(1400);
 
     const scheda = await page.locator('main').innerText();
+    /*
+     * m:ss, lo stesso formato del player. Prima la scheda scriveva «39′48″» e
+     * il player «39:48»: due notazioni per lo stesso numero, e «1'00» si
+     * legge come cento.
+     */
     check(
-      /\d+′\d*″?/.test(scheda),
-      `La scheda deve dire quanto dura. Legge: ${JSON.stringify(scheda.slice(0, 160))}`,
+      /\d+:[0-5]\d/.test(scheda),
+      `La scheda deve dire quanto dura, in m:ss. Legge: ${JSON.stringify(scheda.slice(0, 160))}`,
     );
     check(
       scheda.includes('RISCALDAMENTO') || scheda.includes('Riscaldamento'),
@@ -1379,8 +1384,19 @@ try {
     (await page.getByText('Vedi i numeri in tabella').count()) > 0,
     'Ogni grafico deve avere la sua tabella equivalente.',
   );
-  const adherence = await page.locator('main p').first().innerText();
-  check(/%$/.test(adherence.trim()), `L’aderenza deve essere una percentuale, letto "${adherence}".`);
+  /*
+   * Una percentuale, oppure «in pari» quando non c'è ancora niente di dovuto.
+   * Il secondo caso è quello del primo giorno di programma, che è esattamente
+   * quello in cui gira questa prova: senza giorni assegnati le quattro sedute
+   * stanno dentro i sette come si vuole, quindi al primo giorno non si è in
+   * ritardo di nulla. Quello che non deve mai comparire è «—», che sembra un
+   * dato mancante.
+   */
+  const adherence = (await page.locator('main p').first().innerText()).trim();
+  check(
+    /%$/.test(adherence) || adherence === 'in pari',
+    `L’aderenza deve essere una percentuale o «in pari», letto "${adherence}".`,
+  );
 
   /* ------------------------------ Misure -------------------------------- */
 
