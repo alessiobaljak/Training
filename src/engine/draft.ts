@@ -239,11 +239,25 @@ export function firstPendingIndex(
 /**
  * Ultima registrazione di un blocco, dalla seduta più recente che lo contiene
  * con almeno una serie. Serve a proporre zavorra e variante già impostate.
+ *
+ * `oggi` è cosa quel codice di blocco prescrive adesso. Senza, il codice era
+ * l'unica chiave: bastava che una scheda cambiasse l'esercizio sotto un
+ * codice e la precompilazione portava avanti i dati di un esercizio diverso.
+ * È successo davvero, su trentatré codici su trentasei, quando le quattro
+ * sedute sono state riscritte sull'originale: `circuito-1/B2` era il goblet
+ * squat e è diventato l'estensione dei tricipiti sopra la testa, e i chili
+ * della campana venivano proposti come carico dell'estensione; `circuito-3/B2`
+ * era il wall sit, misurato in secondi, e è diventato un esercizio a
+ * ripetizioni, con il 45 che passava da secondi a ripetizioni senza che
+ * niente lo dicesse.
+ *
+ * Omesso, il comportamento è quello di prima: tutte le registrazioni passano.
  */
 export function lastLoggedByBlock(
   sessions: readonly LoggedSession[],
   sessionId: LoggedSession['sessionId'],
   excludeId: string,
+  oggi?: ReadonlyMap<string, ExerciseSlug>,
 ): ReadonlyMap<string, LoggedExercise> {
   const relevant = [...sessions]
     .filter((entry) => entry.sessionId === sessionId && entry.id !== excludeId)
@@ -253,6 +267,9 @@ export function lastLoggedByBlock(
   for (const session of relevant) {
     for (const logged of session.exercises) {
       if (logged.sets.length === 0) continue;
+      /* Stesso codice, altro esercizio: non è lo storico di questo blocco. */
+      const prescritto = oggi?.get(logged.blockCode);
+      if (prescritto !== undefined && prescritto !== logged.exercise) continue;
       byBlock.set(logged.blockCode, logged);
     }
   }

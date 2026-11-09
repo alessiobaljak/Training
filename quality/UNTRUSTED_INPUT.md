@@ -98,6 +98,24 @@ diario e lì si ferma. Non è un difetto di questo file: è il motivo per cui
 serve `BOUNDARIES.md`. Qui si registra solo che il canale esiste e che oggi
 nessuno lo ascolta.
 
+### U6 — `variantNote` e il titolo del player (2026-11-09b) · ESITO: proprietà rispettata
+Il commit `f63c9f1` aggiunge due superfici di testo e nessuna delle due la
+incrina.
+1. `ProgramBlock.variantNote` è **dato di programma**, non testo dell'atleta:
+   scritto in `circuit.ts`, reso come figlio JSX in `CircuitOverview`,
+   `SessionScreen` e `GuidedSession`, quindi scappato. Nessuna funzione di
+   `engine/` lo legge (verificato con ricerca su tutto `src/`).
+2. `GuidedSession` adesso usa `variantLabel` come **titolo** della schermata di
+   lavoro quando il gradino non è quello proprio dell'esercizio. `variantLabel`
+   resta generato da `variantLabelFor` e resta fuori da ogni calcolo; l'unica
+   via d'ingresso arbitraria è `backup.ts` (già nota, U4). La proprietà tiene,
+   ma la superficie si allarga: oggi una stringa importata da un backup
+   modificato a mano può comparire come la riga più grande dello schermo, al
+   posto del nome dell'esercizio. Resta testo mostrato, non interpretato.
+3. Difetto trovato mentre verificavo questo, **non** di input non fidato ma di
+   coerenza: l'etichetta usata come titolo viene dalla seduta precedente mentre
+   il gradino viene dallo stato di adesso (difetto A11 in RESULTS.md).
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.

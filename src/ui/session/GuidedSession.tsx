@@ -16,9 +16,10 @@ import {
   suggestedSetValue,
   syncStatesFromLog,
   upsertLoggedSet,
+  variantLabelFor,
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
-import { isOwnLevel } from '../../engine/progression.ts';
+import { initialExerciseState, isOwnLevel } from '../../engine/progression.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
 import { formatClock, useCountdown, useStopwatch } from '../hooks/useTimers.ts';
 import { useWakeLock } from '../hooks/useWakeLock.ts';
@@ -558,8 +559,20 @@ function PassoLavoro({
    * che non stai facendo, vince il gradino.
    */
   const suoGradino = isOwnLevel(esercizio, gradino);
-  const variante = findLoggedExercise(draft, step.blockCode)?.variantLabel ?? esercizio.name;
-  const titolo = suoGradino ? esercizio.name : variante;
+  /*
+   * L'etichetta si ricalcola dal gradino di adesso, non si legge dalla bozza.
+   *
+   * `buildDraftSession` prende `variantLabel` dalla seduta scorsa e `level`
+   * dallo stato corrente: due campi che dopo ogni salita accettata nella
+   * revisione dicono due gradini diversi. Leggendo l'etichetta da lì, il
+   * titolo avrebbe nominato il gradino della settimana scorsa sopra la figura
+   * di quello nuovo — lo stesso difetto che queste righe servono a chiudere,
+   * spostato di una settimana.
+   */
+  const titolo =
+    suoGradino || gradino === null
+      ? esercizio.name
+      : variantLabelFor(esercizio, { ...initialExerciseState(esercizio), level: gradino });
 
   return (
     <div className="flex flex-1 flex-col">

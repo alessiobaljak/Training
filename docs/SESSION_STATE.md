@@ -14,21 +14,54 @@ Manca: la verifica di `training-quality` e il gate di `release-gate` sulla
 scheda nuova (dimensione L).
 
 ## Domande aperte per Alessio
-1. **Volume sotto la fascia su tre gruppi.** La scheda originale dà
-   quadricipiti 6 serie/settimana, petto 9, femorali-glutei 9, contro la fascia
-   di riferimento del metodo di 16-20. È una conseguenza della struttura: sei
-   stazioni di lavoro per seduta, tre delle quali al blocco braccia-e-vita. Se
-   la priorità «braccia e vita» resta quella, il prezzo è questo. Domanda per
-   `training-designer`, non da correggere cambiando la scheda di nascosto.
-2. **Zero pausa tra Tri-set 2 e finitura.** L'orologio originale manda l'ultimo
-   giro del Tri-set 2 dentro la finitura senza fermarsi, in tutte e quattro le
-   sedute. Nella Seduta 1 vuol dire passare dal suitcase carry con il 24 allo
-   swing a 15-20 ripetizioni senza un secondo in mezzo: lombare carica, poi
-   cerniera d'anca balistica. Trascritto fedelmente, da far valutare a
-   `training-quality` come caso di sicurezza.
-3. **Le due dichiarazioni false sulla licenza RepDB**, ancora da correggere
-   (vedi `compliance/PENDING.md`). Serve il tuo ok perché una toccherebbe
-   `CLAUDE.md`.
+
+`training-quality` ha dato **NO-GO**: 8 Bloccanti, 8 Alti. Tre difetti che la
+riscrittura aveva causato sono gia' corretti (vedi sotto). Questi restano tuoi.
+
+1. **La giunzione Tri-set 2 -> finitura non ha nessun passo**, nemmeno la
+   transizione da 15" che la finitura da' a tutte le altre stazioni: non c'e'
+   il tempo di posare la campana da 24. `training-quality` la chiama Alto, e
+   Bloccante se approvi il limite nuovo S9. La peggiore e' la Seduta 3
+   (hollow hold a cedimento -> swing: cede proprio cio' che allo swing
+   impedisce alla lombare di flettersi), non la Seduta 1. Correzione proposta
+   a costo zero sull'orologio: scambiare F1 con F3 nella Seduta 1 e F1 con F2
+   nella Seduta 3. Cambia l'ordine della scheda, quindi non la faccio io.
+2. **Il volume non puo' stare nella fascia, qualunque distribuzione.** 24
+   stazioni x 3 serie = 103,5 crediti contro i 128 che otto gruppi x 16
+   pretendono come pavimento. METHOD §3 e `circuit.ts` non possono essere veri
+   insieme: o cambia la fascia, o cambia la struttura della scheda.
+3. **La finitura conta nel volume?** Oggi `circuit.test.ts` dice no
+   (quadricipiti 6) e `engine/metrics.ts` dice si' (quadricipiti 14).
+   L'atleta vede il secondo numero, il rapporto al progettista cita il primo.
+4. **A10: la revisione settimanale scarta in silenzio** lo storico dei 33
+   codici il cui esercizio e' cambiato (`review.ts:131`). Non l'ho toccata:
+   dire all'atleta che il suo storico e' stato scartato e' una scelta di
+   prodotto, non una correzione.
+5. **B8: 16 figure nuove sono nel bundle senza aver fatto il flusso**, e una
+   di queste era gia' stata respinta dal suo proprietario. Si ritirano dal
+   bundle finche' non passano, o si tengono e si verificano in coda?
+6. **Le schede dei 16 esercizi nuovi non hanno `equipment` e `frames`**:
+   finche' mancano, nessuna immagine puo' passare in «approvata».
+7. Le due dichiarazioni false sulla licenza RepDB (`compliance/PENDING.md`),
+   una delle quali tocca `CLAUDE.md`.
+8. Le soglie di `GRID.md` e i 30 scenari non sono mai stati validati da te:
+   senza, ogni rilascio e' NO-GO per costruzione.
+
+### Risposte che posso dare io, alle domande di `training-quality`
+- *La giunzione non ha pausa nell'originale?* La tabella dell'orologio e'
+  esplicita: Seduta 1, B giro 3 alle 27:10 e finitura alle 30:30, cioe' 200
+  secondi esatti, che sono il giro senza nessuna coda. Lo stesso in tutte e
+  quattro. Ma e' un orologio al minuto scritto a mano: non distingue «zero»
+  da «dentro l'arrotondamento».
+- *`circuito-2/B2` e' il diamond push-up o il dip tra due panche?* Il diamond
+  push-up: la scheda scrive «Push-up presa diamante». Lo slug
+  `dip-panche-o-diamond-pushup` e' un residuo, il suo `name` e' gia' «Diamond
+  push-up» e il dip su panca esiste separato come `dip-panche`.
+- *Lo swing tecnico e' nel riscaldamento di tutte e quattro?* Si', la scheda
+  dice «come Seduta 1» per tutte.
+- *Quante sedute chiuse ci sono prima di `f63c9f1`?* Non lo so e non posso
+  saperlo: il database sta sul tuo telefono. Se hai usato «Ricomincia da
+  zero», sono zero e B7 e A10 non hanno fatto danno.
 
 ## Decisioni prese
 - Programma attivo: quattro circuiti senza giorni (`src/data/circuit.ts`). Lo
@@ -62,6 +95,26 @@ scheda nuova (dimensione L).
   «kettlebell in racked» non erano leggibili durante la serie.
 - `groupLabel` sa dire «Decompressione»: con tre blocchi nel gruppo Z diceva
   «Tri-set Z».
+
+## Corretto dopo il NO-GO
+- **A9 — il countdown valeva meta' appena il gradino diventava unilaterale.**
+  Causato dalla correzione di oggi: tolto il raddoppio di `workSeconds`,
+  l'argomento che portava il `perSide` del gradino eseguito e' diventato
+  codice morto su tutti e 52 i blocchi. L'hip thrust al gradino 3 dava 85
+  secondi su 170 di lavoro vero. Adesso il `perSide` eseguito arriva come
+  argomento suo e si confronta con quello del blocco.
+- **B7 — la precompilazione portava i dati di un esercizio a un altro.**
+  `lastLoggedByBlock` indicizzava lo storico per solo codice di blocco, e la
+  riscrittura ha cambiato l'esercizio a 33 codici su 36: i chili della
+  campana proposti come carico di una estensione sopra la testa, un 45 che
+  passava da secondi di wall sit a ripetizioni. Adesso la funzione riceve cosa
+  prescrive oggi ogni codice e scarta il resto.
+- **A11 — il titolo del player nominava il gradino della settimana scorsa.**
+  `buildDraftSession` prende l'etichetta dalla seduta scorsa e il gradino da
+  adesso. La correzione di stamattina leggeva quell'etichetta, quindi dopo
+  ogni salita accettata il titolo nominava il gradino vecchio sopra la figura
+  del nuovo: lo stesso difetto che doveva chiudere, spostato di una settimana.
+  Adesso l'etichetta si ricalcola dal gradino corrente.
 
 ## Lezioni, in ordine di costo
 1. **`npx tsc --noEmit` qui non verifica niente.** Il progetto usa project

@@ -45,6 +45,7 @@ di mettere in `BOUNDARIES.md` e che poi questa griglia misura.
 | S5 | **zavorra solo dopo che la variante è esaurita**, e mai sotto le soglie di `getLoadThreshold` (8 trazioni, 10 dip) | il metodo mette il carico alla leva 5; oggi la revisione lo propone al gradino 1 e non consulta mai `assessLoadNeed` |
 | S6 | dopo **≥ 14 giorni** senza sedute chiuse: volume ridotto per 1 settimana e ritest proposto | oggi dopo 20 giorni la seduta proposta è identica |
 | S7 | nessun esercizio al di sopra del **gradino compatibile con il valore misurato dal test**, non solo con l'esercizio del test | oggi trazioni complete e dip completi a chi ha misurato 0 |
+| S9 | **nessuna stazione balistica carica (swing, slam, clean) subito dopo una stazione di stabilizzazione del tronco a RIR 0-1 o a cedimento**: minimo una transizione dichiarata | proposto il 2026-11-09b. Oggi `circuito-1` manda il suitcase carry con il 24 dentro lo swing 15-20 senza nessun passo, e `circuito-3` fa lo stesso dall'hollow hold. Se approvato, il difetto A8 diventa Bloccante e il nucleo passa a 9 casi |
 | S8 | perdita di peso **> 1% del peso corporeo a settimana** per 2 settimane di fila: nessun commento, nessun obiettivo, rimando alle risorse | oggi −3 kg a settimana per 3 settimane passano in silenzio |
 
 ## Composizione dei criteri (v2, 2026-11-09)
@@ -59,7 +60,7 @@ confronto valido. **Da approvare da Alessio: è il righello.**
 | C1 | G1, G3, G5, G7, P-2d, P-4b, S4 (7) | 1/7 = 14% |
 | C2 | L1, L2, L3, L5 (4) | 0/4 = 0% |
 | C3 | 3 clausole: esercizi fuori catalogo · progressi ricalcolabili · numeri del consiglio uguali a quelli delle regole | 2/3 = 67% |
-| C4 | G2, P-2c, P-2d, P-8c, V-FINITURA, V-VOLUME (6) | 1/6 = 17% |
+| C4 | G2, P-2c, P-2d, P-8c, V-FINITURA, V-VOLUME (6) · **proposta v3: + V-GIUNZIONE** (sequenze dentro la seduta: balistici, prese consecutive, picchi sistemici — PROGRAM_RULES §2) | 1/6 = 17% |
 | C5 | G7-pers (il gradino di partenza dipende dal valore misurato), P-2b, S6 (3) | 1/3 = 33% |
 | C6 | P-2b, P-2c, S1, R-ALMASSIMO (4) | 2/4 = 50% |
 | C7 | M-MM, M-SETT, M-VOL, M-ADER, M-RIEP, M-DUR (6) | 4/6 = 67% |
@@ -71,6 +72,8 @@ confronto valido. **Da approvare da Alessio: è il righello.**
 
 | Cosa | Scelta dell'app | Mio riferimento | Stato |
 |---|---|---|---|
+| La finitura metabolica conta nel volume settimanale | **due risposte diverse nello stesso repository**: il test di `circuit.test.ts` la esclude (quadricipiti 6), `engine/metrics.ts` la include (quadricipiti 14) | nessuno, finché METHOD §3 non lo dice | **da decidere**: cambia i numeri di V-VOLUME e il numero che l'atleta vede (difetto M10) |
+| Fascia 16-20 su otto gruppi | il programma attivo produce 103,5 crediti-serie contro i 128 che otto gruppi × 16 pretendono: nessuna distribuzione lo soddisfa | la fascia come pavimento su tutti e otto | **da decidere**: o la fascia vale sui gruppi bersaglio, o cambia la struttura |
 | Arrotondamento delle sedute dovute | troncamento: 0 dovute il primo giorno, 2 su 4 al quarto giorno di sette | dal 2026-11-09 **troncamento**, allineato: non dichiara mai in ritardo chi è in pari. Prima arrotondamento | **da approvare**: se diventa arrotondamento, M-ADER torna a non coincidere e C7 scende a 67% |
 | «in pari» al posto della percentuale | compare con 0 sedute dovute | accettato come risposta, non come dato mancante | da confermare |
 

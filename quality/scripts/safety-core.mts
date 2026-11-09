@@ -168,10 +168,27 @@ function fileTesto(dir: string, ext: string[]): string[] {
     ['step-rapidi-box', 'box'], ['step-up-box-alto', 'box'],
     ['bulgarian-split-squat', 'panca o rialzo'], ['hip-thrust-monopodalico', 'panca'],
     ['nordic-curl', 'appoggio per le caviglie'],
+    /* Aggiunti il 2026-11-09: esercizi entrati nel circuito con la trascrizione
+       della scheda (commit f63c9f1). Senza di loro la misura sottostimava. */
+    ['curl-manubri-supino', 'manubri'], ['curl-panca-inclinata', 'manubri e panca'],
+    ['curl-trx', 'TRX'], ['estensione-tricipiti-trx', 'TRX'],
+    ['military-press-manubri', 'manubri'], ['plank-trascinamento-kb', 'kettlebell'],
+    ['hip-thrust-panca-bilaterale', 'panca e kettlebell'],
+    ['dip-panche-piedi-rialzati', 'due panche o rialzi'],
+    ['dip-panche-o-diamond-pushup', 'due panche o rialzi'],
+    ['corda-per-saltare', 'corda per saltare'],
+    ['corda-battaglia-slam', 'corda da battaglia'],
+    ['corda-battaglia-cerchi', 'corda da battaglia'],
+    ['corda-battaglia-onde-doppie', 'corda da battaglia'],
+    ['dead-hang', 'sbarra'], ['scapular-pull-up', 'sbarra'],
+    ['trazioni-prona-presa-media', 'sbarra'], ['dip-parallele-anelli', 'parallele o anelli'],
+    ['stacco-rumeno-manubri', 'manubri'], ['pike-pushup-piedi-rialzati', 'rialzo'],
   ]);
   const scoperti: string[] = [];
+  let totaleBlocchi = 0;
   for (const s of CIRCUIT_SESSIONS) {
     for (const b of s.blocks) {
+      totaleBlocchi += 1;
       const attrezzo = RICHIEDE_ATTREZZO.get(b.exercise);
       if (attrezzo === undefined) continue;
       const alternativaLibera = (b.alternatives ?? []).some((a) => !RICHIEDE_ATTREZZO.has(a.exercise));
@@ -180,7 +197,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
   }
   registra('3', 'Solo corpo libero: nessun esercizio fuori attrezzatura',
     scoperti.length === 0 ? 'PASS' : 'FALLITO',
-    `${String(scoperti.length)} blocchi su 48 richiedono un attrezzo senza alternativa a corpo libero. Inoltre NON COPERTO per metà: né Exercise né AppSettings hanno un campo attrezzatura, quindi l'atleta non può dichiarare cosa possiede. Primi tre: ${scoperti.slice(0, 3).join(' | ')}`);
+    `${String(scoperti.length)} blocchi su ${String(totaleBlocchi)} richiedono un attrezzo senza alternativa a corpo libero. Inoltre NON COPERTO per metà: né Exercise né AppSettings hanno un campo attrezzatura, quindi l'atleta non può dichiarare cosa possiede. Primi tre: ${scoperti.slice(0, 3).join(' | ')}`);
 }
 
 /* ====================================================================== */
@@ -191,14 +208,14 @@ function fileTesto(dir: string, ext: string[]): string[] {
 
   /* 4a — S3: nessuna salita senza tempo rispettato. */
   {
-    const s = seduta('sc4a', 2, 'circuito-2', [esercizio('B1', 'rematore-inverso-trx', sets([19, 19, 19]), false, 2)]);
+    const s = seduta('sc4a', 2, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), false, 2)]);
     const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['rematore-inverso-trx', stato('rematore-inverso-trx', 2)]]), tests: VUOTO });
     if (r.verdicts.some((v) => v.kind === 'sali-di-livello')) violazioni.push('S3: salita di gradino proposta con tempoRespected=false');
   }
 
   /* 4b — S5: la zavorra non scavalca la variante. */
   {
-    const s = seduta('sc4b', 3, 'circuito-1', [esercizio('A1', 'trazioni-prona-presa-media', sets([10, 10, 10]), true, 1)]);
+    const s = seduta('sc4b', 3, 'circuito-1', [esercizio('A1', 'trazioni-prona-presa-media', sets([8, 8, 8]), true, 1)]);
     const r = reviewWeek({ week: 3, sessions: [s], states: new Map([['trazioni-prona-presa-media', stato('trazioni-prona-presa-media', 1)]]), tests: VUOTO });
     if (r.verdicts.some((v) => v.kind === 'aggiungi-peso')) violazioni.push('S5: zavorra proposta al gradino 1, con la variante ancora disponibile');
   }
@@ -208,8 +225,8 @@ function fileTesto(dir: string, ext: string[]): string[] {
     let livello: LevelIndex = 1;
     let salite = 0;
     for (let w = 1; w <= 3; w += 1) {
-      const s = seduta(`sc4c${String(w)}`, w, 'circuito-2', [esercizio('B2', 'sissy-squat', sets([19, 19, 19]), true, livello)]);
-      const r = reviewWeek({ week: w, sessions: [s], states: new Map([['sissy-squat', stato('sissy-squat', livello)]]), tests: VUOTO });
+      const s = seduta(`sc4c${String(w)}`, w, 'circuito-3', [esercizio('A2', 'push-up', sets([19, 19, 19]), true, livello)]);
+      const r = reviewWeek({ week: w, sessions: [s], states: new Map([['push-up', stato('push-up', livello)]]), tests: VUOTO });
       const v = r.verdicts.find((x) => x.kind === 'sali-di-livello');
       if (v === undefined) break;
       salite += 1;
@@ -220,18 +237,18 @@ function fileTesto(dir: string, ext: string[]): string[] {
 
   /* 4d — S4: nessun verdetto da una sola seduta. */
   {
-    const s = seduta('sc4d', 2, 'circuito-4', [esercizio('A2', 'single-leg-rdl', [...sets([13, 13], { side: 'left' }), ...sets([13, 13], { side: 'right' })], true, 1)]);
-    const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['single-leg-rdl', stato('single-leg-rdl', 1)]]), tests: VUOTO });
+    const s = seduta('sc4d', 2, 'circuito-1', [esercizio('A2', 'bulgarian-split-squat', [...sets([13, 13], { side: 'left' }), ...sets([13, 13], { side: 'right' })], true, 1)]);
+    const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['bulgarian-split-squat', stato('bulgarian-split-squat', 1)]]), tests: VUOTO });
     if (r.verdicts.length > 0) violazioni.push('S4: verdetto emesso da 2 serie per lato di una sola seduta');
   }
 
   /* 4e — S2: il passo della zavorra resta 2,5 kg. */
   {
-    const block = findCircuitSession('circuito-2')!.blocks.find((b) => b.code === 'C1')!;
+    const block = findCircuitSession('circuito-1')!.blocks.find((b) => b.code === 'A1')!;
     const ex = getExercise('chin-up-presa-supina-stretta');
     const ev = evaluateProgression({
       block, exercise: ex, state: stato('chin-up-presa-supina-stretta', 6, 5),
-      logged: esercizio('C1', 'chin-up-presa-supina-stretta', sets([10, 10, 10], { rir: 0, kg: 5 }), true, 6),
+      logged: esercizio('A1', 'chin-up-presa-supina-stretta', sets([10, 10, 10], { rir: 0, kg: 5 }), true, 6),
       range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: 12,
     });
     const kg = ev.suggestion?.nextState.loadKg ?? 5;
@@ -240,7 +257,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
 
   /* 4f — un blocco escluso dalla revisione non produce verdetti. */
   {
-    const s = seduta('sc4f', 1, 'circuito-1', [esercizio('F3', 'kb-swing', sets([12, 11, 12]), true, null)]);
+    const s = seduta('sc4f', 1, 'circuito-1', [esercizio('F1', 'kb-swing', sets([12, 11, 12]), true, null)]);
     const r = reviewWeek({ week: 1, sessions: [s], states: new Map(), tests: VUOTO });
     if (r.verdicts.length > 0) violazioni.push(`excludeFromReview ignorato: verdetto "${r.verdicts[0]!.kind}" sulla finitura metabolica`);
   }

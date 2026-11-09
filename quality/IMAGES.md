@@ -10,6 +10,37 @@ Render conservati in `quality/reports/immagini/`.
 
 ---
 
+## 2026-11-09b · `src/assets/exercises/hip-thrust-panca-bilaterale.svg`
+
+**Esito: SCARTATA.** Verifica provvisoria (§0.2: la scheda non ha `equipment`
+né `frames`). Scheda: `hip-thrust-panca-bilaterale`, gradino 2 della scala
+`hip-thrust`. Render: `reports/immagini/2026-11-09-hipthrust.png` (4 col /
+230 px), `...-hipthrust-460.png` (2 col / 460 px sui dubbi).
+
+| # | punto | esito |
+|---|---|---|
+| 1 | Corrispondenza | **PROBLEMA** — nessun braccio, nessuna mano; il cue 2 dice «tenuto con le mani». L'`aria-label` dice «spalle sulla panca», il disegno appoggia la testa sopra un blocco |
+| 2 | Archetipo | **PROBLEMA** — la seconda gamba è sfalsata di 2 unità su una tela da 210 (`58,84 78,78 86,100` contro `58,84 76,81 84,100`): a 210 px fonde nella prima, e accanto al monopodalico le due figure sono lo stesso disegno |
+| 3 | Anatomia | OK |
+| 4 | Tecnica | **PROBLEMA** — in chiusura l'anca (y 56) sta 18 unità sopra il ginocchio (y 74): rampa, non piano. È l'iperestensione che il cue 4 chiama errore tipico |
+| 5 | Attrezzo | **PROBLEMA** — la «panca» è un rettangolo 26×52 in piedi, toccato solo dalla testa. La campana invece si legge (cerchio + manico) |
+| 6 | Coerenza | OK |
+| 7 | Pulizia | **PROBLEMA** — freccia dentro l'immagine: `M 78 72 L 78 58 M 74 63 L 78 58 L 82 63`. Da sola basta a scartare |
+| 8 | Leggibilità | **PROBLEMA** — a 230 px non si distingue dal monopodalico |
+
+Scarto per §2: archetipo (2) e tecnica (4) ⇒ `da rifare` senza discussione;
+pulizia (7) ⇒ `da rifare` sempre.
+
+**Convergenza.** `exercise-media-lead` aveva già registrato questa figura come
+`da rifare` (`media/LIBRARY.md` riga 36, 2026-11-09) con quattro dei cinque
+rilievi. Il quinto è mio e va aggiunto al suo registro: **la panca disegnata
+come blocco verticale è la causa geometrica della rampa del punto 4** —
+correggere la panca corregge due punti insieme. La figura è stata **pubblicata
+in `src/assets/` dopo essere stata respinta** (difetto B8).
+
+Non guardate in questo giro: le altre 15 figure nuove del commit `f63c9f1` e la
+modifica a `curl-martello-manubri.svg`. Nessuna dichiarazione su di loro.
+
 ## 2026-11-08 · `test-fixtures/passo-7/stacco-schiena-curva.svg`
 
 **Esito: SCARTATA.**

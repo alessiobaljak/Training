@@ -4,8 +4,34 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: v2 · 2026-11-09 · misurato su `src/data/circuit.ts` (4 circuiti) e
-`src/engine/` allo stato del commit `1802631`.
+Versione: **v3** · 2026-11-09b · misurato su `src/data/circuit.ts` (4 circuiti,
+52 blocchi) e `src/engine/` allo stato del commit `f63c9f1`.
+
+## Fixture ripuntate il 2026-11-09b — da leggere prima di confrontare
+
+La trascrizione della scheda (`f63c9f1`) ha cambiato esercizio a **33 codici di
+blocco su 36** e ne ha eliminati 12 (`C1`, `C2`, `D` di tutte e quattro). Le
+fixture del nucleo erano puntate ai codici, non agli esercizi, e il risultato è
+stato peggiore di un fallimento: lo script **andava in crash** su
+`circuito-2/C1`, e una volta tolto il crash dichiarava **2 soglie superate
+invece di 4**, perché `review.ts:131` scarta in silenzio l'entrata registrata il
+cui esercizio non coincide con quello del blocco. Due difetti aperti (A3 e A4)
+sarebbero spariti dal rapporto senza che nessuna regola li avesse corretti.
+
+| caso | prima | adesso | perché |
+|---|---|---|---|
+| 4a | `circuito-2/B1` rematore-inverso-trx | `circuito-2/A3` | l'esercizio si è spostato di blocco |
+| 4b | `circuito-1/A1` 10-10-10 | `circuito-1/A1` **8-8-8** | il range è passato da 6-10 a 6-8: la fixture deve restare «massimo del range chiuso esatto», non «sopra il range» |
+| 4c | `circuito-2/B2` sissy-squat | `circuito-3/A2` **push-up** | sissy-squat non è più in nessuna seduta |
+| 4d | `circuito-4/A2` single-leg-rdl | `circuito-1/A2` bulgarian-split-squat | single-leg-rdl non è più in nessuna seduta |
+| 4e | `circuito-2/C1` | `circuito-1/A1` | il codice `C1` non esiste più |
+| 4f | `circuito-1/F3` kb-swing | `circuito-1/F1` | lo swing si è spostato di stazione |
+| 3 | mappa attrezzi con 21 voci | **40 voci** | i 16 esercizi nuovi non erano nella mappa e la misura sottostimava: 32/48 → 37/52 |
+
+**Regola che ne esce, da applicare a ogni fixture futura**: una fixture si
+puntella sull'**esercizio e sul rapporto con il range** (dentro / al massimo /
+sopra), mai sul codice di blocco da solo. Un codice di blocco è un indirizzo,
+non un'identità.
 
 ## Come si esegue
 

@@ -61,8 +61,25 @@ function minRepsOf(block: ProgramBlock): number | null {
  * Secondi che la serie deve almeno durare. `0` quando non è calcolabile, e
  * allora il player mostra un cronometro in salita invece di un countdown.
  */
-export function minWorkSeconds(block: ProgramBlock, exercise: Exercise = getExercise(block.exercise)): number {
-  const raddoppia = (value: number): number => (block.perSide ? value * 2 : value);
+export function minWorkSeconds(
+  block: ProgramBlock,
+  exercise: Exercise = getExercise(block.exercise),
+  /**
+   * Se la serie si esegue davvero un lato per volta.
+   *
+   * Di norma lo dice il blocco, ma non sempre: `blockPerSide` legge il
+   * gradino, e la scala `hip-thrust` è `[false, false, true, true, true,
+   * true]`. Chi sale al gradino 3 fa un esercizio unilaterale dentro un
+   * blocco che si dichiara bilaterale, e la stazione dura il doppio.
+   *
+   * Arriva come argomento suo e non sovrascrivendo `block.perSide`, perché
+   * servono tutti e due: quello del blocco dice rispetto a cosa è scritto il
+   * `workSeconds` della scheda, questo dice cosa si sta facendo adesso.
+   * Sovrascrivendolo si perdeva il primo, e il confronto non si poteva fare.
+   */
+  perSideEseguito: boolean = block.perSide,
+): number {
+  const raddoppia = (value: number): number => (perSideEseguito ? value * 2 : value);
 
   /*
    * Un `workSeconds` dichiarato e' il tempo dell'intera stazione, lati
@@ -75,7 +92,16 @@ export function minWorkSeconds(block: ProgramBlock, exercise: Exercise = getExer
    * otto minuti su quaranta. Dove invece il tempo arriva dalla prescrizione
    * (30-40" per lato) il raddoppio e' giusto, ed e' rimasto sotto.
    */
-  if (block.workSeconds !== undefined) return block.workSeconds;
+  if (block.workSeconds !== undefined) {
+    /*
+     * Il numero della scheda vale per il gradino che la scheda prescrive. Se
+     * il gradino eseguito ha cambiato lateralità, la stazione dura il doppio
+     * o la metà: l'hip thrust al gradino 3 è monopodalico e vuole 170
+     * secondi, non gli 85 scritti per quello a due gambe.
+     */
+    if (perSideEseguito === block.perSide) return block.workSeconds;
+    return perSideEseguito ? block.workSeconds * 2 : Math.round(block.workSeconds / 2);
+  }
 
   const prescription = block.prescription;
   if (prescription.kind === 'seconds') return raddoppia(prescription.min);
@@ -465,7 +491,7 @@ export function buildGuidedPlan(
       group: step.group,
       exercise: step.exercise,
       exerciseName: getExercise(step.exercise).name,
-      workSeconds: block === undefined ? 0 : minWorkSeconds({ ...block, perSide: step.perSide }),
+      workSeconds: block === undefined ? 0 : minWorkSeconds(block, undefined, step.perSide),
     });
 
     const next = work[index + 1];

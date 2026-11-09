@@ -24,7 +24,13 @@ import { initialExerciseState } from './progression.ts';
 import { getSession } from '../data/program.ts';
 import { getExercise } from '../data/exercises.ts';
 import { loggedExercise, loggedSession, perSideSets, set, sets } from './__fixtures.ts';
-import type { ExerciseSlug, ExerciseState, LevelIndex, LoggedExercise } from '../types/index.ts';
+import type {
+  ExerciseSlug,
+  ExerciseState,
+  LevelIndex,
+  LoggedExercise,
+  LoggedSession,
+} from '../types/index.ts';
 
 const upperA = getSession('upper-a');
 const lowerA = getSession('lower-a');
@@ -484,5 +490,56 @@ describe('quello che scrivi torna nello stato', () => {
     expect(syncStatesFromLog(session, new Map([
       ['chin-up-presa-supina-stretta', stato('chin-up-presa-supina-stretta', 2, 0)],
     ]))[0]?.level).toBe(3);
+  });
+});
+
+describe('lastLoggedByBlock — la precompilazione non cambia esercizio', () => {
+  /*
+   * La riscrittura delle quattro sedute sull'originale ha cambiato
+   * l'esercizio sotto trentatré codici di blocco su trentasei. Indicizzando
+   * lo storico per solo codice, la precompilazione portava avanti i dati di
+   * un esercizio a un altro: i chili del goblet squat proposti come carico di
+   * una estensione dei tricipiti sopra la testa, e un 45 che passava da
+   * secondi di wall sit a ripetizioni di un esercizio a ripetizioni.
+   */
+  const registrata = (blockCode: string, exercise: ExerciseSlug): LoggedSession => ({
+    id: `s-${blockCode}`,
+    sessionId: 'circuito-1',
+    date: '2026-11-01',
+    week: 1,
+    status: 'completed',
+    exercises: [
+      {
+        blockCode,
+        exercise,
+        variantLabel: 'x',
+        level: 1,
+        tempoRespected: null,
+        note: null,
+        sets: [{ setIndex: 1, side: null, value: 10, rir: null, loadKg: 16, heartRate: null, note: null }],
+      },
+    ],
+    note: null,
+  });
+
+  it('scarta la registrazione se sotto quel codice oggi c’è un altro esercizio', () => {
+    const storico = [registrata('B2', 'goblet-squat')];
+    const oggi = new Map<string, ExerciseSlug>([['B2', 'estensione-tricipiti-sopra-testa']]);
+    expect(lastLoggedByBlock(storico, 'circuito-1', 'altro', oggi).get('B2')).toBeUndefined();
+  });
+
+  it('la tiene quando l’esercizio è lo stesso', () => {
+    const storico = [registrata('B2', 'goblet-squat')];
+    const oggi = new Map<string, ExerciseSlug>([['B2', 'goblet-squat']]);
+    expect(lastLoggedByBlock(storico, 'circuito-1', 'altro', oggi).get('B2')?.exercise).toBe(
+      'goblet-squat',
+    );
+  });
+
+  it('senza la mappa si comporta come prima', () => {
+    const storico = [registrata('B2', 'goblet-squat')];
+    expect(lastLoggedByBlock(storico, 'circuito-1', 'altro').get('B2')?.exercise).toBe(
+      'goblet-squat',
+    );
   });
 });

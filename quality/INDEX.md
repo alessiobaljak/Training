@@ -1,39 +1,40 @@
 # /quality/ — indice
-2026-11-09 · atleti **v1** · griglia **v2** · nucleo **v2**
+2026-11-09b · atleti **v1** · griglia **v2** (+ proposte v3) · nucleo **v3**
 
-## Ultima misura — 2026-11-09, commit `1802631`
-Engine al `1802631`, catalogo invariato. **NO-GO contro soglie proposte** ·
-Bloccanti 6 · Alti 4 · Medi 8 · Bassi 4.
-C1 sicurezza 14 · C2 rimandi 0 · C3 fedeltà 67 · C4 coerenza 33 · C5 personalizz.
-67 · C6 concretezza 75 · C7 progressi 83 · **C8 durata 100** (%).
-Nucleo di sicurezza: **2 PASS · 2 FALLITI · 4 NON COPERTI** su 8.
-Rapporto: `quality/reports/2026-11-09-quality.md` (baseline: `...-11-08-...`).
-Chiusi A1, A5, A6, M2. Ridotto B5 (zero → gradino 1; sopra lo zero niente).
-Nuovi M8, M9, L3, L4. Immagini: nessuna nuova, `src/assets` intatto; restano i
-3 SCARTI e M7 → `IMAGES.md`.
+## Ultima misura — 2026-11-09b, commit `f63c9f1`
+Trascrizione della scheda: catalogo a 72 esercizi, circuito a 52 blocchi.
+**NO-GO contro soglie proposte** · Bloccanti 8 · Alti 8 · Medi 13 · Bassi 6.
+C1 14 · C2 0 · **C3 33** (era 67) · C4 33 · C5 67* · C6 75* · C7 83 ·
+**C8 100** (%). `*` non rimisurati. Nucleo: **2 PASS · 2 FALLITI · 4 NON
+COPERTI** su 8, identico — dopo aver ripuntato 5 fixture (SAFETY_CORE §Fixture).
+Rapporto: `quality/reports/2026-11-09-quality-circuito.md`.
+Nuovi: B7, B8, A8-A11, M10-M13, L5, L6. Immagini: 1 giudicata, **1 SCARTATA**
+(`hip-thrust-panca-bilaterale`), 0 idonee; 15 nuove non guardate → B8.
 
 ## Soglie
-**Nessuna approvata.** Dal 2026-11-09 va approvata anche la **composizione dei
-criteri** (GRID.md): quella della baseline non si riproduceva su C3, C4, C5.
-Aperte: arrotondamento dell'aderenza (troncamento) e manubrio «due barre
-sovrapposte». Nessuno dei 30 scenari è validato (SCENARIOS.md §7).
+**Nessuna approvata.** In attesa: composizione dei criteri (v2) + voce
+**V-GIUNZIONE** su C4 + limite **S9** (balistico dopo stabilizzazione del
+tronco) + due convenzioni nuove: la finitura conta nel volume? la fascia 16-20
+vale su otto gruppi o sui bersaglio? Tutto in GRID.md.
 
 ## Da ricordare
-Stessa fixture, stesso numero, sempre: se un numero si muove è una regola che
-si è mossa — e se non si riproduce, il difetto è nella mia misura. Il caso 2 del
-nucleo risultava FALLITO dopo la correzione perché il **mio** script chiamava
-`startingLevel(e)` senza massimali: chiamare le funzioni del motore come le
-chiama l'app. I 4 Bloccanti su dolore, condizioni mediche, cibo/corpo e
-minorenni aspettano `/training/BOUNDARIES.md`.
+**Una fixture si puntella sull'esercizio e sul rapporto con il range, mai sul
+codice di blocco.** `f63c9f1` ha cambiato esercizio a 33 codici su 36: il mio
+nucleo è andato in crash e poi ha dichiarato 2 soglie superate invece di 4,
+perché `review.ts:131` scarta in silenzio l'entrata il cui esercizio non
+coincide con il blocco. Due difetti aperti sarebbero spariti senza correzione.
+Un numero che si muove è una regola che si è mossa — oppure una mia fixture che
+ha perso il morso: entrambe vanno spiegate. Il volume fuori fascia non è
+discutibile: 103,5 crediti contro 128 di pavimento è aritmetica (§I3).
 
 ## Cosa contiene ogni file
-- `PERSONAS.md` 7 atleti (P1-P7) + 4 di limite (P8-P11), con massimali · `SCENARIOS.md` 30 scenari (per i conteggi fa fede la composizione in GRID.md) · `UNTRUSTED_INPUT.md` i 4 campi di testo libero + backup, verifiche U1-U5.
-- `GRID.md` 8 criteri, soglie proposte, composizione, convenzioni da approvare, gravità, soglie S1-S8 · `RESULTS.md` una riga per misura, aperte (B1-B6, A2-A4, A7, M1, M3-M9, L1-L4) e 4 chiuse, ricalcoli, immagini · `IMAGES.md` verifiche delle figure · `SAFETY_CORE.md` gli 8 casi di `release-gate`, **NON COPERTO non è PASS**.
-- `scripts/` misure, nessuna legge il codice che produce la metrica che verifica: `node --experimental-strip-types quality/scripts/X.mts` dalla radice → `safety-core` (esce 1 se non tutti PASS), `01-durata-volume`, `02-revisione`, `03-metriche`, `04-input-non-fidato`, `05-rotazione-attrezzi` · `reports/` un rapporto per invocazione, render in `reports/immagini/`.
+- `PERSONAS.md` 7 atleti (P1-P7) + 4 di limite (P8-P11) · `SCENARIOS.md` 30 scenari · `UNTRUSTED_INPUT.md` i 4 campi liberi, verifiche U1-U6 (U6: `variantNote` e il titolo del player, proprietà rispettata).
+- `GRID.md` 8 criteri, composizione, soglie S1-**S9**, convenzioni da approvare · `RESULTS.md` una riga per misura, aperte (B1-B8, A2-A4, A7-A11, M1, M3-M13, L1-L6) e 4 chiuse · `SAFETY_CORE.md` gli 8 casi + la tabella delle fixture ripuntate, **NON COPERTO non è PASS** · `IMAGES.md` verifiche delle figure.
+- `scripts/`: `node --experimental-strip-types quality/scripts/X.mts` dalla radice → `safety-core` (esce 1 se non tutti PASS), `01-durata-volume`, `02-revisione` (**fixture da ripuntare, non eseguito il 2026-11-09b**), `03-metriche`, `04-input-non-fidato`, `05-rotazione-attrezzi`, **`06-circuito-trascrizione`** (durata, volume, workSeconds vs TUT, perSide del gradino, giunzioni, alternative, campi di sicurezza).
 
 ## Prossimo giro
-Rimisurare dopo `BOUNDARIES.md` e dopo la mappatura valore → gradino (chiude B5
-e il caso 2); A7 quando `metrics.ts` filtra la finitura. Immagini: 4 col/230 px,
-poi 2/460 sui dubbi (`media/scripts/contact-sheet.mjs`, percorsi assoluti); la
-geometria si misura sui comandi SVG. Su telefono: la miniatura della scheda ora
-è ritagliata da `overflow-hidden`, non scalata.
+Ripuntare le fixture di `02-revisione` (R2 → `circuito-2/A3`; R3 → 8-8-8 e
+9-9-9; R5 → `circuito-3/A2` push-up; R6 → `circuito-1/A2`) prima di rimisurare
+C5 e C6. Poi: B7 e A10 dopo la decisione sull'indice dello storico; A8 dopo S9;
+V-VOLUME dopo la decisione sulla fascia. Immagini: 15 figure nuove in coda,
+4 col/230 px poi 2/460 sui dubbi; la geometria si misura sui comandi SVG.

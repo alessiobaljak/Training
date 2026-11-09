@@ -123,7 +123,14 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
       const open =
         perOggi.find((entry) => entry.status === 'in-progress') ?? perOggi[0];
       const id = open?.id ?? `${sessionId}-${today}-${String(Date.now())}`;
-      const previousByBlock = lastLoggedByBlock(history, sessionId, id);
+      /*
+       * Cosa prescrive oggi ogni codice di blocco: serve a non precompilare
+       * una seduta con i dati di un esercizio che sotto quel codice non c'è
+       * più. La riscrittura delle quattro sedute ha cambiato l'esercizio a
+       * trentatré codici su trentasei.
+       */
+      const prescrittoOggi = new Map(program.blocks.map((block) => [block.code, block.exercise]));
+      const previousByBlock = lastLoggedByBlock(history, sessionId, id, prescrittoOggi);
 
       const session =
         open ??

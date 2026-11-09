@@ -64,6 +64,28 @@ describe('minWorkSeconds — la durata minima di una serie', () => {
     expect(minWorkSeconds(blocco({ workSeconds: 30, perSide: true }))).toBe(30);
   });
 
+  it('segue la lateralità del gradino eseguito, non solo quella del blocco', () => {
+    /*
+     * La scala `hip-thrust` è `[false, false, true, true, true, true]`: chi
+     * sale al gradino 3 fa un esercizio monopodalico dentro un blocco che si
+     * dichiara bilaterale, e la stazione dura il doppio.
+     *
+     * Prima il `perSide` eseguito arrivava qui sovrascrivendo quello del
+     * blocco, e con un `workSeconds` dichiarato — che hanno tutti e 52 i
+     * blocchi — non aveva nessun effetto: il countdown restava 85 secondi su
+     * 170 di lavoro vero. L'atleta leggeva «almeno 85"» e si fermava a metà
+     * della seconda gamba con il tempo rispettato.
+     */
+    const bilaterale = blocco({ workSeconds: 85, perSide: false });
+    expect(minWorkSeconds(bilaterale, undefined, false)).toBe(85);
+    expect(minWorkSeconds(bilaterale, undefined, true)).toBe(170);
+
+    /* E nel verso opposto: un blocco per lato eseguito a due arti dimezza. */
+    const perLato = blocco({ workSeconds: 100, perSide: true });
+    expect(minWorkSeconds(perLato, undefined, true)).toBe(100);
+    expect(minWorkSeconds(perLato, undefined, false)).toBe(50);
+  });
+
   it('usa il minimo del range sulle stazioni a tempo', () => {
     const stazione = blocco({
       exercise: 'hollow-hold',
