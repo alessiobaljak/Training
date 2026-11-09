@@ -1,37 +1,40 @@
 # INDEX.md — memoria di `exercise-media-lead`
 
-**Stato al 2026-11-08 (primo avvio).** Libreria completa come copertura, non
-come qualità: 56/56 esercizi e 102/102 gradini hanno un'immagine, **zero
-approvate**. Verificate 22 figure (le 16 del programma a circuito più le 6 che
-condividono un archetipo con loro): **16 da rifare, 2 passate**, più 4
-mappature RepDB che mostrano un esercizio diverso da quello della scheda.
+**Stato al 2026-11-09.** 72 esercizi (erano 56), 174 figure SVG + 91 foto
+RepDB, 308 registrate, **zero approvate**: 14 verificate, 36 da rifare, 257 da
+verificare. **40 esercizi su 72** non hanno foto e mostrano solo la figura
+generata (erano 24): è lì che sta il rischio.
 
-**Fonti in uso.** Due. RepDB: 91 `.webp` acquistati, coprono 32 esercizi e 39
-gradini. Figure generate: 158 `.svg` da `scripts/generate-exercise-svg.mjs`,
-43 archetipi di posa. Dove c'è la foto vince la foto; i 16 esercizi del
-circuito non ne hanno e vedono solo la figura generata.
+**Oggi**: verificata `hip-thrust-panca-bilaterale` → **da rifare** (archetipo,
+tecnica, attrezzo, freccia). Registrate le 15 figure arrivate con `f63c9f1` e
+mai guardate. Nuove specifiche §4.20 (la figura), §4.21 (il lockout di tutte e
+9 le figure hip-thrust), §4.18 riscritta (panca e due gambe nei gradini).
+
+**Fonti.** RepDB: 91 `.webp`, 32 esercizi e 39 gradini. Figure generate: 174
+`.svg` da `scripts/generate-exercise-svg.mjs`. Dove c'è la foto, vince.
 
 **Decisioni chiave.**
 1. Non si generano immagini con modelli AI. Il termine 5 della licenza RepDB
-   vieta quelle immagini anche come riferimento (testo integrale verificato
-   alla fonte in LICENSING.md). Le figure non RepDB sono codice parametrico.
+   vieta quelle immagini anche come riferimento (testo in LICENSING.md).
 2. Un esercizio prende un archetipo nuovo quando cambiano il gesto o
-   l'attrezzo, non quando «assomiglia». È la regola che ha salvato tre figure.
-3. L'inquadratura la sceglie il criterio dell'esercizio, non l'abitudine.
+   l'attrezzo, non quando «assomiglia».
+3. Quando un archetipo prende un **parametro** nuovo, si rileggono tutte le
+   voci di `FIGURES` e `STEPS` che lo usano (R7, imparata oggi).
 4. `verificata` ≠ `approvata`: approva solo Alessio.
-5. Finché le schede non hanno `frames` ed `equipment` (EXERCISE_SCHEMA.md 1.0,
-   oggi assenti su tutti i 56) ogni verifica è **provvisoria**, fatta sui `cues`.
+5. Senza `frames` ed `equipment` nelle schede ogni verifica è **provvisoria**.
 
 **Cosa contiene ogni file.**
 - `STYLE_GUIDE.md` — stile unico, convivenza delle due fonti, inquadrature, fotogrammi, attrezzi, formato.
-- `GENERATOR_SPEC.md` — generatore, chiavi della posa, mappa archetipo↔schema motorio, la regola dell'archetipo, **§4: 19 correzioni aperte con criteri di accettazione**. 300 righe, al limite: le specifiche chiuse vanno in `ARCHIVE.md`.
+- `GENERATOR_SPEC.md` — generatore, chiavi della posa, mappa archetipo↔schema motorio, la regola dell'archetipo, **§4: specifiche aperte** (299 righe, al limite).
+- `ARCHIVE.md` — testo integrale di §4.3, 4.4, 4.5, 4.17, 4.19: **aperte**, spostate solo per il limite di righe.
 - `REVIEW_CHECKLIST.md` — gli 8 punti, la regola di scarto, come si guarda.
-- `LIBRARY.md` — una riga per immagine (291), si legge con `grep`. Unico file che può superare le 300 righe.
-- `COVERAGE.md` — conti, archetipi riusati a sproposito, foto RepDB che non corrispondono alla scheda, debiti aperti.
-- `REJECTIONS.md` — sei errori ricorrenti (R1–R6) con la correzione.
-- `LICENSING.md` — licenza RepDB v1.2 letta alla fonte, termine 5 per esteso, tre affermazioni del repo che la licenza non conferma.
-- `scripts/contact-sheet.mjs` — rasterizza le SVG in foglio di contatto.
-- `reports/2026-11-08-media.md` — rapporto completo del primo avvio.
+- `LIBRARY.md` — una riga per immagine (308), si legge con `grep`. Unico file che può superare le 300 righe.
+- `COVERAGE.md` — conti, duplicati (6 gruppi negli esercizi + 8 file identici nei gradini hip-thrust), foto RepDB che non corrispondono, debiti.
+- `REJECTIONS.md` — sette errori ricorrenti (R1–R7) con la correzione.
+- `LICENSING.md` — licenza RepDB v1.2, termine 5 per esteso.
+- `scripts/contact-sheet.mjs` — foglio di contatto (il PNG in uscita vuole un percorso **assoluto**).
+- `reports/` — 2026-11-08 (primo avvio), 2026-11-09 (hip thrust bilaterale).
 
-**Prossima invocazione**: riverificare le figure rifatte dalla sessione
-principale, nell'ordine di GENERATOR_SPEC §4; `kb-swing` per primo.
+**Prossima invocazione**: le 15 figure di `f63c9f1` mai verificate, partendo
+da `corda-per-saltare`, `military-press-manubri`, `curl-panca-inclinata`,
+`burpee`; poi riverifica delle figure hip-thrust rifatte.

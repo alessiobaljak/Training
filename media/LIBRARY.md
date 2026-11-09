@@ -33,7 +33,8 @@ fatto sui `cues`.
 | wall-sit | unica | generata | `wallsit` | da verificare | src/assets/exercises/wall-sit.svg | 2026-11-08 |  |
 | shrimp-squat-o-skater-squat | inizio+fine | generata | `shrimp` | da verificare | src/assets/exercises/shrimp-squat-o-skater-squat.svg | 2026-11-08 |  |
 | nordic-curl | inizio+fine | generata | `nordic` | da verificare | src/assets/exercises/nordic-curl.svg | 2026-11-08 |  |
-| hip-thrust-monopodalico | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/exercises/hip-thrust-monopodalico.svg | 2026-11-08 | freccia disegnata dentro l-immagine — spec 4.1 |
+| hip-thrust-panca-bilaterale | inizio+fine | generata | `hip-thrust` `{bilateral}` | da rifare | src/assets/exercises/hip-thrust-panca-bilaterale.svg | 2026-11-09 | verifica provvisoria (scheda senza equipment/frames). Le due gambe a 2-3 unita fondono in una a 210 px: a colpo d-occhio e ancora il monopodalico — spec 4.20.1. Il cerchio del kettlebell e attraversato dalla linea del corpo in tutti e due i pannelli — spec 4.20.2. Nessun braccio, il cue 2 dice «tenuto con le mani» — spec 4.20.3. Anca sopra la retta spalla-ginocchio in chiusura — spec 4.21. Freccia dentro l-immagine — spec 4.1. La campana e comunque meglio del `weight` da 18 che leggeva come un gradino |
+| hip-thrust-monopodalico | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/exercises/hip-thrust-monopodalico.svg | 2026-11-08 | freccia disegnata dentro l-immagine — spec 4.1; gamba libera assente, il cue 1 dice «l-altra gamba sollevata» — spec 4.20.1; anca sopra la retta spalla-ginocchio in chiusura — spec 4.21 |
 | single-leg-rdl | inizio+fine | generata | `rdl` | da verificare | src/assets/exercises/single-leg-rdl.svg | 2026-11-08 |  |
 | calf-monopodalico-rialzo | inizio+fine | generata | `calf` | da verificare | src/assets/exercises/calf-monopodalico-rialzo.svg | 2026-11-08 |  |
 | calf-monopodalico-seduto | inizio+fine | generata | `calf` | da verificare | src/assets/exercises/calf-monopodalico-seduto.svg | 2026-11-08 |  |
@@ -114,8 +115,8 @@ fatto sui `cues`.
 | core-l4 | inizio+fine | generata | `leg-raise` | da verificare | src/assets/steps/core-l4.svg | 2026-11-08 |  |
 | core-l5 | inizio+fine | generata | `leg-raise` | da verificare | src/assets/steps/core-l5.svg | 2026-11-08 |  |
 | core-l6 | inizio+fine | generata | `ab-wheel` | da verificare | src/assets/steps/core-l6.svg | 2026-11-08 |  |
-| hip-thrust-l1 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l1.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «a terra» ma la figura ha la panca — spec 4.18 |
-| hip-thrust-l2 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l2.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
+| hip-thrust-l1 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l1.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «a terra» ma la figura ha la panca — spec 4.18; etichetta «due gambe» ma la figura e monopodalica — spec 4.18 |
+| hip-thrust-l2 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l2.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «due gambe» ma la figura e monopodalica — spec 4.18 |
 | hip-thrust-l3 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l3.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1; etichetta «a terra» ma la figura ha la panca — spec 4.18 |
 | hip-thrust-l4 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l4.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
 | hip-thrust-l5 | inizio+fine | generata | `hip-thrust` | da rifare | src/assets/steps/hip-thrust-l5.svg | 2026-11-08 | freccia dentro l-immagine — spec 4.1 |
@@ -301,3 +302,18 @@ fatto sui `cues`.
 | core-l6 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/ab-wheel-rollout-peak.webp | 2026-11-08 | sorgente RepDB `ab-wheel-rollout` |
 | wall-sit-l2 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/wall-sit-main.webp | 2026-11-08 | sorgente RepDB `wall-sit` |
 | hang-l2 | unica | RepDB | — | da verificare | src/assets/exercises-repdb/dead-hang-main.webp | 2026-11-08 | sorgente RepDB `dead-hang` |
+| affondi-rapidi-alternati | inizio+fine | generata | `lunge` `{rotate:false}` | da verificare | src/assets/exercises/affondi-rapidi-alternati.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| apertura-anche | inizio+fine | generata | `hip-opener` | da verificare | src/assets/exercises/apertura-anche.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| burpee | inizio+fine | generata | `burpee` | da verificare | src/assets/exercises/burpee.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| corda-battaglia-cerchi | inizio+fine | generata | `rope-circles` | da verificare | src/assets/exercises/corda-battaglia-cerchi.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| corda-battaglia-onde-doppie | inizio+fine | generata | `rope-double` | da verificare | src/assets/exercises/corda-battaglia-onde-doppie.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| corda-battaglia-slam | inizio+fine | generata | `rope-slam` | da verificare | src/assets/exercises/corda-battaglia-slam.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| corda-per-saltare | inizio+fine | generata | `jump-rope` | da verificare | src/assets/exercises/corda-per-saltare.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| curl-manubri-supino | inizio+fine | generata | `db-curl` | da verificare | src/assets/exercises/curl-manubri-supino.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| curl-panca-inclinata | inizio+fine | generata | `incline-curl` | da verificare | src/assets/exercises/curl-panca-inclinata.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| curl-trx | inizio+fine | generata | `trx-curl` | da verificare | src/assets/exercises/curl-trx.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| estensione-tricipiti-trx | inizio+fine | generata | `trx-ext` | da verificare | src/assets/exercises/estensione-tricipiti-trx.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| military-press-manubri | inizio+fine | generata | `press` | da verificare | src/assets/exercises/military-press-manubri.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| plank-tocco-spalla | inizio+fine | generata | `plank-tap` | da verificare | src/assets/exercises/plank-tocco-spalla.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| plank-trascinamento-kb | inizio+fine | generata | `plank-drag` | da verificare | src/assets/exercises/plank-trascinamento-kb.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| respirazione-360 | inizio+fine | generata | `breathing` | da verificare | src/assets/exercises/respirazione-360.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |

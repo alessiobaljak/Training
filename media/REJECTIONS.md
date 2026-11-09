@@ -35,10 +35,14 @@ disegnate di lato **non esistono**.
 laterale per profondità e cerniera, frontale per simmetria e allineamento,
 tre quarti o dall'alto per rotazione e carico asimmetrico.
 
-## R4 — Due attrezzi che leggono come uno (2 casi)
+## R4 — L'attrezzo non legge come attrezzo (4 casi)
 **Sintomo**: due manubri vicini diventano un bilanciere; un kettlebell
 sovrapposto al tronco diventa una pancia.
-**Casi**: stacco rumeno con manubri, goblet squat.
+**Casi**: stacco rumeno con manubri · goblet squat · hip thrust bilaterale
+(il cerchio del kettlebell attraversato dalla linea del corpo legge come un
+anello intorno alla coscia, e prima ancora, da `weight` largo 18, come un
+gradino del pavimento) · military press con manubri (i due pesi in alto
+leggono come una barra).
 **Correzione**: gli attrezzi si disegnano separati dal corpo e separati tra
 loro; se non ci stanno, si sfalsano in profondità.
 
@@ -51,8 +55,20 @@ cioè la posizione in cui il cue dice di **fermare la serie**.
 commento nel codice descrive la posa giusta, si verifica che le coordinate la
 disegnino davvero: nello swing il commento diceva il contrario del disegno.
 
-## R6 — Testo, numeri o frecce dentro l'immagine (8 file)
+## R6 — Testo, numeri o frecce dentro l'immagine (11 file, erano 8)
 **Sintomo**: una freccia disegnata nell'SVG.
-**Caso**: `arrowUp` nell'archetipo `hip-thrust`.
+**Casi**: `arrowUp` in `hip-thrust`, e poi in `burpee` e `incline-curl`.
+**Perché cresce**: finché la primitiva resta nel generatore, ogni archetipo
+nuovo la ricopia da uno vecchio. Si toglie la primitiva, non le chiamate.
 **Correzione**: etichette e frecce le mette l'app in sovrimpressione, così
 restano traducibili. Dentro l'immagine non entra niente di leggibile.
+
+## R7 — Il parametro nuovo arriva all'esercizio e non ai suoi gradini (1 caso)
+**Sintomo**: una figura viene corretta, e la stessa bugia resta nei gradini
+della scala che l'app disegna nella pagina accanto.
+**Caso**: `bilateral` aggiunto a `hip-thrust` per
+`hip-thrust-panca-bilaterale`, mentre `hip-thrust-l1` e `hip-thrust-l2`, che
+hanno «due gambe» nell'etichetta, continuano a passare `{}`.
+**Correzione**: quando un archetipo prende un parametro nuovo, si rileggono
+**tutte** le voci di `FIGURES` e `STEPS` che usano quell'archetipo e si decide
+per ognuna. Il controllo è un `grep` dell'archetipo nella mappa, non un ricordo.

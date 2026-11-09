@@ -1,31 +1,40 @@
 # COVERAGE.md — copertura della libreria
 
-Aggiornato al **2026-11-08**. Numeri contati sul repo, non stimati.
+Aggiornato al **2026-11-09**. Numeri contati sul repo, non stimati.
 
 ## 1. Conti
 | | quante | note |
 |---|---|---|
-| esercizi in anagrafica | 56 | `src/data/exercises.ts` |
-| esercizi con figura schematica | 56 | una per slug, nessuna mancante |
-| esercizi con foto RepDB | 32 | la foto vince sulla figura (`ExerciseArt.tsx`) |
-| esercizi che vedono la figura generata | **24** | i 56 meno i 32 con foto |
-| gradini nelle scale | 102 | tutti con figura |
-| gradini con foto RepDB | 39 | |
+| esercizi in anagrafica | **72** | erano 56: +16 con il commit `f63c9f1` |
+| esercizi con figura schematica | 72 | una per slug, nessuna mancante |
+| esercizi con foto RepDB | 32 | invariato: i 16 nuovi non ne hanno |
+| esercizi che vedono **solo** la figura generata | **40** | erano 24 |
+| gradini nelle scale | 102 | tutti con figura, 39 con foto |
 | file RepDB nel repo | 91 | tutti usati (lo verifica un test) |
-| file SVG nel repo | 158 | 56 esercizi + 102 gradini |
+| file SVG nel repo | **174** | 72 esercizi + 102 gradini |
+| registrate in LIBRARY.md | 308 | tutte |
+| con freccia dentro l'immagine | **11** | erano 8: §4.1 non è stata fatta e i nuovi archetipi chiamano `arrowUp` |
 
 **Esercizi senza immagine: nessuno. Immagini orfane: nessuna.** Entrambe le
 cose sono tenute ferme da `src/data/art.test.ts`, non dalla buona volontà.
 
 ## 2. Dove si concentra il rischio
-I **16 esercizi del programma a circuito** (commit `fa15233`) hanno
-`pattern: null` e **nessuna foto RepDB**: `artFor()` restituisce sempre la
-figura dell'esercizio, quindi quello che l'atleta vede è **solo** la figura
-generata. Sono anche i più giovani e i meno guardati. È lì che è stata fatta
-la verifica di oggi.
+Il rischio è raddoppiato: **40 esercizi su 72** non hanno foto e mostrano solo
+la figura generata. I 16 arrivati con `f63c9f1` sono tutti lì, e 15 di loro
+**non sono mai passati dalla checklist** (registrati `da verificare` il
+2026-11-09). Primo sguardo di gruppo a 215 px: nessuno riusa l'archetipo di un
+altro (md5 tutti distinti, ognuno ha il suo archetipo), ma quattro vanno
+guardati per davvero — `corda-per-saltare` (braccia alte come in un jumping
+jack invece che basse all'anca), `military-press-manubri` (i due manubri in
+alto leggono come una barra: R4), `curl-panca-inclinata` (freccia dentro
+l'immagine) e `burpee` (freccia, e due pannelli per un gesto in quattro
+tempi). `corda-battaglia-cerchi` disegna la traiettoria come cerchio
+tratteggiato: è un segno d'annotazione dentro l'immagine, da decidere con
+Alessio se vale la regola delle frecce.
 
 ## 3. Figure che riusano un archetipo non loro
-Trovate col confronto md5 a etichetta rimossa (GENERATOR_SPEC §2).
+Trovate col confronto md5 a etichetta rimossa (GENERATOR_SPEC §2). Le
+specifiche §4.3, §4.4, §4.5, §4.17 e §4.19 hanno il testo in `ARCHIVE.md`.
 
 | coppia identica | giudizio |
 |---|---|
@@ -35,6 +44,14 @@ Trovate col confronto md5 a etichetta rimossa (GENERATOR_SPEC §2).
 | `dip-panche-o-diamond-pushup` = `push-up` | **non suo**, ma coperto: il diamond ha le mani a rombo sotto lo sterno. Vince la foto RepDB, che è giusta. Figura di ripiego da parametrizzare |
 | 4 trazioni identiche (media, larga, supina, supina stretta) | **tollerato oggi**: la forma del corpo è la stessa, cambia la presa. Tutte e quattro hanno la foto giusta → §4.19 |
 | `corsa-continua-piano` = `zona-2-conclusiva` | **legittimo**: stesso gesto. La zona 2 ammette anche bici e camminata, ma la corsa è il caso principale |
+
+**Censimento del 2026-11-09**: i gruppi identici in `src/assets/exercises/`
+restano **sei**. `hip-thrust-panca-bilaterale` non ne apre un settimo: è
+l'unico file della libreria con quel md5. Il duplicato vero sta un piano sotto
+e nessuno l'aveva contato: **8 file identici** nei gradini —
+`hip-thrust-l1..l6`, `posterior-chain-l1` e `hip-thrust-monopodalico` sono lo
+stesso disegno, e due di quelle etichette dicono «due gambe» (GENERATOR_SPEC
+§4.18).
 
 ## 4. Foto RepDB che non corrispondono alla scheda
 Qui l'immagine non si può «rifare»: si rimappa o si ritira. In tre casi su
@@ -48,11 +65,12 @@ quattro **la figura generata è già più corretta della foto**.
 | `face-pull-elastico` | `trx-face-pull` (**cinghie**) | «elastico fissato all'altezza del viso» | la figura generata ha l'elastico. RepDB non ha un face pull con elastico: **decisione di Alessio** (tenere la foto con l'attrezzo diverso, o passare alla figura) |
 
 ## 5. Debiti aperti
-- **Schede incomplete**: nessuno dei 56 esercizi ha i campi `equipment` e
+- **Schede incomplete**: nessuno dei **72** esercizi ha i campi `equipment` e
   `frames` previsti da `training/EXERCISE_SCHEMA.md` 1.0. Finché mancano,
   ogni verifica è fatta sui `cues` ed è provvisoria.
 - **Tre figure di ripiego con l'attrezzo sbagliato** (GENERATOR_SPEC §4.17).
-- **Una freccia dentro 8 immagini** (GENERATOR_SPEC §4.1).
+- **Una freccia dentro 11 immagini** (GENERATOR_SPEC §4.1), tre in più di ieri.
+- **15 figure nuove mai verificate** (§2 qui sopra).
 - **Tre gradini «a terra» disegnati con la panca** (GENERATOR_SPEC §4.18).
 - **Nessun esercizio ha tre fotogrammi**, nemmeno swing, nordic curl e sissy
   squat, dove è il punto intermedio a essere sbagliato (STYLE_GUIDE §3).
