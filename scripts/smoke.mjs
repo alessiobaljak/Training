@@ -1563,6 +1563,26 @@ try {
         `Ogni verdetto deve citare i numeri su cui si regge. Legge: ${JSON.stringify(revisione.slice(0, 400))}`,
       );
 
+      /*
+       * L'aderenza come percentuale, adesso che c'è una settimana alle spalle.
+       *
+       * Il controllo di prima gira al primo giorno di programma, dove non c'è
+       * ancora niente di dovuto e la schermata scrive «in pari»: giusto, ma
+       * da quando accetta anche quella parola nessuna prova esercitava più il
+       * caso con una percentuale vera. È un buco che ho aperto io rilassando
+       * quell'asserzione, e questo lo richiude — qui la data di inizio è già
+       * stata spostata indietro di sette giorni.
+       */
+      await page.goto(`${BASE}/#/progressi`, { waitUntil: 'load' });
+      await page.waitForTimeout(1600);
+      const percentuale = (await page.locator('main p').first().innerText()).trim();
+      check(
+        /^\d+%$/.test(percentuale),
+        `Con una settimana alle spalle l'aderenza deve essere una percentuale, letto "${percentuale}".`,
+      );
+      await page.goto(`${BASE}/#/revisione/1`, { waitUntil: 'load' });
+      await page.waitForTimeout(1600);
+
       const applica = page.getByRole('button', { name: 'Applica' });
       const quanti = await applica.count();
       check(quanti > 0, 'La settimana registrata fuori range deve produrre almeno un verdetto.');
