@@ -57,12 +57,17 @@ export function loggedSession(
   week: number,
   exercises: readonly LoggedExercise[],
   status: LoggedSession['status'] = 'completed',
+  /*
+   * Quale seduta. Serve all'aderenza, che da quando lo Shadow è archiviato
+   * deve distinguere il lavoro di questo programma da quello di un altro.
+   */
+  sessionId: LoggedSession['sessionId'] = 'upper-a',
 ): LoggedSession {
   return {
     id: `${date}-${String(week)}`,
     date,
     week,
-    sessionId: 'upper-a',
+    sessionId,
     status,
     exercises: [...exercises],
     note: null,

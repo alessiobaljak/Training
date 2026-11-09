@@ -130,6 +130,22 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
       const block = effectiveBlock(declared, session);
       if (block.exercise !== logged.exercise) continue;
 
+      /*
+       * La finitura metabolica non si giudica.
+       *
+       * `excludeFromReview` era dichiarato sul blocco e verificato da un test
+       * dei dati, e qui non lo leggeva nessuno: il flag c'era, il
+       * comportamento no. Senza questa riga venti swing su tutte le serie
+       * producono «passa al manubrio successivo» — cioè +2,5 kg su un
+       * balistico — e fermarsi a 28" su una stazione da 30", che è quello che
+       * il cue chiede di fare, produce «sei già al gradino più basso della
+       * scala», che è falso perché quella scala non esiste.
+       *
+       * Sono numeri che dipendono da quanto era dura la seduta fin lì, non
+       * dal gradino: non c'è niente da cui ricavare un verdetto.
+       */
+      if (block.excludeFromReview === true) continue;
+
       const exercise = getExercise(block.exercise);
       const range = resolveBlockRange(block, exercise, tests);
       /*
@@ -164,7 +180,7 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
     const { values, range, unit } = osservazione;
     if (values.length < MIN_SETS_FOR_VERDICT) continue;
 
-    const before = states.get(slug) ?? initialExerciseState(exercise);
+    const before = states.get(slug) ?? initialExerciseState(exercise, tests);
     const sopra = values.filter((value) => value > range.max).length;
     const alMassimo = values.filter((value) => value >= range.max).length;
     const sotto = values.filter((value) => value < range.min).length;

@@ -16,6 +16,8 @@ import type {
   OverloadLever,
   ProgramBlock,
   TempoPhase,
+  TestId,
+  TestResult,
   Tut,
   TutNotation,
 } from '../types/index.ts';
@@ -52,7 +54,10 @@ export const MAX_ISO_PAUSE_SECONDS = ISO_PAUSE_LADDER.at(-1) ?? 2;
  * i dip su panca dei finisher, gradino 1 contro il 3 del test — resta in
  * basso, perché lì la scelta è voluta.
  */
-export function startingLevel(exercise: Exercise): LevelIndex | null {
+export function startingLevel(
+  exercise: Exercise,
+  tests: ReadonlyMap<TestId, TestResult> = new Map(),
+): LevelIndex | null {
   const prescritto = exercise.defaultLevel;
   if (exercise.pattern === null || prescritto === null) return prescritto;
   const prova = testBaseline(exercise.pattern);
@@ -67,6 +72,23 @@ export function startingLevel(exercise: Exercise): LevelIndex | null {
    * primo gradino è banale.
    */
   if (prova === null) return 1;
+  /*
+   * Zero misurato vuol dire gradino 1, qualunque cosa prescriva la scheda.
+   *
+   * Prima il tetto era il gradino *dell'esercizio del test*, uguale per
+   * chiunque: chi chiudeva la settimana 0 con zero trazioni, zero dip e zero
+   * nordic si vedeva assegnare il gradino 3 — trazioni complete, dip completi
+   * alle parallele, nordic eccentrico 5" — e gli servivano due settimane di
+   * serie da zero ripetizioni per scendere al gradino 1. Il risultato del
+   * test non entrava in nessuna decisione.
+   *
+   * Qui c'è solo la parte inarguibile: un movimento che non hai eseguito
+   * nemmeno una volta non è il tuo punto di partenza. La mappatura completa
+   * valore → gradino è una regola di metodo e spetta a training-designer:
+   * finché non c'è, sopra lo zero resta il tetto del test.
+   */
+  const risultato = tests.get(prova.testId);
+  if (risultato !== undefined && risultato.value <= 0) return 1;
   /*
    * Solo dentro la stessa misura. La scala del core passa dalle tenute in
    * secondi alle ripetizioni: abbassare l'hanging leg raise fino all'hollow
@@ -90,10 +112,13 @@ export function isOwnLevel(exercise: Exercise, level: LevelIndex | null): boolea
   return exercise.pattern === null || level === null || level === exercise.defaultLevel;
 }
 
-export function initialExerciseState(exercise: Exercise): ExerciseState {
+export function initialExerciseState(
+  exercise: Exercise,
+  tests: ReadonlyMap<TestId, TestResult> = new Map(),
+): ExerciseState {
   return {
     exercise: exercise.slug,
-    level: startingLevel(exercise),
+    level: startingLevel(exercise, tests),
     eccentricBonusSeconds: 0,
     bottomPauseBonusSeconds: 0,
     loadKg: 0,

@@ -206,7 +206,16 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
   };
 }
 
-/** Stato di partenza per un esercizio mai confermato. */
-export function fallbackState(slug: ExerciseSlug): ExerciseState {
-  return initialExerciseState(getExercise(slug));
+/**
+ * Stato di partenza per un esercizio mai confermato.
+ *
+ * `tests` non ha un valore di ripiego apposta: senza i massimali il gradino
+ * tornerebbe a essere quello del test invece di quello misurato, e chi chiama
+ * deve accorgersene.
+ */
+export function fallbackState(
+  slug: ExerciseSlug,
+  tests: ReadonlyMap<TestId, TestResult>,
+): ExerciseState {
+  return initialExerciseState(getExercise(slug), tests);
 }

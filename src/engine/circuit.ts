@@ -335,6 +335,23 @@ function restBetween(
 /* Costruzione del piano                                                       */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Come si chiama un gruppo di blocchi.
+ *
+ * Stava solo nella scheda, e il player non lo diceva: dopo nove serie di
+ * Tri-set A compariva il pull-over al TRX senza che niente avesse annunciato
+ * che il primo blocco era finito e ne cominciava un altro. A dieci minuti
+ * dall'inizio, un esercizio che non ti aspetti sembra un'app che ti ha
+ * cambiato la scheda.
+ */
+export function groupLabel(session: ProgramSession, group: string): string {
+  const quanti = session.blocks.filter((block) => block.group === group).length;
+  if (group === 'F') return 'Finitura metabolica';
+  if (quanti >= 3) return `Tri-set ${group}`;
+  if (quanti === 2) return `Coppia ${group}`;
+  return `Blocco ${group}`;
+}
+
 function workLabel(step: SessionStep, session: ProgramSession): string {
   const nome = getExercise(step.exercise).name;
   const totale = step.totalSets;

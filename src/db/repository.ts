@@ -253,7 +253,17 @@ export class ShadowRepository {
    */
   async getExerciseState(slug: ExerciseSlug): Promise<ExerciseState> {
     const stored = await this.store.get<ExerciseState>('exerciseStates', slug);
-    return stored ?? initialExerciseState(getExercise(slug));
+    if (stored !== undefined) return stored;
+    /*
+     * Lo stato di partenza legge i massimali.
+     *
+     * È il punto in cui un esercizio mai visto riceve il suo gradino, quindi
+     * è qui che il risultato della Settimana 0 deve arrivare. Senza, chi ha
+     * misurato zero trazioni partiva dalle trazioni complete — e il parametro
+     * di `initialExerciseState` sarebbe rimasto dichiarato e mai passato,
+     * cioè lo stesso difetto che questa correzione sta chiudendo altrove.
+     */
+    return initialExerciseState(getExercise(slug), await this.latestTests());
   }
 
   async saveExerciseState(state: ExerciseState): Promise<ExerciseState> {

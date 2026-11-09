@@ -1,9 +1,16 @@
 import { getExercise } from '../../data/exercises.ts';
 import { getAnySession } from '../../data/sessions.ts';
-import { blockRestSeconds, buildGuidedPlan, estimatedSeconds, minWorkSeconds } from '../../engine/circuit.ts';
+import {
+  blockRestSeconds,
+  buildGuidedPlan,
+  estimatedSeconds,
+  groupLabel,
+  minWorkSeconds,
+} from '../../engine/circuit.ts';
 import { totalWorkSets } from '../../engine/rest.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
 import { ExerciseArt } from '../components/ExerciseArt.tsx';
+import { formatClock } from '../hooks/useTimers.ts';
 import { Badge, Button, Card, Screen, SectionTitle } from '../components/primitives.tsx';
 import { useLatestTests } from '../hooks/useData.ts';
 import { navigate } from '../router.ts';
@@ -19,19 +26,16 @@ import type { ProgramBlock, SessionId } from '../../types/index.ts';
  * perché mentre ci si allena una lista è rumore.
  */
 
+/**
+ * Lo stesso formato del player, m:ss.
+ *
+ * La scheda scriveva «almeno 0′40″» e «almeno 1′», il player «0:40» e «1:00».
+ * Due notazioni per lo stesso numero, e la seconda si legge come «uno-zero-
+ * zero»: il bulgaro, che dura sessanta secondi tondi in tutte e due le
+ * schermate, è stato letto come cento secondi. Una sola notazione, ovunque.
+ */
 function durata(seconds: number): string {
-  const minuti = Math.floor(seconds / 60);
-  const resto = seconds % 60;
-  return resto === 0 ? `${String(minuti)}′` : `${String(minuti)}′${String(resto).padStart(2, '0')}″`;
-}
-
-/** Come si chiama il gruppo di blocchi, dalla lettera. */
-function nomeGruppo(group: string, blocks: readonly ProgramBlock[]): string {
-  const quanti = blocks.length;
-  if (group === 'F') return 'Finitura metabolica';
-  if (quanti >= 3) return `Tri-set ${group}`;
-  if (quanti === 2) return `Coppia ${group}`;
-  return `Blocco ${group}`;
+  return formatClock(seconds);
 }
 
 function Riga({ block }: { readonly block: ProgramBlock }) {
@@ -145,7 +149,7 @@ export function CircuitOverview({ sessionId }: { readonly sessionId: SessionId }
           const rest = primo.rest;
           return (
             <div key={group}>
-              <SectionTitle>{nomeGruppo(group, blocks)}</SectionTitle>
+              <SectionTitle>{groupLabel(session, group)}</SectionTitle>
               <div className="mb-2 flex flex-wrap gap-2">
                 <Badge>{primo.sets} giri</Badge>
                 {rest.kind === 'superset' ? (

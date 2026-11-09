@@ -217,16 +217,38 @@ describe('aderenza', () => {
 
   it('conta solo le sedute chiuse', () => {
     const sessions = [
-      loggedSession('2026-09-14', 1, [], 'completed'),
-      loggedSession('2026-09-15', 1, [], 'abandoned'),
-      loggedSession('2026-09-16', 1, [], 'in-progress'),
+      loggedSession('2026-09-14', 1, [], 'completed', 'circuito-1'),
+      loggedSession('2026-09-15', 1, [], 'abandoned', 'circuito-2'),
+      loggedSession('2026-09-16', 1, [], 'in-progress', 'circuito-3'),
     ];
-    // Mercoledì della prima settimana: tre sedute dovute, non sei.
-    expect(adherenceFromSessions(sessions, 6, '2026-09-14', '2026-09-16')).toEqual({
+    /* Mercoledì, terzo giorno su sette: una seduta dovuta su quattro. */
+    expect(adherenceFromSessions(sessions, 4, '2026-09-14', '2026-09-16')).toEqual({
       completed: 1,
-      planned: 3,
-      percent: 33,
+      planned: 1,
+      percent: 100,
     });
+  });
+
+  it('non conta le sedute di un altro programma', () => {
+    /*
+     * Lo Shadow è archiviato e il suo storico resta nel diario. Contarlo
+     * portava l'aderenza oltre il mille per cento: ventiquattro sedute del
+     * 2025 contro le poche dovute da inizio programma.
+     */
+    const sessions = [
+      loggedSession('2026-09-14', 1, [], 'completed', 'circuito-1'),
+      loggedSession('2026-09-15', 1, [], 'completed', 'upper-a'),
+      loggedSession('2026-09-16', 1, [], 'completed', 'lower-b'),
+    ];
+    expect(adherenceFromSessions(sessions, 4, '2026-09-14', '2026-09-16').completed).toBe(1);
+  });
+
+  it('non conta le sedute chiuse prima dell’inizio del programma', () => {
+    const sessions = [
+      loggedSession('2025-06-02', 1, [], 'completed', 'circuito-1'),
+      loggedSession('2026-09-15', 1, [], 'completed', 'circuito-2'),
+    ];
+    expect(adherenceFromSessions(sessions, 4, '2026-09-14', '2026-09-16').completed).toBe(1);
   });
 
   it('senza data di inizio non c’è una percentuale da mostrare', () => {
@@ -235,20 +257,26 @@ describe('aderenza', () => {
 });
 
 describe('sedute previste fino a oggi', () => {
-  it('la settimana in corso conta solo per i giorni passati', () => {
-    // Lunedì 14 settembre 2026 è l'inizio: al martedì sono dovute due sedute.
-    expect(plannedSessionsSoFar('2026-09-14', '2026-09-14', 6)).toBe(1);
-    expect(plannedSessionsSoFar('2026-09-14', '2026-09-15', 6)).toBe(2);
-    expect(plannedSessionsSoFar('2026-09-14', '2026-09-19', 6)).toBe(6);
+  it('il dovuto cresce in proporzione ai giorni, non con il numero del giorno', () => {
+    /*
+     * Il programma attivo non assegna giorni: quattro sedute stanno dentro
+     * sette come si vuole. Con la vecchia formula — una seduta per ogni
+     * giorno trascorso — al giovedì ne erano dovute quattro, e chi ne aveva
+     * fatta una leggeva il venticinque per cento pur essendo in pari.
+     */
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-14', 4)).toBe(0); // lunedì, 1° giorno
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-16', 4)).toBe(1); // mercoledì, 3°
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-17', 4)).toBe(2); // giovedì, 4°
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-20', 4)).toBe(4); // domenica, 7°
   });
 
-  it('la domenica non aggiunge una seduta: sono sei a settimana', () => {
-    expect(plannedSessionsSoFar('2026-09-14', '2026-09-20', 6)).toBe(6);
+  it('non supera mai le sedute previste nella settimana', () => {
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-20', 4)).toBe(4);
   });
 
   it('le settimane concluse contano intere', () => {
-    expect(plannedSessionsSoFar('2026-09-14', '2026-09-21', 6)).toBe(7);
-    expect(plannedSessionsSoFar('2026-09-14', '2026-09-27', 6)).toBe(12);
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-21', 4)).toBe(4);
+    expect(plannedSessionsSoFar('2026-09-14', '2026-09-27', 4)).toBe(8);
   });
 
   it('non conta nulla prima dell’inizio', () => {
@@ -256,10 +284,16 @@ describe('sedute previste fino a oggi', () => {
   });
 
   it('chi è in pari non risulta mai sotto il cento per cento', () => {
-    // Sei sedute chiuse in una settimana piena: 100%, non 6 su 36.
-    const done = ['14', '15', '16', '17', '18', '19'].map((day) =>
-      loggedSession(`2026-09-${day}`, 1, [], 'completed'),
+    /* Quattro sedute chiuse entro la domenica: cento per cento, non 4 su 7. */
+    const fatte = (['14', '16', '18', '20'] as const).map((giorno, indice) =>
+      loggedSession(
+        `2026-09-${giorno}`,
+        1,
+        [],
+        'completed',
+        (['circuito-1', 'circuito-2', 'circuito-3', 'circuito-4'] as const)[indice],
+      ),
     );
-    expect(adherenceFromSessions(done, 6, '2026-09-14', '2026-09-19').percent).toBe(100);
+    expect(adherenceFromSessions(fatte, 4, '2026-09-14', '2026-09-20').percent).toBe(100);
   });
 });

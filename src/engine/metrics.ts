@@ -11,7 +11,8 @@ import type {
   WaistEntry,
   WeightEntry,
 } from '../types/index.ts';
-import { addDays, daysBetween, isoWeekday, sortIsoDates, startOfWeek } from './dates.ts';
+import { addDays, daysBetween, sortIsoDates, startOfWeek } from './dates.ts';
+import { isActiveSession } from '../data/sessions.ts';
 
 /**
  * Medie, delta, volume e aderenza. Tutto puro, tutto su dati già registrati.
@@ -264,28 +265,63 @@ export function adherence(completed: number, planned: number): Adherence {
  * Sedute previste da inizio programma fino a oggi compreso.
  *
  * La settimana in corso conta solo per i giorni già passati. Contarla intera
- * farebbe apparire in ritardo chi è perfettamente in pari: al martedì della
- * settimana 6 il denominatore sarebbe 36 invece di 32.
+ * farebbe apparire in ritardo chi è perfettamente in pari.
+ *
+ * Il «già passati» però non è più il numero del giorno. Con un calendario che
+ * assegnava una seduta a ogni giorno, `isoWeekday` era la risposta giusta: al
+ * giovedì erano dovute quattro sedute perché quattro giorni avevano una seduta
+ * ciascuno. Il programma attivo non assegna giorni: quattro sedute stanno
+ * dentro sette giorni come si vuole, e con la vecchia formula chi al giovedì
+ * ne aveva fatta una leggeva **25%** pur essendo in pari.
+ *
+ * Adesso il dovuto cresce in proporzione ai giorni trascorsi: al quarto giorno
+ * di sette sono dovute due sedute su quattro, non quattro.
  */
 export function plannedSessionsSoFar(
   startDate: string,
   today: string,
   sessionsPerWeek: number,
 ): number {
-  const week = Math.floor(daysBetween(startOfWeek(startDate), today) / 7) + 1;
-  if (week < 1) return 0;
-  const dueThisWeek = Math.min(isoWeekday(today), sessionsPerWeek);
-  return (week - 1) * sessionsPerWeek + dueThisWeek;
+  const giorni = daysBetween(startOfWeek(startDate), today);
+  if (giorni < 0) return 0;
+  const settimanePiene = Math.floor(giorni / 7);
+  /* 1 il lunedì, 7 la domenica: `startOfWeek` allinea al lunedì. */
+  const giorniInCorso = (giorni % 7) + 1;
+  const dovuteOra = Math.min(
+    sessionsPerWeek,
+    Math.floor((giorniInCorso / 7) * sessionsPerWeek),
+  );
+  return settimanePiene * sessionsPerWeek + dovuteOra;
 }
 
-/** Aderenza sulle sedute chiuse, contro quelle previste fino a oggi. */
+/**
+ * Aderenza sulle sedute chiuse, contro quelle previste fino a oggi.
+ *
+ * Il numeratore ha due filtri, e mancavano entrambi.
+ *
+ * **La data**: contava tutte le sedute chiuse di sempre. Con lo storico dello
+ * Shadow archiviato nel registro — ventiquattro sedute del 2025 —
+ * e tre sedute dovute dall'inizio del programma, l'app mostrava **833%**.
+ *
+ * **Il programma**: una seduta dello Shadow non è una seduta di questo
+ * programma. Il filtro sulla data da solo basterebbe oggi, ma smette di
+ * bastare il giorno in cui si rimette indietro la data di inizio, e allora
+ * tornerebbe a contare lavoro di un'altra scheda.
+ */
 export function adherenceFromSessions(
   sessions: readonly LoggedSession[],
   sessionsPerWeek: number,
   startDate: string | null,
   today: string,
 ): Adherence {
-  const completed = sessions.filter((session) => session.status === 'completed').length;
-  if (startDate === null) return adherence(completed, 0);
+  if (startDate === null) return adherence(0, 0);
+  const dal = startOfWeek(startDate);
+  const completed = sessions.filter(
+    (session) =>
+      session.status === 'completed' &&
+      session.date >= dal &&
+      session.date <= today &&
+      isActiveSession(session.sessionId),
+  ).length;
   return adherence(completed, plannedSessionsSoFar(startDate, today, sessionsPerWeek));
 }

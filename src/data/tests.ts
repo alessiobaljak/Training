@@ -123,6 +123,8 @@ const BY_ID: ReadonlyMap<TestId, TestDefinition> = new Map(
  * che l'app non sa registrare — «10-15 ripetizioni di hollow hold».
  */
 export interface TestBaseline {
+  /** Il test che misura questa scala: serve a leggerne il risultato. */
+  readonly testId: TestId;
   readonly level: LevelIndex;
   readonly measurement: MeasurementKind;
 }
@@ -144,7 +146,13 @@ export function testBaseline(pattern: MotorPattern): TestBaseline | null {
     const exercise = getExercise(test.exercise);
     if (exercise.pattern !== pattern) continue;
     if (exercise.defaultLevel === null) return null;
-    return { level: exercise.defaultLevel, measurement: exercise.measurement };
+    /*
+     * `testId` serve a leggere **quanto** l'atleta ha fatto, non solo a quale
+     * gradino il test si esegue. Senza, il tetto era il gradino dell'esercizio
+     * del test — identico per chiunque — e chi faceva zero trazioni partiva
+     * dalle trazioni complete.
+     */
+    return { testId: test.id, level: exercise.defaultLevel, measurement: exercise.measurement };
   }
   return null;
 }
