@@ -127,6 +127,12 @@ describe('politica zavorra', () => {
         'calf-monopodalico-rialzo',
         'calf-monopodalico-seduto',
         'hip-thrust-monopodalico',
+        /*
+         * Il gradino 2 della stessa scala, aggiunto come esercizio suo: la
+         * scheda prescrive l'hip thrust a due gambe con il kettlebell
+         * sull'anca, e il carico li' e' la prescrizione, non un'aggiunta.
+         */
+        'hip-thrust-panca-bilaterale',
         'single-leg-rdl',
       ].sort(),
     );

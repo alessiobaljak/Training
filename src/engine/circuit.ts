@@ -64,7 +64,18 @@ function minRepsOf(block: ProgramBlock): number | null {
 export function minWorkSeconds(block: ProgramBlock, exercise: Exercise = getExercise(block.exercise)): number {
   const raddoppia = (value: number): number => (block.perSide ? value * 2 : value);
 
-  if (block.workSeconds !== undefined) return raddoppia(block.workSeconds);
+  /*
+   * Un `workSeconds` dichiarato e' il tempo dell'intera stazione, lati
+   * compresi, e non si raddoppia.
+   *
+   * La colonna «lavoro» della scheda conta cosi': il bulgaro 8-10 per gamba
+   * sta scritto «~100"», che sono i cinquanta secondi di una gamba piu' i
+   * cinquanta dell'altra. Raddoppiandolo il player chiedeva 200 secondi di
+   * countdown per una stazione da cento, e l'orologio della seduta sforava di
+   * otto minuti su quaranta. Dove invece il tempo arriva dalla prescrizione
+   * (30-40" per lato) il raddoppio e' giusto, ed e' rimasto sotto.
+   */
+  if (block.workSeconds !== undefined) return block.workSeconds;
 
   const prescription = block.prescription;
   if (prescription.kind === 'seconds') return raddoppia(prescription.min);
@@ -347,6 +358,7 @@ function restBetween(
 export function groupLabel(session: ProgramSession, group: string): string {
   const quanti = session.blocks.filter((block) => block.group === group).length;
   if (group === 'F') return 'Finitura metabolica';
+  if (group === 'Z') return 'Decompressione';
   if (quanti >= 3) return `Tri-set ${group}`;
   if (quanti === 2) return `Coppia ${group}`;
   return `Blocco ${group}`;

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CIRCUIT_ORDER, CIRCUIT_SESSIONS, findCircuitSession, isCircuitSessionId } from './circuit.ts';
 import { findExercise, getExercise } from './exercises.ts';
 import { WEEK_ZERO_TESTS } from './tests.ts';
-import { buildGuidedPlan, estimatedSeconds } from '../engine/circuit.ts';
+import { buildGuidedPlan, clockOffsets, estimatedSeconds } from '../engine/circuit.ts';
 import { MUSCLE_GROUPS, SECONDARY_SET_WEIGHT } from '../types/index.ts';
 import type { MuscleGroup } from '../types/index.ts';
 
@@ -117,38 +117,80 @@ describe('circuit.ts — il programma attivo', () => {
     }
   });
 
-  it('esclude dalla revisione solo la finitura metabolica', () => {
+  it('esclude dalla revisione la finitura e la decompressione, e nient’altro', () => {
     /*
      * La finitura va a massime ripetizioni su un tempo fissato: il numero
      * dipende da quanto era dura la seduta fin lì, non dal gradino. Lasciarla
      * dentro farebbe proporre «scendi di livello» su esercizi sani.
+     *
+     * La decompressione è fuori per un motivo diverso: non è lavoro. Trenta
+     * secondi appesi e un minuto di apertura d'anca non hanno un gradino da
+     * salire, e una sospensione tenuta venti secondi invece di trenta non è
+     * un segnale di regressione — è una seduta andata lunga.
+     *
+     * I due blocchi veri, A e B, devono restare dentro: il flag che li
+     * escludesse per sbaglio spegnerebbe metà della revisione in silenzio.
      */
     for (const session of CIRCUIT_SESSIONS) {
       for (const block of session.blocks) {
         expect(block.excludeFromReview ?? false, `${session.id}/${block.code}`).toBe(
-          block.group === 'F',
+          block.group === 'F' || block.group === 'Z',
         );
       }
     }
   });
 
-  it('dà alle braccia un blocco in tutte e quattro le sedute', () => {
+  it('ha la stessa struttura in tutte e quattro: A, B, finitura, decompressione', () => {
+    /*
+     * Quattro blocchi con quattro ruoli, identici in tutte e quattro le
+     * sedute. La versione precedente di questo file ne aveva quattro di
+     * lavoro invece di due tri-set, una finitura da tre stazioni e nessuna
+     * decompressione: la struttura è la cosa che si è rotta per prima, e
+     * questo test è quello che l'avrebbe fermata.
+     */
+    for (const session of CIRCUIT_SESSIONS) {
+      const conta = (group: string): number =>
+        session.blocks.filter((block) => block.group === group).length;
+      expect(conta('A'), `${session.id}/A`).toBe(3);
+      expect(conta('B'), `${session.id}/B`).toBe(3);
+      expect(conta('F'), `${session.id}/F`).toBe(4);
+      expect(conta('Z'), `${session.id}/Z`).toBe(3);
+      expect([...new Set(session.blocks.map((block) => block.group))], session.id).toEqual([
+        'A',
+        'B',
+        'F',
+        'Z',
+      ]);
+    }
+  });
+
+  it('dà alle braccia due stazioni per seduta, nel Tri-set 2', () => {
     /*
      * La priorità dichiarata è «braccia più grosse». Un gruppo prioritario che
      * compare una volta a settimana prende tre serie e un segnale di
      * progressione così rumoroso che una giornata storta costa una settimana
-     * di dati. Qui sono dodici serie dirette a settimana per bicipite e per
-     * tricipite, con un esercizio diverso ogni volta.
+     * di dati. Qui il Tri-set 2 ne ha due per seduta più una di vita: otto
+     * stazioni di braccia a settimana, con un esercizio diverso ogni volta.
      */
-    for (const session of CIRCUIT_SESSIONS) {
-      const braccia = session.blocks.filter((block) => block.group === 'C');
+    const stazioniBraccia = CIRCUIT_SESSIONS.flatMap((session) => {
+      const braccia = session.blocks.filter(
+        (block) =>
+          block.group === 'B' && getExercise(block.exercise).primaryMuscles.includes('braccia'),
+      );
       expect(braccia.length, session.id).toBe(2);
-    }
-    const esercizi = CIRCUIT_SESSIONS.flatMap((session) =>
-      session.blocks.filter((block) => block.group === 'C').map((block) => block.exercise),
-    );
+      return braccia.map((block) => block.exercise);
+    });
     /* Otto stazioni di braccia: almeno sei esercizi diversi. */
-    expect(new Set(esercizi).size).toBeGreaterThanOrEqual(6);
+    expect(new Set(stazioniBraccia).size).toBeGreaterThanOrEqual(6);
+
+    /* E una di vita per seduta, che è l'altro mezzo nome del blocco. */
+    for (const session of CIRCUIT_SESSIONS) {
+      const vita = session.blocks.filter(
+        (block) =>
+          block.group === 'B' && getExercise(block.exercise).primaryMuscles.includes('core'),
+      );
+      expect(vita.length, session.id).toBe(1);
+    }
   });
 
   it('non mette due stazioni di presa una dopo l’altra dentro un giro', () => {
@@ -179,6 +221,162 @@ describe('circuit.ts — il programma attivo', () => {
           ).toBe(false);
         }
       }
+    }
+  });
+
+  it('ha gli esercizi della scheda originale, nell’ordine della scheda', () => {
+    /*
+     * L'impronta della trascrizione.
+     *
+     * Questo test esiste per un motivo preciso: una volta queste quattro
+     * sedute sono state riscritte a memoria, perché le tabelle non erano più
+     * sotto gli occhi, e ne è uscita una scheda con metà degli esercizi
+     * diversi — pull-over al TRX dove la scheda dice dip, quattro blocchi
+     * dove dice due tri-set. Nessun test se ne accorse: controllavano tutti
+     * proprietà (gli slug esistono, l'unità di misura torna, l'orologio sta
+     * nei quaranta minuti), e una scheda inventata le rispetta tutte.
+     *
+     * Qui non c'è nessuna proprietà: c'è la lista. Se cambia, fallisce, e chi
+     * la cambia deve dire perché.
+     */
+    const impronta = (id: string): readonly string[] =>
+      (findCircuitSession(id)?.blocks ?? []).map((block) => `${block.code} ${block.exercise}`);
+
+    expect(impronta('circuito-1')).toEqual([
+      'A1 trazioni-prona-presa-media',
+      'A2 bulgarian-split-squat',
+      'A3 dip-parallele-anelli',
+      'B1 curl-martello-manubri',
+      'B2 estensione-tricipiti-sopra-testa',
+      'B3 suitcase-carry',
+      'F1 kb-swing',
+      'F2 corda-battaglia-onde-alternate',
+      'F3 step-rapidi-box',
+      'F4 corda-battaglia-slam',
+      'Z1 dead-hang',
+      'Z2 apertura-anche',
+      'Z3 respirazione-360',
+    ]);
+
+    expect(impronta('circuito-2')).toEqual([
+      'A1 pike-pushup-piedi-rialzati',
+      'A2 stacco-rumeno-manubri',
+      'A3 rematore-inverso-trx',
+      'B1 curl-manubri-supino',
+      'B2 dip-panche-o-diamond-pushup',
+      'B3 pallof-press-elastico',
+      'F1 burpee',
+      'F2 corda-per-saltare',
+      'F3 affondi-rapidi-alternati',
+      'F4 corda-battaglia-onde-doppie',
+      'Z1 dead-hang',
+      'Z2 apertura-anche',
+      'Z3 respirazione-360',
+    ]);
+
+    expect(impronta('circuito-3')).toEqual([
+      'A1 goblet-squat',
+      'A2 push-up',
+      'A3 pull-over-trx',
+      'B1 curl-trx',
+      'B2 estensione-tricipiti-trx',
+      'B3 hollow-hold',
+      'F1 kb-swing',
+      'F2 mountain-climber',
+      'F3 corda-battaglia-cerchi',
+      'F4 step-rapidi-box',
+      'Z1 dead-hang',
+      'Z2 apertura-anche',
+      'Z3 respirazione-360',
+    ]);
+
+    expect(impronta('circuito-4')).toEqual([
+      'A1 hip-thrust-panca-bilaterale',
+      'A2 rematore-manubrio-un-braccio',
+      'A3 military-press-manubri',
+      'B1 curl-panca-inclinata',
+      'B2 dip-panche-piedi-rialzati',
+      'B3 plank-trascinamento-kb',
+      'F1 corda-battaglia-slam',
+      'F2 jumping-jack',
+      'F3 kb-swing',
+      'F4 plank-tocco-spalla',
+      'Z1 dead-hang',
+      'Z2 apertura-anche',
+      'Z3 respirazione-360',
+    ]);
+  });
+
+  it('ha lo stesso riscaldamento in tutte e quattro', () => {
+    /*
+     * La scheda lo dice così: «come Seduta 1, con il giro di prova sul Tri-set
+     * 1 di questa seduta». L'unica cosa che cambia è il contenuto del giro di
+     * prova, e lo cambia `rampGroup` da sé. Prima qui c'erano quattro
+     * riscaldamenti diversi, con lo swing tecnico e le scapole che
+     * scomparivano da due sedute su quattro: era una variazione inventata.
+     */
+    const atteso = [
+      'Corda da battaglia, onde alternate leggere',
+      'Scapular pull-up',
+      'Circonduzioni di spalla',
+      'Swing con kettlebell 16 kg, tecnici',
+      'Affondo con rotazione',
+      'Giro di prova del Tri-set A',
+    ];
+    for (const session of CIRCUIT_SESSIONS) {
+      expect((session.warmupSteps ?? []).map((passo) => passo.label), session.id).toEqual(atteso);
+    }
+  });
+
+  it('tiene l’orologio della scheda, giro per giro', () => {
+    /*
+     * La scheda dà un orologio al minuto, e i giri sono la parte che non può
+     * scostarsi: un giro del Tri-set A della Seduta 1 dura 4'35" perché è la
+     * somma di 30" + 35" + 100" + 35" + 30" + 45", e se quella somma cambia
+     * è cambiato un numero della scheda.
+     *
+     * È il test che ha trovato due errori veri: il raddoppio di `workSeconds`
+     * sugli esercizi per lato (il bulgaro chiedeva 200 secondi invece di 100)
+     * e i 90 secondi di pausa di blocco messi anche tra il Tri-set 2 e la
+     * finitura, dove l'orologio originale non ha nessuna pausa.
+     */
+    const giri: Readonly<Record<string, readonly [number, number]>> = {
+      /* [durata di un giro del Tri-set A, durata di un giro del Tri-set B] */
+      'circuito-1': [275, 230],
+      'circuito-2': [240, 230],
+      'circuito-3': [255, 200],
+      'circuito-4': [295, 230],
+    };
+
+    for (const [id, [attesoA, attesoB]] of Object.entries(giri)) {
+      const session = findCircuitSession(id);
+      expect(session, id).toBeDefined();
+      if (session === undefined) continue;
+      const plan = buildGuidedPlan(session, 1);
+      const offsets = clockOffsets(plan);
+
+      const inizioGiro = (group: string, giro: number): number => {
+        const i = plan.findIndex(
+          (step) => step.kind === 'work' && step.group === group && step.step.setIndex === giro,
+        );
+        return offsets[i] ?? -1;
+      };
+
+      expect(inizioGiro('A', 2) - inizioGiro('A', 1), `${id}/A`).toBe(attesoA);
+      expect(inizioGiro('A', 3) - inizioGiro('A', 2), `${id}/A`).toBe(attesoA);
+      expect(inizioGiro('B', 2) - inizioGiro('B', 1), `${id}/B`).toBe(attesoB);
+      expect(inizioGiro('B', 3) - inizioGiro('B', 2), `${id}/B`).toBe(attesoB);
+
+      /* 90" tra i due tri-set nelle sedute di forza, 60" in quelle di volume. */
+      const pausaDiBlocco = inizioGiro('B', 1) - (inizioGiro('A', 3) + attesoA - 45);
+      expect(pausaDiBlocco, `${id}/pausa di blocco`).toBeGreaterThan(0);
+
+      /* E nessuna pausa tra il Tri-set 2 e la finitura. */
+      const ultimoB = plan.reduce(
+        (acc, step, i) => (step.kind === 'work' && step.group === 'B' ? i : acc),
+        -1,
+      );
+      expect(plan[ultimoB + 1]?.kind, `${id}/verso la finitura`).toBe('work');
     }
   });
 
@@ -215,30 +413,40 @@ describe('volume settimanale del circuito per gruppo muscolare', () => {
 
   it('corrisponde ai totali attesi', () => {
     /*
-     * Lettura del risultato, rispetto al riferimento del metodo di 16-20 serie
-     * a settimana per gruppo:
+     * Questi numeri sono quelli della scheda originale, non quelli di una
+     * scheda disegnata per starci dentro. Vanno letti come una misura, e due
+     * di loro sono fuori dalla fascia di riferimento del metodo (16-20 serie
+     * a settimana per gruppo) in modo che va deciso, non nascosto:
      *
-     * - **Braccia 37,5**: quasi il doppio della fascia, ed è voluto. È la
-     *   priorità dichiarata, e un gruppo prioritario si allena sopra la fascia
-     *   di mantenimento o non è una priorità.
-     * - **Dorsali 25,5**: sopra, per via del volume indiretto delle trazioni e
-     *   dei rematori che portano anche le braccia.
-     * - **Spalle 20**: in cima alla fascia. Il deltoide laterale è il muscolo
-     *   con più leva sulla silhouette, e il rapporto spalla-vita è il numero
-     *   che si legge come «vita sottile».
-     * - **Petto 15 e femorali-glutei 15**: appena sotto, cioè mantenimento. È
-     *   quello che la priorità chiedeva.
-     * - **Quadricipiti 18**: dentro la fascia, e saliti rispetto allo Shadow,
-     *   che li lasciava a 13.
+     * - **Braccia 34,5**: molto sopra la fascia, ed e' voluto. E' la priorita'
+     *   dichiarata, e un gruppo prioritario si allena sopra il mantenimento o
+     *   non e' una priorita'. Sono otto stazioni dirette a settimana.
+     * - **Core 16,5**: dentro la fascia. Una stazione di vita per seduta nel
+     *   Tri-set 2, piu' il lavoro indiretto del goblet e del military press.
+     * - **Dorsali 15**: appena sotto. Una stazione di tirata per seduta.
+     * - **Spalle 13,5**: sotto, quasi tutto indiretto. Il deltoide laterale ha
+     *   molta leva sulla silhouette e qui non ha nessuna stazione sua: le
+     *   alzate laterali sono le due serie opzionali nel margine della Seduta 2.
+     * - **Petto 9**: sotto. Dip nella prima seduta, push-up nella terza.
+     * - **Femorali-glutei 9**: sotto. Stacco rumeno e hip thrust, uno a testa.
+     * - **Quadricipiti 6**: il numero piu' basso, e il piu' discutibile. Due
+     *   stazioni in tutta la settimana, il bulgaro e il goblet squat.
+     *
+     * Petto, femorali e quadricipiti sotto la fascia sono una conseguenza
+     * della struttura: due tri-set da tre stazioni fanno sei stazioni di
+     * lavoro per seduta, e tre delle sei vanno al blocco braccia-e-vita. Se la
+     * priorita' resta quella dichiarata il prezzo e' questo; e' una domanda
+     * per `training-designer`, aperta in `docs/SESSION_STATE.md`, non qualcosa
+     * da correggere cambiando la scheda di nascosto.
      */
     expect(volume()).toEqual({
-      braccia: 37.5,
-      dorsali: 25.5,
-      spalle: 20,
-      quadricipiti: 18,
-      petto: 15,
-      'femorali-glutei': 15,
-      core: 14,
+      braccia: 34.5,
+      core: 16.5,
+      dorsali: 15,
+      spalle: 13.5,
+      petto: 9,
+      'femorali-glutei': 9,
+      quadricipiti: 6,
       polpacci: 0,
     });
   });

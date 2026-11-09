@@ -9,73 +9,84 @@ import type {
 /**
  * Il programma attivo: quattro circuiti, nessun giorno assegnato.
  *
- * Sostituisce lo Shadow, che resta in `program.ts` come archivio perché il
- * diario lo cita. Tre cose lo rendono una scheda diversa e non una variante:
+ * **Questa è la trascrizione della scheda originale**, non una ricostruzione.
+ * La prima versione di questo file era stata riscritta a memoria dai principi
+ * del programma, perché le tabelle non erano più nel contesto: ne è uscita una
+ * scheda con quattro blocchi invece di due tri-set, una finitura da tre
+ * stazioni invece di quattro, nessuna decompressione e metà degli esercizi
+ * diversi. Qui ogni riga viene dal testo.
+ *
+ * Struttura, identica in tutte e quattro:
+ *
+ * | blocco | cos'è | giri |
+ * |---|---|---|
+ * | riscaldamento | cinque passi più il giro di prova del Tri-set 1 | — |
+ * | **A** | Tri-set 1 | 3 |
+ * | **B** | Tri-set 2 — braccia e vita | 3 |
+ * | **F** | finitura metabolica, quattro stazioni | 2 |
+ * | **Z** | decompressione | 1 |
+ *
+ * Tre cose che la rendono una scheda diversa e non una variante:
  *
  * 1. **Nessun calendario.** Le quattro sedute si fanno nell'ordine in cui
- *    stanno, quando capita, quattro volte a settimana. La Home legge l'ultima
- *    seduta nel diario, non il giorno di oggi.
+ *    stanno, quando capita, quattro volte a settimana.
  *
  * 2. **Tri-set non competitivi.** Tre stazioni di fila i cui muscoli non si
- *    contendono niente, così ogni muscolo recupera 2'40"-4' veri mentre tu non
- *    hai mai tempo morto. È quello che permette a 40 minuti di contenere il
- *    volume di una seduta da 58.
+ *    contendono niente: ogni muscolo recupera 2'40"-4'05" veri mentre tu non
+ *    hai mai tempo morto. È quello che permette a quaranta minuti di contenere
+ *    il volume di una seduta da cinquantotto.
  *
  * 3. **Range fissi, mai derivati dal test.** Il massimale alle trazioni è 4:
  *    un range calcolato dal test prescriverebbe numeri ineseguibili. Qui il
- *    numero di ripetizioni è fisso e quello che si sposta è il *gradino* della
- *    scala, scelto perché il massimo tecnico cada dentro il range: 6-10 nei
- *    blocchi di forza, 12-18 in quelli di volume. È la stessa regola di prima,
- *    applicata nel verso giusto.
+ *    numero è fisso e quello che si sposta è il *gradino*, scelto perché il
+ *    massimo tecnico ci caschi dentro.
  *
- * Kettlebell e corda ci sono, e lo swing è un gesto che sai fare: entrambi
- * sono prescrizioni vere, non ripieghi. Le alternative a corpo libero restano
- * dichiarate in `alternatives` lo stesso, ma non più per la disponibilità:
- * servono il giorno in cui la corda non ha spazio o ti alleni altrove.
- *
- * Lo swing resta fuori dai tri-set, e non è una questione di tecnica. È
- * balistico: circa mezzo secondo di tensione a ripetizione, contro i tre o
- * quattro di una serie controllata. Condiziona più di quanto costruisca,
- * quindi il suo posto è la finitura — dove la frequenza cardiaca è
- * l'obiettivo — e il riscaldamento, dove ripassa la cerniera d'anca prima che
- * serva.
+ * I tempi della colonna «lavoro» della scheda sono qui come `workSeconds`:
+ * sono stime, non prescrizioni — la serie finisce a RIR 1-2, non allo scadere
+ * — e servono a far tornare l'orologio.
  */
 
 /* -------------------------------------------------------------------------- */
-/* I quattro livelli di recupero                                               */
+/* I recuperi, con nome                                                        */
 /* -------------------------------------------------------------------------- */
 
 /*
- * Transizione, recupero di giro, pausa di blocco.
+ * «Recupero tra gli esercizi» in un tri-set è una contraddizione: la
+ * transizione *è* il recupero, e vale 20-35 secondi. Il numero che conta è un
+ * altro — il recupero reale di ogni muscolo, cioè il tempo tra una sua serie e
+ * la successiva — e in questa scheda sta tra 2'40" e 4'05".
  *
- * La transizione non è un recupero: è il tempo per spostarsi sulla stazione
- * successiva. Il muscolo che ha appena lavorato sta recuperando per tutta la
- * durata delle altre due stazioni, e quello è il suo recupero vero — nel
- * blocco di forza arriva a quattro minuti.
- *
- * Il tempo si recupera nelle transizioni, mai nel recupero di giro: tagliare
- * il recupero di giro cambia l'allenamento, accorciare una transizione cambia
- * solo la fretta.
+ * Il tempo si recupera nelle transizioni, mai nel recupero di giro.
  */
 
-/**
- * Tri-set di forza: transizione 30", giro 45", blocco 90".
- *
- * La transizione è la leva su cui si recupera tempo quando la seduta sfora, e
- * costa poco: il recupero vero del muscolo che ha appena lavorato è la somma
- * delle altre due stazioni più il recupero di giro, e resta sopra i tre
- * minuti. Il recupero di giro invece non si tocca — tagliarlo cambia
- * l'allenamento, non la fretta.
- */
+/** Tri-set 1 delle sedute di forza: transizione 35", giro 45", blocco 90". */
 const FORZA: RestPrescription = {
   kind: 'superset',
-  transitionMinSec: 30,
-  transitionMaxSec: 30,
+  transitionMinSec: 35,
+  transitionMaxSec: 35,
   roundRestSec: 45,
   blockRestSec: 90,
 };
 
-/** Tri-set di volume: transizione 20", giro 30", blocco 60". */
+/**
+ * Tri-set 2 delle sedute di forza: transizione 20", giro 30", poi la finitura.
+ *
+ * `blockRestSec: 0` non e' una dimenticanza. La pausa di blocco della scheda
+ * sta tra Tri-set 1 e Tri-set 2 e in nessun altro posto: l'orologio originale
+ * manda l'ultimo giro del Tri-set 2 dentro la finitura senza fermarsi, in
+ * tutte e quattro le sedute (27:10 → 30:30 nella prima, e sono esattamente i
+ * 200 secondi del giro). Con 90 secondi qui l'orologio sforava di un minuto e
+ * quaranta su ogni seduta.
+ */
+const FORZA_BRACCIA: RestPrescription = {
+  kind: 'superset',
+  transitionMinSec: 20,
+  transitionMaxSec: 20,
+  roundRestSec: 30,
+  blockRestSec: 0,
+};
+
+/** Tri-set 1 delle sedute di volume: transizione 20", giro 30", blocco 60". */
 const VOLUME: RestPrescription = {
   kind: 'superset',
   transitionMinSec: 20,
@@ -85,21 +96,22 @@ const VOLUME: RestPrescription = {
 };
 
 /**
- * Blocco braccia: transizione 20", giro 25", blocco 60".
+ * Tri-set 2 delle sedute di volume: transizione 15", giro 20-25", blocco 60".
  *
- * I recuperi sono i più corti della seduta e va bene che lo siano: bicipite e
+ * Sono i recuperi più corti della scheda e va bene che lo siano: bicipite e
  * tricipite sono antagonisti puri, quindi mentre uno lavora l'altro recupera
- * davvero. Il recupero reale per muscolo resta sopra i due minuti e mezzo.
+ * davvero.
  */
-const BRACCIA: RestPrescription = {
+const volumeBraccia = (giro: number): RestPrescription => ({
   kind: 'superset',
-  transitionMinSec: 20,
-  transitionMaxSec: 20,
-  roundRestSec: 25,
-  blockRestSec: 60,
-};
+  transitionMinSec: 15,
+  transitionMaxSec: 15,
+  roundRestSec: giro,
+  /* Come in FORZA_BRACCIA: dal Tri-set 2 si entra in finitura senza pausa. */
+  blockRestSec: 0,
+});
 
-/** Finitura metabolica: 15" tra le stazioni, nessun recupero tra i giri. */
+/** Finitura: 15" tra le stazioni, zero tra i giri. */
 const FINITURA: RestPrescription = {
   kind: 'superset',
   transitionMinSec: 15,
@@ -108,38 +120,26 @@ const FINITURA: RestPrescription = {
   blockRestSec: 0,
 };
 
-/** Stazione isolata: il tempo indicato è tra le serie. */
-const isolato = (restSec: number): RestPrescription => ({ kind: 'straight', restSec });
+/** Decompressione: si passa da una posizione all'altra senza fermarsi. */
+const DECOMPRESSIONE: RestPrescription = {
+  kind: 'superset',
+  transitionMinSec: 0,
+  transitionMaxSec: 0,
+  roundRestSec: 0,
+  blockRestSec: 0,
+};
 
 /* -------------------------------------------------------------------------- */
-/* Riscaldamenti                                                               */
+/* Riscaldamento                                                               */
 /* -------------------------------------------------------------------------- */
 
-/*
- * Il riscaldamento è nella sequenza, non prima di essa.
- *
- * Nello Shadow erano quattro righe di testo da spuntare a occhio. Qui ogni
- * passo dichiara quanto dura o quante ripetizioni vuole, perché il player lo
- * attraversa con il countdown come tutto il resto: il giro di prova compreso,
- * che è la parte che la gente salta e che serve più di tutte.
- */
-
-/**
- * Il giro di prova del Tri-set A.
- *
- * `rampGroup` non è decorazione: il player lo espande in un passo per ogni
- * esercizio del blocco A, ognuno con il suo nome e la sua figura. Scritto come
- * riga unica diceva «fai un giro di tre esercizi» senza dire quali, con un
- * conto alla rovescia da quarantacinque secondi che non bastava nemmeno a
- * provarne uno.
- */
-const RAMPA_A: WarmupStep = {
-  label: 'Giro di prova del Tri-set A',
-  seconds: 20,
+const CORDA: WarmupStep = {
+  label: 'Corda da battaglia, onde alternate leggere',
+  exercise: 'corda-battaglia-onde-alternate',
+  seconds: 60,
   reps: null,
   perSide: false,
-  rampGroup: 'A',
-  hint: 'Metà carico, metà ripetizioni. Non è una serie: è la prova che la prima vera non parta a freddo.',
+  hint: 'Senza corda: jumping jack. Serve ad alzare la temperatura, non a stancare.',
 };
 
 const SCAPOLE: WarmupStep = {
@@ -160,6 +160,22 @@ const CIRCONDUZIONI: WarmupStep = {
   hint: 'Cerchi ampi e lenti, costole chiuse.',
 };
 
+/**
+ * Dieci swing con il kettlebell da 16, eseguiti per la tecnica.
+ *
+ * «Tecnici» è terminologia di riscaldamento: si fanno per ripassare lo schema,
+ * non per fare fatica. Il 16 è il peso della campana, non il numero di
+ * ripetizioni — quelle sono dieci.
+ */
+const SWING_TECNICO: WarmupStep = {
+  label: 'Swing con kettlebell 16 kg, tecnici',
+  exercise: 'kb-swing',
+  seconds: 30,
+  reps: 10,
+  perSide: false,
+  hint: 'Cerniera, non squat: il peso va indietro tra le gambe, alto e vicino all\u2019inguine. Nessuno sforzo.',
+};
+
 const AFFONDI: WarmupStep = {
   label: 'Affondo con rotazione',
   exercise: 'affondo-con-rotazione',
@@ -170,45 +186,113 @@ const AFFONDI: WarmupStep = {
 };
 
 /**
- * Dieci swing con il kettlebell da 16, eseguiti per la tecnica.
+ * Il giro di prova del Tri-set 1.
  *
- * «Tecnici» è terminologia di riscaldamento: si fanno per ripassare lo schema,
- * non per fare fatica. Carico leggero, nessuno sforzo, attenzione tutta
- * sull'esecuzione — l'opposto di una serie di lavoro. Il 16 è il peso della
- * campana, non il numero di ripetizioni: quelle sono dieci.
+ * `rampGroup` non è un\u2019etichetta: il player lo apre in un passo per ogni
+ * esercizio del blocco, con il suo nome e la sua figura. Scritto come riga
+ * unica chiedeva tre esercizi senza nominarne nessuno.
  */
-const SWING_TECNICO: WarmupStep = {
-  label: 'Swing con kettlebell 16 kg, tecnici',
-  exercise: 'kb-swing',
-  seconds: 30,
-  reps: 10,
+const RAMPA_A: WarmupStep = {
+  label: 'Giro di prova del Tri-set A',
+  seconds: 20,
+  reps: null,
   perSide: false,
-  hint: 'Cerniera, non squat: il peso va indietro tra le gambe, alto e vicino all’inguine. Nessuno sforzo.',
+  rampGroup: 'A',
+  hint: 'Metà carico, metà ripetizioni. Non è una serie: è la prova che la prima vera non parta a freddo.',
 };
 
-const CERNIERA: WarmupStep = {
-  label: 'Stacco rumeno con manubri leggeri, tecnico',
-  exercise: 'stacco-rumeno-manubri',
-  seconds: 30,
-  reps: 10,
-  perSide: false,
-  hint: 'Anche indietro, tibie verticali. Serve la tecnica, non il carico.',
-};
+const RISCALDAMENTO: readonly WarmupStep[] = [
+  CORDA,
+  SCAPOLE,
+  CIRCONDUZIONI,
+  SWING_TECNICO,
+  AFFONDI,
+  RAMPA_A,
+];
 
 /* -------------------------------------------------------------------------- */
-/* Le 4 sedute                                                                 */
+/* Decompressione — due minuti, uguale in tutte e quattro                      */
 /* -------------------------------------------------------------------------- */
 
-/*
- * Ordine delle stazioni: per fattore limitante, non per muscolo.
- *
- * Due stazioni che dipendono dalla presa non sono mai una dopo l'altra, o il
- * circuito diventa un test di avambracci e la seconda viene interrotta da
- * qualcosa che non è il muscolo che si vuole allenare. Per lo stesso motivo i
- * picchi sistemici — le stazioni che alzano la frequenza cardiaca — sono
- * separati da stazioni locali.
+/**
+ * Non è defaticamento generico: sono tre cose precise dopo quaranta minuti di
+ * apnee e di presa. La sospensione passiva riapre la spalla, l\u2019apertura
+ * d\u2019anca restituisce il flessore che i tri-set hanno accorciato, la
+ * respirazione riporta giù la frequenza cardiaca e il diaframma.
  */
+const decompressione = (): readonly ProgramBlock[] => [
+  {
+    code: 'Z1',
+    group: 'Z',
+    pairing: 'superset',
+    exercise: 'dead-hang',
+    sets: 1,
+    prescription: { kind: 'seconds', min: 30, max: 30 },
+    reference: 'Circuito · decompressione',
+    tut: 'isometrico',
+    rir: '\u2014',
+    rest: DECOMPRESSIONE,
+    perSide: false,
+    workSeconds: 30,
+    excludeFromReview: true,
+  },
+  {
+    code: 'Z2',
+    group: 'Z',
+    pairing: 'superset',
+    exercise: 'apertura-anche',
+    sets: 1,
+    prescription: { kind: 'seconds', min: 60, max: 60 },
+    reference: 'Circuito · decompressione',
+    tut: 'isometrico',
+    rir: '\u2014',
+    rest: DECOMPRESSIONE,
+    perSide: false,
+    workSeconds: 60,
+    excludeFromReview: true,
+  },
+  {
+    code: 'Z3',
+    group: 'Z',
+    pairing: 'superset',
+    exercise: 'respirazione-360',
+    sets: 1,
+    prescription: { kind: 'seconds', min: 30, max: 30 },
+    reference: 'Circuito · decompressione',
+    tut: 'isometrico',
+    rir: '\u2014',
+    rest: DECOMPRESSIONE,
+    perSide: false,
+    workSeconds: 30,
+    excludeFromReview: true,
+  },
+];
 
+/** Una stazione della finitura: 30" di lavoro, due giri, fuori dalla revisione. */
+const finitura = (
+  code: string,
+  exercise: ProgramBlock['exercise'],
+  prescription: ProgramBlock['prescription'],
+  variantNote?: string,
+): ProgramBlock => ({
+  code,
+  group: 'F',
+  pairing: 'superset',
+  exercise,
+  sets: 2,
+  prescription,
+  reference: 'Circuito · finitura metabolica',
+  tut: 'controllato',
+  rir: '\u2014',
+  rest: FINITURA,
+  perSide: false,
+  workSeconds: 30,
+  excludeFromReview: true,
+  ...(variantNote === undefined ? {} : { variantNote }),
+});
+
+/** Trenta secondi a tempo: il formato della maggior parte delle stazioni. */
+const trenta = { kind: 'seconds', min: 30, max: 30 } as const;
 const SEDUTA_1: readonly ProgramBlock[] = [
   {
     code: 'A1',
@@ -216,14 +300,15 @@ const SEDUTA_1: readonly ProgramBlock[] = [
     pairing: 'superset',
     exercise: 'trazioni-prona-presa-media',
     sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
+    prescription: { kind: 'reps', min: 6, max: 8 },
+    reference: 'Circuito · tri-set 1',
     tut: '3-0-1-0',
     rir: '1-2',
     rest: FORZA,
     perSide: false,
+    workSeconds: 30,
     variantNote:
-      'Scegli il gradino su cui il tuo massimo tecnico cade tra 6 e 10. Con un massimo di 4 trazioni complete il gradino giusto è quello assistito, non le trazioni complete a ripetizioni spezzate.',
+      'Un piede appoggiato sul box: è il gradino che rende eseguibili sei-otto ripetizioni quando il massimo a corpo libero è quattro. Togli l’appoggio quando otto vengono pulite.',
   },
   {
     code: 'A2',
@@ -231,12 +316,15 @@ const SEDUTA_1: readonly ProgramBlock[] = [
     pairing: 'superset',
     exercise: 'bulgarian-split-squat',
     sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
+    prescription: { kind: 'reps', min: 8, max: 10 },
+    reference: 'Circuito · tri-set 1',
     tut: '3-1-1-0',
     rir: '1-2',
     rest: FORZA,
     perSide: true,
+    workSeconds: 100,
+    variantNote:
+      'Kettlebell in racked, appoggiato al petto dal lato della gamba davanti: tiene il busto verticale meglio di due manubri ai fianchi.',
   },
   {
     code: 'A3',
@@ -244,149 +332,67 @@ const SEDUTA_1: readonly ProgramBlock[] = [
     pairing: 'superset',
     exercise: 'dip-parallele-anelli',
     sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
+    prescription: { kind: 'reps', min: 6, max: 8 },
+    reference: 'Circuito · tri-set 1',
     tut: '3-0-1-0',
     rir: '1-2',
     rest: FORZA,
     perSide: false,
+    workSeconds: 30,
   },
   {
     code: 'B1',
     group: 'B',
     pairing: 'superset',
-    exercise: 'pull-over-trx',
+    exercise: 'curl-martello-manubri',
     sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
+    prescription: { kind: 'reps', min: 8, max: 10 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '3-0-1-1',
+    rir: '0-1',
+    rest: FORZA_BRACCIA,
     perSide: false,
+    workSeconds: 45,
     variantNote:
-      'Qui l’ampiezza dorsale si allena senza che il bicipite sia il limite: i gomiti restano quasi dritti.',
+      'Presa neutra per il brachiale: è il muscolo che allarga il braccio visto di fronte, ed è il più trascurato dei tre.',
   },
   {
     code: 'B2',
     group: 'B',
     pairing: 'superset',
-    exercise: 'goblet-squat',
+    exercise: 'estensione-tricipiti-sopra-testa',
     sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
+    prescription: { kind: 'reps', min: 8, max: 10 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '3-0-1-1',
+    rir: '0-1',
+    rest: FORZA_BRACCIA,
     perSide: false,
+    workSeconds: 45,
+    variantNote:
+      'Con il kettlebell tenuto per le corna. Sopra la testa, non ai fianchi: è l’unica posizione che allunga il capo lungo, che è la parte più grossa del tricipite.',
   },
   {
     code: 'B3',
     group: 'B',
     pairing: 'superset',
-    exercise: 'push-up',
-    sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
-    perSide: false,
-  },
-  {
-    code: 'C1',
-    group: 'C',
-    pairing: 'superset',
-    exercise: 'curl-martello-manubri',
-    sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · blocco braccia',
-    tut: '2-0-1-1',
-    rir: '0-1',
-    rest: BRACCIA,
-    perSide: false,
-    variantNote:
-      'Presa neutra per il brachiale: è il muscolo che allarga il braccio visto di fronte, ed è il più trascurato dei tre.',
-  },
-  {
-    code: 'C2',
-    group: 'C',
-    pairing: 'superset',
-    exercise: 'estensione-tricipiti-sopra-testa',
-    sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · blocco braccia',
-    tut: '3-0-1-0',
-    rir: '0-1',
-    rest: BRACCIA,
-    perSide: false,
-    variantNote:
-      'Sopra la testa, non ai fianchi: è l’unica posizione che allunga il capo lungo, che è la parte più grossa del tricipite.',
-  },
-  {
-    code: 'D',
-    group: 'D',
-    pairing: 'single',
     exercise: 'suitcase-carry',
-    sets: 2,
+    sets: 3,
     prescription: { kind: 'seconds', min: 30, max: 40 },
-    reference: 'Circuito · anti-flessione laterale',
+    reference: 'Circuito · tri-set 2, braccia e vita',
     tut: 'isometrico',
     rir: '—',
-    rest: isolato(30),
+    rest: FORZA_BRACCIA,
     perSide: true,
-    workSeconds: 30,
+    workSeconds: 70,
     variantNote:
-      'È l’unico esercizio della scheda che lavora la vita nel verso giusto: carico alto, zero ipertrofia degli obliqui. Il lavoro è nel non piegarsi.',
+      'Kettlebell da 24. È l’unico esercizio della scheda che lavora la vita nel verso giusto: carico alto, zero ipertrofia degli obliqui. Il lavoro è nel non piegarsi.',
   },
-  {
-    code: 'F1',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'corda-battaglia-onde-alternate',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-    alternatives: [{ exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } }],
-  },
-  {
-    code: 'F2',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'step-rapidi-box',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-  },
-  {
-    code: 'F3',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'kb-swing',
-    sets: 2,
-    prescription: { kind: 'reps', min: 15, max: 20 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'controllato',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-    variantNote:
-      'Qui serve la forza d’anca, non il braccio: se in alto senti le spalle bruciare lo stai alzando invece di lanciarlo. La serie finisce quando la lombare comincia a inarcarsi, anche se il timer no.',
-    alternatives: [{ exercise: 'mountain-climber', prescription: { kind: 'seconds', min: 30, max: 30 } }],
-  },
+  finitura('F1', 'kb-swing', { kind: 'reps', min: 15, max: 20 }),
+  finitura('F2', 'corda-battaglia-onde-alternate', trenta),
+  finitura('F3', 'step-rapidi-box', trenta),
+  finitura('F4', 'corda-battaglia-slam', trenta, 'È la più sistemica delle quattro: se il fiato finisce, finisce la serie.'),
+  ...decompressione(),
 ];
 
 const SEDUTA_2: readonly ProgramBlock[] = [
@@ -394,237 +400,73 @@ const SEDUTA_2: readonly ProgramBlock[] = [
     code: 'A1',
     group: 'A',
     pairing: 'superset',
-    exercise: 'rematore-manubrio-un-braccio',
+    exercise: 'pike-pushup-piedi-rialzati',
     sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
-    tut: '3-0-1-1',
+    prescription: { kind: 'reps', min: 6, max: 8 },
+    reference: 'Circuito · tri-set 1',
+    tut: '3-0-1-0',
     rir: '1-2',
     rest: FORZA,
-    perSide: true,
+    perSide: false,
+    workSeconds: 30,
   },
   {
     code: 'A2',
     group: 'A',
     pairing: 'superset',
-    exercise: 'nordic-curl',
+    exercise: 'stacco-rumeno-manubri',
     sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
-    tut: '3-0-1-0',
+    prescription: { kind: 'reps', min: 8, max: 12 },
+    reference: 'Circuito · tri-set 1',
+    tut: '3-1-1-0',
     rir: '1-2',
     rest: FORZA,
     perSide: false,
+    workSeconds: 50,
+    variantNote:
+      'Con due kettlebell invece dei manubri, se li hai: la presa più bassa allunga un po’ di più.',
   },
   {
     code: 'A3',
     group: 'A',
-    pairing: 'superset',
-    exercise: 'pike-pushup-piedi-rialzati',
-    sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
-    tut: '3-0-1-0',
-    rir: '1-2',
-    rest: FORZA,
-    perSide: false,
-  },
-  {
-    code: 'B1',
-    group: 'B',
     pairing: 'superset',
     exercise: 'rematore-inverso-trx',
     sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-1',
+    prescription: { kind: 'reps', min: 8, max: 10 },
+    reference: 'Circuito · tri-set 1',
+    tut: '2-1-1-1',
     rir: '1-2',
-    rest: VOLUME,
+    rest: FORZA,
     perSide: false,
-  },
-  {
-    code: 'B2',
-    group: 'B',
-    pairing: 'superset',
-    exercise: 'sissy-squat',
-    sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '3-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
-    perSide: false,
-  },
-  {
-    code: 'B3',
-    group: 'B',
-    pairing: 'superset',
-    exercise: 'alzate-laterali-elastico',
-    sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-1',
-    rir: '0-1',
-    rest: VOLUME,
-    perSide: false,
+    workSeconds: 45,
     variantNote:
-      'Il deltoide laterale è il muscolo con più leva sulla silhouette: allarga la spalla, e il rapporto spalla-vita è il numero che si legge come «vita sottile».',
-  },
-  {
-    code: 'C1',
-    group: 'C',
-    pairing: 'superset',
-    exercise: 'chin-up-presa-supina-stretta',
-    sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · blocco braccia',
-    tut: '3-0-1-0',
-    rir: '0-1',
-    rest: BRACCIA,
-    perSide: false,
-    variantNote:
-      'Bicipite sotto carico alto: qui il gradino assistito è la norma, non un ripiego.',
-  },
-  {
-    code: 'C2',
-    group: 'C',
-    pairing: 'superset',
-    exercise: 'dip-panche',
-    sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · blocco braccia',
-    tut: '2-0-1-0',
-    rir: '0-1',
-    rest: BRACCIA,
-    perSide: false,
-  },
-  {
-    code: 'D',
-    group: 'D',
-    pairing: 'single',
-    exercise: 'pallof-press-elastico',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 40 },
-    reference: 'Circuito · anti-rotazione',
-    tut: 'isometrico',
-    rir: '—',
-    rest: isolato(30),
-    perSide: true,
-    workSeconds: 30,
-  },
-  {
-    code: 'F1',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'jumping-jack',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-  },
-  {
-    code: 'F2',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'mountain-climber',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-  },
-  {
-    code: 'F3',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'step-rapidi-box',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-  },
-];
-
-const SEDUTA_3: readonly ProgramBlock[] = [
-  {
-    code: 'A1',
-    group: 'A',
-    pairing: 'superset',
-    exercise: 'croci-elastico-o-pushup-presa-larga',
-    sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '3-0-1-1',
-    rir: '0-1',
-    rest: VOLUME,
-    perSide: false,
-  },
-  {
-    code: 'A2',
-    group: 'A',
-    pairing: 'superset',
-    exercise: 'step-up-box-alto',
-    sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
-    perSide: true,
-  },
-  {
-    code: 'A3',
-    group: 'A',
-    pairing: 'superset',
-    exercise: 'face-pull-elastico',
-    sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 16 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-1',
-    rir: '1-2',
-    rest: VOLUME,
-    perSide: false,
-    variantNote:
-      'Non è un esercizio estetico: bilancia le spinte della settimana e tiene la spalla dove deve stare.',
+      'Agli anelli e con la presa larga: porta i gomiti verso l’esterno, non ai fianchi. È spessore, non ampiezza.',
   },
   {
     code: 'B1',
     group: 'B',
     pairing: 'superset',
-    exercise: 'rematore-inverso-trx-piedi-rialzati',
+    exercise: 'curl-manubri-supino',
     sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-1',
-    rir: '1-2',
-    rest: VOLUME,
+    prescription: { kind: 'reps', min: 8, max: 12 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '3-0-1-1',
+    rir: '0-1',
+    rest: FORZA_BRACCIA,
     perSide: false,
+    workSeconds: 50,
   },
   {
     code: 'B2',
     group: 'B',
     pairing: 'superset',
-    exercise: 'wall-sit',
+    exercise: 'dip-panche-o-diamond-pushup',
     sets: 3,
-    prescription: { kind: 'seconds', min: 40, max: 60 },
-    reference: 'Circuito · tri-set di volume',
-    tut: 'isometrico',
-    rir: '—',
-    rest: VOLUME,
+    prescription: { kind: 'reps', min: 8, max: 12 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '3-0-1-1',
+    rir: '0-1',
+    rest: FORZA_BRACCIA,
     perSide: false,
     workSeconds: 40,
   },
@@ -632,104 +474,119 @@ const SEDUTA_3: readonly ProgramBlock[] = [
     code: 'B3',
     group: 'B',
     pairing: 'superset',
-    exercise: 'pushup-archer-o-pseudo-planche',
+    exercise: 'pallof-press-elastico',
     sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '3-0-1-0',
-    rir: '0-1',
-    rest: VOLUME,
-    perSide: false,
+    prescription: { kind: 'reps', min: 8, max: 10 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '2-0-1-1',
+    rir: '—',
+    rest: FORZA_BRACCIA,
+    perSide: true,
+    workSeconds: 70,
+    variantNote:
+      'Al TRX se ce l’hai, con l’elastico altrimenti. Il bacino non si muove di un grado: è tutto il lavoro.',
   },
+  finitura('F1', 'burpee', trenta, 'Qui la tecnica si sfalda per prima: quando il bacino comincia a cedere nel plank, la serie è finita anche se il timer no.'),
+  finitura('F2', 'corda-per-saltare', trenta),
+  finitura('F3', 'affondi-rapidi-alternati', trenta),
+  finitura('F4', 'corda-battaglia-onde-doppie', trenta),
+  ...decompressione(),
+];
+
+const SEDUTA_3: readonly ProgramBlock[] = [
   {
-    code: 'C1',
-    group: 'C',
+    code: 'A1',
+    group: 'A',
     pairing: 'superset',
-    exercise: 'curl-elastico-presa-neutra',
+    exercise: 'goblet-squat',
     sets: 3,
     prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · blocco braccia',
+    reference: 'Circuito · tri-set 1',
+    tut: '3-1-1-0',
+    rir: '1-2',
+    rest: VOLUME,
+    perSide: false,
+    workSeconds: 75,
+  },
+  {
+    code: 'A2',
+    group: 'A',
+    pairing: 'superset',
+    exercise: 'push-up',
+    sets: 3,
+    prescription: { kind: 'reps', min: 12, max: 18 },
+    reference: 'Circuito · tri-set 1',
+    tut: '2-0-1-0',
+    rir: '1-2',
+    rest: VOLUME,
+    perSide: false,
+    workSeconds: 45,
+    variantNote:
+      'Declinati, piedi su un rialzo: è il gradino che tiene dodici-diciotto ripetizioni dentro il range giusto.',
+  },
+  {
+    code: 'A3',
+    group: 'A',
+    pairing: 'superset',
+    exercise: 'pull-over-trx',
+    sets: 3,
+    prescription: { kind: 'reps', min: 12, max: 15 },
+    reference: 'Circuito · tri-set 1',
+    tut: '3-0-1-1',
+    rir: '1-2',
+    rest: VOLUME,
+    perSide: false,
+    workSeconds: 65,
+    variantNote:
+      'Braccia tese: il gomito non si piega, la spalla si estende. È l’ampiezza dorsale senza che il bicipite sia il limite.',
+  },
+  {
+    code: 'B1',
+    group: 'B',
+    pairing: 'superset',
+    exercise: 'curl-trx',
+    sets: 3,
+    prescription: { kind: 'reps', min: 12, max: 16 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
     tut: '2-0-1-1',
     rir: '0-1',
-    rest: BRACCIA,
+    rest: volumeBraccia(20),
     perSide: false,
+    workSeconds: 56,
   },
   {
-    code: 'C2',
-    group: 'C',
+    code: 'B2',
+    group: 'B',
     pairing: 'superset',
-    exercise: 'dip-panche-o-diamond-pushup',
+    exercise: 'estensione-tricipiti-trx',
     sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · blocco braccia',
-    tut: '2-0-1-0',
+    prescription: { kind: 'reps', min: 12, max: 16 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '2-0-1-1',
     rir: '0-1',
-    rest: BRACCIA,
+    rest: volumeBraccia(20),
     perSide: false,
+    workSeconds: 56,
   },
   {
-    code: 'D',
-    group: 'D',
-    pairing: 'single',
+    code: 'B3',
+    group: 'B',
+    pairing: 'superset',
     exercise: 'hollow-hold',
-    sets: 2,
+    sets: 3,
     prescription: { kind: 'seconds', min: 30, max: 45 },
-    reference: 'Circuito · core anteriore',
+    reference: 'Circuito · tri-set 2, braccia e vita',
     tut: 'isometrico',
     rir: '—',
-    rest: isolato(30),
+    rest: volumeBraccia(20),
     perSide: false,
-    workSeconds: 30,
+    workSeconds: 38,
   },
-  {
-    code: 'F1',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'mountain-climber',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-  },
-  {
-    code: 'F2',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'kb-swing',
-    sets: 2,
-    prescription: { kind: 'reps', min: 15, max: 20 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'controllato',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-    variantNote:
-      'È l’unica catena posteriore della seduta: i blocchi di lavoro qui sono tutti spinta, quadricipiti e spalle.',
-    alternatives: [{ exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } }],
-  },
-  {
-    code: 'F3',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'corda-battaglia-onde-alternate',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-    alternatives: [{ exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } }],
-  },
+  finitura('F1', 'kb-swing', { kind: 'reps', min: 15, max: 20 }),
+  finitura('F2', 'mountain-climber', trenta),
+  finitura('F3', 'corda-battaglia-cerchi', trenta),
+  finitura('F4', 'step-rapidi-box', trenta),
+  ...decompressione(),
 ];
 
 const SEDUTA_4: readonly ProgramBlock[] = [
@@ -737,271 +594,157 @@ const SEDUTA_4: readonly ProgramBlock[] = [
     code: 'A1',
     group: 'A',
     pairing: 'superset',
-    exercise: 'trazioni-presa-larga',
+    exercise: 'hip-thrust-panca-bilaterale',
     sets: 3,
-    prescription: { kind: 'reps', min: 6, max: 10 },
-    reference: 'Circuito · tri-set di forza',
-    tut: '3-0-1-0',
+    prescription: { kind: 'reps', min: 15, max: 20 },
+    reference: 'Circuito · tri-set 1',
+    tut: '2-1-1-1',
     rir: '1-2',
-    rest: FORZA,
+    rest: VOLUME,
     perSide: false,
+    workSeconds: 85,
+    variantNote:
+      'Kettlebell appoggiato sulla piega dell’anca, tenuto con le mani. Il monopodalico è due gradini più avanti nella scala: ci arriva la progressione, non questa seduta.',
   },
   {
     code: 'A2',
     group: 'A',
     pairing: 'superset',
-    exercise: 'single-leg-rdl',
+    exercise: 'rematore-manubrio-un-braccio',
     sets: 3,
-    prescription: { kind: 'reps', min: 8, max: 12 },
-    reference: 'Circuito · tri-set di forza',
-    tut: '3-0-1-0',
+    prescription: { kind: 'reps', min: 12, max: 15 },
+    reference: 'Circuito · tri-set 1',
+    tut: '2-1-1-1',
     rir: '1-2',
-    rest: FORZA,
+    rest: VOLUME,
     perSide: true,
+    workSeconds: 100,
   },
   {
     code: 'A3',
     group: 'A',
     pairing: 'superset',
-    exercise: 'hip-thrust-monopodalico',
+    exercise: 'military-press-manubri',
     sets: 3,
-    prescription: { kind: 'reps', min: 8, max: 10 },
-    reference: 'Circuito · tri-set di forza',
+    prescription: { kind: 'reps', min: 12, max: 15 },
+    reference: 'Circuito · tri-set 1',
     tut: '2-0-1-0',
     rir: '1-2',
-    rest: FORZA,
-    perSide: true,
+    rest: VOLUME,
+    perSide: false,
+    workSeconds: 40,
   },
   {
     code: 'B1',
     group: 'B',
     pairing: 'superset',
-    exercise: 'pull-over-trx',
+    exercise: 'curl-panca-inclinata',
     sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
+    prescription: { kind: 'reps', min: 10, max: 14 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '3-0-1-1',
+    rir: '0-1',
+    rest: volumeBraccia(25),
     perSide: false,
+    workSeconds: 60,
   },
   {
     code: 'B2',
     group: 'B',
     pairing: 'superset',
-    exercise: 'goblet-squat',
+    exercise: 'dip-panche-piedi-rialzati',
     sets: 3,
     prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
-    tut: '2-0-1-0',
-    rir: '1-2',
-    rest: VOLUME,
+    reference: 'Circuito · tri-set 2, braccia e vita',
+    tut: '2-0-1-1',
+    rir: '0-1',
+    rest: volumeBraccia(25),
     perSide: false,
-    variantNote:
-      'Qui c’era il calf monopodalico. A 12-18 ripetizioni per lato costava sei minuti di lavoro su un muscolo che il programma deve solo mantenere, e il mantenimento gli arriva dagli step al box e dai jumping jack delle quattro finiture. Al suo posto il secondo richiamo settimanale ai quadricipiti, che erano il gruppo più scoperto.',
+    workSeconds: 45,
   },
   {
     code: 'B3',
     group: 'B',
     pairing: 'superset',
-    exercise: 'alzate-laterali-elastico',
+    exercise: 'plank-trascinamento-kb',
     sets: 3,
-    prescription: { kind: 'reps', min: 12, max: 18 },
-    reference: 'Circuito · tri-set di volume',
+    prescription: { kind: 'reps', min: 8, max: 10 },
+    reference: 'Circuito · tri-set 2, braccia e vita',
     tut: '2-0-1-1',
-    rir: '0-1',
-    rest: VOLUME,
-    perSide: false,
-  },
-  {
-    code: 'C1',
-    group: 'C',
-    pairing: 'superset',
-    exercise: 'chin-up-presa-supina',
-    sets: 3,
-    prescription: { kind: 'reps', min: 8, max: 12 },
-    reference: 'Circuito · blocco braccia',
-    tut: '2-0-1-1',
-    rir: '0-1',
-    rest: BRACCIA,
-    perSide: false,
-  },
-  {
-    code: 'C2',
-    group: 'C',
-    pairing: 'superset',
-    exercise: 'estensione-tricipiti-sopra-testa',
-    sets: 3,
-    prescription: { kind: 'reps', min: 10, max: 14 },
-    reference: 'Circuito · blocco braccia',
-    tut: '3-0-1-0',
-    rir: '0-1',
-    rest: BRACCIA,
-    perSide: false,
-  },
-  {
-    code: 'D',
-    group: 'D',
-    pairing: 'single',
-    exercise: 'hanging-leg-raise',
-    sets: 2,
-    prescription: { kind: 'reps', min: 8, max: 14 },
-    reference: 'Circuito · core anteriore',
-    tut: '2-0-1-1',
-    rir: '0-1',
-    rest: isolato(30),
-    perSide: false,
-  },
-  {
-    code: 'F1',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'step-rapidi-box',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
     rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
+    rest: volumeBraccia(25),
+    perSide: true,
+    workSeconds: 70,
   },
-  {
-    code: 'F2',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'corda-battaglia-onde-alternate',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-    /*
-     * Niente swing qui, pur essendo disponibile: questa seduta ha già il
-     * single-leg RDL e l'hip thrust nel Tri-set A. Una terza cerniera d'anca
-     * a fine seduta, con la lombare stanca, è il modo in cui ci si fa male
-     * facendo tutto giusto.
-     */
-    alternatives: [{ exercise: 'jumping-jack', prescription: { kind: 'seconds', min: 30, max: 30 } }],
-  },
-  {
-    code: 'F3',
-    group: 'F',
-    pairing: 'superset',
-    exercise: 'jumping-jack',
-    sets: 2,
-    prescription: { kind: 'seconds', min: 30, max: 30 },
-    reference: 'Circuito · finitura metabolica',
-    tut: 'isometrico',
-    rir: '—',
-    rest: FINITURA,
-    perSide: false,
-    workSeconds: 30,
-    excludeFromReview: true,
-  },
+  finitura('F1', 'corda-battaglia-slam', trenta),
+  finitura('F2', 'jumping-jack', trenta),
+  finitura('F3', 'kb-swing', { kind: 'reps', min: 15, max: 20 }),
+  finitura('F4', 'plank-tocco-spalla', trenta),
+  ...decompressione(),
 ];
+
+/* -------------------------------------------------------------------------- */
+/* Le quattro sedute                                                           */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Il riscaldamento è lo stesso in tutte e quattro, e lo è nell'originale: «come
+ * Seduta 1, con il giro di prova sul Tri-set 1 di questa seduta». L'unica cosa
+ * che cambia è il contenuto del giro di prova, e quello lo cambia `rampGroup`
+ * da sé — legge i blocchi del gruppo A della seduta in cui si trova.
+ *
+ * La versione precedente di questo file dava a ogni seduta un riscaldamento
+ * diverso (jumping jack, step rapidi al box, una cerniera d'anca) e lasciava
+ * cadere lo swing tecnico e le scapole da due sedute su quattro. Era una
+ * variazione inventata.
+ */
 
 export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
   {
     id: 'circuito-1',
     weekday: null,
     name: 'Seduta 1',
-    focus: 'tirare e spingere, forza',
+    focus: 'forza · trazione verticale',
     kind: 'circuit',
-    estimatedMinutes: 40,
+    estimatedMinutes: 38,
     warmup: [],
-    warmupSteps: [
-      {
-        label: 'Corda da battaglia, onde alternate leggere',
-        exercise: 'corda-battaglia-onde-alternate',
-        seconds: 60,
-        reps: null,
-        perSide: false,
-        hint: 'Senza corda: jumping jack. Serve ad alzare la temperatura, non a stancare.',
-      },
-      SCAPOLE,
-      CIRCONDUZIONI,
-      SWING_TECNICO,
-      AFFONDI,
-      RAMPA_A,
-    ],
+    warmupSteps: RISCALDAMENTO,
+    note: 'A fine terzo giro del Tri-set A, dentro la pausa di blocco: 2 trazioni negative da 5" di eccentrica.',
     blocks: SEDUTA_1,
   },
   {
     id: 'circuito-2',
     weekday: null,
     name: 'Seduta 2',
-    focus: 'spessore e spinta alta, forza',
+    focus: 'forza · spinta verticale',
     kind: 'circuit',
-    estimatedMinutes: 40,
+    estimatedMinutes: 36,
     warmup: [],
-    warmupSteps: [
-      {
-        label: 'Jumping jack',
-        exercise: 'jumping-jack',
-        seconds: 60,
-        reps: null,
-        perSide: false,
-        hint: 'Range completo: braccia che arrivano sopra la testa.',
-      },
-      SCAPOLE,
-      CIRCONDUZIONI,
-      AFFONDI,
-      RAMPA_A,
-    ],
+    warmupSteps: RISCALDAMENTO,
+    note: 'È la più corta delle quattro. I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
     blocks: SEDUTA_2,
   },
   {
     id: 'circuito-3',
     weekday: null,
     name: 'Seduta 3',
-    focus: 'volume di spinta e spalle',
+    focus: 'volume · gambe e larghezza',
     kind: 'circuit',
-    estimatedMinutes: 40,
+    estimatedMinutes: 35,
     warmup: [],
-    warmupSteps: [
-      {
-        label: 'Step rapidi al box',
-        exercise: 'step-rapidi-box',
-        seconds: 60,
-        reps: null,
-        perSide: false,
-        hint: 'Pianta piena sul box, busto eretto.',
-      },
-      CIRCONDUZIONI,
-      CERNIERA,
-      AFFONDI,
-      RAMPA_A,
-    ],
+    warmupSteps: RISCALDAMENTO,
     blocks: SEDUTA_3,
   },
   {
     id: 'circuito-4',
     weekday: null,
     name: 'Seduta 4',
-    focus: 'dorsali e catena posteriore',
+    focus: 'volume · catena posteriore e spessore',
     kind: 'circuit',
-    estimatedMinutes: 40,
+    estimatedMinutes: 39,
     warmup: [],
-    warmupSteps: [
-      {
-        label: 'Mountain climber',
-        exercise: 'mountain-climber',
-        seconds: 60,
-        reps: null,
-        perSide: false,
-        hint: 'Bacino fermo: se rimbalza, rallenta.',
-      },
-      SCAPOLE,
-      CIRCONDUZIONI,
-      CERNIERA,
-      RAMPA_A,
-    ],
+    warmupSteps: RISCALDAMENTO,
+    note: 'È la più lunga delle quattro, per le due stazioni unilaterali del Tri-set A. Se sfori i 40 minuti togli 2 ripetizioni al rematore, non il recupero.',
     blocks: SEDUTA_4,
   },
 ] as const satisfies readonly ProgramSession[]);

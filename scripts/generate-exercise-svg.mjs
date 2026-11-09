@@ -62,6 +62,16 @@ const weight = (x, y, w = 11) =>
   prop(`<line x1="${x - w / 2}" y1="${y}" x2="${x + w / 2}" y2="${y}" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>`);
 
 /** Kettlebell: campana e maniglia. */
+/**
+ * Manubrio visto di taglio: la barra e' verticale.
+ *
+ * Serve a distinguere la presa neutra da quella supina. A questa fedelta' e'
+ * l'unico segno disponibile, e senza di esso curl a martello e curl supino
+ * producono due file identici con due nomi diversi.
+ */
+const weightV = (x, y, h = 11) =>
+  prop(`<line x1="${x}" y1="${y - h / 2}" x2="${x}" y2="${y + h / 2}" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>`);
+
 const bell = (x, y) =>
   prop(
     `<circle cx="${x}" cy="${y + 6}" r="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M ${x - 4} ${y + 2} Q ${x} ${y - 5} ${x + 4} ${y + 2}" fill="none" stroke="currentColor" stroke-width="2.5"/>`,
@@ -282,8 +292,44 @@ const ARCHETYPES = {
       figure({ he: [16, 56], ne: [24, 60], hi: [50, 74], el: [14, 76], ha: [10, 88], kn: [60, 88], fo: [80, FLOOR - 8] }),
   ],
 
-  'hip-thrust': () => {
+  /*
+   * `bilateral` non e' una rifinitura: distingue due gradini della stessa
+   * scala che l'app prescrive entrambi. Il gradino 2 e' a due gambe con il
+   * kettlebell appoggiato sull'anca, il gradino 4 e' monopodalico a corpo
+   * libero, e con una figura sola uno dei due mostrava l'altro.
+   */
+  'hip-thrust': ({ bilateral = false } = {}) => {
     const bench = box(6, 50, 26, FLOOR - 50);
+    if (bilateral) {
+      /*
+       * Il kettlebell e' la campana, non una barra.
+       *
+       * Prima qui c'era un `weight` da 18 unita' appoggiato sull'anca: a
+       * bassa risoluzione leggeva come un gradino del pavimento nel primo
+       * fotogramma e come un bilanciere di traverso nel secondo. La campana
+       * ha una forma sua e nessun'altra cosa nel disegno le somiglia, e sta
+       * *sopra* la linea dell'anca: centrata sull'anca la linea del corpo le
+       * passava dentro e sembrava un'articolazione disegnata, non un peso.
+       *
+       * La gamba lontana sta vicina a quella vicina, non divaricata: due
+       * piedi affiancati visti di lato quasi si sovrappongono, e la forbice
+       * che si vedeva prima faceva sembrare l'appoggio sbilanciato.
+       */
+      return [
+        floor() + bench + arrowUp(78, 72) +
+          figure({
+            he: [24, 42], ne: [34, 48], hi: [58, 84],
+            kn: [78, 78], fo: [86, FLOOR - 2],
+            kn2: [76, 81], fo2: [84, FLOOR - 2],
+          }) + bell(61, 72),
+        floor() + bench +
+          figure({
+            he: [24, 42], ne: [34, 48], hi: [60, 56],
+            kn: [80, 74], fo: [86, FLOOR - 2],
+            kn2: [78, 77], fo2: [84, FLOOR - 2],
+          }) + bell(57, 44),
+      ];
+    }
     return [
       floor() + bench + arrowUp(62, 74) +
         figure({ he: [24, 42], ne: [34, 48], hi: [58, 84], kn: [76, 78], fo: [84, FLOOR - 2] }),
@@ -521,12 +567,14 @@ const ARCHETYPES = {
    * e la rotazione del torace è la metà che conta. Riusare la figura del
    * bulgaro avrebbe messo in scena un appoggio che non esiste.
    */
-  lunge: () => [
-    floor() +
-      figure({ he: [50, 24], ne: [50, 32], hi: [50, 62], el: [46, 46], ha: [44, 60], el2: [54, 46], ha2: [56, 60], kn: [48, 82], fo: [46, FLOOR - 2], kn2: [54, 82], fo2: [56, FLOOR - 2] }),
-    floor() +
-      figure({ he: [42, 36], ne: [44, 44], hi: [48, 70], el: [58, 52], ha: [72, 48], el2: [58, 56], ha2: [72, 48], kn: [26, 80], fo: [22, FLOOR - 2], kn2: [70, 92], fo2: [82, FLOOR - 2] }),
-  ],
+  lunge: ({ rotate = true } = {}) => {
+    const inPiedi = { he: [50, 24], ne: [50, 32], hi: [50, 62], el: [46, 46], ha: [44, 60], el2: [54, 46], ha2: [56, 60], kn: [48, 82], fo: [46, FLOOR - 2], kn2: [54, 82], fo2: [56, FLOOR - 2] };
+    const affondo = { he: [42, 36], ne: [44, 44], hi: [48, 70], kn: [26, 80], fo: [22, FLOOR - 2], kn2: [70, 92], fo2: [82, FLOOR - 2] };
+    const braccia = rotate
+      ? { el: [58, 52], ha: [72, 48], el2: [58, 56], ha2: [72, 48] }
+      : { el: [40, 56], ha: [38, 70], el2: [48, 57], ha2: [50, 71] };
+    return [floor() + figure(inPiedi), floor() + figure({ ...affondo, ...braccia })];
+  },
 
   /* Rematore con manubrio: panca e peso, non maniglie appese. */
   'db-row': () => {
@@ -538,12 +586,156 @@ const ARCHETYPES = {
     ];
   },
 
-  /* Curl con manubri: la presa neutra si legge dal manubrio, non da un elastico. */
-  'db-curl': () => [
-    floor() + weight(43, 62) + weight(57, 62) +
+  /*
+   * Curl con manubri. `hammer` cambia l'orientamento del manubrio: di taglio
+   * per la presa neutra, orizzontale per quella supina. E' l'unico segno che
+   * a questa fedelta' distingue i due esercizi — senza, sono la stessa figura
+   * con due nomi.
+   */
+  'db-curl': ({ hammer = false } = {}) => {
+    const peso = hammer ? weightV : weight;
+    return [
+    floor() + peso(43, 62) + peso(57, 62) +
       figure({ he: [50, 24], ne: [50, 32], hi: [50, 62], el: [45, 47], ha: [43, 61], el2: [55, 47], ha2: [57, 61], kn: [48, 82], fo: [46, FLOOR - 2], kn2: [54, 82], fo2: [56, FLOOR - 2] }),
-    floor() + weight(41, 40) + weight(59, 40) +
+    floor() + peso(41, 40) + peso(59, 40) +
       figure({ he: [50, 24], ne: [50, 32], hi: [50, 62], el: [45, 47], ha: [42, 40], el2: [55, 47], ha2: [58, 40], kn: [48, 82], fo: [46, FLOOR - 2], kn2: [54, 82], fo2: [56, FLOOR - 2] }),
+    ];
+  },
+
+  /* ---------------------------------------------------------------------- */
+  /* Archetipi della scheda originale                                        */
+  /* ---------------------------------------------------------------------- */
+
+  /* Slam: le estremita' salgono sopra la testa e vengono scagliate a terra. */
+  'rope-slam': () => {
+    const fune = (from, mid) =>
+      prop(`<path d="M ${from[0]} ${from[1]} Q ${mid[0]} ${mid[1]} 94 74" fill="none" stroke="currentColor" stroke-width="2"/>`);
+    return [
+      floor() + fune([44, 12], [70, 34]) + fune([52, 12], [74, 38]) +
+        figure({ he: [48, 28], ne: [48, 36], hi: [49, 64], sh: [43, 38], el: [43, 22], ha: [44, 12], sh2: [53, 38], el2: [53, 22], ha2: [52, 12], kn: [47, 84], fo: [45, FLOOR - 5], kn2: [53, 84], fo2: [55, FLOOR - 5] }),
+      floor() + fune([38, 78], [66, 90]) + fune([46, 78], [70, 92]) +
+        figure({ he: [32, 42], ne: [37, 49], hi: [55, 66], el: [38, 62], ha: [38, 78], el2: [44, 63], ha2: [46, 78], kn: [57, 85], fo: [55, FLOOR - 2], kn2: [63, 85], fo2: [61, FLOOR - 2] }),
+    ];
+  },
+
+  /* Cerchi: il percorso della mano e' il disegno, altrimenti e' un'onda. */
+  'rope-circles': () => {
+    const giro = prop(`<circle cx="30" cy="44" r="13" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4"/>`);
+    const fune = (from) =>
+      prop(`<path d="M ${from[0]} ${from[1]} Q 68 62 94 74" fill="none" stroke="currentColor" stroke-width="2"/>`);
+    const base = { he: [48, 26], ne: [48, 34], hi: [50, 63], kn: [46, 83], fo: [42, FLOOR - 2], kn2: [56, 83], fo2: [58, FLOOR - 2] };
+    return [
+      floor() + giro + fune([30, 32]) + figure({ ...base, el: [41, 44], ha: [30, 32], el2: [52, 48], ha2: [43, 42] }),
+      floor() + giro + fune([30, 56]) + figure({ ...base, el: [41, 48], ha: [30, 56], el2: [52, 44], ha2: [43, 34] }),
+    ];
+  },
+
+  /* Onde doppie: le due estremita' salgono e scendono insieme. */
+  'rope-double': () => {
+    const fune = (y, scarto) =>
+      prop(`<path d="M ${38 + scarto} ${y} Q ${66 + scarto} ${y + 16} 94 74" fill="none" stroke="currentColor" stroke-width="2"/>`);
+    const base = { he: [42, 28], ne: [44, 36], hi: [48, 65], kn: [44, 84], fo: [40, FLOOR - 2], kn2: [54, 84], fo2: [58, FLOOR - 2] };
+    return [
+      floor() + fune(38, 0) + fune(42, 5) + figure({ ...base, el: [40, 50], ha: [38, 38], el2: [46, 52], ha2: [43, 42] }),
+      floor() + fune(72, 0) + fune(76, 5) + figure({ ...base, el: [40, 58], ha: [38, 72], el2: [46, 60], ha2: [43, 76] }),
+    ];
+  },
+
+  /* Corda per saltare: il salto e' basso, e l'arco della corda lo dice. */
+  'jump-rope': () => {
+    const sopra = prop(`<path d="M 28 72 Q 50 4 72 72" fill="none" stroke="currentColor" stroke-width="2"/>`);
+    const sotto = prop(`<path d="M 28 62 Q 50 ${FLOOR + 4} 72 62" fill="none" stroke="currentColor" stroke-width="2"/>`);
+    return [
+      floor() + sopra +
+        figure({ he: [50, 28], ne: [50, 36], hi: [50, 64], el: [44, 52], ha: [40, 62], el2: [56, 52], ha2: [60, 62], kn: [48, 84], fo: [47, FLOOR - 2], kn2: [52, 84], fo2: [53, FLOOR - 2] }),
+      floor() + sotto +
+        figure({ he: [50, 20], ne: [50, 28], hi: [50, 56], el: [44, 44], ha: [40, 54], el2: [56, 44], ha2: [60, 54], kn: [48, 74], fo: [47, FLOOR - 10], kn2: [52, 74], fo2: [53, FLOOR - 10] }),
+    ];
+  },
+
+  /* Burpee: il salto in alto e il petto a terra, i due estremi del gesto. */
+  burpee: () => [
+    floor() + arrowUp(50, 14) +
+      figure({ he: [50, 24], ne: [50, 32], hi: [50, 60], el: [42, 24], ha: [36, 12], el2: [58, 24], ha2: [64, 12], kn: [46, 78], fo: [44, FLOOR - 8], kn2: [54, 78], fo2: [56, FLOOR - 8] }),
+    floor() +
+      figure({ he: [20, 88], ne: [31, 88], hi: [62, 90], el: [25, 95], ha: [23, FLOOR - 2], kn: [80, 92], fo: [92, FLOOR - 2] }),
+  ],
+
+  /*
+   * Military press: i manubri finiscono sopra le orecchie, non davanti. E' la
+   * differenza tra una spinta sopra la testa e una spinta in avanti.
+   */
+  press: () => [
+    floor() + weight(38, 38) + weight(62, 38) +
+      figure({ he: [50, 26], ne: [50, 34], hi: [50, 64], sh: [45, 36], el: [39, 46], ha: [38, 38], sh2: [55, 36], el2: [61, 46], ha2: [62, 38], kn: [48, 84], fo: [46, FLOOR - 2], kn2: [54, 84], fo2: [56, FLOOR - 2] }),
+    floor() + weight(42, 10) + weight(58, 10) +
+      figure({ he: [50, 26], ne: [50, 34], hi: [50, 64], sh: [45, 36], el: [43, 24], ha: [42, 10], sh2: [55, 36], el2: [57, 24], ha2: [58, 10], kn: [48, 84], fo: [46, FLOOR - 2], kn2: [54, 84], fo2: [56, FLOOR - 2] }),
+  ],
+
+  /* Curl al TRX: le mani vanno alle tempie, i gomiti restano alti e fermi. */
+  'trx-curl': () => {
+    const rig = prop(`<line x1="42" y1="10" x2="58" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`);
+    return [
+      rig + floor() + strap([50, 10], [44, 44]) + strap([50, 10], [47, 45]) +
+        figure({ he: [40, 42], ne: [43, 49], hi: [58, 70], el: [44, 50], ha: [44, 44], el2: [47, 52], ha2: [47, 45], kn: [60, 86], fo: [64, FLOOR - 2], kn2: [64, 86], fo2: [68, FLOOR - 2] }),
+      rig + floor() + strap([50, 10], [34, 34]) + strap([50, 10], [37, 35]) +
+        figure({ he: [31, 40], ne: [35, 46], hi: [53, 68], el: [44, 42], ha: [34, 34], el2: [46, 44], ha2: [37, 35], kn: [55, 85], fo: [59, FLOOR - 2], kn2: [59, 85], fo2: [63, FLOOR - 2] }),
+    ];
+  },
+
+  /* Estensione al TRX: rivolto all'ancoraggio, i gomiti puntati avanti. */
+  'trx-ext': () => {
+    const rig = prop(`<line x1="42" y1="10" x2="58" y2="10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`);
+    return [
+      rig + floor() + strap([50, 10], [64, 44]) + strap([50, 10], [61, 45]) +
+        figure({ he: [42, 46], ne: [46, 52], hi: [26, 72], el: [55, 47], ha: [64, 44], el2: [53, 49], ha2: [61, 45], kn: [24, 87], fo: [20, FLOOR - 2], kn2: [20, 87], fo2: [16, FLOOR - 2] }),
+      rig + floor() + strap([50, 10], [68, 32]) + strap([50, 10], [65, 33]) +
+        figure({ he: [48, 54], ne: [51, 59], hi: [30, 75], el: [60, 40], ha: [68, 32], el2: [58, 42], ha2: [65, 33], kn: [26, 88], fo: [22, FLOOR - 2], kn2: [22, 88], fo2: [18, FLOOR - 2] }),
+    ];
+  },
+
+  /*
+   * Curl su panca inclinata: le braccia pendono dietro la linea del busto.
+   * E' l'unica cosa che lo distingue da un curl in piedi, ed e' anche la sola
+   * ragione per cui esiste.
+   */
+  'incline-curl': () => {
+    const panca = prop(`<path d="M 22 94 L 70 46 M 22 94 L 22 ${FLOOR - 2} M 68 52 L 68 ${FLOOR - 2}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>`);
+    const base = { he: [66, 40], ne: [62, 47], hi: [36, 80], kn: [22, 74], fo: [12, FLOOR - 2] };
+    return [
+      floor() + panca + weight(56, 86) +
+        figure({ ...base, sh: [57, 52], el: [56, 70], ha: [56, 86], sh2: [60, 53], el2: [60, 70], ha2: [60, 86] }),
+      floor() + panca + weight(62, 56) +
+        figure({ ...base, sh: [57, 52], el: [56, 70], ha: [62, 56], sh2: [60, 53], el2: [60, 70], ha2: [66, 58] }),
+    ];
+  },
+
+  /* Plank con trascinamento: il peso passa sotto, il bacino non ruota. */
+  'plank-drag': () => [
+    floor() + bell(78, 72) +
+      figure({ he: [20, 58], ne: [30, 62], hi: [62, 72], el: [24, 80], ha: [22, FLOOR - 4], kn: [80, 78], fo: [94, FLOOR - 2], kn2: [78, 88], fo2: [92, FLOOR - 2] }),
+    floor() + bell(32, 76) +
+      figure({ he: [20, 58], ne: [30, 62], hi: [62, 72], el: [44, 70], ha: [32, 76], kn: [80, 78], fo: [94, FLOOR - 2], kn2: [78, 88], fo2: [92, FLOOR - 2] }),
+  ],
+
+  /* Plank con tocco: una mano lascia terra, il bacino resta immobile. */
+  'plank-tap': () => [
+    floor() +
+      figure({ he: [20, 58], ne: [30, 62], hi: [62, 72], el: [24, 80], ha: [22, FLOOR - 4], kn: [80, 78], fo: [94, FLOOR - 2], kn2: [78, 88], fo2: [92, FLOOR - 2] }),
+    floor() +
+      figure({ he: [20, 58], ne: [30, 62], hi: [62, 72], el: [27, 73], ha: [31, 62], kn: [80, 78], fo: [94, FLOOR - 2], kn2: [78, 88], fo2: [92, FLOOR - 2] }),
+  ],
+
+  /* Apertura delle anche: affondo basso, ginocchio dietro a terra. */
+  'hip-opener': () => [
+    floor() +
+      figure({ he: [44, 34], ne: [45, 42], hi: [48, 72], el: [38, 58], ha: [32, 74], el2: [54, 58], ha2: [58, 74], kn: [24, 82], fo: [20, FLOOR - 2], kn2: [72, FLOOR - 2], fo2: [88, FLOOR - 2] }),
+  ],
+
+  /* Respirazione: supina, ginocchia piegate, una mano sulle costole. */
+  breathing: () => [
+    floor() +
+      figure({ he: [20, 88], ne: [31, 88], hi: [58, 90], el: [36, 78], ha: [44, 86], el2: [40, 80], ha2: [50, 88], kn: [74, 70], fo: [88, FLOOR - 2], kn2: [78, 74], fo2: [92, FLOOR - 2] }),
   ],
 };
 
@@ -575,6 +767,7 @@ const EXERCISES = {
   'wall-sit': ['wallsit', {}, 'Wall sit: schiena al muro, cosce parallele a terra, ginocchia a 90 gradi'],
   'shrimp-squat-o-skater-squat': ['shrimp', {}, 'Shrimp squat: in piedi, poi ginocchio posteriore a terra'],
   'nordic-curl': ['nordic', {}, 'Nordic curl: busto eretto, poi discesa in blocco'],
+  'hip-thrust-panca-bilaterale': ['hip-thrust', { bilateral: true }, 'Hip thrust a due gambe: spalle sulla panca, kettlebell sull\u2019anca, bacino in basso poi anca estesa'],
   'hip-thrust-monopodalico': ['hip-thrust', {}, 'Hip thrust monopodalico: bacino in basso, poi anca estesa'],
   'single-leg-rdl': ['rdl', {}, 'Single-leg RDL: in piedi, poi busto e gamba libera in linea'],
   'calf-monopodalico-rialzo': ['calf', {}, 'Calf in piedi: tallone sotto il gradino, poi in punta'],
@@ -602,7 +795,7 @@ const EXERCISES = {
   'goblet-squat': ['goblet', {}, 'Goblet squat: peso al petto, poi anca sotto il ginocchio'],
   'pull-over-trx': ['pullover', {}, 'Pull-over al TRX: braccia sopra la testa, poi ai fianchi a gomiti dritti'],
   'rematore-manubrio-un-braccio': ['db-row', {}, 'Rematore con manubrio: braccio disteso, poi gomito al fianco'],
-  'curl-martello-manubri': ['db-curl', {}, 'Curl a martello: braccia distese, poi avambraccio flesso a presa neutra'],
+  'curl-martello-manubri': ['db-curl', { hammer: true }, 'Curl a martello: braccia distese, poi avambraccio flesso a presa neutra'],
   'estensione-tricipiti-sopra-testa': ['overhead-ext', {}, 'Estensione sopra la testa: peso dietro la testa, poi braccia distese in alto'],
   'suitcase-carry': ['carry', {}, 'Suitcase carry: un peso solo a un lato, busto verticale'],
   'pallof-press-elastico': ['pallof', {}, 'Pallof press: mani allo sterno, poi braccia distese senza ruotare'],
@@ -610,6 +803,21 @@ const EXERCISES = {
   'mountain-climber': ['mountain-climber', {}, 'Mountain climber: plank alto, ginocchia che si alternano al petto'],
   'jumping-jack': ['jack', {}, 'Jumping jack: piedi uniti e braccia basse, poi gambe aperte e braccia alte'],
   'kb-swing': ['swing', {}, 'Swing: kettlebell indietro tra le gambe, poi all altezza del petto'],
+  'corda-battaglia-slam': ['rope-slam', {}, 'Slam: corda sopra la testa, poi scagliata a terra'],
+  'corda-battaglia-cerchi': ['rope-circles', {}, 'Cerchi: le mani disegnano due cerchi larghi'],
+  'corda-battaglia-onde-doppie': ['rope-double', {}, 'Onde doppie: le due estremita salgono e scendono insieme'],
+  'corda-per-saltare': ['jump-rope', {}, 'Corda per saltare: salto basso sull avampiede'],
+  burpee: ['burpee', {}, 'Burpee: salto in alto, poi petto a terra in plank'],
+  'affondi-rapidi-alternati': ['lunge', { rotate: false }, 'Affondi rapidi: affondo avanti, ritorno, cambio gamba'],
+  'curl-manubri-supino': ['db-curl', {}, 'Curl presa supina: palmi in avanti, gomiti fermi al fianco'],
+  'curl-trx': ['trx-curl', {}, 'Curl al TRX: braccia distese, poi mani alle tempie'],
+  'estensione-tricipiti-trx': ['trx-ext', {}, 'Estensione al TRX: braccia distese avanti, poi mani dietro la testa'],
+  'military-press-manubri': ['press', {}, 'Military press: manubri alle spalle, poi sopra le orecchie'],
+  'curl-panca-inclinata': ['incline-curl', {}, 'Curl su panca inclinata: braccia che pendono dietro il busto'],
+  'plank-trascinamento-kb': ['plank-drag', {}, 'Plank con trascinamento: il peso passa sotto, il bacino fermo'],
+  'plank-tocco-spalla': ['plank-tap', {}, 'Plank con tocco: una mano alla spalla opposta, bacino immobile'],
+  'apertura-anche': ['hip-opener', {}, 'Apertura delle anche: affondo basso, ginocchio dietro a terra'],
+  'respirazione-360': ['breathing', {}, 'Respirazione 360: supino, costole che si aprono di lato'],
 };
 
 

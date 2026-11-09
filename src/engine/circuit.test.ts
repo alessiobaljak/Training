@@ -49,9 +49,19 @@ describe('minWorkSeconds — la durata minima di una serie', () => {
     expect(minWorkSeconds(blocco({ perSide: true }))).toBe(64);
   });
 
-  it('preferisce il valore dichiarato dalla scheda', () => {
+  it('preferisce il valore dichiarato dalla scheda, e non lo raddoppia', () => {
     expect(minWorkSeconds(blocco({ workSeconds: 30 }))).toBe(30);
-    expect(minWorkSeconds(blocco({ workSeconds: 30, perSide: true }))).toBe(60);
+    /*
+     * Un `workSeconds` dichiarato è il tempo dell'intera stazione, lati
+     * compresi: è come la colonna «lavoro» della scheda scrive i suoi numeri
+     * («bulgaro 8-10 per gamba, ~100"» sono cinquanta secondi per gamba).
+     *
+     * Prima questa riga si aspettava 60 e il codice obbediva: il player
+     * chiedeva 200 secondi di countdown sul bulgaro e l'orologio della seduta
+     * sforava di otto minuti su quaranta. Il test confermava il raddoppio
+     * perché era stato scritto guardando il codice invece della scheda.
+     */
+    expect(minWorkSeconds(blocco({ workSeconds: 30, perSide: true }))).toBe(30);
   });
 
   it('usa il minimo del range sulle stazioni a tempo', () => {
@@ -187,9 +197,16 @@ describe('buildGuidedPlan — la sequenza della seduta', () => {
     const indici = plan
       .map((step, i) => ({ step, i }))
       .filter(({ step }) => step.kind === 'work' && step.group === 'F');
-    const ultimoDelPrimoGiro = indici.find(
-      ({ step }) => step.kind === 'work' && step.blockCode === 'F3' && step.step.setIndex === 1,
+    /*
+     * L'ultima stazione del primo giro, qualunque sia il suo codice: la
+     * finitura ne ha quattro, e cercare «F3» a mano voleva dire che il test
+     * passava anche quando il blocco cambiava numero di stazioni.
+     */
+    const primoGiro = indici.filter(
+      ({ step }) => step.kind === 'work' && step.step.setIndex === 1,
     );
+    expect(primoGiro.length).toBeGreaterThan(1);
+    const ultimoDelPrimoGiro = primoGiro.at(-1);
     expect(ultimoDelPrimoGiro).toBeDefined();
     const dopo = plan[(ultimoDelPrimoGiro?.i ?? 0) + 1];
     /* Subito la prima stazione del giro seguente, senza recupero in mezzo. */

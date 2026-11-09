@@ -140,6 +140,11 @@ export interface ProgramBlock {
    * in 18 vuol dire che il tempo non c'era. Assente, il motore lo calcola dal
    * TUT e dal minimo del range; dichiararlo serve dove il conto non torna o
    * dove la scheda fissa un tempo suo.
+   *
+   * **E' il tempo dell'intera stazione, lati compresi.** Su un esercizio
+   * unilaterale va dichiarato il totale dei due lati, non quello di uno:
+   * e' il modo in cui la colonna «lavoro» della scheda scrive i suoi numeri
+   * («bulgaro 8-10 per gamba, ~100"»), e il motore non lo raddoppia.
    */
   readonly workSeconds?: number;
   /**

@@ -18,6 +18,7 @@ import {
   upsertLoggedSet,
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
+import { isOwnLevel } from '../../engine/progression.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
 import { formatClock, useCountdown, useStopwatch } from '../hooks/useTimers.ts';
 import { useWakeLock } from '../hooks/useWakeLock.ts';
@@ -546,6 +547,20 @@ function PassoLavoro({
     return <Notice tone="warn">Blocco {step.blockCode} non trovato nella scheda.</Notice>;
   }
 
+  /*
+   * Il titolo segue il gradino, come la figura.
+   *
+   * Prima qui c'era `esercizio.name` secco, e la figura invece arrivava da
+   * `media.ts`, che il gradino lo legge: al gradino 2 dell'hip thrust il
+   * player scriveva «Hip thrust monopodalico» sopra il disegno di uno a due
+   * gambe. Sono le stesse due righe dello `SessionScreen`, e il motivo per cui
+   * ci sono e' lo stesso: quando il nome dell'esercizio descrive un movimento
+   * che non stai facendo, vince il gradino.
+   */
+  const suoGradino = isOwnLevel(esercizio, gradino);
+  const variante = findLoggedExercise(draft, step.blockCode)?.variantLabel ?? esercizio.name;
+  const titolo = suoGradino ? esercizio.name : variante;
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center gap-2">
@@ -555,11 +570,20 @@ function PassoLavoro({
         </span>
       </div>
 
-      <h2 className="mt-3 text-2xl leading-tight font-semibold">{esercizio.name}</h2>
+      <h2 className="mt-3 text-2xl leading-tight font-semibold">{titolo}</h2>
       <p className="mt-1 text-sm text-dim">
         {range.kind === 'range' ? formatRange(range.range, range.unit) : '—'}
         {perSide ? ' per lato' : ''} · TUT {blocco.tut} · RIR {blocco.rir}
       </p>
+      {/*
+        * La nota della variante era solo nella scheda, e la scheda la leggi
+        * prima di cominciare: al terzo giro, con il telefono a terra, «un
+        * piede sul box» e «kettlebell in racked» non c'erano piu' da nessuna
+        * parte. Sta sopra la figura perche' e' quello che la figura non dice.
+        */}
+      {blocco.variantNote !== undefined && !partita ? (
+        <p className="mt-2 text-xs leading-relaxed text-warn">{blocco.variantNote}</p>
+      ) : null}
 
       {partita ? null : (
         <div className="mt-4">
