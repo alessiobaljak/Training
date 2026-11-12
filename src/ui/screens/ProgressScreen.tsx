@@ -8,7 +8,7 @@ import {
   sessionsInWeek,
   volumeByGroup,
 } from '../../engine/metrics.ts';
-import { addDays, formatDayShort, plural, startOfWeek, todayIso } from '../../engine/dates.ts';
+import { addDays, formatDayShort, formatNumber, plural, startOfWeek, todayIso } from '../../engine/dates.ts';
 import { programWeek } from '../../engine/schedule.ts';
 import { ACTIVE_SESSIONS } from '../../data/sessions.ts';
 import { CIRCUIT_SESSIONS } from '../../data/circuit.ts';
@@ -215,7 +215,8 @@ export function ProgressScreen() {
                     <div className="flex items-baseline justify-between gap-2 text-xs">
                       <span className="text-dim">{MUSCLE_GROUP_LABELS[entry.group]}</span>
                       <span className="tabular text-dim">
-                        <span className="font-semibold text-ink">{fatte}</span> di {entry.sets}
+                        <span className="font-semibold text-ink">{formatNumber(fatte)}</span> di{' '}
+                        {formatNumber(entry.sets)}
                       </span>
                     </div>
                     <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-panel">

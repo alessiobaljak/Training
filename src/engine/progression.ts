@@ -1,5 +1,6 @@
 import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
 import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
+import { getExercise as getExerciseBySlug } from '../data/exercises.ts';
 import { ENDURANCE_REP_THRESHOLD } from '../data/method.ts';
 import { testBaseline } from '../data/tests.ts';
 import {
@@ -608,4 +609,46 @@ export function applyLever(
   input: ProgressionInput,
 ): ExerciseState {
   return buildSuggestion(lever, input).nextState;
+}
+
+export interface TestOutcome {
+  /** Il blocco, con la seduta: «Seduta 1 · A1». */
+  readonly where: string;
+  readonly exercise: ExerciseSlug;
+  readonly level: LevelIndex | null;
+}
+
+/**
+ * Cosa decide un risultato di test nel programma attivo: da che gradino parte
+ * ogni esercizio che quel test misura.
+ *
+ * È la stessa regola che l'app applica dopo (R1), fatta girare subito con il
+ * numero appena scritto. Prima la schermata del test mostrava «range 6-8,
+ * dal 55% al 75% del massimale»: la formula del programma archiviato, che
+ * nel circuito non decide niente — i range sono scritti nella scheda.
+ *
+ * Lista vuota quando il test non decide niente nel circuito (il nordic,
+ * che nessuna seduta usa; il dead hang, che sta solo nella decompressione).
+ */
+export function testOutcomes(testId: TestId, result: TestResult | null): TestOutcome[] {
+  const prove: ReadonlyMap<TestId, TestResult> =
+    result === null ? new Map() : new Map([[testId, result]]);
+  const visti = new Set<ExerciseSlug>();
+  const esiti: TestOutcome[] = [];
+  for (const session of CIRCUIT_SESSIONS) {
+    for (const block of session.blocks) {
+      if (block.excludeFromReview === true || visti.has(block.exercise)) continue;
+      const exercise = getExerciseBySlug(block.exercise);
+      if (exercise.pattern === null) continue;
+      const prova = testBaseline(exercise.pattern);
+      if (prova === null || prova.testId !== testId) continue;
+      visti.add(block.exercise);
+      esiti.push({
+        where: `${session.name} · ${block.code}`,
+        exercise: block.exercise,
+        level: startingLevel(exercise, prove),
+      });
+    }
+  }
+  return esiti;
 }

@@ -132,3 +132,8 @@ export function formatDaysAgo(value: string, today: string = todayIso()): string
 export function plural(count: number, singolare: string, plurale: string): string {
   return `${String(count)} ${count === 1 ? singolare : plurale}`;
 }
+
+/** «34,5», non «34.5»: in italiano i decimali hanno la virgola. */
+export function formatNumber(value: number): string {
+  return String(Math.round(value * 10) / 10).replace('.', ',');
+}

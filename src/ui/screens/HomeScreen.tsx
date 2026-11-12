@@ -86,8 +86,8 @@ export function HomeScreen() {
       <Screen title="Allenamento" subtitle="Settimana 0">
         <div className="space-y-4">
           <Notice tone="warn">
-            Il programma è chiuso finché non hai fatto i nove test. I range di lavoro escono dai
-            tuoi massimali: senza, sarebbero numeri inventati.
+            Il programma è chiuso finché non hai fatto i nove test. Le ripetizioni sono quelle
+            della scheda; i test decidono da che gradino parti su ogni esercizio.
           </Notice>
           <Card tone="muted">
             <p className="text-sm leading-relaxed text-dim">

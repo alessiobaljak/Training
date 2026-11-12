@@ -112,8 +112,8 @@ try {
   await completeOnboarding(page, BASE, {
     onRange: (shown, testCase, index) => {
       check(
-        shown === testCase.range,
-        `Test ${String(index + 1)}: atteso range ${testCase.range}, mostrato "${shown}".`,
+        testCase.parte.test(shown),
+        `Test ${String(index + 1)}: attesa partenza ${String(testCase.parte)}, mostrato "${shown}".`,
       );
     },
   });
@@ -1382,14 +1382,19 @@ try {
 
   await page.goto(`${BASE}/#/log`, { waitUntil: 'load' });
   await page.waitForTimeout(1000);
-  const logRowCount = await page.locator('tbody tr').count();
-  check(logRowCount > 0, 'Dopo una seduta il log deve contenere almeno una riga.');
+  /*
+   * Il diario è una scheda per seduta, non più la tabella a tredici colonne
+   * larga il triplo dello schermo. Le tredici colonne del foglio originale
+   * restano nel CSV, e le verifica il test di csv.ts.
+   */
+  const logRowCount = await page.locator('main li li').count();
+  check(logRowCount > 0, 'Dopo una seduta il diario deve contenere almeno un esercizio.');
   check(
-    (await page.locator('thead th').count()) === 13,
-    'La tabella del log deve avere le tredici colonne del foglio originale.',
+    (await page.evaluate(() => document.documentElement.scrollWidth)) <= 390,
+    'Il diario non deve scorrere di lato su un telefono.',
   );
 
-  const righeLog = await page.locator('tbody tr').allInnerTexts();
+  const righeLog = await page.locator('main li li').allInnerTexts();
   check(
     righeLog.some((riga) => riga.includes('Wall sit')),
     'Il wall sit deve finire nel log col proprio nome, non sotto quello del sissy squat.',
@@ -1719,4 +1724,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log('Prova di fumo superata: onboarding completo e range corretti.');
+console.log('Prova di fumo superata: onboarding completo e gradini di partenza corretti.');

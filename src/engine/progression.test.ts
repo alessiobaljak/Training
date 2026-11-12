@@ -7,6 +7,7 @@ import {
   evaluateProgression,
   initialExerciseState,
   startingLevel,
+  testOutcomes,
 } from './progression.ts';
 import { latestTestResults, resolveBlockRange, testResultSingle } from './ranges.ts';
 import { getExercise } from '../data/exercises.ts';
@@ -839,5 +840,29 @@ describe('gradino di partenza dal test (PROGRAM_RULES R1)', () => {
     /* Il dead hang sta solo in Z1, fuori dalla revisione: niente lo muoverà mai. */
     const hang = getExercise('dead-hang');
     expect(startingLevel(hang, new Map())).toBe(hang.defaultLevel);
+  });
+});
+
+describe('testOutcomes — cosa decide un test nel circuito', () => {
+  it('le trazioni decidono il gradino del Tri-set A della Seduta 1', () => {
+    const quattro = testOutcomes('pull-up', testResultSingle('pull-up', '2026-11-09', 0, 4));
+    expect(quattro).toEqual([
+      { where: 'Seduta 1 · A1', exercise: 'trazioni-prona-presa-media', level: 1 },
+    ]);
+    const dieci = testOutcomes('pull-up', testResultSingle('pull-up', '2026-11-09', 0, 10));
+    expect(dieci[0]?.level).toBe(3);
+  });
+
+  it('il dip decide due esercizi, e la scheda tiene basso quello su panca', () => {
+    const esiti = testOutcomes('dip', testResultSingle('dip', '2026-11-09', 0, 12));
+    expect(esiti.map((esito) => [esito.exercise, esito.level])).toEqual([
+      ['dip-parallele-anelli', 3],
+      ['dip-panche-piedi-rialzati', 1],
+    ]);
+  });
+
+  it('nordic e dead hang non decidono niente nel circuito', () => {
+    expect(testOutcomes('nordic-curl', testResultSingle('nordic-curl', '2026-11-09', 0, 4))).toEqual([]);
+    expect(testOutcomes('dead-hang', testResultSingle('dead-hang', '2026-11-09', 0, 60))).toEqual([]);
   });
 });

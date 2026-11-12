@@ -9,7 +9,7 @@ import {
 } from '../../db/backup.ts';
 import { csvFileName, sessionsToCsv } from '../../db/csv.ts';
 import { repository } from '../../db/repository.ts';
-import { daysBetween, todayIso } from '../../engine/dates.ts';
+import { daysBetween, formatDayLong, formatDayShort, todayIso } from '../../engine/dates.ts';
 import { backupAdvice, formatBytes } from '../../pwa/offline.ts';
 import { downloadTextFile, readTextFile } from '../download.ts';
 import { useSessions, useSettings } from '../hooks/useData.ts';
@@ -17,7 +17,10 @@ import { usePwaStatus } from '../hooks/usePwa.ts';
 import { useAuthStatus } from '../hooks/useAuth.ts';
 import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { restoreSnapshot } from '../../db/snapshots.ts';
-import { ART_ATTRIBUTION } from '../../data/exercise-art.ts';
+import { ART_ATTRIBUTION, REPDB_ART } from '../../data/exercise-art.ts';
+import { EXERCISES } from '../../data/exercises.ts';
+
+const conFoto = EXERCISES.filter((exercise) => REPDB_ART[exercise.slug] !== undefined).length;
 import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 
 /** La parola da scrivere per confermare l'azzeramento. */
@@ -329,7 +332,7 @@ export function SettingsScreen() {
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="tabular text-sm font-semibold">{snapshot.id}</p>
+                      <p className="tabular text-sm font-semibold">{formatDayShort(snapshot.id)}</p>
                       <p className="text-xs text-dim">{formatBytes(snapshot.bytes)}</p>
                     </div>
                     {confirmRestore === snapshot.id ? null : (
@@ -346,7 +349,7 @@ export function SettingsScreen() {
                   {confirmRestore === snapshot.id ? (
                     <div className="mt-3">
                       <p className="text-sm leading-relaxed text-warn">
-                        Sostituisce tutto quello che c’è adesso con i dati del {snapshot.id}.
+                        Sostituisce tutto quello che c’è adesso con i dati di {formatDayShort(snapshot.id)}.
                         Quello che hai registrato dopo quella data sparisce.
                       </p>
                       <div className="mt-3 flex gap-2">
@@ -355,7 +358,7 @@ export function SettingsScreen() {
                           disabled={busy}
                           onClick={() => { handleRestoreSnapshot(snapshot.id); }}
                         >
-                          Sì, torna al {snapshot.id}
+                          Sì, torna a {formatDayShort(snapshot.id)}
                         </Button>
                         <Button
                           variant="ghost"
@@ -420,16 +423,34 @@ export function SettingsScreen() {
               : 'Unisci sovrascrive solo le righe presenti nel file e lascia stare le altre.'}
           </p>
 
+          {/*
+            Il campo del browser, nascosto, e un pulsante nostro al suo posto.
+            Quello del browser parla la lingua del telefono: su un iPhone in
+            inglese scriveva «Choose File · No file chosen» in mezzo a una
+            schermata in italiano, e non si poteva tradurre.
+          */}
           <input
             ref={fileInput}
             type="file"
             accept="application/json,.json"
-            className="mt-3 block w-full text-sm text-dim file:mr-3 file:min-h-12 file:rounded-xl file:border file:border-line-strong file:bg-panel file:px-4 file:text-ink"
+            className="sr-only"
+            tabIndex={-1}
+            aria-hidden="true"
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file !== undefined) handleImport(file);
             }}
           />
+          <div className="mt-3">
+            <Button
+              full
+              variant="secondary"
+              size="lg"
+              onClick={() => { fileInput.current?.click(); }}
+            >
+              Scegli il file di backup
+            </Button>
+          </div>
         </Card>
 
         {error !== null ? <Notice tone="danger">{error}</Notice> : null}
@@ -478,11 +499,17 @@ export function SettingsScreen() {
               href={ART_ATTRIBUTION.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-semibold text-accent underline"
+              className="-my-3 inline-block py-3 font-semibold text-accent underline"
             >
               repdb.co
             </a>
-            . Trenta esercizi su trentanove; per gli altri le figure sono disegnate qui.
+            .{' '}
+            {/*
+              Il conto si fa dai dati. Prima era scritto a mano, «trenta
+              esercizi su trentanove», ed era rimasto lì quando il catalogo è
+              passato a settantadue.
+            */}
+            {`Foto per ${String(conFoto)} esercizi su ${String(EXERCISES.length)}; per gli altri le figure sono disegnate qui.`}
           </p>
         </Card>
 
@@ -491,7 +518,9 @@ export function SettingsScreen() {
           <p className="text-sm text-dim">
             Inizio:{' '}
             <span className="font-semibold text-ink">
-              {settings?.programStartDate ?? 'non ancora impostato'}
+              {settings?.programStartDate === null || settings?.programStartDate === undefined
+                ? 'non ancora impostato'
+                : formatDayLong(settings.programStartDate)}
             </span>
           </p>
         </Card>

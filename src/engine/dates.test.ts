@@ -5,6 +5,7 @@ import {
   formatDayLong,
   formatDayShort,
   formatDaysAgo,
+  formatNumber,
   isIsoDate,
   isoWeekday,
   parseIsoDate,
@@ -100,5 +101,13 @@ describe('date da leggere', () => {
     expect(plural(1, 'seduta', 'sedute')).toBe('1 seduta');
     expect(plural(0, 'seduta', 'sedute')).toBe('0 sedute');
     expect(plural(4, 'seduta', 'sedute')).toBe('4 sedute');
+  });
+});
+
+describe('numeri da leggere', () => {
+  it('usa la virgola per i decimali', () => {
+    expect(formatNumber(34.5)).toBe('34,5');
+    expect(formatNumber(9)).toBe('9');
+    expect(formatNumber(1.25)).toBe('1,3');
   });
 });

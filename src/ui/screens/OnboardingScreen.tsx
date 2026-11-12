@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { WEEK_ZERO_TESTS, TEST_PROTOCOL_NOTE, TEST_REST_SECONDS } from '../../data/tests.ts';
 import { getExercise } from '../../data/exercises.ts';
-import { computeWorkRange, formatRange, testResultPerSide, testResultSingle } from '../../engine/ranges.ts';
-import { addDays, startOfWeek, todayIso } from '../../engine/dates.ts';
+import { testResultPerSide, testResultSingle } from '../../engine/ranges.ts';
+import { testOutcomes } from '../../engine/progression.ts';
+import { titleAtLevel } from '../../engine/draft.ts';
+import { addDays, formatDayLong, formatDayShort, startOfWeek, todayIso } from '../../engine/dates.ts';
 import { programWeek } from '../../engine/schedule.ts';
 import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
@@ -142,9 +144,10 @@ export function OnboardingScreen() {
 
           <Card>
             <p className="text-sm leading-relaxed text-dim">
-              I numeri della scheda sono esempi, non i tuoi. Da questi nove test l’app ricalcola
-              tutti i range di lavoro delle sei sedute: finché non li hai fatti, il programma resta
-              chiuso.
+              Le ripetizioni delle quattro sedute sono scritte nella scheda e non cambiano. Quello
+              che i test decidono è da che gradino parti su ogni esercizio: con quattro trazioni, le
+              sei-otto della scheda si fanno con un piede sul box; con dieci, a corpo libero.
+              Finché non li hai fatti, il programma resta chiuso.
             </p>
           </Card>
 
@@ -154,15 +157,18 @@ export function OnboardingScreen() {
               <li>Una serie sola per test, fino al cedimento della forma. Non del muscolo.</li>
               <li>Da 4 a 5 minuti di recupero tra un test e l’altro, con il conto alla rovescia.</li>
               <li>Puoi fermarti quando vuoi: ogni risposta è già salvata.</li>
-              <li>Se un test non puoi farlo, saltalo: viene registrato a zero e lo rifai dopo.</li>
+              <li>
+                Se un test non puoi farlo, saltalo: si parte dal primo gradino di quella scala, e lo
+                rifai quando puoi.
+              </li>
             </ul>
           </Card>
 
           {previousRound !== null ? (
             <Card tone="accent">
               <p className="text-sm">
-                Ritest. Il confronto sarà con il giro del{' '}
-                <span className="font-semibold">{previousRound.date}</span>.
+                Ritest. Il confronto sarà con il giro di{' '}
+                <span className="font-semibold">{formatDayLong(previousRound.date)}</span>.
               </p>
             </Card>
           ) : null}
@@ -202,7 +208,14 @@ export function OnboardingScreen() {
     const stored = currentRound?.results.find((result) => result.testId === test.id);
     const draft = drafts[test.id] ?? draftFrom(stored);
     const value = effectiveValue(test, draft);
-    const range = computeWorkRange(value);
+    /*
+     * Il risultato come lo leggerà l'app: con un valore scritto, la stessa
+     * regola del gradino di partenza (R1) fatta girare subito.
+     */
+    const esiti = testOutcomes(
+      test.id,
+      value > 0 ? testResultSingle(test.id, todayIso(), 0, value) : null,
+    );
     const unit = test.measurement === 'seconds' ? 'seconds' : 'reps';
     const previous = previousRound?.results.find((result) => result.testId === test.id) ?? null;
 
@@ -289,8 +302,8 @@ export function OnboardingScreen() {
                 unit="rip"
               />
               <p className="text-xs leading-relaxed text-dim">
-                Il range di lavoro esce dal lato più debole: così il lato forte resta appena sotto
-                il proprio range, invece del debole sopra il proprio.
+                Conta il lato più debole: si parte dal gradino che regge lui, e il lato forte
+                lavora un po’ sotto il suo massimo invece del debole sopra il proprio.
               </p>
             </>
           ) : (
@@ -302,17 +315,29 @@ export function OnboardingScreen() {
             />
           )}
 
-          <Card tone={value > 0 ? 'accent' : 'muted'}>
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm text-dim">Range di lavoro</span>
-              <span data-testid="range" className="tabular text-2xl font-semibold">
-                {value > 0 ? formatRange(range, unit) : '—'}
-              </span>
+          <Card tone={value > 0 && esiti.length > 0 ? 'accent' : 'muted'}>
+            <p className="text-sm text-dim">Da dove parti</p>
+            <div data-testid="partenza" className="mt-1">
+              {esiti.length === 0 ? (
+                <p className="text-sm leading-relaxed">
+                  Questo test non decide niente nelle quattro sedute: nessuna lo usa. Resta per
+                  confrontare i progressi al ritest.
+                </p>
+              ) : value <= 0 ? (
+                <p className="text-sm leading-relaxed text-dim">
+                  Scrivi il risultato e qui compare il gradino da cui parti.
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {esiti.map((esito) => (
+                    <li key={esito.exercise} className="text-base leading-snug font-semibold">
+                      {titleAtLevel(getExercise(esito.exercise), esito.level)}
+                      <span className="ml-2 text-xs font-normal text-dim">{esito.where}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <p className="mt-2 text-xs leading-relaxed text-dim">
-              Dal 55% al 75% del massimale. È la fascia in cui un esercizio a corpo libero produce
-              ipertrofia tenendo la tecnica su più serie.
-            </p>
           </Card>
 
           <div>
@@ -334,7 +359,7 @@ export function OnboardingScreen() {
   return (
     <Screen
       title="Riepilogo"
-      subtitle={`Giro del ${roundDate}`}
+      subtitle={`Giro di ${formatDayLong(roundDate)}`}
       footer={
         <div className="pb-1">
           <Button
@@ -364,10 +389,17 @@ export function OnboardingScreen() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">{test.label}</p>
-                  <p className="mt-1 text-xs text-dim">
+                  <p className="mt-1 text-xs leading-relaxed text-dim">
                     {result === undefined
                       ? 'Non ancora fatto'
-                      : `Massimale ${String(result.value)}${unit === 'seconds' ? '"' : ''} · range ${formatRange(computeWorkRange(result.value), unit)}`}
+                      : (() => {
+                          const esiti = testOutcomes(test.id, result);
+                          const massimale = `${String(result.value)}${unit === 'seconds' ? '″' : ''}`;
+                          if (esiti.length === 0) return `${massimale} · non usato nelle sedute`;
+                          return `${massimale} · parti da ${esiti
+                            .map((esito) => titleAtLevel(getExercise(esito.exercise), esito.level))
+                            .join(', ')}`;
+                        })()}
                   </p>
                 </div>
                 {delta !== null ? (
@@ -383,7 +415,7 @@ export function OnboardingScreen() {
         <SectionTitle>Quando parte il programma</SectionTitle>
         <Card>
           <p className="text-sm">
-            Settimana 1 dal <span className="font-semibold">{chosenStart}</span>.
+            La settimana 1 comincia <span className="font-semibold">{formatDayShort(chosenStart)}</span>.
           </p>
           <div className="mt-3">
             <Button

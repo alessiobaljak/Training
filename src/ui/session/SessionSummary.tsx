@@ -223,7 +223,11 @@ export function SessionSummary({
           const key = `${draft.id}:${block.code}`;
           const alreadyDecided = decided.has(key);
           /* Dove non c'è una scala l'etichetta ripete il nome: una riga basta. */
-          const variante = logged.variantLabel === exercise.name ? null : logged.variantLabel;
+          const variante = logged.variantLabel.endsWith(exercise.name)
+            ? logged.level === null || logged.variantLabel === exercise.name
+              ? null
+              : `Liv. ${String(logged.level)}`
+            : logged.variantLabel;
 
           return (
             <Card key={block.code}>
