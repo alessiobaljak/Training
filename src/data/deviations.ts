@@ -214,6 +214,14 @@ export interface DeviazioneGradino {
 export const DEVIAZIONI_GRADINO: readonly DeviazioneGradino[] = [
   {
     schema: 'vertical-pull',
+    livello: 1,
+    scheda: 'Trazioni assistite con elastico',
+    app: 'Trazioni assistite',
+    motivo:
+      'La scheda del circuito prescrive questo gradino con un piede sul box, non con l’elastico. Il gradino è lo stesso — trazione completa con un aiuto che toglie parte del peso — e il nome non deve escludere l’aiuto che la scheda usa: quale dei due, lo dice la nota del blocco.',
+  },
+  {
+    schema: 'vertical-pull',
     livello: 5,
     scheda: 'Archer / L-sit pull-up',
     app: 'Archer pull-up',

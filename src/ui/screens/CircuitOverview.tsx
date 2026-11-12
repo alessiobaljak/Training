@@ -9,7 +9,7 @@ import {
   minWorkSeconds,
 } from '../../engine/circuit.ts';
 import { formatDaysAgo, todayIso } from '../../engine/dates.ts';
-import { lastLoggedByBlock, titleAtLevel } from '../../engine/draft.ts';
+import { lastLoggedByBlock, titleAtLevel, variantNoteAt } from '../../engine/draft.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
 import { initialExerciseState } from '../../engine/progression.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
@@ -90,8 +90,8 @@ function Riga({ block, contesto }: { readonly block: ProgramBlock; readonly cont
           )}
         </span>
       </button>
-      {block.variantNote !== undefined ? (
-        <p className="mt-1 px-3 text-xs leading-relaxed text-dim">{block.variantNote}</p>
+      {variantNoteAt(block, gradino) !== undefined ? (
+        <p className="mt-1 px-3 text-xs leading-relaxed text-dim">{variantNoteAt(block, gradino)}</p>
       ) : null}
     </li>
   );

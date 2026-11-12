@@ -841,7 +841,7 @@ const EXERCISES = {
  */
 const STEPS = {
   /* Trazione verticale: la forma è una sola, cambia assistenza e tempo. */
-  'vertical-pull-l1': ['hang-pull', {}, 'Trazioni assistite con elastico'],
+  'vertical-pull-l1': ['hang-pull', {}, 'Trazioni assistite'],
   'vertical-pull-l2': ['hang-pull', {}, 'Trazioni negative: discesa lenta dalla presa alta'],
   'vertical-pull-l3': ['hang-pull', {}, 'Trazioni complete: braccia distese, poi mento sopra la sbarra'],
   'vertical-pull-l4': ['hang-pull', {}, 'Trazioni con pausa in alto'],

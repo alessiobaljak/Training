@@ -47,6 +47,13 @@ export function titleAtLevel(exercise: Exercise, level: LevelIndex | null): stri
   return getProgressionStep(exercise.pattern, level).name;
 }
 
+/** La nota della variante, se vale per il gradino a cui sei. */
+export function variantNoteAt(block: ProgramBlock, level: LevelIndex | null): string | undefined {
+  if (block.variantNote === undefined) return undefined;
+  if (block.variantNoteLevel === undefined) return block.variantNote;
+  return level === block.variantNoteLevel ? block.variantNote : undefined;
+}
+
 export interface DraftParams {
   readonly id: string;
   readonly date: string;

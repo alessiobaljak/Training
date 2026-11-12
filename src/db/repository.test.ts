@@ -212,9 +212,16 @@ describe('test dei massimali', () => {
 });
 
 describe('stato di avanzamento', () => {
-  it('senza nulla salvato parte dal livello del programma', async () => {
+  it('senza nulla salvato e senza test parte dal primo gradino eseguibile', async () => {
+    /* Senza una misura l'app non ha nessuna prova che si possa fare di più. */
     const state = await repo.getExerciseState('trazioni-prona-presa-media');
     expect(state).toEqual(initialExerciseState(getExercise('trazioni-prona-presa-media')));
+    expect(state.level).toBe(1);
+  });
+
+  it('con il test salvato parte dal gradino che il test regge', async () => {
+    await repo.saveTestResult(testResultSingle('pull-up', '2026-09-14', 0, 10));
+    const state = await repo.getExerciseState('trazioni-prona-presa-media');
     expect(state.level).toBe(3);
   });
 

@@ -1,4 +1,4 @@
-import type { RirNotation, TutNotation, WeekdayIndex } from './core.ts';
+import type { LevelIndex, RirNotation, TutNotation, WeekdayIndex } from './core.ts';
 import type { ExerciseSlug } from './exercise.ts';
 import type { TestId } from './test.ts';
 
@@ -161,6 +161,16 @@ export interface ProgramBlock {
   readonly perSide: boolean;
   /** Precisazione della scheda sulla variante da usare in questo blocco. */
   readonly variantNote?: string;
+  /**
+   * Il gradino a cui la nota si riferisce. Assente, la nota vale sempre.
+   *
+   * «Un piede sul box: è il gradino che rende eseguibili sei-otto ripetizioni
+   * quando il massimo a corpo libero è quattro» è vera al gradino 1 e falsa
+   * a chi è già alle trazioni complete. «Declinati, piedi su un rialzo» è il
+   * gradino 3 dei push-up, e a chi li fa a terra diceva di fare un'altra cosa.
+   * Una nota che parla di un gradino si mostra solo su quel gradino.
+   */
+  readonly variantNoteLevel?: LevelIndex;
   /**
    * Gli altri esercizi che la scheda ammette qui.
    *

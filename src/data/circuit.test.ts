@@ -3,7 +3,8 @@ import { CIRCUIT_ORDER, CIRCUIT_SESSIONS, findCircuitSession, isCircuitSessionId
 import { findExercise, getExercise } from './exercises.ts';
 import { WEEK_ZERO_TESTS } from './tests.ts';
 import { buildGuidedPlan, clockOffsets, estimatedSeconds } from '../engine/circuit.ts';
-import { MUSCLE_GROUPS, SECONDARY_SET_WEIGHT } from '../types/index.ts';
+import { variantNoteAt } from '../engine/draft.ts';
+import { plannedVolumeByGroup } from '../engine/metrics.ts';
 import type { MuscleGroup } from '../types/index.ts';
 
 /** Il tetto dichiarato: quaranta minuti, finitura compresa. */
@@ -371,12 +372,25 @@ describe('circuit.ts — il programma attivo', () => {
       const pausaDiBlocco = inizioGiro('B', 1) - (inizioGiro('A', 3) + attesoA - 45);
       expect(pausaDiBlocco, `${id}/pausa di blocco`).toBeGreaterThan(0);
 
-      /* E nessuna pausa tra il Tri-set 2 e la finitura. */
+      /*
+       * Tra il Tri-set 2 e la finitura, la transizione della finitura: 15".
+       *
+       * È l'unico punto in cui l'app si scosta dall'orologio scritto della
+       * scheda, che lì non ha nessun passo (PROGRAM_RULES R2). Nella Seduta 3
+       * voleva dire passare da un hollow hold a cedimento a uno swing nello
+       * stesso istante. Non una pausa di blocco: quindici secondi, gli stessi
+       * che la finitura dà fra tutte le sue stazioni.
+       */
       const ultimoB = plan.reduce(
         (acc, step, i) => (step.kind === 'work' && step.group === 'B' ? i : acc),
         -1,
       );
-      expect(plan[ultimoB + 1]?.kind, `${id}/verso la finitura`).toBe('work');
+      const giunzione = plan[ultimoB + 1];
+      expect(giunzione?.kind, `${id}/verso la finitura`).toBe('rest');
+      expect(giunzione?.kind === 'rest' ? giunzione.tier : null, id).toBe('transizione');
+      expect(giunzione?.kind === 'rest' ? giunzione.seconds : null, id).toBe(15);
+      const dopo = plan[ultimoB + 2];
+      expect(dopo?.kind === 'work' ? dopo.group : null, id).toBe('F');
     }
   });
 
@@ -393,23 +407,15 @@ describe('volume settimanale del circuito per gruppo muscolare', () => {
    * una modifica sposta il volume, così lo scostamento si vede subito invece
    * di scoprirlo dopo un mesociclo.
    */
-  const volume = (): Record<MuscleGroup, number> => {
-    const totali = new Map<MuscleGroup, number>(MUSCLE_GROUPS.map((gruppo) => [gruppo, 0]));
-    for (const session of CIRCUIT_SESSIONS) {
-      for (const block of session.blocks) {
-        /* La finitura è lavoro metabolico: non è volume di allenamento. */
-        if (block.excludeFromReview === true) continue;
-        const exercise = getExercise(block.exercise);
-        for (const gruppo of exercise.primaryMuscles) {
-          totali.set(gruppo, (totali.get(gruppo) ?? 0) + block.sets);
-        }
-        for (const gruppo of exercise.secondaryMuscles) {
-          totali.set(gruppo, (totali.get(gruppo) ?? 0) + block.sets * SECONDARY_SET_WEIGHT);
-        }
-      }
-    }
-    return Object.fromEntries(totali) as Record<MuscleGroup, number>;
-  };
+  /*
+   * La stessa funzione che usa la schermata Progressi. Prima qui c'era un
+   * conteggio scritto a mano che escludeva la finitura, e `metrics.ts` ne
+   * aveva un altro che la includeva: quadricipiti 6 nel test, 14 nell'app.
+   */
+  const volume = (): Record<MuscleGroup, number> =>
+    Object.fromEntries(
+      plannedVolumeByGroup(CIRCUIT_SESSIONS).map((entry) => [entry.group, entry.sets]),
+    ) as Record<MuscleGroup, number>;
 
   it('corrisponde ai totali attesi', () => {
     /*
@@ -477,5 +483,24 @@ describe('volume settimanale del circuito per gruppo muscolare', () => {
       }
       expect(totale, gruppo).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('note della variante legate al gradino', () => {
+  it('la nota del box compare solo al gradino del box, quella dei declinati solo ai declinati', () => {
+    const s1a1 = findCircuitSession('circuito-1')?.blocks.find((block) => block.code === 'A1');
+    const s3a2 = findCircuitSession('circuito-3')?.blocks.find((block) => block.code === 'A2');
+    if (s1a1 === undefined || s3a2 === undefined) throw new Error('blocchi mancanti');
+    expect(variantNoteAt(s1a1, 1)).toMatch(/box/);
+    expect(variantNoteAt(s1a1, 3)).toBeUndefined();
+    expect(variantNoteAt(s3a2, 3)).toMatch(/Declinati/);
+    expect(variantNoteAt(s3a2, 2)).toBeUndefined();
+  });
+
+  it('una nota senza gradino vale sempre', () => {
+    const s1a2 = findCircuitSession('circuito-1')?.blocks.find((block) => block.code === 'A2');
+    if (s1a2 === undefined) throw new Error('blocco mancante');
+    expect(variantNoteAt(s1a2, 1)).toMatch(/racked/);
+    expect(variantNoteAt(s1a2, null)).toMatch(/racked/);
   });
 });

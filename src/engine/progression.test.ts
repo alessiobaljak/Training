@@ -54,7 +54,13 @@ function makeInput(options: {
   return {
     block,
     exercise,
-    state: { ...initialExerciseState(exercise), ...options.state },
+    /*
+     * Queste prove riguardano le leve, non la partenza: si parte dal gradino
+     * per cui l'esercizio è scritto, quello su cui le regole delle leve sono
+     * state pensate. La partenza vera, che dipende dal test, ha le sue prove
+     * più sotto.
+     */
+    state: { ...initialExerciseState(exercise), level: exercise.defaultLevel, ...options.state },
     logged: loggedExercise(exercise.slug, options.loggedSets, {
       blockCode: block.code,
       tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
@@ -70,10 +76,15 @@ const leverOf = (input: ProgressionInput) => evaluateProgression(input).suggesti
 /* -------------------------------------------------------------------------- */
 
 describe('stato iniziale', () => {
-  it('parte dal livello che il programma prescrive', () => {
+  it('senza un test parte dal primo gradino eseguibile, non da quello della scheda', () => {
+    /*
+     * Prima partiva dal gradino 3, trazioni complete, anche senza nessun test:
+     * il gradino della scheda era assegnato a chiunque. Senza una misura
+     * l'app non ha nessuna prova che si possa fare di più.
+     */
     expect(initialExerciseState(getExercise('trazioni-prona-presa-media'))).toEqual({
       exercise: 'trazioni-prona-presa-media',
-      level: 3,
+      level: 1,
       eccentricBonusSeconds: 0,
       bottomPauseBonusSeconds: 0,
       loadKg: 0,
@@ -585,17 +596,18 @@ describe('livello di partenza dal test', () => {
    * push-up a terra. Ventiquattro push-up non dicono niente sugli archer.
    */
   it('non parte sopra il gradino a cui il test ha misurato', () => {
+    const conTest = latestTestResults(DEFAULT_TESTS);
     const archer = getExercise('pushup-archer-o-pseudo-planche');
     expect(archer.defaultLevel).toBe(5);
-    expect(startingLevel(archer)).toBe(2);
+    expect(startingLevel(archer, conTest)).toBe(2);
 
     const monobraccio = getExercise('rematore-trx-monobraccio');
     expect(monobraccio.defaultLevel).toBe(5);
-    expect(startingLevel(monobraccio)).toBe(2);
+    expect(startingLevel(monobraccio, conTest)).toBe(2);
 
     const hspu = getExercise('negative-hspu-muro-o-pike-pushup');
     expect(hspu.defaultLevel).toBe(3);
-    expect(startingLevel(hspu)).toBe(2);
+    expect(startingLevel(hspu, conTest)).toBe(2);
   });
 
   it('è un tetto, non un’assegnazione: chi sta più in basso resta più in basso', () => {
@@ -616,13 +628,19 @@ describe('livello di partenza dal test', () => {
     expect(startingLevel(legRaise)).toBe(legRaise.defaultLevel);
   });
 
-  it('non tocca chi è già al gradino del test', () => {
+  it('non tocca chi è già al gradino del test, se il test basta per il range', () => {
+    /* Dieci trazioni coprono sei-otto con due di riserva: si parte complete. */
     const trazioni = getExercise('trazioni-prona-presa-media');
-    expect(startingLevel(trazioni)).toBe(trazioni.defaultLevel);
+    expect(startingLevel(trazioni, latestTestResults(DEFAULT_TESTS))).toBe(trazioni.defaultLevel);
   });
 
   it('lo stato iniziale usa il gradino del test', () => {
-    expect(initialExerciseState(getExercise('pushup-archer-o-pseudo-planche')).level).toBe(2);
+    expect(
+      initialExerciseState(
+        getExercise('pushup-archer-o-pseudo-planche'),
+        latestTestResults(DEFAULT_TESTS),
+      ).level,
+    ).toBe(2);
   });
 
   /*
@@ -759,5 +777,67 @@ describe('andare oltre il range', () => {
       makeInput({ sessionId: 'upper-a', code: 'B1', loggedSets: sets([9, 6, 6]) }),
     );
     expect(evaluation.suggestion?.lever).toBe('tempo');
+  });
+});
+
+describe('gradino di partenza dal test (PROGRAM_RULES R1)', () => {
+  const prova = (testId: TestResult['testId'], value: number): ReadonlyMap<TestResult['testId'], TestResult> =>
+    latestTestResults([testResultSingle(testId, '2026-11-09', 0, value)]);
+
+  it('le trazioni a quattro partono dal box, non dalle complete', () => {
+    /*
+     * Il caso che ha fatto nascere la regola. Sei-otto a RIR 1-2 vogliono
+     * otto al test; con quattro si scende di un gradino, saltando le sole
+     * negative, che a sei-otto ripetizioni con un secondo di salita non si
+     * fanno. È il «piede sul box» che la scheda scriveva a parole.
+     */
+    const trazioni = getExercise('trazioni-prona-presa-media');
+    expect(startingLevel(trazioni, prova('pull-up', 4))).toBe(1);
+    expect(startingLevel(trazioni, prova('pull-up', 7))).toBe(1);
+    expect(startingLevel(trazioni, prova('pull-up', 8))).toBe(3);
+  });
+
+  it('i dip sotto la soglia saltano le negative', () => {
+    const dip = getExercise('dip-parallele-anelli');
+    expect(startingLevel(dip, prova('dip', 8))).toBe(3);
+    expect(startingLevel(dip, prova('dip', 5))).toBe(1);
+  });
+
+  it('confronta la soglia del blocco: per lato sul bulgaro, in secondi sull’hollow', () => {
+    const bulgaro = getExercise('bulgarian-split-squat');
+    expect(startingLevel(bulgaro, prova('bulgarian-split-squat', 10))).toBe(2);
+    expect(startingLevel(bulgaro, prova('bulgarian-split-squat', 9))).toBe(1);
+
+    /* 30-45": soglia 30 + 6 = 36. */
+    const hollow = getExercise('hollow-hold');
+    expect(startingLevel(hollow, prova('hollow-hold', 40))).toBe(3);
+    expect(startingLevel(hollow, prova('hollow-hold', 30))).toBe(2);
+  });
+
+  it('un test a zero o mancante parte dal primo gradino', () => {
+    const trazioni = getExercise('trazioni-prona-presa-media');
+    expect(startingLevel(trazioni, prova('pull-up', 0))).toBe(1);
+    expect(startingLevel(trazioni, new Map())).toBe(1);
+  });
+
+  it('l’hip thrust su panca parte su panca, come dice la scheda', () => {
+    /*
+     * Prima la Seduta 4 lo apriva al gradino 1, glute bridge a terra: la
+     * scala non ha un test, e «senza test, gradino 1» valeva per tutti. Ma i
+     * gradini 1 e 2 delle scale senza test non sono mai monopodalici né
+     * eccentrici: partire dal 2 quando la scheda lo prescrive non rischia
+     * niente.
+     */
+    expect(startingLevel(getExercise('hip-thrust-panca-bilaterale'))).toBe(2);
+    /* Il monopodalico resta al primo: è il 4, e nessuno ci arriva senza passare dal 2. */
+    expect(startingLevel(getExercise('hip-thrust-monopodalico'))).toBe(1);
+  });
+
+  it('rispetta la scheda dove prescrive sotto il test, e non tocca la decompressione', () => {
+    /* Dip su panca piedi rialzati: gradino 1 contro il 3 del test. */
+    expect(startingLevel(getExercise('dip-panche-piedi-rialzati'), prova('dip', 12))).toBe(1);
+    /* Il dead hang sta solo in Z1, fuori dalla revisione: niente lo muoverà mai. */
+    const hang = getExercise('dead-hang');
+    expect(startingLevel(hang, new Map())).toBe(hang.defaultLevel);
   });
 });

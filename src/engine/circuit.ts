@@ -382,7 +382,32 @@ function restBetween(
     const block = session.blocks.find((entry) => entry.code === step.blockCode);
     if (block === undefined) return null;
     const seconds = blockRestSeconds(block);
-    if (seconds <= 0) return null;
+    if (seconds <= 0) {
+      /*
+       * Senza pausa di blocco si entra nel blocco seguente con la sua
+       * transizione, non con zero (PROGRAM_RULES R2, training-quality A8).
+       *
+       * L'orologio della scheda va dall'ultimo giro del Tri-set 2 alla
+       * finitura senza nessun passo in mezzo. Nella Seduta 1 voleva dire
+       * posare il kettlebell da 24 del suitcase carry e partire con lo swing
+       * nello stesso istante; nella Seduta 3, passare da un hollow hold a
+       * cedimento — cioè con gli addominali che tengono la lombare già
+       * spenti — a uno swing. Quindici secondi sono la transizione che la
+       * finitura usa fra tutte le sue stazioni: la stessa, una volta in più.
+       * La decompressione ha transizione zero, quindi dopo la finitura non
+       * cambia niente.
+       */
+      const prossimo = session.blocks.find((entry) => entry.code === next.blockCode);
+      const transizione =
+        prossimo?.rest.kind === 'superset' ? prossimo.rest.transitionMinSec : 0;
+      if (transizione <= 0) return null;
+      return {
+        tier: 'transizione',
+        seconds: transizione,
+        maxSeconds: transizione,
+        hint: `${groupLabel(session, step.group)} finito. Posa l’attrezzo e prepara la prima stazione.`,
+      };
+    }
     const task = session.pauseTasks?.[step.group];
     return {
       tier: 'blocco',

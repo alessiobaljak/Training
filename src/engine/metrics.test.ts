@@ -7,9 +7,11 @@ import {
   plannedSessionsSoFar,
   sessionsInWeek,
   summarizeExercise,
+  plannedVolumeByGroup,
   volumeByGroup,
   weeklyAverages,
 } from './metrics.ts';
+import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import { loggedExercise, loggedSession, perSideSets, sets } from './__fixtures.ts';
 
 const week = (offset: number) => `2026-09-${String(14 + offset).padStart(2, '0')}`;
@@ -295,5 +297,61 @@ describe('sedute previste fino a oggi', () => {
       ),
     );
     expect(adherenceFromSessions(fatte, 4, '2026-09-14', '2026-09-20').percent).toBe(100);
+  });
+});
+
+describe('volume: una regola sola per il fatto e per il previsto', () => {
+  /*
+   * Prima la schermata Progressi contava la finitura e il test dei dati no:
+   * quadricipiti 14 per l'atleta, 6 nel rapporto al progettista.
+   */
+  it('non conta finitura e decompressione', () => {
+    const seduta = loggedSession(
+      '2026-11-12',
+      1,
+      [
+        loggedExercise('bulgarian-split-squat', sets([8, 8, 8]), { blockCode: 'A2' }),
+        loggedExercise('step-rapidi-box', sets([30, 30]), { blockCode: 'F3' }),
+        loggedExercise('apertura-anche', sets([60]), { blockCode: 'Z2' }),
+      ],
+      'completed',
+      'circuito-1',
+    );
+    const volume = volumeByGroup([seduta]);
+    expect(volume.find((entry) => entry.group === 'quadricipiti')?.sets).toBe(3);
+  });
+
+  it('non conta una seduta ancora aperta, che sta ancora cambiando', () => {
+    const aperta = loggedSession(
+      '2026-11-12',
+      1,
+      [loggedExercise('bulgarian-split-squat', sets([8, 8, 8]), { blockCode: 'A2' })],
+      'in-progress',
+      'circuito-1',
+    );
+    expect(volumeByGroup([aperta]).find((entry) => entry.group === 'quadricipiti')?.sets).toBe(0);
+  });
+
+  it('una settimana fatta per intero tocca esattamente il previsto', () => {
+    const previsto = plannedVolumeByGroup(CIRCUIT_SESSIONS);
+    const settimana = CIRCUIT_SESSIONS.map((session) =>
+      loggedSession(
+        '2026-11-12',
+        1,
+        session.blocks.map((block) =>
+          loggedExercise(
+            block.exercise,
+            sets(Array.from({ length: block.sets }, () => 10)),
+            { blockCode: block.code },
+          ),
+        ),
+        'completed',
+        session.id,
+      ),
+    );
+    const fatto = volumeByGroup(settimana);
+    for (const entry of previsto) {
+      expect(fatto.find((row) => row.group === entry.group)?.sets, entry.group).toBe(entry.sets);
+    }
   });
 });

@@ -309,6 +309,7 @@ const SEDUTA_1: readonly ProgramBlock[] = [
     workSeconds: 30,
     variantNote:
       'Un piede appoggiato sul box: è il gradino che rende eseguibili sei-otto ripetizioni quando il massimo a corpo libero è quattro. Togli l’appoggio quando otto vengono pulite.',
+    variantNoteLevel: 1,
   },
   {
     code: 'A2',
@@ -523,6 +524,7 @@ const SEDUTA_3: readonly ProgramBlock[] = [
     workSeconds: 45,
     variantNote:
       'Declinati, piedi su un rialzo: è il gradino che tiene dodici-diciotto ripetizioni dentro il range giusto.',
+    variantNoteLevel: 3,
   },
   {
     code: 'A3',

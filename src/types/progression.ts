@@ -16,6 +16,16 @@ export interface ProgressionStep {
    * al rematore a 45° l'app continuava a chiedere sinistra e destra.
    */
   readonly perSide: boolean;
+  /**
+   * Il gradino ha solo la fase eccentrica: si scende piano, non si risale.
+   *
+   * Trazioni negative, dip negativi, HSPU negative, nordic eccentrici. Su un
+   * range fisso a ripetizioni con un tempo a quattro fasi questi gradini non
+   * si possono eseguire come la scheda chiede — non c'è una concentrica da
+   * fare in un secondo — quindi la progressione li salta e la partenza non
+   * li assegna (PROGRAM_RULES R1, PROGRESSION §5).
+   */
+  readonly eccentricOnly: boolean;
 }
 
 /**

@@ -1,4 +1,5 @@
-import { getProgressionStep } from '../data/progressions.ts';
+import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
+import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import { ENDURANCE_REP_THRESHOLD } from '../data/method.ts';
 import { testBaseline } from '../data/tests.ts';
 import {
@@ -10,8 +11,10 @@ import {
 } from '../types/index.ts';
 import type {
   Exercise,
+  ExerciseSlug,
   ExerciseState,
   LevelIndex,
+  MotorPattern,
   LoggedExercise,
   OverloadLever,
   ProgramBlock,
@@ -41,61 +44,112 @@ export const MAX_ECCENTRIC_SECONDS = ECCENTRIC_TEMPO_LADDER.at(-1) ?? 5;
 export const MAX_ISO_PAUSE_SECONDS = ISO_PAUSE_LADDER.at(-1) ?? 2;
 
 /**
- * Il gradino da cui si parte: mai sopra quello a cui il test ha misurato.
+ * I blocchi del programma attivo che prescrivono questo esercizio.
  *
- * Prima era il gradino che la scheda prescrive, e su sette blocchi su
- * diciannove quel gradino stava sopra il test — fino a tre gradini sopra. Il
- * caso più chiaro: il test dei push-up si fa a terra, gradino 2, e il giovedì
- * prescriveva archer push-up, gradino 5, col range calcolato sui push-up a
- * terra. Ventiquattro push-up non dicono niente sugli archer, che hanno una
- * tecnica diversa.
+ * Il gradino di partenza dipende da *come* l'esercizio verrà usato: lo stesso
+ * massimale di quattro trazioni basta per tre serie a cedimento e non basta
+ * per tre serie da sei-otto con due di riserva.
+ */
+function activeBlocksFor(slug: ExerciseSlug): readonly ProgramBlock[] {
+  return CIRCUIT_SESSIONS.flatMap((session) =>
+    session.blocks.filter((block) => block.exercise === slug),
+  );
+}
+
+/**
+ * Quanto bisogna saper fare al test perché il range del blocco stia sotto il
+ * massimo con il RIR chiesto.
  *
- * È un tetto e non un'assegnazione: dove la scheda prescrive più in basso —
- * i dip su panca dei finisher, gradino 1 contro il 3 del test — resta in
- * basso, perché lì la scelta è voluta.
+ * Sei-otto ripetizioni a RIR 1-2 vogliono che l'ottava arrivi con ancora due
+ * in serbatoio: dieci al test non è un'esagerazione, otto è il minimo.
+ * Il designer l'ha scritto così: sulle ripetizioni `min + RIRmax`, sui
+ * secondi `min + 20% del min`, arrotondato per eccesso.
+ */
+function thresholdFor(block: ProgramBlock): number | null {
+  const prescription = block.prescription;
+  if (prescription.kind === 'reps') {
+    const rir = parseRir(block.rir);
+    return prescription.min + (rir === null ? 0 : rir.max);
+  }
+  if (prescription.kind === 'seconds') {
+    return prescription.min + Math.ceil(prescription.min * 0.2);
+  }
+  return null;
+}
+
+/** Il primo gradino della scala che non sia solo eccentrico. */
+function firstExecutableLevel(pattern: MotorPattern): LevelIndex {
+  if (!getProgressionStep(pattern, 1).eccentricOnly) return 1;
+  return adjacentLevel(pattern, 1, 1, true) ?? 1;
+}
+
+/**
+ * Il gradino da cui si parte (PROGRAM_RULES R1, chiude B5).
+ *
+ * Prima la regola era «mai sopra il gradino del test»: un tetto uguale per
+ * chiunque avesse fatto almeno una ripetizione. Chi chiudeva il test delle
+ * trazioni con quattro si vedeva assegnare le trazioni complete, gradino 3,
+ * con un range di sei-otto: cioè il doppio di quello che aveva appena
+ * dimostrato di saper fare, per tre serie. La scheda originale lo sapeva e lo
+ * scriveva a parole, «un piede sul box»; nessuna funzione lo calcolava.
+ *
+ * Adesso il risultato del test si confronta con quello che il blocco chiede.
+ * Si valuta in ordine, e la prima riga che si applica decide:
+ *
+ * 1. esercizio senza scala: il suo gradino;
+ * 2. solo in blocchi fuori dalla revisione (il dead hang della
+ *    decompressione): il suo gradino, perché niente lo farà mai cambiare;
+ * 3. scala senza test: il gradino dell'esercizio se è 1 o 2, altrimenti 1 —
+ *    l'hip thrust su panca della Seduta 4 parte su panca, come dice la scheda,
+ *    e il monopodalico non lo assegna nessuno a chi non ha mai fatto quello a
+ *    due gambe;
+ * 4. la scheda prescrive sotto il gradino del test (il dip su panca): si
+ *    rispetta, è una scelta;
+ * 5. misure diverse fra test ed esercizio: il gradino dell'esercizio;
+ * 6. test mancante o a zero: il primo gradino eseguibile;
+ * 7. nessun blocco a range fisso (il programma archiviato): il tetto di prima;
+ * 8. altrimenti: se il massimale arriva alla soglia del blocco più esigente,
+ *    il gradino del test; se no, quello sotto — saltando le sole negative,
+ *    che su un range fisso non si eseguono.
  */
 export function startingLevel(
   exercise: Exercise,
   tests: ReadonlyMap<TestId, TestResult> = new Map(),
 ): LevelIndex | null {
   const prescritto = exercise.defaultLevel;
+  /* 1 */
   if (exercise.pattern === null || prescritto === null) return prescritto;
-  const prova = testBaseline(exercise.pattern);
-  /*
-   * Nessun test su questa scala: si parte dal primo gradino.
-   *
-   * Le cinque scale aggiunte non hanno un test in settimana 0, quindi non c'è
-   * niente contro cui tarare un tetto. Partire dal gradino che la scheda
-   * prescrive era il problema: l'hip thrust monopodalico a chi non ha mai
-   * fatto quello a due gambe. Senza una misura l'app non ha nessuna prova che
-   * si possa fare di più, e la regola di avanzamento porta su in fretta se il
-   * primo gradino è banale.
-   */
-  if (prova === null) return 1;
-  /*
-   * Zero misurato vuol dire gradino 1, qualunque cosa prescriva la scheda.
-   *
-   * Prima il tetto era il gradino *dell'esercizio del test*, uguale per
-   * chiunque: chi chiudeva la settimana 0 con zero trazioni, zero dip e zero
-   * nordic si vedeva assegnare il gradino 3 — trazioni complete, dip completi
-   * alle parallele, nordic eccentrico 5" — e gli servivano due settimane di
-   * serie da zero ripetizioni per scendere al gradino 1. Il risultato del
-   * test non entrava in nessuna decisione.
-   *
-   * Qui c'è solo la parte inarguibile: un movimento che non hai eseguito
-   * nemmeno una volta non è il tuo punto di partenza. La mappatura completa
-   * valore → gradino è una regola di metodo e spetta a training-designer:
-   * finché non c'è, sopra lo zero resta il tetto del test.
-   */
-  const risultato = tests.get(prova.testId);
-  if (risultato !== undefined && risultato.value <= 0) return 1;
-  /*
-   * Solo dentro la stessa misura. La scala del core passa dalle tenute in
-   * secondi alle ripetizioni: abbassare l'hanging leg raise fino all'hollow
-   * hold darebbe «10-15 ripetizioni» di una tenuta.
-   */
+  const pattern = exercise.pattern;
+
+  const blocchi = activeBlocksFor(exercise.slug);
+  /* 2 */
+  if (blocchi.length > 0 && blocchi.every((block) => block.excludeFromReview === true)) {
+    return prescritto;
+  }
+
+  const prova = testBaseline(pattern);
+  /* 3 */
+  if (prova === null) return prescritto <= 2 ? prescritto : 1;
+  /* 4 */
+  if (prescritto < prova.level) return prescritto;
+  /* 5 */
   if (prova.measurement !== exercise.measurement) return prescritto;
-  return (prescritto < prova.level ? prescritto : prova.level) as LevelIndex;
+
+  /* 6 */
+  const risultato = tests.get(prova.testId);
+  if (risultato === undefined || risultato.value <= 0) return firstExecutableLevel(pattern);
+
+  /* 7 */
+  const soglie = blocchi
+    .filter((block) => block.excludeFromReview !== true)
+    .map(thresholdFor)
+    .filter((soglia): soglia is number => soglia !== null);
+  if (soglie.length === 0) return (prescritto < prova.level ? prescritto : prova.level) as LevelIndex;
+
+  /* 8 */
+  const soglia = Math.max(...soglie);
+  if (risultato.value >= soglia) return prova.level;
+  return adjacentLevel(pattern, prova.level, -1, true) ?? firstExecutableLevel(pattern);
 }
 
 /**
@@ -214,10 +268,20 @@ function variantLever(input: ProgressionInput): LeverAvailability {
   if (exercise.pattern === null || state.level === null) {
     return { lever: 'variant', label, available: false, reason: 'Questo esercizio non appartiene a una scala di progressione.' };
   }
-  if (state.level >= 6) {
-    return { lever: 'variant', label, available: false, reason: 'Sei già al livello 6, l’ultimo della scala.' };
+  if (adjacentLevel(exercise.pattern, state.level, 1, isFixedRange(input.block)) === null) {
+    return { lever: 'variant', label, available: false, reason: 'Sei già all’ultimo gradino eseguibile della scala.' };
   }
   return { lever: 'variant', label, available: true, reason: null };
+}
+
+/**
+ * Il blocco ha un range scritto nella scheda, non ricavato dal test.
+ *
+ * Sui range fissi del circuito i gradini di sole negative non si eseguono
+ * come la scheda chiede, quindi salire e scendere li salta.
+ */
+export function isFixedRange(block: ProgramBlock): boolean {
+  return block.prescription.kind === 'reps' || block.prescription.kind === 'seconds';
 }
 
 function loadLever(input: ProgressionInput): LeverAvailability {
@@ -331,10 +395,13 @@ function buildSuggestion(
     case 'variant': {
       const pattern = input.exercise.pattern;
       const level = state.level;
-      if (pattern === null || level === null || level >= 6) {
+      const nextLevel =
+        pattern === null || level === null
+          ? null
+          : adjacentLevel(pattern, level, 1, isFixedRange(input.block));
+      if (pattern === null || nextLevel === null) {
         return { lever, title, change: 'Nessuna variante più difficile disponibile.', warning: null, nextState: state };
       }
-      const nextLevel = (level + 1) as LevelIndex;
       const step = getProgressionStep(pattern, nextLevel);
       const achieved = meanValue(input.logged);
       const low = Math.max(1, Math.round(achieved * (1 - VARIANT_JUMP_REP_LOSS.max)));

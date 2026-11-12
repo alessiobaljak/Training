@@ -1,15 +1,14 @@
 import { getExercise } from '../data/exercises.ts';
-import { getProgressionStep } from '../data/progressions.ts';
+import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
 import { getAnySession } from '../data/sessions.ts';
 import { effectiveBlock } from './draft.ts';
 import { getLoadAvailability, stepLoad } from './loading.ts';
-import { initialExerciseState } from './progression.ts';
+import { initialExerciseState, isFixedRange } from './progression.ts';
 import { formatRange, resolveBlockRange } from './ranges.ts';
 import type { RangeUnit, WorkRange } from './ranges.ts';
 import type {
   ExerciseSlug,
   ExerciseState,
-  LevelIndex,
   LoggedSession,
   OverloadLever,
   TestId,
@@ -99,6 +98,8 @@ interface Osservazione {
   tempoConfermato: boolean;
   /** `true` se almeno una seduta ha lasciato la domanda senza risposta. */
   tempoNonRisposto: boolean;
+  /** Range scritto nella scheda: salire e scendere saltano le sole negative. */
+  rangeFisso: boolean;
 }
 
 function elenco(values: readonly number[], unit: RangeUnit): string {
@@ -162,6 +163,7 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         unit: range.unit,
         tempoConfermato: true,
         tempoNonRisposto: false,
+        rangeFisso: isFixedRange(block),
       };
       for (const set of logged.sets) corrente.values.push(set.value);
       setsCounted += logged.sets.length;
@@ -192,10 +194,24 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         ? null
         : 'Il tempo prescritto non è stato rispettato su tutte le serie: prima di salire, rifai la settimana al tempo giusto.';
 
+    /*
+     * Il gradino sotto e quello sopra, saltando le sole negative sui range
+     * fissi: dalle trazioni complete a sei-otto ripetizioni non si scende alle
+     * trazioni negative, che a sei-otto ripetizioni con un secondo di salita
+     * non si fanno. Si scende al gradino assistito.
+     */
+    const giu =
+      exercise.pattern === null || before.level === null
+        ? null
+        : adjacentLevel(exercise.pattern, before.level, -1, osservazione.rangeFisso);
+    const su =
+      exercise.pattern === null || before.level === null
+        ? null
+        : adjacentLevel(exercise.pattern, before.level, 1, osservazione.rangeFisso);
+
     /* 1. Troppo difficile. È la direzione che mancava del tutto. */
     if (sotto === values.length) {
-      if (exercise.pattern !== null && before.level !== null && before.level > 1) {
-        const giu = (before.level - 1) as LevelIndex;
+      if (exercise.pattern !== null && before.level !== null && giu !== null) {
         const step = getProgressionStep(exercise.pattern, giu);
         verdicts.push({
           exercise: slug,
@@ -229,8 +245,7 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
 
     /* 2. Troppo facile: il gradino non fa più resistenza. */
     if (sopra === values.length) {
-      if (exercise.pattern !== null && before.level !== null && before.level < 6) {
-        const su = (before.level + 1) as LevelIndex;
+      if (exercise.pattern !== null && before.level !== null && su !== null) {
         const step = getProgressionStep(exercise.pattern, su);
         verdicts.push({
           exercise: slug,

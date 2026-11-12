@@ -13,7 +13,7 @@ import { MOTOR_PATTERNS, MOTOR_PATTERN_LABELS } from '../types/index.ts';
 const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, string, string, string, string]>> =
   Object.freeze({
     'vertical-pull': [
-      'Trazioni assistite con elastico',
+      'Trazioni assistite',
       'Trazioni negative 5"',
       'Trazioni complete',
       'Trazioni con pausa 1" in alto',
@@ -192,11 +192,13 @@ function buildSteps(
   names: readonly [string, string, string, string, string, string],
 ): ProgressionScale['steps'] {
   const perSide = SCALE_PER_SIDE[pattern];
+  const soloEccentrico = SCALE_ECCENTRIC_ONLY[pattern] ?? [];
   const step = (level: LevelIndex, name: string): ProgressionStep => ({
     level,
     slug: `${pattern}-l${level}`,
     name,
     perSide: perSide[level - 1] ?? false,
+    eccentricOnly: soloEccentrico[level - 1] ?? false,
   });
   return [
     step(1, names[0]),
@@ -247,6 +249,20 @@ const SCALE_PER_SIDE: Readonly<
   hang: [false, false, false, true, true, true],
 });
 
+/**
+ * Quali gradini hanno solo la fase eccentrica. Le scale non elencate non ne
+ * hanno nessuno. Il nome del gradino lo dice già — «negative», «eccentrico» —
+ * e un test controlla che flag e nome restino d'accordo.
+ */
+const SCALE_ECCENTRIC_ONLY: Partial<
+  Record<MotorPattern, readonly [boolean, boolean, boolean, boolean, boolean, boolean]>
+> = Object.freeze({
+  'vertical-pull': [false, true, false, false, false, false],
+  'vertical-push': [false, false, true, false, false, false],
+  dip: [false, true, false, false, false, false],
+  'posterior-chain': [false, true, true, true, false, false],
+});
+
 export const PROGRESSION_SCALES: readonly ProgressionScale[] = Object.freeze(
   MOTOR_PATTERNS.map((pattern) => ({
     pattern,
@@ -273,4 +289,30 @@ export function getProgressionStep(pattern: MotorPattern, level: LevelIndex): Pr
     throw new Error(`Livello fuori scala: ${pattern} livello ${String(level)}`);
   }
   return step;
+}
+
+/**
+ * Il gradino sopra o sotto, saltando quelli solo eccentrici quando serve.
+ *
+ * `saltaEccentrici` è vero sui range fissi del circuito: lì un gradino di
+ * sole negative non si esegue come la scheda chiede, e passare dalle
+ * trazioni complete alle negative «per scendere» voleva dire prescrivere un
+ * gesto diverso con il range e il tempo dell'altro. Sul programma
+ * archiviato, dove il range viene dal test, i gradini eccentrici restano
+ * tappe della scala come prima.
+ *
+ * `null` quando non c'è un gradino eseguibile in quella direzione.
+ */
+export function adjacentLevel(
+  pattern: MotorPattern,
+  level: LevelIndex,
+  direction: 1 | -1,
+  saltaEccentrici: boolean,
+): LevelIndex | null {
+  for (let candidato = level + direction; candidato >= 1 && candidato <= 6; candidato += direction) {
+    const step = getProgressionStep(pattern, candidato as LevelIndex);
+    if (saltaEccentrici && step.eccentricOnly) continue;
+    return candidato as LevelIndex;
+  }
+  return null;
 }

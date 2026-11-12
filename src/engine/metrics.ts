@@ -5,14 +5,16 @@ import {
   WEEKLY_SET_TARGET,
 } from '../types/index.ts';
 import type {
+  Exercise,
   LoggedExercise,
   LoggedSession,
   MuscleGroup,
+  ProgramSession,
   WaistEntry,
   WeightEntry,
 } from '../types/index.ts';
 import { addDays, daysBetween, sortIsoDates, startOfWeek } from './dates.ts';
-import { isActiveSession } from '../data/sessions.ts';
+import { findAnySession, isActiveSession } from '../data/sessions.ts';
 
 /**
  * Medie, delta, volume e aderenza. Tutto puro, tutto su dati già registrati.
@@ -208,35 +210,93 @@ export interface GroupVolume {
  * Una serie per lato conta una volta sola, come nella colonna Serie della
  * scheda: due righe di log, sinistra e destra, sono la stessa serie.
  */
+/**
+ * Il blocco conta nel volume? Una regola sola, per il fatto e per il previsto
+ * (METHOD §3, R3 di training-designer).
+ *
+ * Finitura e decompressione no. Prima `metrics.ts` le contava e il test dei
+ * dati no: l'atleta vedeva quadricipiti 14, il rapporto al progettista ne
+ * citava 6, e nessuno dei due sapeva dell'altro. Trenta secondi di step al box
+ * a fine seduta non sono volume di allenamento dei quadricipiti, e cinque
+ * minuti di stretching non sono serie.
+ */
+function contaNelVolume(sessionId: LoggedSession['sessionId'], blockCode: string): boolean {
+  const programma = findAnySession(sessionId);
+  const blocco = programma?.blocks.find((block) => block.code === blockCode);
+  return blocco?.excludeFromReview !== true;
+}
+
+function aggiungi(
+  totals: Map<MuscleGroup, number>,
+  exercise: Exercise,
+  setCount: number,
+): void {
+  for (const group of exercise.primaryMuscles) {
+    totals.set(group, (totals.get(group) ?? 0) + setCount);
+  }
+  for (const group of exercise.secondaryMuscles) {
+    totals.set(group, (totals.get(group) ?? 0) + setCount * SECONDARY_SET_WEIGHT);
+  }
+}
+
+function inFascia(sets: number): VolumeStatus {
+  return sets < WEEKLY_SET_TARGET.min ? 'under' : sets > WEEKLY_SET_TARGET.max ? 'over' : 'in';
+}
+
+/**
+ * Serie fatte per gruppo, sulle sedute chiuse o abbandonate.
+ *
+ * Una seduta ancora aperta non conta: è un numero che sta ancora cambiando.
+ */
 export function volumeByGroup(sessions: readonly LoggedSession[]): GroupVolume[] {
   const totals = new Map<MuscleGroup, number>(MUSCLE_GROUPS.map((group) => [group, 0]));
 
   for (const session of sessions) {
+    if (session.status === 'in-progress') continue;
     for (const logged of session.exercises) {
+      if (!contaNelVolume(session.sessionId, logged.blockCode)) continue;
       const setCount = new Set(logged.sets.map((set) => set.setIndex)).size;
       if (setCount === 0) continue;
       // Uno slug sconosciuto può arrivare da un backup fatto con una versione
       // precedente dei dati: la riga resta nel log, ma non conta nel volume.
       const exercise = findExercise(logged.exercise);
       if (exercise === undefined) continue;
-      for (const group of exercise.primaryMuscles) {
-        totals.set(group, (totals.get(group) ?? 0) + setCount);
-      }
-      for (const group of exercise.secondaryMuscles) {
-        totals.set(group, (totals.get(group) ?? 0) + setCount * SECONDARY_SET_WEIGHT);
-      }
+      aggiungi(totals, exercise, setCount);
     }
   }
 
   return MUSCLE_GROUPS.map((group) => {
     const sets = totals.get(group) ?? 0;
-    const status: VolumeStatus =
-      sets < WEEKLY_SET_TARGET.min ? 'under' : sets > WEEKLY_SET_TARGET.max ? 'over' : 'in';
-    return { group, sets, status };
+    return { group, sets, status: inFascia(sets) };
   });
 }
 
-/** Sedute della settimana che inizia nel lunedì indicato. */
+/**
+ * Serie previste per gruppo: quelle che il programma scrive, a settimana.
+ *
+ * È il numero contro cui si confronta quello che fai. La fascia del metodo
+ * (16-20) resta un riferimento da guardare a parte: con questa scheda è
+ * irraggiungibile su tre gruppi per costruzione — 24 stazioni da tre serie
+ * fanno 103,5 serie pesate contro le 128 che otto gruppi per sedici
+ * pretenderebbero — e misurare l'atleta contro un numero che il programma
+ * non gli chiede voleva dire scrivergli «sotto» ovunque.
+ */
+export function plannedVolumeByGroup(sessions: readonly ProgramSession[]): GroupVolume[] {
+  const totals = new Map<MuscleGroup, number>(MUSCLE_GROUPS.map((group) => [group, 0]));
+  for (const session of sessions) {
+    for (const block of session.blocks) {
+      if (block.excludeFromReview === true) continue;
+      const exercise = findExercise(block.exercise);
+      if (exercise === undefined) continue;
+      aggiungi(totals, exercise, block.sets);
+    }
+  }
+  return MUSCLE_GROUPS.map((group) => {
+    const sets = totals.get(group) ?? 0;
+    return { group, sets, status: inFascia(sets) };
+  });
+}
+
 export function sessionsInWeek(
   sessions: readonly LoggedSession[],
   weekStart: string,

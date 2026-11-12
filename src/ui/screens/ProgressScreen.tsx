@@ -2,14 +2,19 @@ import { useMemo, useState } from 'react';
 import { findExercise } from '../../data/exercises.ts';
 import { MUSCLE_GROUP_LABELS, WEEKLY_SET_TARGET } from '../../types/index.ts';
 import { exerciseHistory, loggedExerciseSlugs } from '../../engine/history.ts';
-import { adherenceFromSessions, sessionsInWeek, volumeByGroup } from '../../engine/metrics.ts';
-import { addDays, startOfWeek, todayIso } from '../../engine/dates.ts';
+import {
+  adherenceFromSessions,
+  plannedVolumeByGroup,
+  sessionsInWeek,
+  volumeByGroup,
+} from '../../engine/metrics.ts';
+import { addDays, formatDayShort, plural, startOfWeek, todayIso } from '../../engine/dates.ts';
 import { programWeek } from '../../engine/schedule.ts';
 import { ACTIVE_SESSIONS } from '../../data/sessions.ts';
+import { CIRCUIT_SESSIONS } from '../../data/circuit.ts';
 import { useSessions, useSettings } from '../hooks/useData.ts';
-import { Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
+import { Button, Card, Screen, SectionTitle } from '../components/primitives.tsx';
 import { StackedColumns } from '../charts/StackedColumns.tsx';
-import { TargetBars } from '../charts/TargetBars.tsx';
 import type { ColumnDatum } from '../charts/StackedColumns.tsx';
 
 /**
@@ -31,7 +36,26 @@ export function ProgressScreen() {
   const [slug, setSlug] = useState<string>('');
   const [weekOffset, setWeekOffset] = useState(0);
 
-  const slugs = useMemo(() => loggedExerciseSlugs(sessions ?? []), [sessions]);
+  /*
+   * Nel menu solo gli esercizi che hanno un andamento da leggere, e
+   * nell'ordine della scheda. Prima l'elenco era alfabetico e partiva da
+   * «Apertura delle anche»: il primo grafico che si vedeva era una colonna
+   * da sessanta secondi di stretching, cioè il numero che la scheda fissa e
+   * che non può cambiare.
+   */
+  const slugs = useMemo(() => {
+    const registrati = new Set(loggedExerciseSlugs(sessions ?? []));
+    const ordine = CIRCUIT_SESSIONS.flatMap((session) =>
+      session.blocks.filter((block) => block.excludeFromReview !== true).map((block) => block.exercise),
+    );
+    const inScheda = [...new Set(ordine)].filter((entry) => registrati.has(entry));
+    const altri = [...registrati].filter(
+      (entry) =>
+        !ordine.includes(entry) &&
+        !CIRCUIT_SESSIONS.some((session) => session.blocks.some((block) => block.exercise === entry)),
+    );
+    return [...inScheda, ...altri];
+  }, [sessions]);
   const chosen = slug === '' ? (slugs[0] ?? '') : slug;
 
   const points = useMemo(
@@ -66,6 +90,7 @@ export function ProgressScreen() {
     () => volumeByGroup(sessionsInWeek(sessions ?? [], weekStart)),
     [sessions, weekStart],
   );
+  const previsto = useMemo(() => plannedVolumeByGroup(CIRCUIT_SESSIONS), []);
 
   if (sessions === undefined || settings === undefined) {
     return (
@@ -101,7 +126,8 @@ export function ProgressScreen() {
             {adherence.planned === 0 && start !== null
               ? 'Niente di dovuto finora: le quattro sedute stanno dentro i sette giorni come vuoi tu. '
               : null}
-            {adherence.completed} sedute chiuse su {adherence.planned} previste fino a oggi.{' '}
+            {plural(adherence.completed, 'seduta chiusa', 'sedute chiuse')} su {adherence.planned}{' '}
+            {adherence.planned === 1 ? 'prevista' : 'previste'} fino a oggi.{' '}
             {weeksElapsed <= 1 ? 'Prima settimana' : `Settimana ${String(weeksElapsed)}`}, con la
             settimana in corso contata solo per i giorni già passati.
           </p>
@@ -147,14 +173,19 @@ export function ProgressScreen() {
         <SectionTitle>Volume settimanale</SectionTitle>
         <Card>
           <div className="flex items-center justify-between gap-2">
-            <Button variant="secondary" onClick={() => { setWeekOffset((value) => value - 1); }}>
+            <Button
+              variant="secondary"
+              ariaLabel="Settimana precedente"
+              onClick={() => { setWeekOffset((value) => value - 1); }}
+            >
               ‹
             </Button>
             <p className="text-sm font-semibold">
-              {weekOffset === 0 ? 'Questa settimana' : `Settimana del ${shortDate(weekStart)}`}
+              {weekOffset === 0 ? 'Questa settimana' : `Dal ${formatDayShort(weekStart)}`}
             </p>
             <Button
               variant="secondary"
+              ariaLabel="Settimana seguente"
               disabled={weekOffset >= 0}
               onClick={() => { setWeekOffset((value) => Math.min(0, value + 1)); }}
             >
@@ -162,25 +193,73 @@ export function ProgressScreen() {
             </Button>
           </div>
 
-          <div className="mt-4">
-            <TargetBars
-              bars={volume.map((entry) => ({
-                key: entry.group,
-                label: MUSCLE_GROUP_LABELS[entry.group],
-                value: entry.sets,
-                status: entry.status,
-              }))}
-              target={WEEKLY_SET_TARGET}
-              caption={`Serie piene sui gruppi primari, a metà su quelli secondari. La banda è il riferimento del metodo: ${String(WEEKLY_SET_TARGET.min)}-${String(WEEKLY_SET_TARGET.max)} serie a settimana per gruppo.`}
-            />
-          </div>
+          {/*
+            Fatte contro previste dal programma, non contro la fascia.
+
+            Prima ogni gruppo era confrontato con i 16-20 del metodo e
+            colorato di conseguenza: con questa scheda sette gruppi su otto
+            finivano «sotto» anche facendo tutto, perché la scheda ne prevede
+            meno. Una schermata che dice «sotto» a chi ha fatto ogni serie
+            insegna a non guardarla. La fascia sta più sotto, come
+            riferimento.
+          */}
+          <ul className="mt-4 space-y-3">
+            {previsto
+              .filter((entry) => entry.sets > 0)
+              .sort((x, y) => y.sets - x.sets)
+              .map((entry) => {
+                const fatte = volume.find((row) => row.group === entry.group)?.sets ?? 0;
+                const quota = Math.min(100, (fatte / entry.sets) * 100);
+                return (
+                  <li key={entry.group}>
+                    <div className="flex items-baseline justify-between gap-2 text-xs">
+                      <span className="text-dim">{MUSCLE_GROUP_LABELS[entry.group]}</span>
+                      <span className="tabular text-dim">
+                        <span className="font-semibold text-ink">{fatte}</span> di {entry.sets}
+                      </span>
+                    </div>
+                    <div className="mt-1 h-2.5 w-full overflow-hidden rounded-full bg-panel">
+                      <div
+                        className="h-full rounded-full bg-[var(--color-mark)]"
+                        style={{ width: `${String(quota)}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+          </ul>
+          <p className="mt-3 text-xs leading-relaxed text-dim">
+            Serie delle sedute chiuse, piene sui muscoli principali e a metà su quelli che
+            aiutano. Finitura e decompressione non contano: non sono serie di allenamento.
+          </p>
         </Card>
 
-        <Notice>
-          Il programma scritto a tavolino sfora la fascia su braccia e spalle e resta sotto su
-          quadricipiti, core e polpacci. È una proprietà della scheda, non un errore di conteggio:
-          questi numeri servono a vederla, non a nasconderla.
-        </Notice>
+        <SectionTitle>Il programma e la fascia del metodo</SectionTitle>
+        <Card tone="muted">
+          <p className="text-sm leading-relaxed text-dim">
+            Il metodo indica {WEEKLY_SET_TARGET.min}-{WEEKLY_SET_TARGET.max} serie a settimana per
+            gruppo. Questa scheda le supera su{' '}
+            {previsto
+              .filter((entry) => entry.status === 'over')
+              .map((entry) => MUSCLE_GROUP_LABELS[entry.group].toLowerCase())
+              .join(', ') || 'nessun gruppo'}
+            , ci sta su{' '}
+            {previsto
+              .filter((entry) => entry.status === 'in')
+              .map((entry) => MUSCLE_GROUP_LABELS[entry.group].toLowerCase())
+              .join(', ') || 'nessun gruppo'}{' '}
+            e resta sotto su{' '}
+            {previsto
+              .filter((entry) => entry.status === 'under')
+              .map((entry) => MUSCLE_GROUP_LABELS[entry.group].toLowerCase())
+              .join(', ') || 'nessun gruppo'}
+            .
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-dim">
+            È una proprietà della scheda, non di come ti alleni: braccia e vita sono la priorità, e
+            sei stazioni a seduta non bastano a portare tutto il resto nella fascia.
+          </p>
+        </Card>
       </div>
     </Screen>
   );

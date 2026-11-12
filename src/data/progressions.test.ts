@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PROGRESSION_SCALES, getProgressionScale, getProgressionStep } from './progressions.ts';
+import { PROGRESSION_SCALES, adjacentLevel, getProgressionScale, getProgressionStep } from './progressions.ts';
 import { DEVIAZIONI_GRADINO, applicaDeviazioneGradino } from './deviations.ts';
 import { MOTOR_PATTERNS, OVERLOAD_LEVERS, ECCENTRIC_TEMPO_LADDER, ISO_PAUSE_LADDER } from '../types/index.ts';
 import type { LevelIndex, MotorPattern } from '../types/index.ts';
@@ -324,5 +324,39 @@ describe('le 5 leve del sovraccarico', () => {
 
   it('le pause isometriche vanno da 1" a 2"', () => {
     expect(ISO_PAUSE_LADDER).toEqual([1, 2]);
+  });
+});
+
+describe('gradini di sole negative', () => {
+  /*
+   * Il flag e il nome devono dire la stessa cosa. Un gradino eccentrico
+   * senza il flag verrebbe assegnato come partenza su un range fisso; un
+   * gradino col flag sbagliato verrebbe saltato quando non serve.
+   */
+  it('il flag segue il nome: negative ed eccentrici, e nient’altro', () => {
+    for (const scale of PROGRESSION_SCALES) {
+      for (const step of scale.steps) {
+        /*
+         * «eccentrico» è il gesto (nordic eccentrico), «eccentrica» la fase:
+         * il sissy squat «con eccentrica 5"» è una ripetizione completa che
+         * scende piano, e si esegue a ripetizioni come le altre.
+         */
+        const dalNome = /negativ|eccentrico/i.test(step.name);
+        expect(step.eccentricOnly, `${scale.pattern}-l${String(step.level)} «${step.name}»`).toBe(dalNome);
+      }
+    }
+  });
+
+  it('salendo e scendendo sui range fissi li salta', () => {
+    expect(adjacentLevel('vertical-pull', 3, -1, true)).toBe(1);
+    expect(adjacentLevel('vertical-pull', 1, 1, true)).toBe(3);
+    expect(adjacentLevel('dip', 3, -1, true)).toBe(1);
+    /* Sul programma archiviato, dove il range viene dal test, restano tappe. */
+    expect(adjacentLevel('vertical-pull', 3, -1, false)).toBe(2);
+  });
+
+  it('ai bordi della scala non inventa un gradino', () => {
+    expect(adjacentLevel('vertical-pull', 1, -1, true)).toBeNull();
+    expect(adjacentLevel('vertical-pull', 6, 1, true)).toBeNull();
   });
 });

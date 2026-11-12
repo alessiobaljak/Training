@@ -37,9 +37,17 @@ import type {
 const upperA = getSession('upper-a');
 const lowerA = getSession('lower-a');
 
+/**
+ * Gli stati al gradino per cui ogni esercizio è scritto. Le prove della bozza
+ * riguardano come si compila, non da che gradino si parte: quello ha le sue
+ * prove in `progression.test.ts`.
+ */
 function statesFor(session = upperA): ReadonlyMap<ExerciseSlug, ExerciseState> {
   return new Map(
-    session.blocks.map((block) => [block.exercise, initialExerciseState(getExercise(block.exercise))]),
+    session.blocks.map((block) => {
+      const exercise = getExercise(block.exercise);
+      return [block.exercise, { ...initialExerciseState(exercise), level: exercise.defaultLevel }];
+    }),
   );
 }
 
@@ -57,7 +65,7 @@ function draft(week = 1, previous: ReadonlyMap<string, LoggedExercise> = new Map
 describe('etichetta della variante', () => {
   it('usa livello e nome del gradino per gli esercizi in scala', () => {
     const exercise = getExercise('trazioni-prona-presa-media');
-    expect(variantLabelFor(exercise, initialExerciseState(exercise))).toBe(
+    expect(variantLabelFor(exercise, { ...initialExerciseState(exercise), level: 3 })).toBe(
       'Liv. 3 · Trazioni complete',
     );
   });

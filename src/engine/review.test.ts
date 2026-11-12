@@ -68,9 +68,15 @@ describe('reviewWeek', () => {
       tests: new Map(),
     });
 
+    /*
+     * Al gradino eseguibile sotto, non al 2: il 2 sono le trazioni negative,
+     * e su un range fisso a ripetizioni con un secondo di salita non si
+     * eseguono. Prima si scendeva lì, cioè a un gesto diverso con il range e
+     * il tempo dell'altro.
+     */
     const verdict = review.verdicts[0];
     expect(verdict?.kind).toBe('scendi-di-livello');
-    expect(verdict?.stateAfter.level).toBe(2);
+    expect(verdict?.stateAfter.level).toBe(1);
   });
 
   it('al gradino più basso non inventa una discesa: dice che è il range da rifare', () => {

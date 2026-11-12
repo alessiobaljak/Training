@@ -20,6 +20,7 @@ import {
   syncStatesFromLog,
   titleAtLevel,
   upsertLoggedSet,
+  variantNoteAt,
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import type { LoadAvailability } from '../../engine/loading.ts';
@@ -852,7 +853,7 @@ function Anteprima({
       <div className="mt-3">
         <ExerciseArt slug={stazione.esercizio.slug} level={stazione.gradino} caption={false} compact />
       </div>
-      <NotaVariante testo={stazione.blocco.variantNote} />
+      <NotaVariante testo={variantNoteAt(stazione.blocco, stazione.gradino)} />
       {stazione.voltaScorsa === null ? null : (
         <p className="tabular mt-3 text-sm text-dim">
           Volta scorsa: <span className="font-semibold text-ink">{stazione.voltaScorsa}</span>
@@ -1019,7 +1020,7 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
     return (
       <div className="flex flex-1 flex-col">
         {testata}
-        <NotaVariante testo={blocco.variantNote} />
+        <NotaVariante testo={variantNoteAt(blocco, stazione.gradino)} />
         <div className="mt-4">
           <ExerciseArt slug={esercizio.slug} level={stazione.gradino} caption={false} compact />
         </div>
@@ -1074,12 +1075,12 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
         indietro — non è partito, e vede tutto.
       */}
       {partita ? (
-        blocco.variantNote === undefined ? null : (
-          <p className="mt-2 line-clamp-2 text-sm leading-snug text-dim">{blocco.variantNote}</p>
+        variantNoteAt(blocco, stazione.gradino) === undefined ? null : (
+          <p className="mt-2 line-clamp-2 text-sm leading-snug text-dim">{variantNoteAt(blocco, stazione.gradino)}</p>
         )
       ) : (
         <>
-          <NotaVariante testo={blocco.variantNote} />
+          <NotaVariante testo={variantNoteAt(blocco, stazione.gradino)} />
           <div className="mt-4">
             <ExerciseArt slug={esercizio.slug} level={stazione.gradino} caption={false} compact />
           </div>
