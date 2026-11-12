@@ -67,3 +67,68 @@ export function startOfWeek(value: string): string {
 export function sortIsoDates(dates: readonly string[]): string[] {
   return [...dates].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 }
+
+/* -------------------------------------------------------------------------- */
+/* Date da leggere                                                             */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * Le date si conservano in ISO e si mostrano in italiano. Prima l'app mostrava
+ * quelle che conservava: «Settimana 1 · 2026-11-12» in testa alla Home, «0 g
+ * fa» accanto alla seduta appena chiusa. Sono formati da registro, non da
+ * persona che ha appena finito di allenarsi.
+ *
+ * Nomi scritti a mano invece di `toLocaleDateString`: il risultato di quella
+ * dipende dalla lingua del telefono, e un'app in italiano su un telefono in
+ * inglese scriverebbe «Thursday 12 November».
+ */
+
+const GIORNI = ['lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato', 'domenica'] as const;
+const MESI = [
+  'gennaio',
+  'febbraio',
+  'marzo',
+  'aprile',
+  'maggio',
+  'giugno',
+  'luglio',
+  'agosto',
+  'settembre',
+  'ottobre',
+  'novembre',
+  'dicembre',
+] as const;
+
+/** «giovedì 12 novembre». L'anno non c'è: serve a dire che giorno è oggi. */
+export function formatDayLong(value: string): string {
+  const date = parseIsoDate(value);
+  const giorno = GIORNI[isoWeekday(value) - 1] ?? '';
+  const mese = MESI[date.getUTCMonth()] ?? '';
+  return `${giorno} ${String(date.getUTCDate())} ${mese}`;
+}
+
+/**
+ * «gio 12 nov», e l'anno solo quando non è quello di `today`: in un diario
+ * di tre mesi l'anno ripetuto su ogni riga è rumore, a gennaio serve.
+ */
+export function formatDayShort(value: string, today: string = todayIso()): string {
+  const date = parseIsoDate(value);
+  const giorno = (GIORNI[isoWeekday(value) - 1] ?? '').slice(0, 3);
+  const mese = (MESI[date.getUTCMonth()] ?? '').slice(0, 3);
+  const anno = value.slice(0, 4) === today.slice(0, 4) ? '' : ` ${value.slice(0, 4)}`;
+  return `${giorno} ${String(date.getUTCDate())} ${mese}${anno}`;
+}
+
+/** «oggi», «ieri», «3 giorni fa». Per le date nel futuro, la data breve. */
+export function formatDaysAgo(value: string, today: string = todayIso()): string {
+  const giorni = daysBetween(value, today);
+  if (giorni === 0) return 'oggi';
+  if (giorni === 1) return 'ieri';
+  if (giorni < 0) return formatDayShort(value, today);
+  return `${String(giorni)} giorni fa`;
+}
+
+/** Singolare o plurale secondo il numero: «1 seduta», «2 sedute». */
+export function plural(count: number, singolare: string, plurale: string): string {
+  return `${String(count)} ${count === 1 ? singolare : plurale}`;
+}

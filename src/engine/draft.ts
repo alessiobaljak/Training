@@ -30,6 +30,23 @@ export function variantLabelFor(exercise: Exercise, state: ExerciseState): strin
   return `Liv. ${String(state.level)} · ${step.name}`;
 }
 
+/**
+ * Come si chiama quello che l'atleta sta facendo: l'esercizio, o il gradino.
+ *
+ * Quando il gradino è quello per cui l'esercizio è scritto, il nome
+ * dell'esercizio è il più preciso dei due. Quando non lo è, il nome
+ * dell'esercizio descrive un movimento che non si sta facendo, e vince il
+ * gradino. È una regola sola e la usano scheda, recupero e serie: scritta in
+ * tre posti, la scheda diceva «Trazioni prona» e il player «Trazioni
+ * assistite» per la stessa stazione.
+ */
+export function titleAtLevel(exercise: Exercise, level: LevelIndex | null): string {
+  if (exercise.pattern === null || level === null || level === exercise.defaultLevel) {
+    return exercise.name;
+  }
+  return getProgressionStep(exercise.pattern, level).name;
+}
+
 export interface DraftParams {
   readonly id: string;
   readonly date: string;

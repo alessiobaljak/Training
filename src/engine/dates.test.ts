@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   addDays,
   daysBetween,
+  formatDayLong,
+  formatDayShort,
+  formatDaysAgo,
   isIsoDate,
   isoWeekday,
   parseIsoDate,
+  plural,
   sortIsoDates,
   startOfWeek,
   todayIso,
@@ -71,5 +75,30 @@ describe('data di oggi', () => {
     const today = todayIso(new Date(2026, 8, 15, 23, 59, 0));
     expect(isIsoDate(today)).toBe(true);
     expect(addDays(today, 1)).toBe('2026-09-16');
+  });
+});
+
+describe('date da leggere', () => {
+  it('scrive il giorno per esteso, in italiano qualunque sia la lingua del telefono', () => {
+    expect(formatDayLong('2026-11-12')).toBe('giovedì 12 novembre');
+    expect(formatDayLong('2026-01-04')).toBe('domenica 4 gennaio');
+  });
+
+  it('nella forma breve mette l’anno solo quando non è quello corrente', () => {
+    expect(formatDayShort('2026-11-12', '2026-11-20')).toBe('gio 12 nov');
+    expect(formatDayShort('2025-12-31', '2026-01-02')).toBe('mer 31 dic 2025');
+  });
+
+  it('dice oggi e ieri, non «0 g fa»', () => {
+    expect(formatDaysAgo('2026-11-12', '2026-11-12')).toBe('oggi');
+    expect(formatDaysAgo('2026-11-11', '2026-11-12')).toBe('ieri');
+    expect(formatDaysAgo('2026-11-09', '2026-11-12')).toBe('3 giorni fa');
+  });
+
+  it('concorda il numero con il nome', () => {
+    /* «1 sedute chiuse» e «Ne restano 1» stavano sullo schermo. */
+    expect(plural(1, 'seduta', 'sedute')).toBe('1 seduta');
+    expect(plural(0, 'seduta', 'sedute')).toBe('0 sedute');
+    expect(plural(4, 'seduta', 'sedute')).toBe('4 sedute');
   });
 });

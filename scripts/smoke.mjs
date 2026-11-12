@@ -478,9 +478,14 @@ try {
           !homeDopoChiusura.includes('upper a') && !homeDopoChiusura.includes('upper-a'),
           'La Home non deve proporre le sedute archiviate dello Shadow.',
         );
+        /*
+         * «Apri» o «Riprendi»: a questo punto della prova una seduta del
+         * circuito è rimasta aperta oggi, e la Home la mette davanti a una
+         * nuova. Quello che conta è che proponga il circuito, non lo Shadow.
+         */
         check(
-          /apri seduta [1-4]/.test(homeDopoChiusura) ||
-            (await page.getByRole('button', { name: /^Apri Seduta [1-4]$/ }).count()) === 1,
+          /(apri|riprendi) seduta [1-4]/.test(homeDopoChiusura) ||
+            (await page.getByRole('button', { name: /^(Apri|Riprendi) Seduta [1-4]$/ }).count()) === 1,
           'Chiusa una seduta d’archivio, la Home deve continuare a proporre la rotazione del circuito.',
         );
       }
@@ -1328,14 +1333,19 @@ try {
      * un'altra. Il controllo è sulla riga, non sulla pagina: una seduta aperta
      * oggi, che a questo punto esiste, il suo «Riprendi» ce l'ha e va bene.
      */
-    const rigaVecchia = page.getByRole('listitem').filter({ hasText: '2020-01-02' });
+    /*
+     * La data si legge come una data: «gio 2 gen 2020», non «2020-01-02».
+     * L'anno c'è perché non è quello corrente.
+     */
+    const DATA_SEMINATA = /2 gen 2020/;
+    const rigaVecchia = page.getByRole('listitem').filter({ hasText: DATA_SEMINATA });
     check(
       (await rigaVecchia.getByRole('button', { name: 'Riprendi', exact: true }).count()) === 0,
       'La Home non deve offrire di riprendere una seduta vecchia: aprirebbe quella di oggi, non quella.',
     );
 
     /* La riga della seduta seminata, non una qualunque delle tre. */
-    const riga = page.getByRole('listitem').filter({ hasText: '2020-01-02' });
+    const riga = page.getByRole('listitem').filter({ hasText: DATA_SEMINATA });
     check(
       (await riga.count()) === 1,
       `La seduta del 2020-01-02 deve avere la sua riga: trovate ${String(await riga.count())}.`,
@@ -1357,7 +1367,7 @@ try {
       await page.waitForTimeout(2000);
 
       check(
-        (await page.getByRole('listitem').filter({ hasText: '2020-01-02' }).count()) === 0,
+        (await page.getByRole('listitem').filter({ hasText: DATA_SEMINATA }).count()) === 0,
         'Eliminata la seduta, la Home non deve più mostrarla.',
       );
       const rimaste = await readFromEmulator('sessions');

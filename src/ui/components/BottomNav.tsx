@@ -1,25 +1,25 @@
+import type { ReactNode } from 'react';
 import { navigate, type Route } from '../router.ts';
+import {
+  IconaAllena,
+  IconaDiario,
+  IconaEsercizi,
+  IconaMisure,
+  IconaProgressi,
+} from './icons.tsx';
 
 interface Tab {
   readonly route: Route;
   readonly label: string;
-  readonly glyph: string;
+  readonly icon: ReactNode;
 }
 
-/*
- * «Oggi» non vuol dire più niente.
- *
- * Era giusto finché il programma assegnava una seduta a ogni giorno: la prima
- * schermata rispondeva alla domanda «cosa tocca oggi?». Il circuito non ha
- * giorni, e quella schermata adesso risponde a «cosa alleno adesso»: il nome
- * della voce deve dire la stessa cosa, o promette un calendario che non c'è.
- */
 const TABS: readonly Tab[] = [
-  { route: { name: 'home' }, label: 'Allena', glyph: '◆' },
-  { route: { name: 'log' }, label: 'Log', glyph: '≡' },
-  { route: { name: 'progress' }, label: 'Progressi', glyph: '◱' },
-  { route: { name: 'measures' }, label: 'Misure', glyph: '◐' },
-  { route: { name: 'library' }, label: 'Esercizi', glyph: '☰' },
+  { route: { name: 'home' }, label: 'Allena', icon: <IconaAllena /> },
+  { route: { name: 'log' }, label: 'Diario', icon: <IconaDiario /> },
+  { route: { name: 'progress' }, label: 'Progressi', icon: <IconaProgressi /> },
+  { route: { name: 'measures' }, label: 'Misure', icon: <IconaMisure /> },
+  { route: { name: 'library' }, label: 'Esercizi', icon: <IconaEsercizi /> },
 ];
 
 export function BottomNav({ current }: { current: Route }) {
@@ -39,13 +39,11 @@ export function BottomNav({ current }: { current: Route }) {
                 navigate(tab.route);
               }}
               aria-current={isActive(tab) ? 'page' : undefined}
-              className={`flex min-h-14 w-full flex-col items-center justify-center gap-0.5 pt-2 text-[11px] font-medium ${
+              className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 pt-2 pb-1 text-[11px] font-medium ${
                 isActive(tab) ? 'text-accent' : 'text-dim'
               }`}
             >
-              <span aria-hidden="true" className="text-lg leading-none">
-                {tab.glyph}
-              </span>
+              {tab.icon}
               {tab.label}
             </button>
           </li>

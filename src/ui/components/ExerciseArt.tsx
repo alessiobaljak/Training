@@ -71,6 +71,7 @@ export function ExerciseArt({
   label,
   caption: mostraDidascalia = true,
   compact = false,
+  frame = 'both',
 }: {
   readonly slug: string;
   /** Gradino attuale: la figura segue quello, non l'esercizio. */
@@ -94,6 +95,16 @@ export function ExerciseArt({
    * conto e i campi da riempire senza dover scorrere.
    */
   readonly compact?: boolean;
+  /**
+   * `last` mostra solo il secondo fotogramma, quello di arrivo.
+   *
+   * Serve alle miniature. Due fotogrammi dentro un riquadro da ottanta pixel
+   * fanno due figure da trentasei: non si distingue un curl da un rematore.
+   * Uno solo, grande il doppio, si riconosce; e quello di arrivo è quasi
+   * sempre il più caratteristico dei due — il mento sopra la sbarra, il
+   * fondo dell'affondo.
+   */
+  readonly frame?: 'both' | 'last';
 }) {
   const bersaglio = artFor(getExercise(slug), level);
   const frames =
@@ -107,7 +118,7 @@ export function ExerciseArt({
     return (
       <figure className="m-0">
         <div className="flex gap-2">
-          {frames.map((url, index) => (
+          {(frame === 'last' ? frames.slice(-1) : frames).map((url, index) => (
             <img
               key={url}
               src={url}
@@ -138,9 +149,18 @@ export function ExerciseArt({
       */}
       <div
         className={`w-full text-ink [&>svg]:block ${
-          compact
-            ? '[&>svg]:mx-auto [&>svg]:h-36 [&>svg]:w-auto [&>svg]:max-w-full'
-            : '[&>svg]:h-auto [&>svg]:w-full'
+          frame === 'last'
+            ? /*
+               * La tela è larga il doppio di un pannello. Ingrandita due volte
+               * e spostata, ne resta uno: il secondo dove i pannelli sono due,
+               * la fascia centrale dove la figura è una sola.
+               */
+              `overflow-hidden [&>svg]:h-auto [&>svg]:w-[200%] [&>svg]:max-w-none ${
+                markup.includes('x1="105"') ? '[&>svg]:-translate-x-1/2' : '[&>svg]:-translate-x-1/4'
+              }`
+            : compact
+              ? '[&>svg]:mx-auto [&>svg]:h-36 [&>svg]:w-auto [&>svg]:max-w-full'
+              : '[&>svg]:h-auto [&>svg]:w-full'
         }`}
         dangerouslySetInnerHTML={{ __html: markup }}
       />

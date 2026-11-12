@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { ACTIVE_SESSIONS, findAnySession } from '../../data/sessions.ts';
-import { findCircuitSession } from '../../data/circuit.ts';
-import { daysBetween, todayIso } from '../../engine/dates.ts';
+import { findCircuitSession, isCircuitSessionId } from '../../data/circuit.ts';
+import { daysBetween, formatDayLong, formatDayShort, formatDaysAgo, plural, todayIso } from '../../engine/dates.ts';
 import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
 import { IN_A_ROW_WARNING, rotationState } from '../../engine/rotation.ts';
 import { getWeekState, programWeek } from '../../engine/schedule.ts';
 import { pendingVerdicts, reviewWeek } from '../../engine/review.ts';
-import { totalWorkSets } from '../../engine/rest.ts';
+import { sessionDurationSeconds } from '../../engine/draft.ts';
+import { formatClock } from '../hooks/useTimers.ts';
+import { IconaImpostazioni } from '../components/icons.tsx';
 import { MUSCLE_GROUP_LABELS } from '../../types/index.ts';
 import type { LoggedSession, ProgramSession } from '../../types/index.ts';
 import { repository } from '../../db/repository.ts';
@@ -36,9 +38,22 @@ import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components
  * ricarica i muscoli di ieri. Sono conti, non divieti.
  */
 
+/**
+ * Le serie di lavoro di una seduta: una per giro, anche sugli esercizi per
+ * lato, e senza finitura e decompressione.
+ *
+ * Prima contava le righe registrate, cioè due per ogni serie per lato e una
+ * per ogni posizione di stretching: la Home diceva «35 serie» della stessa
+ * seduta che il riepilogo, un secondo prima, chiamava «18 serie».
+ */
 function contaSerie(session: LoggedSession | null): number {
   if (session === null) return 0;
-  return session.exercises.reduce((total, entry) => total + entry.sets.length, 0);
+  const programma = findAnySession(session.sessionId);
+  return session.exercises.reduce((total, entry) => {
+    const blocco = programma?.blocks.find((block) => block.code === entry.blockCode);
+    if (blocco?.excludeFromReview === true) return total;
+    return total + new Set(entry.sets.map((set) => set.setIndex)).size;
+  }, 0);
 }
 
 function durata(session: ProgramSession): string {
@@ -136,16 +151,78 @@ export function HomeScreen() {
 
   const ripetuti = rotazione.repeatedMuscles.map((gruppo) => MUSCLE_GROUP_LABELS[gruppo]);
 
+  /*
+   * Tre stati, e la Home ne mostra uno solo in grande.
+   *
+   * Prima ce n'era uno: «Prossima», sempre, con il pulsante principale che
+   * invitava ad aprirla. Anche dieci secondi dopo aver chiuso una seduta: la
+   * schermata diceva «apri la Seduta 2» e, sotto, in un riquadro, «oggi hai
+   * già caricato sei gruppi muscolari». Un invito e la sua smentita nella
+   * stessa schermata. E una seduta lasciata a metà stava in fondo, dopo
+   * quattro righe di elenco, mentre in cima c'era l'invito a cominciarne
+   * un'altra.
+   */
+  const inCorsoOggi = aperte.find(
+    (entry) => entry.date === today && isCircuitSessionId(entry.sessionId),
+  );
+  const fatteOggi = tutte.filter(
+    (entry) =>
+      entry.status === 'completed' && entry.date === today && isCircuitSessionId(entry.sessionId),
+  );
+  const ultimaDiOggi = fatteOggi.at(-1);
+  const aperteVecchie = aperte.filter((entry) => entry !== inCorsoOggi);
+
+  /* Le sedute del circuito chiuse in questa settimana del programma. */
+  const fatteInSettimana = tutte.filter(
+    (entry) =>
+      entry.status === 'completed' && entry.week === week && isCircuitSessionId(entry.sessionId),
+  ).length;
+  const OBIETTIVO = ACTIVE_SESSIONS.length;
+
+  /* Lo Shadow si nomina solo a chi ne ha uno nel diario. */
+  const haStoricoArchiviato = tutte.some((entry) => !isCircuitSessionId(entry.sessionId));
+
+  const quando = (id: string): string => {
+    const data = ultimaVolta.get(id);
+    return data === undefined ? 'mai fatta' : formatDaysAgo(data, today);
+  };
+
+  const stato: 'in-corso' | 'fatto-oggi' | 'prossima' =
+    inCorsoOggi !== undefined ? 'in-corso' : ultimaDiOggi !== undefined ? 'fatto-oggi' : 'prossima';
+  const inCorsoNome =
+    inCorsoOggi === undefined ? '' : (findAnySession(inCorsoOggi.sessionId)?.name ?? '');
+
   return (
     <Screen
       title="Allenamento"
-      subtitle={`Settimana ${String(week)} · ${today}`}
+      subtitle={`Settimana ${String(week)} · ${formatDayLong(today)}`}
+      action={
+        <button
+          type="button"
+          onClick={() => { navigate({ name: 'settings' }); }}
+          aria-label="App e dati"
+          className="-mr-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-dim active:bg-panel"
+        >
+          <IconaImpostazioni />
+        </button>
+      }
       footer={
-        prossima === undefined ? undefined : (
+        stato === 'in-corso' && inCorsoOggi !== undefined ? (
           <div className="pb-1">
             <Button
               full
               size="xl"
+              onClick={() => { navigate({ name: 'session', sessionId: inCorsoOggi.sessionId }); }}
+            >
+              Riprendi {inCorsoNome}
+            </Button>
+          </div>
+        ) : prossima === undefined ? undefined : (
+          <div className="pb-1">
+            <Button
+              full
+              size={stato === 'fatto-oggi' ? 'lg' : 'xl'}
+              variant={stato === 'fatto-oggi' ? 'secondary' : 'primary'}
               onClick={() => { navigate({ name: 'scheda', sessionId: prossima.id }); }}
             >
               Apri {prossima.name}
@@ -155,12 +232,12 @@ export function HomeScreen() {
       }
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          <Badge tone="accent">Settimana {week}</Badge>
-          {weekState.isDeload ? <Badge tone="warn">Scarico</Badge> : null}
-          {weekState.isRetestWeek ? <Badge tone="good">Ritest</Badge> : null}
-          <Badge tone="neutral">4 sedute a settimana</Badge>
-        </div>
+        {weekState.isDeload || weekState.isRetestWeek ? (
+          <div className="flex flex-wrap gap-2">
+            {weekState.isDeload ? <Badge tone="warn">Scarico</Badge> : null}
+            {weekState.isRetestWeek ? <Badge tone="good">Ritest</Badge> : null}
+          </div>
+        ) : null}
 
         {daDecidere.length > 0 ? (
           <Card tone="accent">
@@ -188,11 +265,41 @@ export function HomeScreen() {
         {weekState.isDeload ? <Notice tone="warn">{weekState.banner}</Notice> : null}
 
         {/* -------------------------------------------------------------- */}
-        {/* La prossima                                                     */}
+        {/* Lo stato di oggi                                                */}
         {/* -------------------------------------------------------------- */}
-        {prossima !== undefined ? (
+        {stato === 'in-corso' && inCorsoOggi !== undefined ? (
           <Card tone="accent">
-            <p className="text-xs tracking-wide text-accent uppercase">Prossima</p>
+            <p className="text-xs font-semibold tracking-wide text-accent uppercase">In corso</p>
+            <p className="mt-1 text-3xl leading-tight font-semibold">{inCorsoNome}</p>
+            <p className="mt-1 text-sm text-dim">
+              {contaSerie(inCorsoOggi) === 0
+                ? 'Aperta, nessuna serie ancora registrata.'
+                : `${plural(contaSerie(inCorsoOggi), 'serie registrata', 'serie registrate')}. Riparte dalla stazione in cui eri.`}
+            </p>
+          </Card>
+        ) : stato === 'fatto-oggi' && ultimaDiOggi !== undefined ? (
+          <Card tone="good">
+            <p className="text-xs font-semibold tracking-wide text-good uppercase">Fatto per oggi</p>
+            <p className="mt-1 text-3xl leading-tight font-semibold">
+              {findAnySession(ultimaDiOggi.sessionId)?.name ?? ''}
+            </p>
+            <p className="tabular mt-1 text-sm text-dim">
+              {(() => {
+                const durataVera = sessionDurationSeconds(ultimaDiOggi);
+                const serie = plural(contaSerie(ultimaDiOggi), 'serie', 'serie');
+                return durataVera === null ? serie : `${formatClock(durataVera)} · ${serie}`;
+              })()}
+            </p>
+            {prossima === undefined ? null : (
+              <p className="mt-3 text-sm leading-relaxed text-dim">
+                La prossima è <span className="font-semibold text-ink">{prossima.name}</span> ({prossima.focus}).
+                Oggi il lavoro è fatto: il muscolo cresce nel recupero, non in una seconda seduta.
+              </p>
+            )}
+          </Card>
+        ) : prossima !== undefined ? (
+          <Card tone="accent">
+            <p className="text-xs font-semibold tracking-wide text-accent uppercase">Prossima</p>
             <div className="mt-1 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-3xl leading-tight font-semibold">{prossima.name}</p>
@@ -200,27 +307,9 @@ export function HomeScreen() {
               </div>
               <Badge>{durata(prossima)}</Badge>
             </div>
-
-            <div className="mt-4 flex gap-6 text-sm">
-              <div>
-                <p className="text-dim">Serie</p>
-                <p className="tabular text-lg font-semibold">{totalWorkSets(prossima, week)}</p>
-              </div>
-              <div>
-                <p className="text-dim">Blocchi</p>
-                <p className="tabular text-lg font-semibold">
-                  {new Set(prossima.blocks.map((block) => block.group)).size}
-                </p>
-              </div>
-              <div>
-                <p className="text-dim">Ultima volta</p>
-                <p className="tabular text-lg font-semibold">
-                  {ultimaVolta.get(prossima.id) === undefined
-                    ? 'mai'
-                    : `${String(daysBetween(ultimaVolta.get(prossima.id) ?? today, today))} g fa`}
-                </p>
-              </div>
-            </div>
+            <p className="mt-3 text-sm text-dim">
+              Ultima volta: <span className="font-semibold text-ink">{quando(prossima.id)}</span>
+            </p>
 
             {/*
               Nessun divieto, due conti.
@@ -233,9 +322,8 @@ export function HomeScreen() {
             {ripetuti.length > 0 ? (
               <div className="mt-4">
                 <Notice tone="warn">
-                  {rotazione.daysSince === 0 ? 'Oggi' : 'Ieri'} hai già caricato{' '}
-                  {ripetuti.join(', ').toLowerCase()}. Questa seduta li ricarica: il muscolo che non
-                  ha riposato non cresce, si consuma.
+                  Ieri hai già caricato {ripetuti.join(', ').toLowerCase()}. Questa seduta li
+                  ricarica: il muscolo che non ha riposato non cresce, si consuma.
                 </Notice>
               </div>
             ) : null}
@@ -251,14 +339,39 @@ export function HomeScreen() {
         ) : null}
 
         {/* -------------------------------------------------------------- */}
+        {/* La settimana                                                    */}
+        {/* -------------------------------------------------------------- */}
+        <Card tone="muted">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold">Questa settimana</p>
+              <p className="mt-0.5 text-sm text-dim">
+                {fatteInSettimana >= OBIETTIVO
+                  ? 'Tutte e quattro fatte.'
+                  : `${String(fatteInSettimana)} di ${String(OBIETTIVO)} sedute`}
+              </p>
+            </div>
+            <div className="flex gap-2" aria-hidden="true">
+              {ACTIVE_SESSIONS.map((session, posizione) => (
+                <span
+                  key={session.id}
+                  className={`h-4 w-4 rounded-full border ${
+                    posizione < fatteInSettimana ? 'border-accent bg-accent' : 'border-line-strong'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+        </Card>
+
+        {/* -------------------------------------------------------------- */}
         {/* Tutte e quattro, sempre apribili                                */}
         {/* -------------------------------------------------------------- */}
         <div>
           <SectionTitle>Le quattro sedute</SectionTitle>
           <ul className="space-y-2">
             {ACTIVE_SESSIONS.map((session) => {
-              const ultima = ultimaVolta.get(session.id);
-              const attiva = session.id === rotazione.next;
+              const attiva = stato === 'prossima' && session.id === rotazione.next;
               return (
                 <li key={session.id}>
                   <button
@@ -274,9 +387,7 @@ export function HomeScreen() {
                     </span>
                     <span className="tabular shrink-0 text-right text-xs text-dim">
                       <span className="block">{durata(session)}</span>
-                      <span className="block">
-                        {ultima === undefined ? 'mai fatta' : `${String(daysBetween(ultima, today))} g fa`}
-                      </span>
+                      <span className="block">{quando(session.id)}</span>
                     </span>
                   </button>
                 </li>
@@ -284,24 +395,24 @@ export function HomeScreen() {
             })}
           </ul>
           <p className="mt-2 text-xs leading-relaxed text-dim">
-            Nessun giorno assegnato: aprile nell’ordine che vuoi. «Prossima» è solo la successiva a
-            quella che hai chiuso per ultima.
+            Nessun giorno assegnato. L’ordine è un consiglio: la prossima è quella che viene dopo
+            l’ultima che hai chiuso.
           </p>
         </div>
 
         {/* -------------------------------------------------------------- */}
-        {/* Sedute rimaste aperte                                           */}
+        {/* Sedute rimaste aperte nei giorni scorsi                         */}
         {/* -------------------------------------------------------------- */}
-        {aperte.length > 0 ? (
+        {aperteVecchie.length > 0 ? (
           <Card tone="warn">
             <p className="text-sm font-semibold">
-              {aperte.length === 1 ? 'Una seduta rimasta aperta' : 'Sedute rimaste aperte'}
+              {aperteVecchie.length === 1 ? 'Una seduta rimasta aperta' : 'Sedute rimaste aperte'}
             </p>
             <p className="mt-1 text-sm text-dim">
-              Puoi riprenderle da dove le hai lasciate, archiviarle o eliminarle.
+              Puoi archiviarle con quello che c’è scritto, oppure eliminarle.
             </p>
             <ul className="mt-3 space-y-2">
-              {aperte.map((entry) => {
+              {aperteVecchie.map((entry) => {
                 const serie = contaSerie(entry);
                 const nome = findAnySession(entry.sessionId)?.name ?? entry.sessionId;
                 return (
@@ -310,7 +421,8 @@ export function HomeScreen() {
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{nome}</p>
                         <p className="tabular mt-1 text-xs text-dim">
-                          {entry.date} · {serie === 0 ? 'nessuna serie' : `${String(serie)} serie`}
+                          {formatDayShort(entry.date, today)} ·{' '}
+                          {serie === 0 ? 'nessuna serie' : plural(serie, 'serie', 'serie')}
                         </p>
                       </div>
                       <Badge tone="warn">Aperta</Badge>
@@ -349,7 +461,7 @@ export function HomeScreen() {
                         <Notice tone="warn">
                           {serie === 0
                             ? 'È vuota: eliminarla non perde niente.'
-                            : `Elimini ${String(serie)} serie registrate il ${entry.date}. Non si torna indietro.`}
+                            : `Elimini ${plural(serie, 'serie registrata', 'serie registrate')} ${formatDayShort(entry.date, today)}. Non si torna indietro.`}
                           <div className="mt-3 flex gap-2">
                             <Button
                               variant="danger"
@@ -376,8 +488,8 @@ export function HomeScreen() {
 
         {weekState.isRetestWeek ? (
           <Notice tone="warn">
-            Settimana {week}: è il momento del ritest dei massimali. Da lì l’app ricalcola tutti i
-            range.
+            Settimana {week}: è il momento di rifare i test. Da lì l’app ricalcola da che gradino
+            riparti.
             <div className="mt-3">
               <Button variant="secondary" onClick={() => { navigate({ name: 'onboarding' }); }}>
                 Rifai i test
@@ -386,38 +498,34 @@ export function HomeScreen() {
           </Notice>
         ) : null}
 
-        <Card tone={backupAgeDays === null || backupAgeDays > 14 ? 'warn' : 'muted'}>
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold">Copie di sicurezza</p>
-              <p className="mt-1 text-sm text-dim">
-                {snapshots === undefined
-                  ? 'Controllo…'
-                  : backupAgeDays === null
-                    ? 'Nessuna copia ancora. Ne parte una da sola al primo avvio di domani.'
-                    : backupAgeDays === 0
-                      ? `Copia automatica di oggi. Ne restano ${String(snapshots.length)} da cui tornare indietro.`
-                      : `Ultima copia ${String(backupAgeDays)} giorni fa. Ne restano ${String(snapshots.length)}.`}
-              </p>
-            </div>
-            <Button variant="secondary" onClick={() => { navigate({ name: 'settings' }); }}>
-              Apri
-            </Button>
-          </div>
-        </Card>
+        {/*
+          La copia di sicurezza compare qui solo quando c'è un problema.
 
-        {/* Lo Shadow non sparisce: si legge nel diario. */}
-        <p className="pb-2 text-center text-xs text-dim">
-          Le sei sedute dello Shadow sono archiviate. Lo storico resta nel{' '}
-          <button
-            type="button"
-            onClick={() => { navigate({ name: 'log' }); }}
-            className="underline"
-          >
-            diario
-          </button>
-          .
-        </p>
+          Prima aveva un riquadro fisso in Home con il pulsante «Apri», che era
+          anche l'unico modo di arrivare alle impostazioni: tema, account e
+          azzeramento stavano dietro una scheda che parlava di backup. Adesso le
+          impostazioni hanno il loro ingranaggio in alto, e una copia che
+          funziona non ha niente da dire.
+        */}
+        {snapshots !== undefined && backupAgeDays !== null && backupAgeDays > 14 ? (
+          <Card tone="warn">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm leading-relaxed">
+                L’ultima copia di sicurezza è di {String(backupAgeDays)} giorni fa.
+              </p>
+              <Button variant="secondary" onClick={() => { navigate({ name: 'settings' }); }}>
+                Controlla
+              </Button>
+            </div>
+          </Card>
+        ) : null}
+
+        {/* Lo Shadow non sparisce: si legge nel diario. Ma solo se c'è. */}
+        {haStoricoArchiviato ? (
+          <p className="pb-2 text-center text-xs text-dim">
+            Le sedute del programma precedente sono archiviate: restano leggibili nel diario.
+          </p>
+        ) : null}
       </div>
     </Screen>
   );

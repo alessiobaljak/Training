@@ -71,7 +71,7 @@ export function Button({
 
 export interface CardProps {
   readonly children: ReactNode;
-  readonly tone?: 'default' | 'muted' | 'accent' | 'warn';
+  readonly tone?: 'default' | 'muted' | 'accent' | 'warn' | 'good';
   readonly className?: string;
 }
 
@@ -80,6 +80,7 @@ const CARD_TONES: Record<NonNullable<CardProps['tone']>, string> = {
   muted: 'bg-canvas border-line',
   accent: 'bg-accent/10 border-accent/40',
   warn: 'bg-warn/10 border-warn/40',
+  good: 'bg-good/10 border-good/40',
 };
 
 export function Card({ children, tone = 'default', className = '' }: CardProps) {
@@ -92,12 +93,14 @@ export interface ScreenProps {
   readonly title: string;
   readonly subtitle?: string;
   readonly onBack?: () => void;
+  /** Un'azione in alto a destra, per esempio l'ingranaggio della Home. */
+  readonly action?: ReactNode;
   readonly children: ReactNode;
   /** Barra fissa in basso, per l'azione principale. */
   readonly footer?: ReactNode;
 }
 
-export function Screen({ title, subtitle, onBack, children, footer }: ScreenProps) {
+export function Screen({ title, subtitle, onBack, action, children, footer }: ScreenProps) {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-lg flex-col">
       <header className="sticky top-0 z-10 border-b border-line bg-canvas/95 px-4 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -113,11 +116,18 @@ export function Screen({ title, subtitle, onBack, children, footer }: ScreenProp
             </button>
           ) : null}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-semibold">{title}</h1>
+            {/*
+              Due righe, non una troncata. «Hip thrust a due gambe, spall…»
+              tagliava proprio la parte che distingue un esercizio dall'altro:
+              il titolo è la cosa più importante della schermata e non può
+              essere quella che si perde.
+            */}
+            <h1 className="line-clamp-2 text-xl leading-tight font-semibold">{title}</h1>
             {subtitle !== undefined && subtitle !== '' ? (
               <p className="truncate text-sm text-dim">{subtitle}</p>
             ) : null}
           </div>
+          {action ?? null}
         </div>
       </header>
 

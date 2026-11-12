@@ -18,15 +18,14 @@ import {
   setTempoRespected,
   suggestedSetValue,
   syncStatesFromLog,
+  titleAtLevel,
   upsertLoggedSet,
-  variantLabelFor,
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import type { LoadAvailability } from '../../engine/loading.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
 import { parseTut, tempoSteps } from '../../engine/notation.ts';
 import type { TempoStep } from '../../engine/notation.ts';
-import { initialExerciseState, isOwnLevel } from '../../engine/progression.ts';
 import type { ProgressionSuggestion } from '../../engine/progression.ts';
 import { formatRange, resolveBlockRange } from '../../engine/ranges.ts';
 import type { RangeResolution } from '../../engine/ranges.ts';
@@ -335,10 +334,7 @@ function leggiStazione(step: GuidedWorkStep, contesto: Contesto): Stazione | nul
    * porta dalla seduta scorsa: dopo una salita accettata nella revisione il
    * titolo avrebbe nominato il gradino vecchio sopra la figura del nuovo.
    */
-  const titolo =
-    isOwnLevel(esercizio, gradino) || gradino === null
-      ? esercizio.name
-      : variantLabelFor(esercizio, { ...initialExerciseState(esercizio), level: gradino });
+  const titolo = titleAtLevel(esercizio, gradino);
 
   const unita = esercizio.measurement === 'seconds' ? '' : ' ripetizioni';
   const prescrizione =
