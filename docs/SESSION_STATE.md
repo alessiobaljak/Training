@@ -45,14 +45,14 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   circonduzioni e step rapidi nuovi, frecce tolte, braccia fuori dalla testa.
 
 ## Domande aperte per Alessio
-0. **Approvare S1-S10 ha reso Bloccanti A2, A3, A4, M1, M4** (la griglia
-   chiama Bloccante una soglia approvata superata). Voluto, o trattamento
-   come B1-B4? Senza risposta restano Bloccanti, e richiedono regole nuove di
-   training-designer prima di essere implementati.
-   Restano anche **B6** (attrezzatura), **B8** (nessuna figura approvata da
-   lui), **B9** (30" di dead hang a chi ne ha misurati 8), **B10** (plank →
-   slam senza pausa fra i giri della finitura di S4: 15" o un altro ordine,
+0. **Da decidere**: **B6** (attrezzatura), **B8** (nessuna figura approvata
+   da lui), **B9** (30" di dead hang a chi ne ha misurati 8), **B10** (plank
+   → slam senza pausa fra i giri della finitura di S4: 15" o un altro ordine,
    insieme a D-12) e il disaccordo su `circonduzioni-spalle`.
+   **Vercel**: quale ramo pubblica in produzione (Settings > Environments >
+   Production > Branch Tracking) e se spegnere «Auto-assign Custom
+   Production Domains». Il ramo predefinito del repository è questo: se
+   Vercel lo usa, ogni push è già una pubblicazione.
 1. **R2 si scosta dall'orologio scritto della scheda** di 15 secondi a seduta
    (tra Tri-set 2 e finitura). Si toglie con una riga se preferisci
    l'originale.
@@ -82,6 +82,9 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   nucleo di sicurezza continua a eseguirli per intero a ogni rilascio e a
   riportarli per quello che sono (FALLITO o NON COPERTO, mai PASS). Diventano
   Bloccanti il giorno in cui l'app ha un secondo utente.
+- **2026-11-12, Alessio: A2, A3, A4, M1, M4 restano Bloccanti.** Toccano lui
+  già oggi (gradino e carico di ogni settimana), a differenza di B1-B4. Prima
+  servono le regole di training-designer, poi codice, quality e gate.
 - Programma attivo: quattro circuiti senza giorni (`src/data/circuit.ts`). Lo
   Shadow (`src/data/program.ts`) è archiviato e si legge solo nel diario.
 - Nessuna AI nel prodotto: i consigli sono verdetti deterministici di
@@ -145,7 +148,14 @@ degli altri progetti. Questa sessione gira ancora sul Default.
    una scheda con metà degli esercizi sbagliati. Serviva la lista.
 
 ## Prossimi passi
-1. `training-quality` e `release-gate` sulla scheda riscritta (dimensione L).
-2. Le tre domande aperte qui sopra.
+0. Fatto dopo il gate su `79d2cb0`: `npm run smoke` prova in browser
+   «Accetto» → ricarica → «Salva e chiudi» (B11, A15). Fallisce sul player di
+   prima della correzione (3 controlli), passa su quello attuale. Procedura di
+   rollback in `docs/configurazione.md` §10, mai eseguita. Le impostazioni
+   mostrano il commit del build («Versione»), per verificare un rollback dal
+   telefono.
+1. `training-designer`: regole per A2, A3, A4, M1, M4. Poi codice,
+   `training-quality`, `release-gate` (L).
+2. Le domande aperte qui sopra.
 3. `BOUNDARIES.md`: è ancora il buco più grande.
 4. Compromessi sui token: proposti, non applicati.

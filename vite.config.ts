@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
@@ -60,9 +61,31 @@ function toBuffer(source: string | Uint8Array): Uint8Array {
   return typeof source === 'string' ? new TextEncoder().encode(source) : source;
 }
 
+/**
+ * Il commit da cui nasce questo build, sette caratteri come li mostra Vercel.
+ *
+ * Serve al ritorno alla versione precedente: senza, dopo un rollback non c'è
+ * modo di sapere dal telefono quale versione stia girando davvero. Su Vercel
+ * lo dà la piattaforma; in locale lo chiede a git; altrimenti «locale».
+ */
+function commitDelBuild(): string {
+  const daVercel = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (typeof daVercel === 'string' && daVercel !== '') return daVercel.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short=7 HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    return 'locale';
+  }
+}
+
 export default defineConfig({
   // Percorsi relativi: l'app deve funzionare anche servita da una sottocartella.
   base: './',
+  define: {
+    __APP_COMMIT__: JSON.stringify(commitDelBuild()),
+  },
   plugins: [react(), tailwindcss(), serviceWorker()],
   resolve: {
     alias: {

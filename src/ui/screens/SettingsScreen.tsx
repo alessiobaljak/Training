@@ -25,6 +25,12 @@ import { Button, Card, Notice, Screen, SectionTitle } from '../components/primit
 
 /** La parola da scrivere per confermare l'azzeramento. */
 const CONFERMA_AZZERAMENTO = 'CANCELLA';
+
+/*
+ * `typeof` e non il nome diretto: nei test unitari Vite non sostituisce la
+ * costante, e un identificatore mai definito farebbe cadere la schermata.
+ */
+const VERSIONE = typeof __APP_COMMIT__ === 'string' ? __APP_COMMIT__ : 'locale';
 import {
   THEME_CHOICES,
   THEME_LABELS,
@@ -522,6 +528,15 @@ export function SettingsScreen() {
                 ? 'non ancora impostato'
                 : formatDayLong(settings.programStartDate)}
             </span>
+          </p>
+          {/*
+            Il commit del build: dopo un ritorno alla versione precedente su
+            Vercel è l'unico modo di vedere dal telefono quale versione gira.
+            Si confronta con i sette caratteri che Vercel mostra accanto al
+            deploy.
+          */}
+          <p className="mt-2 text-sm text-dim">
+            Versione: <span className="font-mono font-semibold text-ink">{VERSIONE}</span>
           </p>
         </Card>
 

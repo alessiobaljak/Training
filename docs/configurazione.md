@@ -236,6 +236,99 @@ di segreti e non ne va aggiunto nessuno.
 A pubblicare è Vercel, che si collega da solo al repository con la sua
 autorizzazione GitHub.
 
+## 10. Pubblicare solo quando dici tu, e tornare indietro
+
+### Prima di tutto: un push potrebbe già essere una pubblicazione
+
+Vercel sceglie da solo il ramo di produzione: `main`; se non c'è, `master`;
+se non c'è nemmeno quello, il ramo predefinito del repository. Questo
+repository non ha né `main` né `master`, e il ramo predefinito è
+`claude/calisthenics-pwa-offline-kor52w`, quello su cui lavora Claude. Se il
+progetto Vercel è stato creato così, ogni push su quel ramo va in produzione
+appena `npm run verify` passa: anche con un NO-GO di `release-gate`, anche
+senza il tuo ok.
+
+Controlla su Vercel: **Settings > Environments > Production > Branch
+Tracking**.
+
+Qualunque ramo ci sia scritto, la protezione è la stessa: nella stessa
+sezione spegni **Auto-assign Custom Production Domains**. Da quel momento ogni
+push produce un deploy di produzione in stato **Staged**: compilato e
+raggiungibile al suo indirizzo, ma non servito a chi apre l'app. Va in linea
+solo quando lo promuovi tu: **Deployments**, i tre puntini accanto al deploy,
+**Promote**. È così che «il deploy richiede l'ok di Alessio» diventa un fatto
+e non una promessa.
+
+### Prima di ogni rilascio (un minuto)
+
+1. In **Deployments** annota il deploy segnato **Current** e i sette caratteri
+   del suo commit. È il punto a cui torni.
+2. Scarica il backup da «App e dati». Il rollback non tocca i dati, ma se il
+   guasto è nei dati quel file è l'unica copia che controlli tu.
+
+### Quando tornare indietro, e quando no
+
+Si torna indietro se l'app non si apre, se non si riesce a registrare una
+serie, se i dati spariscono o si corrompono. Un testo sbagliato, una figura
+storta, un numero discutibile si correggono in avanti: tornare indietro costa
+di più di quello che risolve.
+
+### Come
+
+1. Su Vercel, nel riquadro del deploy di produzione, **Instant Rollback**
+   (oppure **Deployments**, i tre puntini, **Instant Rollback**).
+2. Scegli il deploy annotato prima, **Continue**, poi **Confirm Rollback**. Il
+   cambio è immediato: nessuna compilazione nuova.
+3. Sul telefono, con la rete, apri l'app. Il service worker scarica la
+   versione vecchia e ricarica la pagina da solo, una volta. In **Impostazioni
+   > Programma > Versione** deve comparire il commit a cui sei tornato.
+
+Due limiti di Vercel da sapere prima di averne bisogno:
+
+- **Sul piano gratuito (Hobby) si torna solo al deploy immediatamente
+  precedente.** Se dopo quello buono sono andati in produzione altri push,
+  Instant Rollback non lo raggiunge. Allora si torna indietro in git: Claude
+  annulla i commit con `git revert` e si pubblica di nuovo, con il tuo ok. Con
+  l'assegnazione automatica spenta il caso quasi non si presenta, perché in
+  produzione va solo quello che promuovi tu.
+- **Dopo un rollback i push non vanno più in linea da soli**, finché non lo
+  annulli: riquadro del deploy di produzione, **Manage**, scegli il deploy,
+  **Confirm**. Annullarlo riaccende l'assegnazione automatica: se la tenevi
+  spenta, rispegnila.
+
+### Cosa il rollback non riporta indietro
+
+Vercel cambia solo il codice servito. Il resto rimane come l'ha lasciato la
+versione da annullare.
+
+1. **I telefoni senza rete.** La versione vecchia arriva a un telefono solo
+   alla prima apertura con la rete; in modalità aereo resta quella nuova
+   finché non si collega.
+2. **I dati su Firebase.** Restano, e la versione vecchia deve saperli
+   leggere. C'è un caso in cui non sa farlo: quando trova un esercizio che il
+   suo catalogo non conosce, si ferma con «Esercizio sconosciuto». Se il
+   rilascio da annullare ha aggiunto esercizi o sedute e li hai già usati,
+   la versione vecchia può non aprirsi più. Prima del rollback fai guardare a
+   Claude `git diff <buono>..<cattivo> --stat -- src/data src/types src/db`:
+   se tocca catalogo, tipi o database, non si torna indietro, si corregge in
+   avanti tenendo il catalogo nuovo.
+3. **Le regole di Firestore.** Non le pubblica Vercel. Se il rilascio le ha
+   cambiate e le hai caricate (passo 5), quelle vecchie si rimettono a parte:
+   `git show <buono>:firestore.rules > firestore.rules`, poi
+   `npx firebase deploy --only firestore:rules`, poi
+   `git checkout firestore.rules`.
+4. **Le variabili.** Il deploy vecchio usa quelle con cui era stato compilato.
+   Se nel frattempo hai sostituito le chiavi Firebase e cancellato le vecchie,
+   la versione vecchia non si collega più: lì il rollback non è possibile e si
+   corregge in avanti.
+
+### Mai provata
+
+Questa procedura non è mai stata eseguita. La prima volta conviene farla a
+freddo, in un momento tranquillo: rollback al deploy precedente, controllo
+della versione sul telefono, **Manage** per tornare a quello attuale. Cinque
+minuti; e siccome cambia la produzione, la fai tu.
+
 ---
 
 ## Sviluppo in locale, senza toccare i dati veri

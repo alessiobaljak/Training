@@ -1843,6 +1843,16 @@ try {
   await page.reload({ waitUntil: 'load' });
   await page.waitForTimeout(1300);
 
+  /*
+   * Dopo un ritorno alla versione precedente su Vercel, l'unico modo di
+   * sapere dal telefono quale versione gira: il commit del build.
+   */
+  const versione = /Versione:\s*([0-9a-f]{7}|locale)/.exec(await page.locator('main').innerText());
+  check(
+    versione !== null && versione[1] !== 'locale',
+    `Le impostazioni devono mostrare il commit del build. Legge: ${String(versione?.[1])}.`,
+  );
+
   const diPartenza = await temaAttivo();
   check(
     diPartenza.attributo === 'nessuno',
