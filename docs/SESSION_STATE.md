@@ -45,6 +45,8 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   circonduzioni e step rapidi nuovi, frecce tolte, braccia fuori dalla testa.
 
 ## Domande aperte per Alessio
+0. **B6** (attrezzatura), **B8** (nessuna figura approvata da lui), **B9**
+   (30" di dead hang a chi ne ha misurati 8): ancora Bloccanti.
 1. **R2 si scosta dall'orologio scritto della scheda** di 15 secondi a seduta
    (tra Tri-set 2 e finitura). Si toglie con una riga se preferisci
    l'originale.
@@ -63,6 +65,17 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 8. Bundle ID per TestFlight (in sospeso).
 
 ## Decisioni prese
+- **2026-11-12, Alessio: soglie approvate.** Tutto ciò che in
+  `quality/GRID.md` era «proposto» a quella data: le soglie dei criteri
+  C1-C8, la regola di esito (GO solo con Bloccanti = 0 e Alti = 0 su L), le
+  soglie di progressione S1-S10, le voci v3 V-GIUNZIONE e M-RIEP-SEDUTA. Il
+  testo è di training-quality; l'approvazione lo rende vincolante.
+- **2026-11-12, Alessio: B1-B4 bloccano solo il rilascio pubblico.** Dolore,
+  condizione medica, segnali sul rapporto con cibo e corpo, minorenni: finché
+  l'app la usa solo lui restano difetti noti e registrati, non bloccanti. Il
+  nucleo di sicurezza continua a eseguirli per intero a ogni rilascio e a
+  riportarli per quello che sono (FALLITO o NON COPERTO, mai PASS). Diventano
+  Bloccanti il giorno in cui l'app ha un secondo utente.
 - Programma attivo: quattro circuiti senza giorni (`src/data/circuit.ts`). Lo
   Shadow (`src/data/program.ts`) è archiviato e si legge solo nel diario.
 - Nessuna AI nel prodotto: i consigli sono verdetti deterministici di
