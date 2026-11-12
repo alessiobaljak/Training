@@ -78,11 +78,23 @@ export function buildDraftSession(params: DraftParams): LoggedSession {
     const exercise = getExercise(block.exercise);
     const state = states.get(block.exercise);
     const past = previous.get(block.code);
+    const level = state?.level ?? exercise.defaultLevel;
+    /*
+     * L'etichetta della volta scorsa vale solo se il gradino è ancora quello
+     * (training-quality A11).
+     *
+     * Prima si copiava sempre: dopo una salita accettata la bozza nasceva con
+     * il gradino nuovo e l'etichetta vecchia, e il diario scriveva «Liv. 1 ·
+     * Trazioni assistite» per settimane su serie fatte al gradino 3. Quando il
+     * gradino non è cambiato l'etichetta scritta a mano resta, perché può dire
+     * più del nome del gradino («con pausa», «presa larga»).
+     */
+    const labelFromState = state === undefined ? exercise.name : variantLabelFor(exercise, state);
     return {
       blockCode: block.code,
       exercise: block.exercise,
-      variantLabel: past?.variantLabel ?? (state === undefined ? exercise.name : variantLabelFor(exercise, state)),
-      level: state?.level ?? exercise.defaultLevel,
+      variantLabel: past !== undefined && past.level === level ? past.variantLabel : labelFromState,
+      level,
       tempoRespected: null,
       sets: [],
       note: null,

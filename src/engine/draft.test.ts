@@ -631,3 +631,35 @@ describe('statesToSave — la leva accettata vince sul diario (training-quality 
     expect(statesToSave([base], new Map())).toEqual([base]);
   });
 });
+
+describe('l’etichetta del gradino segue il gradino (training-quality A11)', () => {
+  it('dopo una salita la bozza non porta l’etichetta del gradino vecchio', () => {
+    const exercise = getExercise('trazioni-prona-presa-media');
+    const previous = new Map([
+      [
+        'A2',
+        {
+          ...loggedExercise('trazioni-prona-presa-media', sets([8]), {
+            blockCode: 'A2',
+            variantLabel: 'Liv. 1 · Trazioni assistite',
+          }),
+          level: 1 as LevelIndex,
+        },
+      ],
+    ]);
+    const salito = new Map<ExerciseSlug, ExerciseState>([
+      [exercise.slug, { ...initialExerciseState(exercise), level: 3 as LevelIndex }],
+    ]);
+    const bozza = buildDraftSession({
+      id: 'd',
+      date: '2026-11-20',
+      week: 2,
+      session: upperA,
+      states: salito,
+      previous,
+    });
+    const riga = findLoggedExercise(bozza, 'A2');
+    expect(riga?.level).toBe(3);
+    expect(riga?.variantLabel).toBe('Liv. 3 · Trazioni complete');
+  });
+});

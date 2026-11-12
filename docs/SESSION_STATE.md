@@ -4,9 +4,23 @@ Aggiornato: 2026-11-12 · branch `claude/calisthenics-pwa-offline-kor52w`
 
 ## Compito in corso
 **Revisione totale** chiesta da Alessio: design, esperienza d'uso, grafiche,
-tracciamento, suggerimenti, immagini. Sei commit, da `03c7395` a `47c7f6d`,
-tutti con verify, smoke e offline verdi. In corso: `training-quality` e
-`exercise-media-lead` sulla revisione; `release-gate` dopo di loro.
+tracciamento, suggerimenti, immagini. Da `03c7395` in poi, tutti i commit con
+verify, smoke e offline verdi.
+
+Verdetti, nell'ordine del flusso:
+- `exercise-media-lead`: 11 figure chiuse, 4 da rifare (pull-over-trx
+  peggiorata dalla revisione: collo a 66°).
+- `training-quality`: NO-GO, 7 Bloccanti. Tre difetti nuovi del player (A12,
+  A13, A14) corretti in `2d84d87`; A11 corretto alla radice dopo il gate.
+- `release-gate` su `2d84d87`: **NO-GO**. A12-A14 chiusi; A11 era ancora
+  aperto ed è stato corretto dopo. Restano i Bloccanti che sono decisioni.
+
+**Un nuovo giro di training-quality e del gate ha senso solo dopo le
+decisioni di Alessio qui sotto**: con B1-B4, B6, B8, B9 aperti il verdetto è
+NO-GO per costruzione, qualunque cosa cambi nel codice.
+
+Checklist UAT di 10 minuti scritta da `release-gate` in
+`release/reports/2026-11-12-claude-calisthenics-pwa-offline-kor52w.md`.
 
 Ambiente cloud dedicato creato: **Shadow (Training)**, senza le variabili
 degli altri progetti. Questa sessione gira ancora sul Default.

@@ -1,7 +1,8 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-09, claude/calisthenics-pwa-offline-kor52w, eb6bb89, L.
-Esito: NO-GO (nucleo: 2 FALLITI, 4 NON COPERTI; 6 Bloccanti aperti di training-quality; L senza esito positivo di training-quality). verify, build, smoke, offline passati.
+Ultimo rilascio: 2026-11-12, claude/calisthenics-pwa-offline-kor52w, 2d84d87, L.
+Esito: NO-GO (nucleo: 2 PASS, 3 FALLITI, 3 NON COPERTI; 7 Bloccanti aperti di training-quality; L senza esito positivo). verify, smoke, offline passati.
 Problemi aperti:
+- 2026-11-12: A11 (etichetta diario) aperto; A12, A13, A14 chiusi nel codice, non provati end-to-end; script quality/08 obsoleto; rapporto reports/2026-11-12-claude-calisthenics-pwa-offline-kor52w.md.
 - Nucleo di sicurezza: 2 PASS (5, 7), 2 FALLITI (3, 4), 4 NON COPERTI (1, 2, 6, 8).
 - 6 Bloccanti aperti di training-quality (quality/reports/2026-11-09-quality.md).
 - Rollback in produzione NON VERIFICATO (Vercel, nessuna procedura scritta).
@@ -15,4 +16,4 @@ File:
 - reports/AAAA-MM-GG-<branch>.md: rapporti completi.
 Comando nucleo: node --experimental-strip-types quality/scripts/safety-core.mts
 Ordine: verify, nucleo, build, smoke, POI offline (mai insieme).
-Tempi (L, 2026-11-09): verify 7 s, smoke 2m15, offline 33 s.
+Tempi (L, 2026-11-12): verify 11 s, smoke 2m25, offline 39 s.
