@@ -1,7 +1,8 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-12, claude/calisthenics-pwa-offline-kor52w, 2d84d87, L.
-Esito: NO-GO (nucleo: 2 PASS, 3 FALLITI, 3 NON COPERTI; 7 Bloccanti aperti di training-quality; L senza esito positivo). verify, smoke, offline passati.
+Ultimo rilascio: 2026-11-12b, claude/calisthenics-pwa-offline-kor52w, 79d2cb0, L.
+Esito: NO-GO (nucleo 2 PASS, 4 FALLITI, 2 NON COPERTI; 10 Bloccanti attivi di training-quality). verify, smoke, offline passati. Rapporto reports/2026-11-12b-claude-calisthenics-pwa-offline-kor52w.md.
 Problemi aperti:
+- 2026-11-12b: B11/A15 corretti nel codice, test unitari passano, NON riprodotti in browser; script quality/08 non usa sessionDecisions (obsoleto, sezione Q non decide).
 - 2026-11-12: A11 (etichetta diario) aperto; A12, A13, A14 chiusi nel codice, non provati end-to-end; script quality/08 obsoleto; rapporto reports/2026-11-12-claude-calisthenics-pwa-offline-kor52w.md.
 - Nucleo di sicurezza: 2 PASS (5, 7), 2 FALLITI (3, 4), 4 NON COPERTI (1, 2, 6, 8).
 - 6 Bloccanti aperti di training-quality (quality/reports/2026-11-09-quality.md).
