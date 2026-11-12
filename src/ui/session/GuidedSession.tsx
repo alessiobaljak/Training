@@ -16,12 +16,16 @@ import {
   isStepLogged,
   markStarted,
   setTempoRespected,
+  setVariant,
+  statesToSave,
   suggestedSetValue,
   syncStatesFromLog,
   titleAtLevel,
   upsertLoggedSet,
+  variantLabelFor,
   variantNoteAt,
 } from '../../engine/draft.ts';
+import { initialExerciseState } from '../../engine/progression.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import type { LoadAvailability } from '../../engine/loading.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
@@ -215,7 +219,9 @@ function Intestazione({
   readonly onEsci: () => void;
 }) {
   /*
-   * L'orologio della scheda serve a una cosa sola, e la scheda la dice: «se
+   * L'orologio della scheda serve a una cosa sola, e la scheda la dice — nel
+   * testo originale delle quattro sedute, paragrafo «Come usare l'orologio in
+   * palestra», non in `training/` né nel foglio Excel: «se
    * sei in ritardo di più di due minuti stai riposando troppo tra le
    * stazioni; se sei in anticipo di più di due minuti i carichi sono bassi».
    * Sotto i due minuti non si dice niente: è rumore.
@@ -470,6 +476,8 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
   const [showSummary, setShowSummary] = useState(false);
   const [confermaUscita, setConfermaUscita] = useState(false);
   const [decided, setDecided] = useState<ReadonlySet<string>>(new Set());
+  /* Le leve accettate a fine seduta: alla chiusura vincono sul diario (A13). */
+  const accettate = useRef(new Map<ExerciseSlug, ExerciseState>());
   const posizionato = useRef(false);
 
   useWakeLock(!showSummary);
@@ -516,7 +524,9 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
   }
 
   const chiudi = (): void => {
-    for (const next of syncStatesFromLog(draft, states)) confirmExercise(next);
+    for (const next of statesToSave(syncStatesFromLog(draft, states), accettate.current)) {
+      confirmExercise(next);
+    }
     update((session) => closeSession(session, new Date().toISOString()));
     navigate({ name: 'home' });
   };
@@ -541,7 +551,12 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
     const before = states.get(block.exercise);
     if (before === undefined) return;
 
-    if (accepted) confirmExercise(suggestion.nextState);
+    if (accepted) {
+      confirmExercise(suggestion.nextState);
+      accettate.current.set(block.exercise, suggestion.nextState);
+    } else {
+      accettate.current.delete(block.exercise);
+    }
 
     void repository.recordSuggestion({
       id: `${draft.id}:${blockCode}:${lever}`,
@@ -696,7 +711,7 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
             step={step}
             contesto={contesto}
             autoStart={automatico}
-            onCommit={(sets, tempoRispettato) => {
+            onCommit={(sets, tempoRispettato, etichetta) => {
               update((session) => {
                 const conSerie = sets.reduce(
                   (acc, entry) => upsertLoggedSet(acc, step.blockCode, entry),
@@ -704,17 +719,32 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
                   markStarted(session, new Date().toISOString()),
                 );
                 /*
-                 * Il tempo non si chiede più: lo misura il cronometro. Una
-                 * serie chiusa prima del minimo marca il blocco come «tempo
-                 * non rispettato», e basta una a farlo — la regola del metodo
-                 * chiede il tempo su *tutte* le serie.
+                 * Il gradino a cui la serie è stata fatta (A11). La bozza nasce
+                 * con l'etichetta della seduta scorsa, e il player non la
+                 * riscriveva mai: diario e riepilogo dicevano per sempre «Liv. 1
+                 * · Trazioni assistite» su serie fatte al gradino 3.
                  */
-                const precedente = findLoggedExercise(conSerie, step.blockCode)?.tempoRespected;
-                return setTempoRespected(
-                  conSerie,
-                  step.blockCode,
-                  precedente === false ? false : tempoRispettato,
-                );
+                const conGradino =
+                  etichetta === null
+                    ? conSerie
+                    : setVariant(conSerie, step.blockCode, etichetta.label, etichetta.level);
+                /*
+                 * Il cronometro può dire soltanto «no» (A12).
+                 *
+                 * Una serie chiusa prima del minimo è troppo veloce di sicuro:
+                 * il cronometro conta anche il tempo prima della prima
+                 * ripetizione, quindi sbaglia solo per eccesso. Ma arrivare al
+                 * minimo non dimostra di aver tenuto il tempo: il minimo è
+                 * calcolato sul minimo del range, e chi chiude il massimo nello
+                 * stesso tempo ha accelerato. Prima il player scriveva «sì» da
+                 * solo e la regola di avanzamento si fidava: training-quality ha
+                 * misurato ritmi al 53-86% del tempo prescritto accettati come
+                 * buoni. Il «sì» lo dà l'atleta, come vuole PROGRESSION_RULES §1;
+                 * il «no» misurato resta, e basta una serie a darlo.
+                 */
+                return tempoRispettato
+                  ? conGradino
+                  : setTempoRespected(conGradino, step.blockCode, false);
               });
               avanti();
             }}
@@ -927,7 +957,12 @@ interface PassoLavoroProps {
   readonly step: GuidedWorkStep;
   readonly contesto: Contesto;
   readonly autoStart: boolean;
-  readonly onCommit: (sets: readonly LoggedSet[], tempoRispettato: boolean) => void;
+  readonly onCommit: (
+    sets: readonly LoggedSet[],
+    tempoRispettato: boolean,
+    /** Il gradino a cui la serie è stata fatta, da scrivere nel diario. */
+    etichetta: { readonly label: string; readonly level: LevelIndex | null } | null,
+  ) => void;
 }
 
 function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) {
@@ -944,6 +979,16 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
   }, [autoStart, start]);
 
   const stazione = leggiStazione(step, contesto);
+  const etichettaGradino =
+    stazione === null || stazione.esercizio.pattern === null || stazione.gradino === null
+      ? null
+      : {
+          label: variantLabelFor(stazione.esercizio, {
+            ...initialExerciseState(stazione.esercizio),
+            level: stazione.gradino,
+          }),
+          level: stazione.gradino,
+        };
   const perSide = step.step.perSide;
   const passato = contesto.previous.get(step.blockCode);
   const suggerito = suggestedSetValue(passato, step.step.setIndex, perSide ? 'left' : null);
@@ -967,7 +1012,7 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
           { setIndex: step.step.setIndex, side: 'right', value: valori?.tutti ?? destra, ...comune },
         ]
       : [{ setIndex: step.step.setIndex, side: null, value: valori?.tutti ?? valore, ...comune }];
-    onCommit(sets, raggiunto);
+    onCommit(sets, raggiunto, etichettaGradino);
   };
 
   /*
@@ -988,6 +1033,7 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
           ]
         : [{ setIndex: step.step.setIndex, side: null, value: minimo, rir: null, loadKg: 0, heartRate: null, note: null }],
       true,
+      null,
     );
   }, [autoCompleta, partita, raggiunto, minimo, perSide, step.step.setIndex, onCommit]);
 

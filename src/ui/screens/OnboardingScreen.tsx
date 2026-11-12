@@ -333,6 +333,12 @@ export function OnboardingScreen() {
                     <li key={esito.exercise} className="text-base leading-snug font-semibold">
                       {titleAtLevel(getExercise(esito.exercise), esito.level)}
                       <span className="ml-2 text-xs font-normal text-dim">{esito.where}</span>
+                      {esito.notJudged ? (
+                        <span className="mt-0.5 block text-xs font-normal text-dim">
+                          Solo nella decompressione, dove non si giudica: il test non cambia il
+                          gradino.
+                        </span>
+                      ) : null}
                     </li>
                   ))}
                 </ul>
@@ -396,6 +402,9 @@ export function OnboardingScreen() {
                           const esiti = testOutcomes(test.id, result);
                           const massimale = `${String(result.value)}${unit === 'seconds' ? '″' : ''}`;
                           if (esiti.length === 0) return `${massimale} · non usato nelle sedute`;
+                          if (esiti.every((esito) => esito.notJudged)) {
+                            return `${massimale} · solo nella decompressione, non si giudica`;
+                          }
                           return `${massimale} · parti da ${esiti
                             .map((esito) => titleAtLevel(getExercise(esito.exercise), esito.level))
                             .join(', ')}`;

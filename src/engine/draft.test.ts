@@ -8,6 +8,7 @@ import {
   lastLoggedByBlock,
   markStarted,
   sessionDurationSeconds,
+  statesToSave,
   plannedSets,
   removeLoggedSet,
   sessionProgress,
@@ -591,5 +592,42 @@ describe('inizio, fine e durata vera della seduta', () => {
         closeSession(markStarted(vuota, '2026-11-12T18:00:00.000Z'), '2026-11-13T20:00:00.000Z'),
       ),
     ).toBeNull();
+  });
+});
+
+describe('statesToSave — la leva accettata vince sul diario (training-quality A13)', () => {
+  /*
+   * Prima, accettare «sali al gradino 3» a fine seduta e poi premere «Salva e
+   * chiudi» lasciava il gradino 1: il salvataggio riscriveva gradino e chili
+   * da quello che la seduta aveva registrato, sopra la decisione appena presa.
+   * Il registro dei suggerimenti diceva «accettata» e niente cambiava.
+   */
+  const base: ExerciseState = {
+    exercise: 'trazioni-prona-presa-media',
+    level: 1,
+    eccentricBonusSeconds: 0,
+    bottomPauseBonusSeconds: 0,
+    loadKg: 0,
+  };
+
+  it('il gradino accettato non torna quello delle serie', () => {
+    const daDiario = [{ ...base, level: 1 as LevelIndex }];
+    const accettate = new Map([[base.exercise, { ...base, level: 3 as LevelIndex }]]);
+    expect(statesToSave(daDiario, accettate)).toEqual([{ ...base, level: 3 }]);
+  });
+
+  it('la zavorra accettata non torna quella registrata', () => {
+    const dip: ExerciseState = { ...base, exercise: 'dip-parallele-anelli', loadKg: 5 };
+    const accettate = new Map([[dip.exercise, { ...dip, loadKg: 7.5 }]]);
+    expect(statesToSave([dip], accettate)).toEqual([{ ...dip, loadKg: 7.5 }]);
+  });
+
+  it('una leva accettata su un esercizio che il diario non tocca si salva lo stesso', () => {
+    const accettate = new Map([[base.exercise, { ...base, eccentricBonusSeconds: 1 }]]);
+    expect(statesToSave([], accettate)).toEqual([{ ...base, eccentricBonusSeconds: 1 }]);
+  });
+
+  it('senza leve accettate restano gli stati del diario', () => {
+    expect(statesToSave([base], new Map())).toEqual([base]);
   });
 });

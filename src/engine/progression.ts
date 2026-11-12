@@ -616,6 +616,11 @@ export interface TestOutcome {
   readonly where: string;
   readonly exercise: ExerciseSlug;
   readonly level: LevelIndex | null;
+  /**
+   * L'esercizio compare solo in blocchi che non si giudicano: il test non
+   * cambia il suo gradino. Il dead hang della decompressione.
+   */
+  readonly notJudged: boolean;
 }
 
 /**
@@ -635,9 +640,21 @@ export function testOutcomes(testId: TestId, result: TestResult | null): TestOut
     result === null ? new Map() : new Map([[testId, result]]);
   const visti = new Set<ExerciseSlug>();
   const esiti: TestOutcome[] = [];
+  /*
+   * Prima i blocchi esclusi non si guardavano, e l'onboarding scriveva del
+   * dead hang «non usato nelle sedute»: sta nella decompressione di tutte e
+   * quattro, trenta secondi al gradino 2. Il test non ne cambia il gradino,
+   * ma chi ha appena misurato otto secondi deve saperlo (training-quality B9).
+   */
+  const giudicati = (slug: ExerciseSlug): boolean =>
+    CIRCUIT_SESSIONS.some((session) =>
+      session.blocks.some((block) => block.exercise === slug && block.excludeFromReview !== true),
+    );
   for (const session of CIRCUIT_SESSIONS) {
     for (const block of session.blocks) {
-      if (block.excludeFromReview === true || visti.has(block.exercise)) continue;
+      if (visti.has(block.exercise)) continue;
+      /* Un esercizio giudicato altrove si nomina dal blocco che si giudica. */
+      if (block.excludeFromReview === true && giudicati(block.exercise)) continue;
       const exercise = getExerciseBySlug(block.exercise);
       if (exercise.pattern === null) continue;
       const prova = testBaseline(exercise.pattern);
@@ -647,6 +664,7 @@ export function testOutcomes(testId: TestId, result: TestResult | null): TestOut
         where: `${session.name} · ${block.code}`,
         exercise: block.exercise,
         level: startingLevel(exercise, prove),
+        notJudged: block.excludeFromReview === true,
       });
     }
   }

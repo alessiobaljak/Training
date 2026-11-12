@@ -25,8 +25,8 @@ export const CASES = [
   /* Il nordic non è in nessuna seduta: lo dice, invece di inventare un gradino. */
   { value: 4, parte: /non decide niente/ },
   { value: 45, parte: /Hollow hold/ },
-  /* Il dead hang sta solo nella decompressione, che non si giudica. */
-  { value: 60, parte: /non decide niente/ },
+  /* Il dead hang sta solo nella decompressione, che non si giudica: il test non lo sposta. */
+  { value: 60, parte: /Solo nella decompressione/ },
 ];
 
 /**

@@ -847,7 +847,7 @@ describe('testOutcomes — cosa decide un test nel circuito', () => {
   it('le trazioni decidono il gradino del Tri-set A della Seduta 1', () => {
     const quattro = testOutcomes('pull-up', testResultSingle('pull-up', '2026-11-09', 0, 4));
     expect(quattro).toEqual([
-      { where: 'Seduta 1 · A1', exercise: 'trazioni-prona-presa-media', level: 1 },
+      { where: 'Seduta 1 · A1', exercise: 'trazioni-prona-presa-media', level: 1, notJudged: false },
     ]);
     const dieci = testOutcomes('pull-up', testResultSingle('pull-up', '2026-11-09', 0, 10));
     expect(dieci[0]?.level).toBe(3);
@@ -861,8 +861,19 @@ describe('testOutcomes — cosa decide un test nel circuito', () => {
     ]);
   });
 
-  it('nordic e dead hang non decidono niente nel circuito', () => {
+  it('il nordic non è in nessuna seduta', () => {
     expect(testOutcomes('nordic-curl', testResultSingle('nordic-curl', '2026-11-09', 0, 4))).toEqual([]);
-    expect(testOutcomes('dead-hang', testResultSingle('dead-hang', '2026-11-09', 0, 60))).toEqual([]);
+  });
+
+  it('il dead hang c’è, nella decompressione, e il test non ne cambia il gradino', () => {
+    /*
+     * Prima l'onboarding scriveva «non usato nelle sedute»: sta in tutte e
+     * quattro. Chi ha misurato otto secondi deve sapere che gliene verranno
+     * chiesti trenta (training-quality B9).
+     */
+    const otto = testOutcomes('dead-hang', testResultSingle('dead-hang', '2026-11-09', 0, 8));
+    expect(otto).toEqual([
+      { where: 'Seduta 1 · Z1', exercise: 'dead-hang', level: 2, notJudged: true },
+    ]);
   });
 });

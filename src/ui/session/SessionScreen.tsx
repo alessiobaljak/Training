@@ -13,6 +13,7 @@ import {
   setVariant,
   suggestedSetValue,
   upsertLoggedSet,
+  statesToSave,
 } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import { describeTut, parseTut } from '../../engine/notation.ts';
@@ -30,7 +31,7 @@ import { SetEntry, initialSetValues } from './SetEntry.tsx';
 import type { SetValues } from './SetEntry.tsx';
 import { VariantPicker } from './VariantPicker.tsx';
 import { useSessionDraft } from './useSessionDraft.ts';
-import type { ExerciseSlug, LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
+import type { ExerciseSlug, ExerciseState, LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
 import type { RestDecision, SessionStep } from '../../engine/rest.ts';
 import type { ProgressionSuggestion } from '../../engine/progression.ts';
 
@@ -84,6 +85,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const [showSummary, setShowSummary] = useState(false);
   const [confermaScarto, setConfermaScarto] = useState(false);
   const [decided, setDecided] = useState<ReadonlySet<string>>(new Set());
+  const accettate = useRef(new Map<ExerciseSlug, ExerciseState>());
   const positioned = useRef(false);
 
   /* Riparte dalla prima serie non registrata, non dall'inizio. */
@@ -113,8 +115,11 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
      * due kg in più di manubrio, o un livello sceso perché oggi non ne usciva
      * una, valgono senza doverli ridire in un'altra schermata.
      */
-    for (const state of syncStatesFromLog(draft, states)) confirmExercise(state);
-    update((session) => closeSession(session));
+    /* Le leve accettate a fine seduta vincono sul diario (A13). */
+    for (const state of statesToSave(syncStatesFromLog(draft, states), accettate.current)) {
+      confirmExercise(state);
+    }
+    update((session) => closeSession(session, new Date().toISOString()));
     goHome();
   };
 
@@ -129,7 +134,12 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     const before = states.get(block.exercise);
     if (before === undefined) return;
 
-    if (accepted) confirmExercise(suggestion.nextState);
+    if (accepted) {
+      confirmExercise(suggestion.nextState);
+      accettate.current.set(block.exercise, suggestion.nextState);
+    } else {
+      accettate.current.delete(block.exercise);
+    }
 
     void repository.recordSuggestion({
       id: `${draft.id}:${blockCode}:${lever}`,

@@ -68,7 +68,10 @@ export function SessionSummary({
   onBack,
 }: SessionSummaryProps) {
   const [note, setNote] = useState(draft.note ?? '');
-  /* Nel player guidato il tempo lo misura il cronometro: non lo si chiede. */
+  /*
+   * Nel player guidato il cronometro può dire soltanto «no»: una serie chiusa
+   * prima del minimo. Il «sì» lo dà l'atleta, qui (PROGRESSION_RULES §1).
+   */
   const tempoMisurato = plannedSeconds !== undefined;
 
   const rows = useMemo(
@@ -135,8 +138,7 @@ export function SessionSummary({
     Number.isNaN(inizio) || Number.isNaN(fine) || fine <= inizio || fine - inizio > 4 * 3600 * 1000
       ? null
       : Math.round((fine - inizio) / 1000);
-  const conTempo = giudicate.filter((row) => row.logged.tempoRespected !== null);
-  const tempoTenuto = conTempo.filter((row) => row.logged.tempoRespected === true).length;
+  const troppoVeloci = giudicate.filter((row) => row.logged.tempoRespected === false).length;
   /*
    * L'orologio si giudica solo su una seduta fatta per intero. Una seduta
    * chiusa a metà è «sotto il piano» di venti minuti, e dirle che i carichi
@@ -196,9 +198,9 @@ export function SessionSummary({
                 <p className="tabular mt-1 text-xl font-semibold">{totalSets}</p>
               </Card>
               <Card tone="muted" className="p-3">
-                <p className="text-xs text-dim">Tempo tenuto</p>
+                <p className="text-xs text-dim">Sotto il minimo</p>
                 <p className="tabular mt-1 text-xl font-semibold">
-                  {conTempo.length === 0 ? '—' : `${String(tempoTenuto)} su ${String(conTempo.length)}`}
+                  {tempoMisurato ? String(troppoVeloci) : '—'}
                 </p>
               </Card>
             </div>
@@ -213,7 +215,18 @@ export function SessionSummary({
                   ? `In orario: il piano era ${formatClock(plannedSeconds)}.`
                   : scarto > 0
                     ? `${String(Math.round(scarto / 60))} minuti oltre il piano (${formatClock(plannedSeconds)}). Il tempo si recupera nelle transizioni, mai nel recupero di giro.`
-                    : `${String(Math.round(-scarto / 60))} minuti sotto il piano (${formatClock(plannedSeconds)}). Se le serie erano complete, i carichi sono bassi: alzali la prossima volta.`}
+                    : /*
+                       * Il fatto, non una prescrizione sul carico (A14).
+                       *
+                       * La scheda originale scrive «se sei in anticipo di più di
+                       * due minuti i carichi sono bassi: alzali». Detto qui
+                       * diventava un consiglio di carico fuori dalle regole di
+                       * progressione — in settimana 1, su esercizi dove la
+                       * zavorra è vietata, e a chi era in anticipo solo perché
+                       * aveva saltato i recuperi. Di quanto e quando si sale lo
+                       * decide la revisione, non l'orologio.
+                       */
+                      `${String(Math.round(-scarto / 60))} minuti sotto il piano (${formatClock(plannedSeconds)}). Se non hai saltato recuperi, è un segnale che il lavoro è facile: lo leggerà la revisione della settimana.`}
               </p>
             ) : null}
           </>
@@ -251,32 +264,7 @@ export function SessionSummary({
                 </div>
               </div>
 
-              {tempoMisurato ? (
-                /*
-                 * Misurato, quindi detto e non chiesto. Resta correggibile: il
-                 * cronometro parte da solo alla fine del recupero, e chi ha
-                 * cominciato la serie cinque secondi dopo sa di averla tenuta
-                 * anche se il conto dice di no.
-                 */
-                logged.tempoRespected === null ? null : (
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <p className={`min-w-0 text-xs ${logged.tempoRespected ? 'text-good' : 'text-warn'}`}>
-                      {logged.tempoRespected ? 'Tempo tenuto' : 'Chiusa prima del tempo minimo'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onUpdate((session) =>
-                          setTempoRespected(session, block.code, logged.tempoRespected !== true),
-                        );
-                      }}
-                      className="-my-1 min-h-11 shrink-0 text-xs text-dim underline underline-offset-4"
-                    >
-                      {logged.tempoRespected ? 'Non è vero' : 'Il tempo c’era'}
-                    </button>
-                  </div>
-                )
-              ) : evaluation.closedRange ? (
+              {evaluation.closedRange ? (
                 /*
                   Finché non si risponde nessuno dei due è acceso.
                   Prima il campo nasceva a «sì»: la domanda arrivava già
@@ -315,9 +303,15 @@ export function SessionSummary({
                       ? 'Non hai ancora risposto: finché manca, l’app non propone la leva successiva.'
                       : logged.tempoRespected
                         ? `Risposto sì: tempo ${block.tut} tenuto su tutte le serie.`
-                        : 'Risposto no: la leva delle ripetizioni non è ancora esaurita.'}
+                        : tempoMisurato
+                          ? 'Il cronometro ha misurato almeno una serie sotto il minimo: la leva delle ripetizioni non è ancora esaurita.'
+                          : 'Risposto no: la leva delle ripetizioni non è ancora esaurita.'}
                   </p>
                 </div>
+              ) : logged.tempoRespected === false && tempoMisurato ? (
+                <p className="mt-1 text-xs text-warn">
+                  Almeno una serie chiusa prima del tempo minimo.
+                </p>
               ) : null}
 
               {evaluation.enduranceWarning !== null ? (

@@ -413,3 +413,27 @@ export function syncStatesFromLog(
 
   return changed;
 }
+
+/**
+ * Gli stati da salvare alla chiusura della seduta: quelli ricavati dal diario,
+ * con sopra le leve accettate a fine seduta (training-quality A13).
+ *
+ * Prima si salvavano solo i primi. `syncStatesFromLog` riscrive gradino e
+ * chili da quello che la seduta ha registrato, cioè dal gradino a cui hai
+ * *fatto* le serie — e la leva accettata un minuto prima («sali al gradino
+ * 3», «+2,5 kg») veniva sovrascritta al tocco su «Salva e chiudi». Il
+ * registro dei suggerimenti diceva «accettata» con uno stato che non si
+ * applicava mai. Una decisione presa dopo le serie vale più delle serie.
+ */
+export function statesToSave(
+  synced: readonly ExerciseState[],
+  accepted: ReadonlyMap<ExerciseSlug, ExerciseState>,
+): ExerciseState[] {
+  const fuoriDaiSync = [...accepted.values()].filter(
+    (state) => !synced.some((entry) => entry.exercise === state.exercise),
+  );
+  return [
+    ...synced.map((entry) => accepted.get(entry.exercise) ?? entry),
+    ...fuoriDaiSync,
+  ];
+}
