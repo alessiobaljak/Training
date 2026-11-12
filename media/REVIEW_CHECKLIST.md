@@ -8,7 +8,7 @@ da cercare per primo, non l'anatomia.
 ## 0. Prima di guardare
 1. Leggi la scheda: `src/data/exercises.ts`, campi `name`, `cues`, `measurement`.
 2. Se la scheda è incompleta rispetto a `training/EXERCISE_SCHEMA.md` — oggi
-   mancano `equipment` e `frames` su **tutti e 56** gli esercizi — la verifica
+   mancano `equipment` e `frames` su **tutti e 72** gli esercizi — la verifica
    è **provvisoria**: si fa sui `cues`, e lo stato registrato in LIBRARY.md lo
    dice. Nessuna immagine va in «approvata» su una scheda incompleta.
 3. Guarda la figura **in foglio di contatto**, non una per una (vedi §3).
@@ -47,6 +47,23 @@ node media/scripts/contact-sheet.mjs <out.png> <colonne> <px per tile> \
   difetto di archetipo si vede e un dettaglio no.
 - Secondo passaggio: solo i dubbi, 2 colonne, 460 px.
 - Non si ringuarda una figura già approvata.
+- Lo script cerca da solo il Chromium di Playwright in `/opt/pw-browsers`
+  (la versione cambia con gli aggiornamenti); `CHROMIUM_PATH` lo forza.
+
+## 3b. Le misure prima dell'occhio
+```
+node media/scripts/pose-audit.mjs src/assets/exercises src/assets/steps [--only slug,slug]
+```
+Legge gli SVG, non tocca nulla. Per ogni pannello:
+- **E1** testa fuori dall'asse del tronco oltre 40° → PROBLEMA anatomia (R8).
+- **E2** gomito o mano dentro il cerchio della testa → PROBLEMA anatomia.
+- **E3** braccio a meno di r=6 dalla testa: «sopra la testa» (entro 40°
+  dall'asse) è la testa fra le braccia, **non** è un errore; altrimenti
+  PROBLEMA (R2).
+- **L** stesso segmento sotto l'80% del suo omologo: **segnale**, non
+  scarto. Si guarda a 460 px: scorcio legittimo o arto accorciato (R9)?
+Le misure dicono dove guardare; il giudizio resta sui `cues`. Un `<path>` non
+è una freccia finché non lo si guarda (falso positivo del 2026-11-09).
 
 ## 4. Due prove che la checklist non copre e che fa il codice
 `src/data/art.test.ts` già garantisce: una figura per esercizio e per gradino

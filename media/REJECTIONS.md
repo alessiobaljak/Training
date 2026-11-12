@@ -10,7 +10,7 @@ la scheda.
 **Casi**: affondo con rotazione → box del bulgaro · rematore con manubrio →
 maniglie TRX · curl a martello → elastici (tutti e tre corretti il 2026-11-08)
 · circonduzioni di spalla → mobilità generica · step rapidi → step-up su box
-alto · rollout TRX → ruota ab in ginocchio · diamond push-up → push-up normale
+alto (questi due corretti il 2026-11-12) · rollout TRX → ruota ab in ginocchio · diamond push-up → push-up normale
 · curl e alzate «con manubri» → elastici · hip thrust «spalle su panca» → foto
 di un glute bridge a terra · dip piedi rialzati → foto con i piedi a terra.
 **Correzione**: la regola di GENERATOR_SPEC §2 — archetipo nuovo quando cambia
@@ -22,9 +22,12 @@ il gesto o l'attrezzo, parametro quando cambia solo un appoggio o un'ampiezza.
 **Sintomo**: il braccio parte dal collo, va in alto e taglia il cerchio del
 cranio; a 230 px la testa sparisce dentro un nodo di linee.
 **Casi**: estensione tricipiti sopra la testa, pull-over TRX, swing
-(pannello alto), corda da battaglia.
-**Correzione**: `figure()` accetta già `sh` e `sh2` proprio per questo — gli
-archetipi nuovi non li usano. Si dichiara la spalla staccata dal collo.
+(pannello alto), corda da battaglia; il 2026-11-12, misurando: burpee e
+mobilità (braccia frontali dal collo), curl al TRX (braccio collassato fino
+al mento), pike push-up (gomito dentro la testa).
+**Correzione**: si dichiara la spalla (`sh`/`sh2`). **Attenzione**: la testa
+fra le braccia in verticale, hollow, rollout e slam **non** è questo errore:
+è anatomia. Il criterio che distingue i due casi è GENERATOR_SPEC §4.2 (E1–E3).
 
 ## R3 — L'inquadratura non può mostrare il criterio (3 casi)
 **Sintomo**: la figura è corretta ma il piano in cui l'esercizio si giudica è
@@ -55,9 +58,11 @@ cioè la posizione in cui il cue dice di **fermare la serie**.
 commento nel codice descrive la posa giusta, si verifica che le coordinate la
 disegnino davvero: nello swing il commento diceva il contrario del disegno.
 
-## R6 — Testo, numeri o frecce dentro l'immagine (11 file, erano 8)
+## R6 — Testo, numeri o frecce dentro l'immagine (10 file, chiuso il 2026-11-12)
 **Sintomo**: una freccia disegnata nell'SVG.
-**Casi**: `arrowUp` in `hip-thrust`, e poi in `burpee` e `incline-curl`.
+**Casi**: `arrowUp` in `hip-thrust` (9 figure) e in `burpee`. Primitiva
+eliminata con `47c7f6d`. `incline-curl` era un falso positivo mio: il
+`<path>` era la panca. Un `<path>` non è una freccia finché non lo si guarda.
 **Perché cresce**: finché la primitiva resta nel generatore, ogni archetipo
 nuovo la ricopia da uno vecchio. Si toglie la primitiva, non le chiamate.
 **Correzione**: etichette e frecce le mette l'app in sovrimpressione, così
@@ -68,7 +73,33 @@ restano traducibili. Dentro l'immagine non entra niente di leggibile.
 della scala che l'app disegna nella pagina accanto.
 **Caso**: `bilateral` aggiunto a `hip-thrust` per
 `hip-thrust-panca-bilaterale`, mentre `hip-thrust-l1` e `hip-thrust-l2`, che
-hanno «due gambe» nell'etichetta, continuano a passare `{}`.
+hanno «due gambe» nell'etichetta, continuano a passare `{}`. Corretto il
+2026-11-12: la mappa dei gradini passa `bench` e `bilateral` voce per voce.
 **Correzione**: quando un archetipo prende un parametro nuovo, si rileggono
 **tutte** le voci di `FIGURES` e `STEPS` che usano quell'archetipo e si decide
 per ognuna. Il controllo è un `grep` dell'archetipo nella mappa, non un ricordo.
+
+## R8 — La testa spostata per far passare il braccio (5 casi)
+**Sintomo**: il braccio non attraversa più la testa perché la testa è stata
+messa altrove: il collo si piega di 60–95° e la figura guarda di lato, in
+avanti o all'indietro. È un errore **prodotto dalla correzione di R2**.
+**Casi**: pull-over TRX (66°, nato con `47c7f6d`), pike push-up (95°), HSPU
+negativa (58°), estensione tricipiti al TRX (79° e 84°).
+**Correzione**: la testa sta sull'asse del tronco (≤ 40°, controllo E1 di
+GENERATOR_SPEC §4.2). Se il braccio passa sulla testa, si sposta il braccio o
+si accetta la sovrapposizione quando è anatomica (braccia sopra la testa).
+**Come si trova prima**: `node media/scripts/pose-audit.mjs`, righe `E1`.
+
+## R9 — Arto accorciato per far stare la posa (4 casi certi, 120 segnali)
+**Sintomo**: un segmento è molto più corto dello stesso segmento nell'altro
+pannello o sull'altro lato, senza uno scorcio che lo giustifichi. Succede
+quando una coordinata viene spostata a occhio per far toccare un appoggio.
+**Casi**: step rapidi (tibia sul box 12 contro 20), burpee (braccio nel plank
+14,6 contro 24,7), curl al TRX (braccio di 1 + 6 unità), estensione al TRX
+(braccio da 8 a 21). Al limite: gamba libera dell'hip thrust monopodalico
+(−18%, lato lontano, tollerata).
+**Correzione**: le pose si calcolano dalle lunghezze dei segmenti, come la
+panca dell'hip thrust (§4.21 chiusa). Lo scorcio voluto si scrive nel
+commento dell'archetipo.
+**Come si trova prima**: `pose-audit`, righe `L` (soglia 80%): sono un
+segnale da guardare, non uno scarto automatico (GENERATOR_SPEC §4.25).

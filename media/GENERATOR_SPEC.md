@@ -1,6 +1,6 @@
 # GENERATOR_SPEC.md — specifica del generatore di figure
 
-Il file è `scripts/generate-exercise-svg.mjs` (800 righe, `npm run svg`).
+Il file è `scripts/generate-exercise-svg.mjs` (1.098 righe al `47c7f6d`, `npm run svg`).
 **Lo modifica la sessione principale. Qui si scrive cosa deve fare.**
 
 ## 1. Come è fatto
@@ -13,8 +13,10 @@ primitive di disegno  →  figure(pose)  →  ARCHETYPES  →  EXERCISES / STEPS
   Pavimento a y=102. Posa singola: stessa tela, figura centrata.
 - **Primitive**: `poly` `head` `floor` `bar` `box` `wall` `band` (tratteggio =
   elastico) `weight` (manubrio: barretta spessa) `bell` (kettlebell: campana +
-  maniglia) `strap` (cinghia TRX/anelli) `prop` (opacità 0.32 per gli attrezzi)
-  `arrowUp` (**da eliminare**, vedi §4.1).
+  maniglia) `strap` (cinghia TRX/anelli) `prop` (opacità 0.32 per gli attrezzi).
+  `arrowUp` è stata eliminata il 2026-11-12: nessuna freccia dentro le figure.
+- **Controllo a fine esecuzione**: oggi stampa i segmenti di braccio a meno di
+  r=6 dal centro della testa; il criterio da adottare è in §4.2.
 - **`figure(pose)`**: chiavi della posa, tutte coppie `[x, y]`.
 
 | chiave | cos'è | note |
@@ -32,8 +34,8 @@ Gli arti «2» sono il lato lontano, tratto più sottile. Senza `fo2` la figura
 ha una gamba sola: è la scelta giusta per i monopodalici, è un errore per gli
 altri.
 
-- **`ARCHETYPES`**: 43 funzioni `(options) => [pannello1, pannello2?]`.
-- **`EXERCISES`** (56 voci) e **`STEPS`** (102 voci): `slug → [archetipo,
+- **`ARCHETYPES`**: 57 funzioni `(options) => [pannello1, pannello2?]`.
+- **`EXERCISES`** (72 voci) e **`STEPS`** (102 voci): `slug → [archetipo,
   opzioni, aria-label]`. L'`aria-label` è il testo alternativo che finisce
   nell'app: deve descrivere il movimento, non nominarlo.
 - Lo script **cancella e riscrive** `src/assets/exercises/` e
@@ -93,32 +95,56 @@ Ogni voce: **cosa c'è oggi**, **cosa deve mostrare**, **criterio di
 accettazione**. La sessione principale implementa; io riverifico sul foglio di
 contatto prima che l'immagine passi a `training-quality`.
 
-### 4.1 Pulizia trasversale (una modifica, undici figure)
-**Oggi**: `arrowUp` è chiamata da `hip-thrust` (due volte: `{}` e
-`{bilateral}`), da `burpee` e da `incline-curl`. La freccia è dentro **4
-figure di esercizio e 7 di gradino**: era in 8 file il 2026-11-08, è in 11
-oggi perché la primitiva è ancora lì e i nuovi archetipi la chiamano.
-**Deve**: nessuna freccia dentro l'immagine (STYLE_GUIDE §6). Si tolgono le
-chiamate e si elimina la primitiva.
-**Accettazione**: `grep -c arrowUp scripts/generate-exercise-svg.mjs` = 0;
-nessun `<path d="M ... L ...">` nelle 174 SVG oltre a quelli degli attrezzi.
+Chiuse il 2026-11-12 con `47c7f6d` (esito in `ARCHIVE.md`): 4.1, 4.3, 4.4,
+4.18, 4.20, 4.21.
 
-### 4.2 La spalla si stacca dal collo (una modifica, quattro figure)
-**Oggi**: `overhead-ext`, `pullover`, `swing` (pannello 2) e `rope` non
-passano `sh`/`sh2`, quindi il braccio parte dal collo e il segmento
-attraversa il cerchio della testa. Si vede a 230 px.
-**Deve**: ogni archetipo con le braccia sopra o davanti alla testa dichiara
-`sh` e `sh2` a ±5 px dal collo, scelti in modo che nessun segmento
-braccio/avambraccio intersechi il cerchio `he` (r=6).
-**Accettazione**: a 460 px, in tutte e quattro le figure, testa e braccia si
-distinguono senza ambiguità.
+### 4.2 Braccia e testa: cosa è errore e cosa no (riscritta il 2026-11-12)
+**Oggi**: il generatore stampa ogni segmento di braccio a meno di r=6 dal
+centro della testa: **40 segmenti, 21 pose giuste e 19 difetti veri**. Il
+criterio segnala la testa fra le braccia (verticale, hollow, rollout, slam),
+che è anatomia, e non vede il difetto che produce: per far passare il braccio
+si sposta la testa e si spezza il collo (pull-over pannello 1, 66°, nato con
+`47c7f6d`; pike, HSPU ed estensione al TRX lo avevano già).
+**Deve**: tre controlli, stampati a fine esecuzione come oggi.
+- **E1 testa in asse**: angolo tra `he − ne` e `ne − hi` ≤ 40°. Oltre è
+  errore. La testa non si sposta mai per far posto a un braccio.
+- **E2 nessun gomito o mano dentro la testa**: distanza dal centro ≥ r.
+- **E3 braccio sulla testa** (segmento a meno di r): errore se `sh`/`sh2`
+  non sono dichiarate, o se il braccio non sta sopra la testa (vettore
+  spalla→mano oltre 40° dall'asse `ne − hi`). Spalla dichiarata e braccio
+  sopra la testa = testa fra le braccia: si stampa come informazione.
+- Regola di scrittura, non misura: in vista frontale `sh`/`sh2` a ±5 dal
+  collo sempre. Due braccia che partono dal punto del collo sono antenne.
+**Accettazione**: sul generatore di `47c7f6d` E1–E3 danno errore esattamente
+su: `pull-over-trx` #1 (E1), `pike-pushup-piedi-rialzati` #1 (E1 95°) e #2
+(E2, E3), `negative-hspu-muro-o-pike-pushup` #1 (E1 58°),
+`estensione-tricipiti-trx` #1 #2 (E1 79°/84°), `curl-trx` #1 (E2, E3),
+`burpee` #1 e `mobilita-anche-torace-spalle` (E3, spalla), più i gradini che
+copiano quelle pose (`vertical-push-l1…l6`, `handstand-l1`), e su `ab-wheel`
+(`rollout-trx`, `core-l6`) solo per la spalla non dichiarata. **Nessun errore**
+su `verticale-al-muro`, `handstand-l2…l6`, `hollow-hold`, `core-l1…l3`,
+`corda-battaglia-slam`. Dopo le correzioni qui sotto: zero errori. Verifica
+indipendente dagli SVG: `node media/scripts/pose-audit.mjs`.
 
-### 4.3–4.5, 4.17, 4.19 — testo integrale in `ARCHIVE.md`
+| figura (gradini) | difetto | correzione |
+|---|---|---|
+| `pike-pushup-piedi-rialzati` (`vertical-push-l1` `l2`, `handstand-l1`) | #1 testa sopra il collo: guarda avanti invece che a terra. #2 gomito dentro la testa e piegato verso il viso; testa 12 unità sopra il pavimento | #1 testa in asse fra le braccia. #2 gomito verso i piedi, avambraccio quasi verticale, testa davanti alle mani vicino a terra (triangolo) |
+| `negative-hspu-muro-o-pike-pushup` (`vertical-push-l3…l6`) | #1 testa spostata di 58° verso il muro | testa in asse, fra le braccia |
+| `estensione-tricipiti-trx` | testa piegata indietro di 79° e 84°; braccio da 8 a 21 tra i pannelli | testa in asse, lunghezze uguali, `sh` dichiarata |
+| `curl-trx` | #1 braccio collassato (1 + 6 unità), mano al mento; l'etichetta dice «braccia distese» | #1 braccia distese verso l'ancoraggio, cinghia in linea; `sh` |
+| `mobilita-anche-torace-spalle`, `jumping-jack` #2, `burpee` #1 | braccia frontali dal punto del collo | `sh`/`sh2` a ±5 |
+| `ab-wheel` | posa giusta, spalla non dichiarata | `sh: [42, 78]` |
+| `pull-over-trx` | vedi §4.24 | |
+
+### 4.5, 4.12–4.17, 4.19 — testo integrale in `ARCHIVE.md`
 Specifiche **aperte**, scritte per intero il 2026-11-08 e non ancora
 implementate; spostate per tenere questo file sotto le 300 righe.
-- 4.3 `circonduzioni-spalle` → archetipo nuovo `shoulder-circle`.
-- 4.4 `step-rapidi-box` → `step-up` con `boxH` basso e cadenza.
 - 4.5 `rollout-trx` → archetipo nuovo `trx-rollout`, in piedi e sospeso.
+- 4.12 `corda-battaglia-onde-alternate`: ancoraggio, due onde a S, mezzo squat.
+- 4.13 `curl-martello-manubri`: manubrio verticale per la presa neutra.
+- 4.14 `stacco-rumeno-manubri`: due manubri che si contano come due.
+- 4.15 `rematore-manubrio-un-braccio`: ginocchio sulla panca (o cue cambiato).
+- 4.16 `mountain-climber`: polsi sotto le spalle, ginocchio al petto.
 - 4.17 tre figure di ripiego con l'elastico al posto dei manubri.
 - 4.19 prese delle trazioni: `grip` su `hang-pull`.
 
@@ -196,104 +222,71 @@ peso dietro la nuca, omero verticale. **Ordine dei pannelli invertito**
 rispetto a oggi: la posizione iniziale della scheda è a braccia distese.
 **Accettazione**: nessun segmento interseca il cerchio della testa; il peso
 nel pannello basso sta dalla parte opposta del viso.
+**2026-11-12**: fatta solo la parte §4.2 (nessun segmento entro 6 dalla
+testa). Vista frontale, peso all'altezza dell'orecchio, avambraccio sopra il
+cranio e ordine dei pannelli: tutto ancora aperto.
 
-### 4.12 `corda-battaglia-onde-alternate` — la corda deve leggersi come corda
-**Oggi**: le due `wave` sono curve chiuse che si incrociano e passano sopra il
-tronco: a 230 px leggono come un mantello. Non c'è ancoraggio. La postura è
-quasi eretta, mentre il cue chiede un mezzo squat con le anche indietro.
-**Deve**: ancoraggio visibile al bordo destro (un `wall` corto o un box
-basso). Due onde a **S aperta**, che non si incrociano e non passano sopra il
-tronco: una in salita dalla mano alta, una in discesa dalla mano bassa.
-Postura: ginocchia piegate, anche indietro, busto inclinato in avanti —
-mezzo squat, non inchino.
-**Accettazione**: a 230 px si distinguono due corde separate e l'ancoraggio;
-l'anca è visibilmente dietro la linea del tallone.
+### 4.22 `step-rapidi-box` — la tibia sul box (nuova, 2026-11-12)
+**Oggi**: §4.4 è chiusa nei suoi criteri. La gamba sul box però ha la tibia di
+12 unità contro le 20 di quella a terra (−40%), in tutti e due i pannelli: il
+ginocchio è troppo basso perché la gamba ci stia.
+**Deve**: stesse lunghezze per le due gambe. Con anca `[48, 58]` e piede
+`[64, 84]`, ginocchio a `[69, 65]` (coscia 22, tibia 20): `kn` nel pannello 1,
+`kn2` nel pannello 2.
+**Accettazione**: `pose-audit` non segnala `L tibia`; il ginocchio sul box sta
+più in alto di quello a terra.
 
-### 4.13 `curl-martello-manubri` — la presa neutra non si vede
-**Oggi**: il `weight` è una barretta **orizzontale**: di fronte, è il manubrio
-di un curl a presa supina. L'esercizio esiste solo per la presa neutra.
-**Deve**: una variante verticale del manubrio (`weight(x, y, { vertical:
-true })`) allineata all'avambraccio, per tutti i gesti a presa neutra.
-**Accettazione**: messe affianco, la figura del curl a presa neutra e quella
-del curl a martello si distinguono per l'orientamento del manubrio.
+### 4.23 `burpee` — una vista, le spalle, il braccio intero (nuova)
+**Oggi**: freccia tolta (§4.1). Pannello 1 frontale e pannello 2 laterale;
+nel pannello 1 le braccia partono dal collo e toccano la testa (5,7); nel
+pannello 2 il braccio è 14,6 contro 24,7 (−41%), gomito sotto la spalla.
+**Deve**: tutti e due i pannelli **di lato**. Pannello 1: salto, piedi
+staccati, braccia sopra la testa con `sh` dichiarata (testa fra le braccia:
+E3 la accetta). Pannello 2: petto vicino a terra, mani sotto il petto,
+gomito **non sotto** la linea del tronco e dietro la spalla (~45°), braccio e
+avambraccio lunghi come nel pannello 1, caviglia-anca-spalla in linea (cue 3).
+**Accettazione**: `pose-audit` senza errori E1–E3 e senza `L` sulle braccia;
+nessuno dei due pannelli ha gambe simmetriche da vista frontale.
 
-### 4.14 `stacco-rumeno-manubri` — due manubri, non un bilanciere
-**Oggi**: `weight(46, 61)` e `weight(55, 61)` sono a 9 px di distanza e larghi
-11: si sovrappongono e leggono come **una barra sola**. Il repo ha già
-scartato una foto RepDB perché aveva il bilanciere addosso; qui lo ridisegna.
-**Deve**: i due manubri separati e riconoscibili come due, in entrambi i
-pannelli (distanza tra i centri ≥ larghezza del segno, o uno leggermente più
-in alto dell'altro per effetto prospettico).
-**Accettazione**: a 230 px si contano due attrezzi.
+### 4.24 `pull-over-trx` — rifare la posa (nuova)
+**Oggi**: il fix di §4.2 ha spostato la testa a `[39, 48]`: collo piegato di
+66°, la testa pende di fianco al tronco sotto il braccio. Non visti il
+2026-11-08: anca piegata di 20° e 28° tra gambe e tronco (cue 3: «il bacino
+non si piega»); nel pannello 2 mani 8 unità **dietro** la linea del tronco e
+cinghie che attraversano il busto; braccio 17 → 10 tra i pannelli.
+**Deve**: figura rivolta all'ancoraggio, inclinata indietro, corpo dritto
+caviglia-ginocchio-anca-collo-testa in entrambi i pannelli. Pannello 1 più
+inclinato (~25–30° dalla verticale), braccia distese sopra la testa verso
+l'ancoraggio, `sh` dichiarata. Pannello 2 meno inclinato (~10–15°: il gesto
+tira su il corpo), braccia distese lungo i fianchi, mani davanti o sulla linea
+dell'anca, mai dietro. Lunghezze uguali nei due pannelli.
+**Accettazione**: ogni giunto entro 2 unità dalla retta caviglia→collo;
+`pose-audit` pulito; le cinghie non intersecano né il segmento `ne`–`hi` né il
+cerchio della testa; gomito flesso ≤ 15°.
 
-### 4.15 `rematore-manubrio-un-braccio` — manca il ginocchio sulla panca
-**Oggi**: mano sulla panca, ma **entrambi i piedi a terra** e nessun ginocchio
-appoggiato. Il cue 1 dice «una mano **e un ginocchio** appoggiati alla panca».
-**Deve**: ginocchio della gamba vicina appoggiato sopra la panca, tibia
-orizzontale, gamba lontana a terra distesa indietro; schiena parallela a
-terra. **Oppure** `training-designer` cambia il cue: una sola delle due cose
-può restare, e la decisione è sua, non mia.
-**Accettazione**: figura e cue descrivono lo stesso appoggio.
+### 4.25 Proporzioni: misurarle prima di ridisegnare (nuova)
+**Oggi**: nessun controllo sulle lunghezze. `pose-audit` trova **120 figure su
+174** con almeno un segmento sotto l'80% dello stesso segmento in un altro
+pannello o sul lato lontano. Molte sono scorci legittimi (curl visti di
+fronte); altre sono arti accorciati per far stare la posa (R9): tibia sul box,
+braccio nel plank del burpee, braccio collassato del curl al TRX.
+**Deve**: il generatore stampa a fine esecuzione, come per la testa, i
+segmenti fuori ±20%. Le pose nuove si calcolano dalle lunghezze (come la
+panca dell'hip thrust). Lo scorcio voluto si scrive nel commento
+dell'archetipo. Nessun ridisegno di massa: si correggono le figure quando
+passano dalla checklist.
+**Accettazione**: l'elenco esiste e non cresce; nessun archetipo nuovo entra
+con segmenti fuori soglia senza commento.
 
-### 4.16 `mountain-climber` — spalle sopra i polsi
-**Oggi**: il polso sta ~8 px dietro la spalla (cue: «spalle sopra i polsi») e
-il ginocchio che sale arriva a metà tronco, non verso il petto.
-**Deve**: mano sulla verticale della spalla (stessa `x`); il ginocchio che
-sale arriva all'altezza del gomito; bacino alla **stessa** altezza nei due
-pannelli.
-**Accettazione**: `ha[0] ≈ sh[0]` entro 2 px; `hi` identica nei due pannelli.
-
-### 4.18 Scala hip-thrust: la panca che non c'è, le gambe che sono due
-Un archetipo solo serve 9 figure (1 esercizio + 6 gradini `hip-thrust-l*` +
-`posterior-chain-l1` + il nuovo bilaterale) e oggi 8 di esse sono **lo stesso
-disegno byte per byte**. Due parametri mancano, non uno.
-- `bench: false` per `hip-thrust-l1`, `hip-thrust-l3`, `posterior-chain-l1`:
-  etichetta «glute bridge **a terra**», figura con la panca. Spalle appoggiate
-  al pavimento, nessun `box`.
-- `bilateral: true` per `hip-thrust-l1` e `hip-thrust-l2`: le etichette dicono
-  «a due gambe», la mappa passa `{}` e l'app mostra il monopodalico. È lo
-  stesso difetto che la figura nuova doveva chiudere, lasciato nella scala che
-  l'app disegna accanto ad essa.
-**Accettazione**: i 9 file non producono più di 4 md5 distinti a etichetta
-rimossa; nessuna figura etichettata «a terra» contiene un `<rect>`; nessuna
-etichettata «due gambe» contiene un solo `polyline` di gamba.
-
-### 4.20 `hip-thrust-panca-bilaterale` — la figura nuova, da rifare
-**Oggi**: `bilateral: true` disegna la gamba lontana a 2–3 unità da quella
-vicina (`kn 78,78` / `kn2 76,81`; piedi a 86 e 84) e il kettlebell come
-`bell(61,72)` e `bell(57,44)`. A 210 px le due gambe fondono in una sola e
-restano distinguibili dal monopodalico solo per un anello grigio da 6 unità.
-**Deve**, in ordine di gravità:
-1. **Due gambe leggibili.** La gamba lontana sfalsata di 8–10 unità (è la
-   distanza che la libreria usa già in `hollow`, `squat`, `press`), tratto 2,
-   piede lontano separato da quello vicino. Vista di lato i piedi affiancati
-   si sovrappongono davvero: se la vista non può dire «due», la dice la posa,
-   non un offset da 2 unità.
-2. **Kettlebell appoggiato, non infilato.** Oggi la linea del corpo attraversa
-   il cerchio in **tutti e due** i pannelli (distanza centro-segmento 4,9 e
-   4,9 contro r=6): legge come un anello intorno alla coscia, non come un peso
-   sopra l'anca. Il cerchio dev'essere tangente dall'alto al segmento
-   anca→ginocchio e non intersecato da nessuna linea del corpo.
-3. **Le mani.** Il cue 2 dice «tenuto con le mani» e la figura non ha braccia
-   (`el`/`ha` assenti in tutto l'archetipo). Un braccio dalla spalla alla
-   campana risolve il cue, dà un secondo segno contro il monopodalico e fa
-   leggere la campana come un peso.
-4. **Piedi sotto le ginocchia** (cue 1): oggi il piede è 8 unità avanti al
-   ginocchio nel pannello 1 e 6 nel 2.
-**Accettazione**: a 210 px si contano due gambe e due piedi senza ingrandire;
-nessuna linea del corpo tocca il cerchio della campana; `|foot.x - kn.x| ≤ 2`
-nel pannello finale; niente freccia (§4.1).
-
-### 4.21 Il lockout dell'hip thrust (tutte e 9 le figure)
-**Oggi**, pannello finale: spalla `34,48`, anca `56–60`, ginocchio `74`,
-piede `100`. L'anca sta **6,7 unità sopra** la retta spalla→ginocchio e il
-ginocchio 18 sotto l'anca: il bacino è il colmo di una tenda. È la posa che il
-cue 4 chiama errore tipico («inarcare la lombare per guadagnare altezza») e il
-contrario del cue 5 («bacino parallelo al pavimento»).
-**Deve**: in chiusura spalla, anca e ginocchio quasi allineati, con l'anca mai
-sopra quella retta; coscia orizzontale; tibia verticale. Questo vuole la panca
-più bassa: il bordo è a `y=50` (52 unità da terra) mentre la tibia è 27, e con
-quella panca il lockout corretto è geometricamente impossibile. Bordo panca
-all'altezza del ginocchio, cioè `y ≈ 72–76`.
-**Accettazione**: nel pannello finale `hi.y` non è minore della retta
-spalla→ginocchio; `|kn.y - hi.y| ≤ 4`; tibia entro 10° dalla verticale.
+### Da rifinire (bassa priorità, nessuno scarto)
+- **Hip thrust monopodalico** (`hip-thrust-monopodalico`, `l3`–`l6`,
+  `posterior-chain-l1`): la gamba libera distesa è 18% più corta (tibia 19
+  contro 27) perché a lunghezza piena esce dal pannello; nel pannello basso la
+  coscia libera incrocia la tibia vicina sotto il ginocchio. Gamba libera
+  **flessa** (ginocchio verso il petto) sta nel pannello a lunghezza piena e
+  non incrocia nulla. Nel bilaterale e in `l6` il braccio del pannello basso è
+  un terzo più corto: scorcio plausibile (gomiti aperti), da scrivere nel
+  commento.
+- **`curl-panca-inclinata`**: tronco 7° più ripido dello schienale (spalle 2
+  unità sopra la panca, la zona dell'errore del cue 4); quattro segmenti
+  affollati alla spalla nel pannello 2. Tronco parallelo allo schienale.
