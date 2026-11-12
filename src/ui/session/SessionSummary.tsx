@@ -6,6 +6,7 @@ import {
   setSessionNote,
   setTempoRespected,
 } from '../../engine/draft.ts';
+import { formatClock } from '../hooks/useTimers.ts';
 import { evaluateProgression } from '../../engine/progression.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
 import { resolveBlockRange } from '../../engine/ranges.ts';
@@ -36,6 +37,12 @@ export interface SessionSummaryProps {
   readonly states: ReadonlyMap<ExerciseSlug, ExerciseState>;
   readonly tests: ReadonlyMap<TestId, TestResult>;
   readonly decided: ReadonlySet<string>;
+  /**
+   * Durata prevista dal piano, in secondi. La passa il player guidato, che un
+   * piano ce l'ha; con questa il riepilogo confronta la durata vera con
+   * l'orologio della scheda e il tempo delle serie lo considera misurato.
+   */
+  readonly plannedSeconds?: number;
   readonly onUpdate: (change: (session: LoggedSession) => LoggedSession) => void;
   readonly onDecide: (
     blockCode: string,
@@ -54,12 +61,15 @@ export function SessionSummary({
   states,
   tests,
   decided,
+  plannedSeconds,
   onUpdate,
   onDecide,
   onSave,
   onBack,
 }: SessionSummaryProps) {
   const [note, setNote] = useState(draft.note ?? '');
+  /* Nel player guidato il tempo lo misura il cronometro: non lo si chiede. */
+  const tempoMisurato = plannedSeconds !== undefined;
 
   const rows = useMemo(
     () =>
@@ -104,12 +114,47 @@ export function SessionSummary({
     [program, draft, states, tests, week],
   );
 
-  const totalSets = rows.reduce((sum, row) => sum + row.summary.setCount, 0);
+  /*
+   * Due gruppi, e solo il primo si giudica.
+   *
+   * Finitura e decompressione sono fuori dalla revisione, e qui dentro non lo
+   * erano: il riepilogo chiedeva «hai tenuto il tempo prescritto su tutte le
+   * serie?» su una respirazione da supino, con la risposta già messa a «no» e
+   * la spiegazione che «la leva delle ripetizioni non è ancora esaurita».
+   * Sei domande così in fondo a una seduta, tre delle quali su posizioni di
+   * allungamento. Adesso quelle righe si leggono e basta.
+   */
+  const giudicate = rows.filter((row) => row.block.excludeFromReview !== true);
+  const soloLette = rows.filter((row) => row.block.excludeFromReview === true);
+
+  const totalSets = giudicate.reduce((sum, row) => sum + row.summary.setCount, 0);
+
+  const inizio = typeof draft.startedAt === 'string' ? Date.parse(draft.startedAt) : Number.NaN;
+  const fine = typeof draft.completedAt === 'string' ? Date.parse(draft.completedAt) : Date.now();
+  const durataVera =
+    Number.isNaN(inizio) || Number.isNaN(fine) || fine <= inizio || fine - inizio > 4 * 3600 * 1000
+      ? null
+      : Math.round((fine - inizio) / 1000);
+  const conTempo = giudicate.filter((row) => row.logged.tempoRespected !== null);
+  const tempoTenuto = conTempo.filter((row) => row.logged.tempoRespected === true).length;
+  /*
+   * L'orologio si giudica solo su una seduta fatta per intero. Una seduta
+   * chiusa a metà è «sotto il piano» di venti minuti, e dirle che i carichi
+   * sono bassi sarebbe leggere un numero senza guardare da dove viene.
+   */
+  const pianificate = program.blocks
+    .filter((block) => block.excludeFromReview !== true)
+    .reduce((sum, block) => sum + block.sets, 0);
+  const completa = totalSets >= pianificate;
+  const scarto =
+    durataVera === null || plannedSeconds === undefined || !completa
+      ? null
+      : durataVera - plannedSeconds;
 
   return (
     <Screen
       title="Fine seduta"
-      subtitle={`${program.name} · ${String(totalSets)} serie registrate`}
+      subtitle={`${program.name} · ${program.focus}`}
       onBack={onBack}
       footer={
         <div className="pb-1">
@@ -126,42 +171,113 @@ export function SessionSummary({
         </div>
       }
     >
-      <div className="space-y-4">
+      <div className="space-y-3">
         {rows.length === 0 ? (
           <Notice tone="warn">
             Nessuna serie registrata. Chiudendo ora la seduta resta a zero nel log.
           </Notice>
-        ) : null}
+        ) : (
+          <>
+            {/*
+              I tre numeri che dicono com'è andata, prima di qualunque elenco.
+              Prima il riepilogo cominciava dalla prima riga della tabella e
+              finiva tremila pixel più sotto: quanto era durata la seduta non
+              lo diceva da nessuna parte.
+            */}
+            <div className="grid grid-cols-3 gap-2">
+              <Card tone="muted" className="p-3">
+                <p className="text-xs text-dim">Durata</p>
+                <p className="tabular mt-1 text-xl font-semibold">
+                  {durataVera === null ? '—' : formatClock(durataVera)}
+                </p>
+              </Card>
+              <Card tone="muted" className="p-3">
+                <p className="text-xs text-dim">Serie</p>
+                <p className="tabular mt-1 text-xl font-semibold">{totalSets}</p>
+              </Card>
+              <Card tone="muted" className="p-3">
+                <p className="text-xs text-dim">Tempo tenuto</p>
+                <p className="tabular mt-1 text-xl font-semibold">
+                  {conTempo.length === 0 ? '—' : `${String(tempoTenuto)} su ${String(conTempo.length)}`}
+                </p>
+              </Card>
+            </div>
+            {!completa && tempoMisurato ? (
+              <p className="text-sm leading-relaxed text-dim">
+                Seduta chiusa prima della fine: {totalSets} serie su {pianificate}.
+              </p>
+            ) : null}
+            {scarto !== null && plannedSeconds !== undefined ? (
+              <p className="text-sm leading-relaxed text-dim">
+                {Math.abs(scarto) < 120
+                  ? `In orario: il piano era ${formatClock(plannedSeconds)}.`
+                  : scarto > 0
+                    ? `${String(Math.round(scarto / 60))} minuti oltre il piano (${formatClock(plannedSeconds)}). Il tempo si recupera nelle transizioni, mai nel recupero di giro.`
+                    : `${String(Math.round(-scarto / 60))} minuti sotto il piano (${formatClock(plannedSeconds)}). Se le serie erano complete, i carichi sono bassi: alzali la prossima volta.`}
+              </p>
+            ) : null}
+          </>
+        )}
 
-        {rows.map(({ block, exercise, logged, summary, evaluation, calibration }) => {
+        {giudicate.map(({ block, exercise, logged, summary, evaluation, calibration }) => {
           const key = `${draft.id}:${block.code}`;
           const alreadyDecided = decided.has(key);
+          /* Dove non c'è una scala l'etichetta ripete il nome: una riga basta. */
+          const variante = logged.variantLabel === exercise.name ? null : logged.variantLabel;
 
           return (
             <Card key={block.code}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-xs text-accent">{block.code}</p>
-                  <p className="truncate text-sm font-semibold">{exercise.name}</p>
-                  <p className="mt-1 truncate text-xs text-dim">{logged.variantLabel}</p>
+                  <p className="text-sm leading-snug font-semibold">
+                    <span className="mr-2 font-mono text-xs font-normal text-accent">{block.code}</span>
+                    {exercise.name}
+                  </p>
+                  {variante === null ? null : (
+                    <p className="mt-1 text-xs text-dim">{variante}</p>
+                  )}
                 </div>
-                <div className="text-right">
-                  <p className="tabular text-lg font-semibold">
+                <div className="shrink-0 text-right">
+                  <p className="tabular text-lg leading-tight font-semibold">
                     {summary.sets.map((entry) => entry.label).join(' · ')}
                   </p>
-                  <p className="text-xs text-dim">
-                    {summary.totalValue} totali
-                    {summary.maxLoadKg > 0 ? ` · ${String(summary.maxLoadKg)} kg` : ''}
-                  </p>
+                  {summary.maxLoadKg > 0 ? (
+                    <p className="tabular text-xs text-dim">{summary.maxLoadKg} kg</p>
+                  ) : null}
                 </div>
               </div>
 
-              {/*
-                Finché non si risponde nessuno dei due è acceso.
-                Prima il campo nasceva a «sì»: la domanda arrivava già
-                risposta, premere «Sì» non cambiava niente e sembrava rotto.
-              */}
-              {evaluation.closedRange ? (
+              {tempoMisurato ? (
+                /*
+                 * Misurato, quindi detto e non chiesto. Resta correggibile: il
+                 * cronometro parte da solo alla fine del recupero, e chi ha
+                 * cominciato la serie cinque secondi dopo sa di averla tenuta
+                 * anche se il conto dice di no.
+                 */
+                logged.tempoRespected === null ? null : (
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <p className={`min-w-0 text-xs ${logged.tempoRespected ? 'text-good' : 'text-warn'}`}>
+                      {logged.tempoRespected ? 'Tempo tenuto' : 'Chiusa prima del tempo minimo'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUpdate((session) =>
+                          setTempoRespected(session, block.code, logged.tempoRespected !== true),
+                        );
+                      }}
+                      className="-my-1 min-h-11 shrink-0 text-xs text-dim underline underline-offset-4"
+                    >
+                      {logged.tempoRespected ? 'Non è vero' : 'Il tempo c’era'}
+                    </button>
+                  </div>
+                )
+              ) : evaluation.closedRange ? (
+                /*
+                  Finché non si risponde nessuno dei due è acceso.
+                  Prima il campo nasceva a «sì»: la domanda arrivava già
+                  risposta, premere «Sì» non cambiava niente e sembrava rotto.
+                */
                 <div className="mt-4 rounded-2xl border border-line bg-panel p-3">
                   <p className="text-sm font-semibold">
                     Hai tenuto il tempo prescritto su tutte le serie?
@@ -260,6 +376,31 @@ export function SessionSummary({
             </Card>
           );
         })}
+
+        {soloLette.length === 0 ? null : (
+          <>
+            <SectionTitle>Finitura e decompressione</SectionTitle>
+            <Card tone="muted">
+              <ul className="space-y-2">
+                {soloLette.map(({ block, exercise, summary }) => (
+                  <li key={block.code} className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="min-w-0">
+                      <span className="mr-2 font-mono text-xs text-accent">{block.code}</span>
+                      {exercise.name}
+                    </span>
+                    <span className="tabular shrink-0 text-dim">
+                      {summary.sets
+                        .map((entry) =>
+                          exercise.measurement === 'seconds' ? `${entry.label}″` : entry.label,
+                        )
+                        .join(' · ')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </>
+        )}
 
         <SectionTitle>Nota sulla seduta</SectionTitle>
         <textarea

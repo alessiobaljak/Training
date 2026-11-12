@@ -70,6 +70,7 @@ export function ExerciseArt({
   level = null,
   label,
   caption: mostraDidascalia = true,
+  compact = false,
 }: {
   readonly slug: string;
   /** Gradino attuale: la figura segue quello, non l'esercizio. */
@@ -85,6 +86,14 @@ export function ExerciseArt({
    * didascalia, è un difetto.
    */
   readonly caption?: boolean;
+  /**
+   * Altezza contenuta, per stare accanto a un cronometro.
+   *
+   * A tutta larghezza una figura occupa metà dello schermo: va bene sulla
+   * pagina dell'esercizio, non durante la serie, dove sotto devono starci il
+   * conto e i campi da riempire senza dover scorrere.
+   */
+  readonly compact?: boolean;
 }) {
   const bersaglio = artFor(getExercise(slug), level);
   const frames =
@@ -104,7 +113,7 @@ export function ExerciseArt({
               src={url}
               alt={index === 0 ? 'Posizione di partenza' : 'Posizione di arrivo'}
               loading="lazy"
-              className="min-w-0 flex-1 rounded-xl bg-white"
+              className={`min-w-0 flex-1 rounded-xl bg-white ${compact ? 'max-h-36 object-contain' : ''}`}
             />
           ))}
         </div>
@@ -128,7 +137,11 @@ export function ExerciseArt({
         dell'utente, quindi inserirlo come markup è sicuro.
       */}
       <div
-        className="w-full text-ink [&>svg]:block [&>svg]:h-auto [&>svg]:w-full"
+        className={`w-full text-ink [&>svg]:block ${
+          compact
+            ? '[&>svg]:mx-auto [&>svg]:h-36 [&>svg]:w-auto [&>svg]:max-w-full'
+            : '[&>svg]:h-auto [&>svg]:w-full'
+        }`}
         dangerouslySetInnerHTML={{ __html: markup }}
       />
       {mostraDidascalia ? (

@@ -93,6 +93,35 @@ export function describeTut(tut: Tut): string {
   }
 }
 
+export interface TempoStep {
+  /** `3″`, oppure `veloce` per una fase esplosiva. */
+  readonly value: string;
+  readonly label: 'discesa' | 'fermo in basso' | 'salita' | 'fermo in alto';
+}
+
+/**
+ * Il tempo a quattro cifre, fase per fase, con le parole al posto dei posti.
+ *
+ * «3-0-1-1» si legge solo se si sa gia' che la prima cifra e' la discesa e la
+ * quarta la pausa in contrazione. Qui le fasi a zero spariscono e le altre
+ * dicono cosa sono: tre secondi di discesa, uno di salita, uno fermo in alto.
+ * Lista vuota quando il tempo non e' a quattro fasi.
+ */
+export function tempoSteps(tut: Tut): readonly TempoStep[] {
+  if (!isTempoBreakdown(tut)) return [];
+  const fase = (value: TempoPhase, label: TempoStep['label']): TempoStep | null => {
+    if (value === 'X') return { value: 'veloce', label };
+    if (value === 0) return null;
+    return { value: `${String(value)}″`, label };
+  };
+  return [
+    fase(tut.eccentric, 'discesa'),
+    fase(tut.bottomPause, 'fermo in basso'),
+    fase(tut.concentric, 'salita'),
+    fase(tut.topPause, 'fermo in alto'),
+  ].filter((step): step is TempoStep => step !== null);
+}
+
 /* -------------------------------------------------------------------------- */
 /* RIR                                                                         */
 /* -------------------------------------------------------------------------- */

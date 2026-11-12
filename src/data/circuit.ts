@@ -709,7 +709,9 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
     estimatedMinutes: 38,
     warmup: [],
     warmupSteps: RISCALDAMENTO,
-    note: 'A fine terzo giro del Tri-set A, dentro la pausa di blocco: 2 trazioni negative da 5" di eccentrica.',
+    pauseTasks: {
+      A: 'Due trazioni negative: sali con un salto o dal box, scendi in 5 secondi.',
+    },
     blocks: SEDUTA_1,
   },
   {

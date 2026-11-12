@@ -243,5 +243,14 @@ export interface ProgramSession {
   /** Riscaldamento come passi cronometrati, nelle sedute a circuito. */
   readonly warmupSteps?: readonly WarmupStep[];
   readonly note?: string;
+  /**
+   * Cosa c'e' da fare dentro una pausa di blocco, per gruppo che si lascia.
+   *
+   * La scheda ne ha una: «a fine terzo giro del Tri-set 1, dentro la pausa di
+   * blocco, 2 trazioni negative». Scritta in `note` compariva solo in fondo
+   * alla scheda, dopo la decompressione, e durante la seduta mai: la pausa in
+   * cui andava fatta passava con un conto alla rovescia e nient'altro.
+   */
+  readonly pauseTasks?: Readonly<Record<string, string>>;
   readonly blocks: readonly ProgramBlock[];
 }

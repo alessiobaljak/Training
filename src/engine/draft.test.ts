@@ -6,6 +6,8 @@ import {
   firstPendingIndex,
   isStepLogged,
   lastLoggedByBlock,
+  markStarted,
+  sessionDurationSeconds,
   plannedSets,
   removeLoggedSet,
   sessionProgress,
@@ -541,5 +543,45 @@ describe('lastLoggedByBlock — la precompilazione non cambia esercizio', () => 
     expect(lastLoggedByBlock(storico, 'circuito-1', 'altro').get('B2')?.exercise).toBe(
       'goblet-squat',
     );
+  });
+});
+
+describe('inizio, fine e durata vera della seduta', () => {
+  const vuota: LoggedSession = {
+    id: 's',
+    sessionId: 'circuito-1',
+    date: '2026-11-12',
+    week: 1,
+    status: 'in-progress',
+    exercises: [],
+    note: null,
+  };
+
+  it('l’inizio si segna una volta sola: riprendere la seduta non lo sposta', () => {
+    const partita = markStarted(vuota, '2026-11-12T18:00:00.000Z');
+    expect(partita.startedAt).toBe('2026-11-12T18:00:00.000Z');
+    expect(markStarted(partita, '2026-11-12T18:20:00.000Z').startedAt).toBe(
+      '2026-11-12T18:00:00.000Z',
+    );
+  });
+
+  it('la durata è la differenza fra i due istanti', () => {
+    const chiusa = closeSession(
+      markStarted(vuota, '2026-11-12T18:00:00.000Z'),
+      '2026-11-12T18:38:10.000Z',
+    );
+    expect(chiusa.status).toBe('completed');
+    expect(sessionDurationSeconds(chiusa)).toBe(38 * 60 + 10);
+  });
+
+  it('non inventa una durata dove non c’è', () => {
+    /* Le sedute scritte prima non hanno istanti: restano sedute. */
+    expect(sessionDurationSeconds(closeSession(vuota))).toBeNull();
+    /* Lasciata aperta e chiusa il giorno dopo non è durata ventisei ore. */
+    expect(
+      sessionDurationSeconds(
+        closeSession(markStarted(vuota, '2026-11-12T18:00:00.000Z'), '2026-11-13T20:00:00.000Z'),
+      ),
+    ).toBeNull();
   });
 });

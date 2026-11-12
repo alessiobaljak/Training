@@ -15,6 +15,8 @@ trazioni, dip, push-up, rematore, pike push-up, bulgarian split squat, negative
 di nordic curl, hollow hold, dead hang), perché il programma non si sblocca
 finché il giro dei nove non è completo. Oggi va bene: l'utente è uno e lo sa.
 Al secondo utente questo è il rischio principale dell'intero prodotto.
+Proposta del 2026-11-12 (PROGRAM_RULES R4): si chiedono solo i **7** che il
+circuito usa; fuori il nordic e il dead hang.
 
 Ogni limite qui ha sei righe: **Regola · Dove · Innesco · L'app fa · L'atleta
 legge · Verifica.** I testi in corsivo sono testi d'app proposti, da rivedere
@@ -254,6 +256,19 @@ Il numero mostrato dipende dal paese dichiarato: nessun numero cablato per una
 lingua sola (decisione D-7).
 **Verifica.** Test: con l'innesco attivo, nessun piano e nessun verdetto.
 
+## L14 — Sequenza dentro la seduta (= S9 di training-quality)
+
+**Regola.** Nessuna stazione balistica carica (swing, slam, clean) parte
+immediatamente dopo una stazione di stabilizzazione del tronco prescritta a
+RIR 0-1, `—` o portata a cedimento: in mezzo c'è almeno una transizione
+dichiarata di **15"**. Stato: **PROPOSTA 2026-11-12**, da approvare.
+**Dove.** `src/data/circuit.ts` (dato), `buildGuidedPlan` (passo `rest`).
+**Oggi.** Violata in tutte e quattro le sedute alla giunzione B → F (A8). R2
+la soddisfa senza cambiare esercizi né ordine.
+**Verifica.** Test sui dati: in ogni piano guidato, tra l'ultimo passo `work`
+del gruppo B e il primo del gruppo F c'è un passo di 15". Nel nucleo di
+sicurezza se Alessio approva (9 casi).
+
 ---
 
 ## Cosa l'app non fa, in nessun caso
@@ -266,7 +281,7 @@ immagini. Non cambia un numero perché l'atleta l'ha chiesto a parole.
 ## Priorità per l'uso pubblico
 
 Bloccanti prima del secondo utente: **L1, L2, L13, L11, L12**.
-Subito dopo: **L8** (richiede EXERCISE_SCHEMA §2), **L9**, **L7**.
+Subito dopo: **L8** (richiede EXERCISE_SCHEMA §2), **L9**, **L7**, **L14**.
 Già in parte rispettati e da proteggere con un test: **L6, L10, L12**.
 Il contorno legale — informativa, consenso sui dati sanitari, termini,
 cancellazione — è in `compliance/PENDING.md` e non è mio.

@@ -1,6 +1,8 @@
 # PROGRESSION_RULES.md — soglie di progressione
 
 Versione **progressione 1.0 — PROPOSTA del 2026-11-08, non approvata.**
+Aggiunta del 2026-11-12 `[PROPOSTA, progressione 1.1]`: salto dei gradini solo
+eccentrici nei range fissi (§5, T2). Gradino di partenza: PROGRAM_RULES R1.
 Motore: `src/engine/progression.ts` (fine seduta), `src/engine/review.ts`
 (fine settimana), `src/engine/loading.ts` (zavorra).
 
@@ -78,6 +80,17 @@ Tempo e pause restano elencate ma dichiarate scavalcate, con il motivo.
 Se i numeri sono sparsi (una sotto, due sopra) **non succede niente**: è la
 settimana normale di chiunque. Niente si applica da solo: la revisione propone.
 
+`[PROPOSTA, progressione 1.1]` **Gradini solo eccentrici nei blocchi a range
+fisso.** In un blocco con prescrizione `reps` a range fisso e TUT con fase
+concentrica ≠ 0, «gradino ±1» significa il gradino **eseguibile** successivo o
+precedente: si saltano quelli con `eccentricOnly` (PROGRAM_RULES R1). Esempi sul
+circuito: trazioni 1 ↔ 3, dip 1 ↔ 3, pike 2 ↔ 4. Motivo: 6-8 negative da 5" a
+TUT 3-0-1-0 non sono una prescrizione eseguibile, e la scheda stessa dice
+«togli l'appoggio quando otto vengono pulite» (dal box alle complete). Fuori dai
+range fissi (programma archiviato) ±1 resta letterale.
+Criterio: con stato trazioni a 1 e tre serie da 9, `sali-di-livello` porta a 3;
+con stato a 3 e tre serie da 3, `scendi-di-livello` porta a 1.
+
 ## 6. Tetti e divieti
 
 `[IN CODICE]` eccentrica ≤ 5" · pausa in allungamento ≤ 2" · gradino ≤ 6 ·
@@ -91,8 +104,9 @@ passo zavorra 2,5 kg · zavorra solo da settimana 3 e solo in whitelist.
   dello stesso esercizio in una settimana si possono accettare **tre** aumenti di
   gradino in sette giorni. La tabella `suggestions` registra già ogni decisione
   (`SuggestionRecord`): la regola è leggibile da lì.
-- **T2 — Mai più di un gradino alla volta**, in salita. In discesa non c'è
-  tetto: scendere è sempre permesso, subito, senza condizioni.
+- **T2 — Mai più di un gradino eseguibile alla volta**, in salita (§5: i
+  solo eccentrici non contano nei range fissi). In discesa non c'è tetto:
+  scendere è sempre permesso, subito, senza condizioni.
 - **T3 — Niente salita di gradino senza tempo confermato.** La fine seduta lo
   pretende già (§1); la revisione settimanale no: con `tempoRespected === false`
   propone comunque `sali-di-livello` e si limita a scrivere «prima di salire,

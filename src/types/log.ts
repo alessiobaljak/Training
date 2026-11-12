@@ -65,6 +65,17 @@ export interface LoggedSession {
   readonly status: SessionStatus;
   readonly exercises: readonly LoggedExercise[];
   readonly note: string | null;
+  /**
+   * Quando la seduta e' cominciata e quando e' stata chiusa, come istanti ISO.
+   *
+   * Servono a due cose che la sola data non sa dire: quanto e' durata davvero
+   * — la scheda da' un orologio al minuto, e senza la durata vera non c'e'
+   * modo di sapere se lo si sta rispettando — e, durante la seduta, quanto si
+   * e' avanti o indietro rispetto al piano. Opzionali: le sedute scritte prima
+   * non li hanno, e una seduta senza durata resta una seduta.
+   */
+  readonly startedAt?: string | null;
+  readonly completedAt?: string | null;
 }
 
 /* -------------------------------------------------------------------------- */

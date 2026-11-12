@@ -8,6 +8,7 @@ import {
   parseRir,
   parseTut,
   repDurationSeconds,
+  tempoSteps,
 } from './notation.ts';
 import { PROGRAM_SESSIONS } from '../data/program.ts';
 
@@ -88,5 +89,35 @@ describe('notazione RIR', () => {
   it('non giudica quando manca il bersaglio o il dato', () => {
     expect(isRirOnTarget(3, null)).toBe(true);
     expect(isRirOnTarget(null, parseRir('0'))).toBe(true);
+  });
+});
+
+describe('tempoSteps — il tempo a parole', () => {
+  /*
+   * «3-0-1-1» si legge solo se si sa già che la prima cifra è la discesa e la
+   * quarta la pausa in contrazione. Chi ha chiesto cosa volesse dire «10 swing
+   * KB 16 tecnici» non è tenuto a saperlo.
+   */
+  it('nomina le fasi e toglie quelle a zero', () => {
+    expect(tempoSteps(parseTut('3-0-1-0'))).toEqual([
+      { value: '3″', label: 'discesa' },
+      { value: '1″', label: 'salita' },
+    ]);
+    expect(tempoSteps(parseTut('3-1-1-0'))).toEqual([
+      { value: '3″', label: 'discesa' },
+      { value: '1″', label: 'fermo in basso' },
+      { value: '1″', label: 'salita' },
+    ]);
+    expect(tempoSteps(parseTut('2-1-1-1')).map((fase) => fase.label)).toEqual([
+      'discesa',
+      'fermo in basso',
+      'salita',
+      'fermo in alto',
+    ]);
+  });
+
+  it('non inventa fasi dove il tempo non è a quattro cifre', () => {
+    expect(tempoSteps(parseTut('controllato'))).toEqual([]);
+    expect(tempoSteps(parseTut('isometrico'))).toEqual([]);
   });
 });

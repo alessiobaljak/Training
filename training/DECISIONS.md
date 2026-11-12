@@ -11,7 +11,7 @@ quelle che spettano ad Alessio e bloccano il lavoro.
 | P-2 | Programma attivo: 4 circuiti senza giorni. Shadow archiviato, si legge solo nel diario. | `src/data/circuit.ts`, `src/data/sessions.ts` |
 | P-3 | Range fissi nei circuiti, non derivati dal test: quello che si sposta è il gradino. | `src/data/circuit.ts`, commento di testa |
 | P-4 | Un titolo, un esercizio. Varianti nei gradini o in `alternatives`. | `src/types/exercise.ts`, test |
-| P-5 | Livello di partenza = minore tra gradino prescritto e gradino misurato dal test. | `startingLevel`, `src/engine/progression.ts` |
+| P-5 | Livello di partenza = minore tra gradino prescritto e gradino misurato dal test. **Da sostituire con R1** (PROGRAM_RULES §3, proposta 2026-11-12). | `startingLevel`, `src/engine/progression.ts` |
 | P-6 | Il livello è dell'esercizio, non dell'atleta. L'onboarding non calcola nulla. | `STARTING_LEVEL_POLICY` |
 | P-7 | Ogni deviazione dalla scheda originale si dichiara, con il motivo. | `src/data/deviations.ts` |
 | P-8 | Solo immagini approvate, nel bundle. Nessuna generazione in produzione. | `CLAUDE.md` |
@@ -67,6 +67,26 @@ che costa più se fatto dopo.
 viene dal programma archiviato e il banner del ritest promette un ricalcolo dei
 range che nei circuiti non può avvenire (ADVICE D-04). Si tiene il calendario
 scollegato dal programma, o il deload diventa un dato del programma attivo?
+
+**D-12 · Scambio di stazioni nella finitura (2026-11-12).** Con R2 la
+giunzione ha 15", ma in S1 si passa ancora da suitcase carry a swing e in S3 da
+hollow hold a cedimento a swing. Raccomando di scambiare S1 F1↔F3 (swing ↔ step
+rapidi) e S3 F1↔F2 (swing ↔ mountain climber): costo zero sull'orologio. Cambia
+l'ordine della trascrizione: decidi tu. E la scheda originale aveva una pausa
+non scritta alla giunzione?
+
+**D-13 · Gruppi prioritari e fasce (2026-11-12).** Confermi braccia, dorsali e
+core prioritari (16-20 per muscolo, braccia 32-40) e gli altri in mantenimento
+(≥ 6)? Polpacci restano a 0 per scelta della scheda?
+
+**D-14 · Regole di ordinamento violate dalla trascrizione.** «Mai due stazioni
+di presa consecutive» è violata in S1 (B1-B3 e finitura): la tieni come regola
+per blocchi futuri con eccezioni nominate, o la ritiri?
+
+**D-15 · Push-up S3 A2.** La nota della scheda dice declinati (gradino 3); con
+R1 si parte al massimo dal gradino del test (2) e si sale alla prima settimana
+con tutte le serie sopra 18. Ti va bene, o vuoi un gradino prescritto per
+blocco che permetta di partire dal 3?
 
 **D-11 · Testi che parlano della forma del corpo.** Due `variantNote` collegano
 un esercizio alla silhouette e alla «vita sottile» (ADVICE D-06). Li riscrivo in

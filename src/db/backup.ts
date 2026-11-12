@@ -215,6 +215,16 @@ function readSession(value: unknown, path: string, warnings: string[]): LoggedSe
       readExercise(entry, `${path}.exercises[${String(index)}]`, warnings),
     ),
     note: expectNullableString(row['note'], `${path}.note`),
+    /*
+     * Assenti nei backup scritti prima che esistessero: un file vecchio deve
+     * continuare a ripristinarsi, quindi qui mancare non e' un errore.
+     */
+    ...(row['startedAt'] === undefined || row['startedAt'] === null
+      ? {}
+      : { startedAt: expectString(row['startedAt'], `${path}.startedAt`) }),
+    ...(row['completedAt'] === undefined || row['completedAt'] === null
+      ? {}
+      : { completedAt: expectString(row['completedAt'], `${path}.completedAt`) }),
   };
 }
 

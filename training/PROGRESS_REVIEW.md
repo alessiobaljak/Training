@@ -8,8 +8,8 @@ Schermate: `src/ui/screens/ProgressScreen.tsx`, `ReviewScreen.tsx`, `LogScreen.t
 
 | metrica | formula | dove |
 |---|---|---|
-| volume per gruppo | serie primarie × 1 + serie secondarie × 0,5; una serie per lato conta 1 | `volumeByGroup` |
-| stato del volume | `< 16` under · `16-20` in · `> 20` over | `WEEKLY_SET_TARGET` |
+| volume per gruppo | serie primarie × 1 + serie secondarie × 0,5; una serie per lato conta 1. **Oggi include finitura e decompressione** (A7, M10): da correggere con METHOD §3 R3 | `volumeByGroup` |
+| stato del volume | `< 16` under · `16-20` in · `> 20` over, uguale per tutti gli otto gruppi | `WEEKLY_SET_TARGET` |
 | aderenza | `round(chiuse / previste × 100)`; previste = settimane intere × 4 + giorni già passati della settimana in corso | `adherenceFromSessions` |
 | media mobile peso/vita | finestra di **7 giorni di calendario**, con `sampleCount` e `complete` dichiarati | `movingAverage` |
 | medie settimanali | media per settimana ISO, delta contro l'ultima settimana **con dati**, con `comparedTo` dichiarato | `weeklyAverages` |
@@ -86,6 +86,21 @@ cose che non misura e su cui non ha titolo per parlare.
   finirci.
 - **Log**: la tabella e il CSV nascono dalla stessa funzione (`logRows`), così
   non possono divergere.
+
+`[PROPOSTA, progressi 1.1 — R3]` **Volume in Progressi: entrambi, separati.**
+Una riga per gruppo, tre numeri con la loro origine:
+*«Dorsali · 12 serie questa settimana · il programma ne prevede 15 · fascia del
+metodo 16-20 (prioritario)»*.
+- **Stato dell'atleta** = fatte contro **previste dal programma**, solo su
+  settimane ISO chiuse: `fatte < previste` «sotto il programma», `=` «in linea»,
+  `>` «sopra il programma». Settimana in corso: «in corso», nessuno stato.
+- **Stato del programma** = previste contro **fascia del metodo**: «in fascia»,
+  «sotto la fascia», «sopra la fascia», «nessuna serie prevista». È una
+  proprietà della scheda, non dell'atleta: si mostra in una sezione «Il
+  programma», senza colori di merito, con la nota della scheda dove esiste
+  (polpacci: lavoro solo nella finitura, non contato).
+- L'app non mostra mai un gruppo come mancato dall'atleta perché il programma
+  non lo prevede.
 
 `[PROPOSTA]` Regole di presentazione:
 1. **Ogni numero mostrato dichiara da dove viene.** Una percentuale di aderenza

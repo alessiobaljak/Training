@@ -121,6 +121,23 @@ export function minWorkSeconds(
   return raddoppia(perRipetizione * ripetizioni);
 }
 
+/**
+ * Una stazione a tempo fisso che la revisione non legge: si chiude da sola.
+ *
+ * Le due condizioni servono tutte e due. Il tempo fisso (minimo uguale al
+ * massimo) vuol dire che non c'e' niente da misurare; l'esclusione dalla
+ * revisione vuol dire che nessuna regola aspetta quel numero. L'hollow hold da
+ * 30-45 secondi ha un range e viene giudicato: quello resta a mano.
+ */
+export function isAutoComplete(block: ProgramBlock): boolean {
+  const prescription = block.prescription;
+  return (
+    block.excludeFromReview === true &&
+    prescription.kind === 'seconds' &&
+    prescription.min === prescription.max
+  );
+}
+
 /* -------------------------------------------------------------------------- */
 /* I passi del piano guidato                                                   */
 /* -------------------------------------------------------------------------- */
@@ -176,6 +193,18 @@ export interface GuidedWorkStep {
   readonly exerciseName: string;
   /** Durata minima: il countdown parte da qui. `0` quando non è calcolabile. */
   readonly workSeconds: number;
+  /**
+   * La stazione si chiude da sola allo scadere del tempo, senza chiedere niente.
+   *
+   * Vale per le stazioni a tempo fisso che la revisione non legge: i trenta
+   * secondi di corda della finitura e le posizioni della decompressione. Lì
+   * «quanti ne hai fatti» ha una risposta sola — trenta, sempre — e chiederla
+   * con le mani sudate a fine seduta voleva dire undici tocchi per scrivere
+   * undici volte il numero che la scheda aveva gia' deciso. Alla domanda
+   * «hai tenuto il tempo» su una respirazione da supino non c'era risposta
+   * sensata.
+   */
+  readonly autoComplete: boolean;
 }
 
 export interface GuidedRestStep {
@@ -189,6 +218,8 @@ export interface GuidedRestStep {
   readonly hint: string;
   /** Cosa arriva dopo, da mostrare mentre si recupera. */
   readonly nextLabel: string;
+  /** Cosa la scheda chiede di fare dentro questa pausa. `null` quasi sempre. */
+  readonly task: string | null;
 }
 
 export type GuidedStep = GuidedWarmupStep | GuidedWorkStep | GuidedRestStep;
@@ -333,6 +364,7 @@ interface RestShape {
   readonly seconds: number;
   readonly maxSeconds: number;
   readonly hint: string;
+  readonly task?: string;
 }
 
 /**
@@ -351,11 +383,13 @@ function restBetween(
     if (block === undefined) return null;
     const seconds = blockRestSeconds(block);
     if (seconds <= 0) return null;
+    const task = session.pauseTasks?.[step.group];
     return {
       tier: 'blocco',
       seconds,
       maxSeconds: seconds,
       hint: `${groupLabel(session, step.group)} finito, ora ${groupLabel(session, next.group)}. Riparte da fermo su muscoli nuovi: questa pausa serve tutta.`,
+      ...(task === undefined ? {} : { task }),
     };
   }
 
@@ -427,6 +461,7 @@ export function buildGuidedPlan(
       label: REST_TIER_LABELS[shape.tier],
       hint: shape.hint,
       nextLabel,
+      task: shape.task ?? null,
     });
   };
 
@@ -492,6 +527,7 @@ export function buildGuidedPlan(
       exercise: step.exercise,
       exerciseName: getExercise(step.exercise).name,
       workSeconds: block === undefined ? 0 : minWorkSeconds(block, undefined, step.perSide),
+      autoComplete: block !== undefined && isAutoComplete(block),
     });
 
     const next = work[index + 1];

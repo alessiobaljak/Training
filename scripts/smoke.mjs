@@ -191,23 +191,37 @@ try {
       await inizia.click();
       await page.waitForTimeout(1400);
 
+      /*
+       * La seduta nuova si apre con cinque secondi di preavviso che dicono già
+       * cosa arriva: tra il tocco su «Inizia» e la corda in mano ci sono due
+       * metri, e prima il primo conto partiva con il telefono ancora in mano.
+       */
       const primo = await page.locator('main').innerText();
       check(
-        primo.includes('Riscaldamento'),
-        `La seduta guidata deve aprirsi sul riscaldamento. Legge: ${JSON.stringify(primo.slice(0, 160))}`,
+        primo.includes('Si parte') && /Corda da battaglia/.test(primo),
+        `La seduta guidata deve aprirsi annunciando il primo passo. Legge: ${JSON.stringify(primo.slice(0, 160))}`,
+      );
+      await page.getByRole('button', { name: 'Parti subito', exact: true }).click();
+      await page.waitForTimeout(500);
+      check(
+        (await page.locator('main').innerText()).includes('Riscaldamento'),
+        'Dopo il preavviso si deve essere nel riscaldamento.',
       );
 
       /*
-       * Si attraversa il riscaldamento fino alla prima stazione vera. Il
-       * passaggio si riconosce dal pulsante: «Avanti» nel riscaldamento,
-       * «Via» su una serie da cronometrare.
+       * Si attraversa il riscaldamento fino alla prima stazione vera. L'ultimo
+       * recupero prima della serie è quello che la annuncia: è lì che si
+       * legge, perché durante la serie gli occhi non sono liberi.
        */
+      let annuncio = '';
       let arrivato = false;
-      for (let passo = 0; passo < 24 && !arrivato; passo += 1) {
-        if ((await page.getByRole('button', { name: 'Via', exact: true }).count()) > 0) {
+      for (let passo = 0; passo < 30 && !arrivato; passo += 1) {
+        if ((await page.getByRole('button', { name: 'Fatto', exact: true }).count()) > 0) {
           arrivato = true;
           break;
         }
+        const testo = await page.locator('main').innerText();
+        if (/Poi · A1/i.test(testo)) annuncio = testo;
         const avanti = page.getByRole('button', {
           name: /^(Avanti|Salta il recupero)$/,
         });
@@ -215,7 +229,11 @@ try {
         await avanti.first().click();
         await page.waitForTimeout(350);
       }
-      check(arrivato, 'Dal riscaldamento si deve arrivare alla prima serie.');
+      check(arrivato, 'Dal riscaldamento si deve arrivare alla prima serie, già partita.');
+      check(
+        /ripetizioni/.test(annuncio) && /discesa/.test(annuncio) && /di riserva/.test(annuncio),
+        `Il recupero prima della serie deve annunciarla: ripetizioni, tempo a parole e riserva. Legge: ${JSON.stringify(annuncio.slice(0, 260))}`,
+      );
 
       if (arrivato) {
         const lavoro = await page.locator('main').innerText();
@@ -226,25 +244,18 @@ try {
          * prescritto non c'era.
          */
         check(
-          /Almeno \d+"/.test(lavoro),
-          `La stazione deve dichiarare la durata minima. Legge: ${JSON.stringify(lavoro.slice(0, 200))}`,
+          /Non chiuderla prima/.test(lavoro) && /\d:[0-5]\d/.test(lavoro),
+          `La serie parte da sola alla fine del recupero e mostra il minimo che scende. Legge: ${JSON.stringify(lavoro.slice(0, 200))}`,
         );
         check(
-          /TUT/.test(lavoro) && /RIR/.test(lavoro),
-          'La stazione deve mostrare tempo e RIR prescritti.',
+          (await page.getByRole('button', { name: 'Via', exact: true }).count()) === 0,
+          'Arrivati dal recupero non c’è nessun «Via» da premere: il recupero finito è il via.',
         );
-        check(
-          (await page.locator('input[type=number]').count()) === 0,
-          'Prima di cominciare non ci sono numeri da scrivere: c’è solo da partire.',
-        );
-
-        await page.getByRole('button', { name: 'Via', exact: true }).click();
-        await page.waitForTimeout(700);
 
         const campi = page.locator('input[type=number]');
         check(
           (await campi.count()) > 0,
-          'Partita la serie, deve comparire dove scrivere quante ne hai fatte.',
+          'Partita la serie, deve esserci dove scrivere quante ne hai fatte.',
         );
         for (let k = 0; k < (await campi.count()); k += 1) await campi.nth(k).fill('7');
         await page.waitForTimeout(200);
@@ -256,8 +267,8 @@ try {
 
         const dopo = await page.locator('main').innerText();
         check(
-          dopo.includes('Prossima'),
-          `Chiusa la serie si passa al recupero, che dice cosa arriva dopo. Legge: ${JSON.stringify(dopo.slice(0, 200))}`,
+          /Poi · A2/i.test(dopo),
+          `Chiusa la serie si passa al recupero, che annuncia la stazione seguente. Legge: ${JSON.stringify(dopo.slice(0, 200))}`,
         );
         check(
           /Transizione|Recupero di giro|Pausa di blocco/.test(dopo),

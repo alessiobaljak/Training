@@ -1,6 +1,7 @@
 # METHOD.md — principi di allenamento
 
 Versione **metodo 1.0 — PROPOSTA del 2026-11-08, non approvata.**
+Aggiunta del 2026-11-12 `[PROPOSTA, metodo 1.1]`: R3, volume (§3).
 Le righe marcate `[IN CODICE]` descrivono ciò che l'app fa già oggi e sono una
 trascrizione, non una proposta. Quelle marcate `[PROPOSTA]` non esistono ancora:
 nessuna riga di codice è stata toccata.
@@ -45,6 +46,29 @@ variante scavalca tempo e pause, e la schermata dichiara lo scavalco.
   braccia.
 - Una serie per lato conta **una volta**, non due.
 
+`[PROPOSTA, metodo 1.1 — R3]` Cosa conta e contro cosa si confronta:
+1. **Contano solo le serie dei blocchi senza `excludeFromReview`**: tri-set A e
+   B. Finitura (F) e decompressione (Z) **non contano**: 30" a tempo senza RIR
+   né range, lavoro metabolico, non volume. Vale per il test sui dati e per
+   `metrics.ts`, con una sola funzione.
+2. **Contano solo le sedute `completed` e `abandoned`** (le serie fatte sono
+   fatte); `in-progress` no.
+3. **Previsto dal programma** = la stessa formula sui blocchi di una settimana
+   completa (4 sedute), con `effectiveSets` nelle settimane di deload. Oggi:
+   braccia 34,5 · core 16,5 · dorsali 15 · spalle 13,5 · petto 9 ·
+   femorali-glutei 9 · quadricipiti 6 · polpacci 0 (totale 103,5).
+4. **Fascia del metodo per gruppo**, dichiarata dal programma (non dall'atleta):
+   - gruppo **prioritario**: 16-20 serie per muscolo; `braccia` sono due
+     muscoli (flessori ed estensori del gomito) ⇒ **32-40**;
+   - gruppo **in mantenimento**: **≥ 6**, nessun tetto sotto il 20.
+   Circuito, proposta: prioritari braccia, dorsali, core; mantenimento gli altri
+   cinque. Esito: braccia, core in fascia; dorsali 1 sotto; spalle, petto,
+   femorali, quadricipiti in mantenimento; **polpacci 0, sotto anche il
+   mantenimento, per scelta dichiarata della scheda**.
+   La fascia 16-20 su tutti e otto è irraggiungibile per aritmetica (103,5
+   crediti contro un pavimento di 128): non è un obiettivo che l'atleta possa
+   mancare, e non si mostra come tale.
+
 ## 4. Frequenza
 
 `[IN CODICE]` Quattro sedute, nessun giorno assegnato (`src/data/circuit.ts`).
@@ -64,8 +88,9 @@ isolamenti, `—` nella finitura metabolica. Il metodo non usa l'RPE.
 
 `[IN CODICE]` Quattro livelli distinti (`src/data/circuit.ts`):
 transizione tra stazioni, recupero di giro, pausa di blocco, recupero tra serie
-sulle stazioni isolate. Forza 30"/45"/90", volume 20"/30"/60", braccia
-20"/25"/60", finitura 15"/0"/0". **Il tempo si recupera nelle transizioni, mai
+sulle stazioni isolate. Valori del circuito in PROGRAM_RULES §2 (tri-set 1
+forza 35"/45"/90", volume 20"/30"/60"; tri-set 2 20"/30" e 15"/20-25"; finitura
+15"/0"/0"; giunzione B→F: R2). **Il tempo si recupera nelle transizioni, mai
 nel recupero di giro.** Tra i test di massimale: 4-5 minuti.
 
 ## 7. Riscaldamento

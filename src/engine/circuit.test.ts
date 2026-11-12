@@ -8,6 +8,7 @@ import {
   buildGuidedPlan,
   clockOffsets,
   estimatedSeconds,
+  isAutoComplete,
   minWorkSeconds,
   stepSeconds,
   workStepCount,
@@ -298,5 +299,107 @@ describe('clockOffsets ed estimatedSeconds', () => {
     const normale = estimatedSeconds(buildGuidedPlan(seduta, 1));
     const scarico = estimatedSeconds(buildGuidedPlan(seduta, 6));
     expect(scarico).toBeLessThan(normale);
+  });
+});
+
+describe('isAutoComplete — le stazioni che si chiudono da sole', () => {
+  /*
+   * Finitura a tempo e decompressione scorrono senza chiedere niente: lì
+   * «quanti ne hai fatti» ha una risposta sola, e chiederla undici volte a fine
+   * seduta voleva dire undici tocchi per scrivere il numero che la scheda aveva
+   * già deciso. Ma la regola deve restare stretta: tutto ciò che la revisione
+   * legge si registra a mano.
+   */
+  it('vale per le stazioni a tempo fisso fuori dalla revisione', () => {
+    expect(
+      isAutoComplete(
+        blocco({
+          exercise: 'corda-battaglia-slam',
+          prescription: { kind: 'seconds', min: 30, max: 30 },
+          excludeFromReview: true,
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('non vale per una stazione a ripetizioni, anche se è fuori dalla revisione', () => {
+    /* Lo swing della finitura: quante ne fai in trenta secondi è un numero vero. */
+    expect(
+      isAutoComplete(
+        blocco({
+          exercise: 'kb-swing',
+          prescription: { kind: 'reps', min: 15, max: 20 },
+          excludeFromReview: true,
+        }),
+      ),
+    ).toBe(false);
+  });
+
+  it('non vale per una tenuta con un range, che la revisione giudica', () => {
+    /* L'hollow hold da 30-45 secondi: quanti ne hai tenuti decide il gradino. */
+    expect(
+      isAutoComplete(
+        blocco({ exercise: 'hollow-hold', prescription: { kind: 'seconds', min: 30, max: 45 } }),
+      ),
+    ).toBe(false);
+    expect(
+      isAutoComplete(
+        blocco({ exercise: 'hollow-hold', prescription: { kind: 'seconds', min: 30, max: 30 } }),
+      ),
+    ).toBe(false);
+  });
+
+  it('nel programma vero copre finitura a tempo e decompressione, e nient’altro', () => {
+    for (const session of CIRCUIT_SESSIONS) {
+      const plan = buildGuidedPlan(session, 1);
+      for (const step of plan) {
+        if (step.kind !== 'work') continue;
+        if (step.group === 'A' || step.group === 'B') {
+          expect(step.autoComplete, `${session.id}/${step.blockCode}`).toBe(false);
+        }
+        if (step.group === 'Z') {
+          expect(step.autoComplete, `${session.id}/${step.blockCode}`).toBe(true);
+        }
+      }
+      /* In ogni finitura almeno una stazione scorre e lo swing no. */
+      const finitura = plan.filter(
+        (step): step is Extract<GuidedStep, { kind: 'work' }> =>
+          step.kind === 'work' && step.group === 'F',
+      );
+      expect(finitura.some((step) => step.autoComplete), session.id).toBe(true);
+      for (const step of finitura) {
+        if (step.exercise === 'kb-swing') expect(step.autoComplete, session.id).toBe(false);
+      }
+    }
+  });
+});
+
+describe('quello che la scheda chiede dentro una pausa', () => {
+  /*
+   * «A fine terzo giro del Tri-set 1, dentro la pausa di blocco: 2 trazioni
+   * negative.» Stava in una nota in fondo alla scheda, dopo la decompressione:
+   * durante la seduta la pausa in cui andavano fatte passava con un conto alla
+   * rovescia e nient'altro.
+   */
+  it('la Seduta 1 lo dice nella pausa dopo il Tri-set A, e solo lì', () => {
+    const seduta = CIRCUIT_SESSIONS[0];
+    if (seduta === undefined) throw new Error('manca la prima seduta');
+    const pause = buildGuidedPlan(seduta, 1).filter(
+      (step): step is Extract<GuidedStep, { kind: 'rest' }> => step.kind === 'rest',
+    );
+    const conCompito = pause.filter((step) => step.task !== null);
+    expect(conCompito).toHaveLength(1);
+    expect(conCompito[0]?.tier).toBe('blocco');
+    expect(conCompito[0]?.hint).toMatch(/^Tri-set A finito/);
+    expect(conCompito[0]?.task).toMatch(/negative/);
+  });
+
+  it('le altre sedute non hanno compiti nelle pause', () => {
+    for (const seduta of CIRCUIT_SESSIONS.slice(1)) {
+      const conCompito = buildGuidedPlan(seduta, 1).filter(
+        (step) => step.kind === 'rest' && step.task !== null,
+      );
+      expect(conCompito, seduta.id).toHaveLength(0);
+    }
   });
 });

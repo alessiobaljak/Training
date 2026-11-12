@@ -187,8 +187,38 @@ export function setSessionNote(session: LoggedSession, note: string | null): Log
   return { ...session, note };
 }
 
-export function closeSession(session: LoggedSession): LoggedSession {
-  return { ...session, status: 'completed' };
+/**
+ * Chiude la seduta. `at` e' l'istante di chiusura, quando chi chiama lo sa:
+ * la funzione resta pura e l'orologio lo legge l'interfaccia.
+ */
+export function closeSession(session: LoggedSession, at?: string): LoggedSession {
+  return {
+    ...session,
+    status: 'completed',
+    ...(at === undefined ? {} : { completedAt: at }),
+  };
+}
+
+/** Segna l'inizio della seduta, una volta sola: riprenderla non lo sposta. */
+export function markStarted(session: LoggedSession, at: string): LoggedSession {
+  if (typeof session.startedAt === 'string') return session;
+  return { ...session, startedAt: at };
+}
+
+/**
+ * Durata vera della seduta in secondi, quando si puo' calcolare.
+ *
+ * `null` se manca uno dei due istanti o se il risultato non ha senso: una
+ * seduta lasciata aperta e chiusa il giorno dopo non e' durata ventisei ore.
+ */
+export function sessionDurationSeconds(session: LoggedSession): number | null {
+  if (typeof session.startedAt !== 'string' || typeof session.completedAt !== 'string') return null;
+  const inizio = Date.parse(session.startedAt);
+  const fine = Date.parse(session.completedAt);
+  if (Number.isNaN(inizio) || Number.isNaN(fine)) return null;
+  const secondi = Math.round((fine - inizio) / 1000);
+  if (secondi <= 0 || secondi > 4 * 3600) return null;
+  return secondi;
 }
 
 /* -------------------------------------------------------------------------- */
