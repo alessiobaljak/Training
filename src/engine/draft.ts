@@ -449,3 +449,68 @@ export function statesToSave(
     ...fuoriDaiSync,
   ];
 }
+
+/** Quello che serve di un suggerimento registrato, senza dipendere dal database. */
+export interface RecordedDecision {
+  readonly sessionLogId: string;
+  readonly exercise: ExerciseSlug;
+  readonly blockCode: string;
+  readonly decision: 'accepted' | 'postponed';
+  readonly stateBefore: ExerciseState;
+  readonly stateAfter: ExerciseState;
+}
+
+export interface SessionDecisions {
+  /** `${sessionLogId}:${blockCode}` dei blocchi già decisi. */
+  readonly decided: ReadonlySet<string>;
+  /** Le leve accettate in questa seduta: alla chiusura vincono sul diario. */
+  readonly accepted: ReadonlyMap<ExerciseSlug, ExerciseState>;
+  /**
+   * Gli stati su cui valutare le leve nel riepilogo: quelli di prima della
+   * scelta, per gli esercizi già decisi.
+   */
+  readonly toEvaluate: ReadonlyMap<ExerciseSlug, ExerciseState>;
+}
+
+/**
+ * Le scelte di fine seduta, ricostruite da quello che è già salvato
+ * (training-quality B11 e A15).
+ *
+ * Le scelte stavano solo in memoria, mentre lo stato accettato era già sul
+ * disco. Una ricarica fra «Accetto» e «Salva e chiudi» — il telefono che si
+ * blocca, l'app che va in secondo piano — le cancellava: il riepilogo si
+ * riapriva senza «Scelta registrata», chiudendo la leva si annullava, e
+ * accettando di nuovo si saliva due volte nella stessa seduta (trazioni
+ * 1 → 3 → 4).
+ *
+ * E il riepilogo valutava le leve sullo stato appena accettato: dopo «sali al
+ * gradino 3» mostrava «sali al gradino 4» sopra «Scelta registrata». Lo stato
+ * salvato era giusto, il numero letto no. Si valuta sullo stato di prima.
+ *
+ * `local` sono le scelte fatte in questa schermata, che possono arrivare prima
+ * che il database le restituisca.
+ */
+export function sessionDecisions(
+  sessionLogId: string,
+  records: readonly RecordedDecision[],
+  local: readonly RecordedDecision[],
+  liveStates: ReadonlyMap<ExerciseSlug, ExerciseState>,
+): SessionDecisions {
+  const decided = new Set<string>();
+  const accepted = new Map<ExerciseSlug, ExerciseState>();
+  const toEvaluate = new Map(liveStates);
+  const toEvaluateFixed = new Set<ExerciseSlug>();
+  /* Le locali per ultime: sono le più recenti. */
+  for (const record of [...records, ...local]) {
+    if (record.sessionLogId !== sessionLogId) continue;
+    decided.add(`${sessionLogId}:${record.blockCode}`);
+    if (record.decision === 'accepted') accepted.set(record.exercise, record.stateAfter);
+    else accepted.delete(record.exercise);
+    /* Lo stato di prima resta il primo registrato: una scelta rifatta non lo sposta. */
+    if (!toEvaluateFixed.has(record.exercise)) {
+      toEvaluate.set(record.exercise, record.stateBefore);
+      toEvaluateFixed.add(record.exercise);
+    }
+  }
+  return { decided, accepted, toEvaluate };
+}

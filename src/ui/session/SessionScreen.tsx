@@ -14,7 +14,9 @@ import {
   suggestedSetValue,
   upsertLoggedSet,
   statesToSave,
+  sessionDecisions,
 } from '../../engine/draft.ts';
+import type { RecordedDecision } from '../../engine/draft.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import { describeTut, parseTut } from '../../engine/notation.ts';
 import { effectiveTempo, initialExerciseState, isOwnLevel } from '../../engine/progression.ts';
@@ -31,7 +33,8 @@ import { SetEntry, initialSetValues } from './SetEntry.tsx';
 import type { SetValues } from './SetEntry.tsx';
 import { VariantPicker } from './VariantPicker.tsx';
 import { useSessionDraft } from './useSessionDraft.ts';
-import type { ExerciseSlug, ExerciseState, LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
+import type { ExerciseSlug, LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
+import { useSuggestions } from '../hooks/useData.ts';
 import type { RestDecision, SessionStep } from '../../engine/rest.ts';
 import type { ProgressionSuggestion } from '../../engine/progression.ts';
 
@@ -84,8 +87,9 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   } | null>(null);
   const [showSummary, setShowSummary] = useState(false);
   const [confermaScarto, setConfermaScarto] = useState(false);
-  const [decided, setDecided] = useState<ReadonlySet<string>>(new Set());
-  const accettate = useRef(new Map<ExerciseSlug, ExerciseState>());
+  /* Le scelte di fine seduta si ricostruiscono da quello che è salvato (B11). */
+  const registrate = useSuggestions();
+  const [locali, setLocali] = useState<readonly RecordedDecision[]>([]);
   const positioned = useRef(false);
 
   /* Riparte dalla prima serie non registrata, non dall'inizio. */
@@ -107,6 +111,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   }
 
   const goHome = (): void => { navigate({ name: 'home' }); };
+  const scelte = sessionDecisions(draft.id, registrate ?? [], locali, states);
 
   const saveAndExit = (): void => {
     /*
@@ -116,7 +121,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
      * una, valgono senza doverli ridire in un'altra schermata.
      */
     /* Le leve accettate a fine seduta vincono sul diario (A13). */
-    for (const state of statesToSave(syncStatesFromLog(draft, states), accettate.current)) {
+    for (const state of statesToSave(syncStatesFromLog(draft, states), scelte.accepted)) {
       confirmExercise(state);
     }
     update((session) => closeSession(session, new Date().toISOString()));
@@ -131,29 +136,27 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   ): void => {
     const block = program.blocks.find((entry) => entry.code === blockCode);
     if (block === undefined) return;
-    const before = states.get(block.exercise);
+    const before = scelte.toEvaluate.get(block.exercise) ?? states.get(block.exercise);
     if (before === undefined) return;
+    if (scelte.decided.has(`${draft.id}:${blockCode}`)) return;
 
-    if (accepted) {
-      confirmExercise(suggestion.nextState);
-      accettate.current.set(block.exercise, suggestion.nextState);
-    } else {
-      accettate.current.delete(block.exercise);
-    }
+    if (accepted) confirmExercise(suggestion.nextState);
 
-    void repository.recordSuggestion({
-      id: `${draft.id}:${blockCode}:${lever}`,
-      date: draft.date,
+    const record: RecordedDecision = {
       sessionLogId: draft.id,
       exercise: block.exercise,
       blockCode,
-      lever,
       decision: accepted ? 'accepted' : 'postponed',
       stateBefore: before,
       stateAfter: accepted ? suggestion.nextState : before,
+    };
+    setLocali((current) => [...current, record]);
+    void repository.recordSuggestion({
+      ...record,
+      id: `${draft.id}:${blockCode}:${lever}`,
+      date: draft.date,
+      lever,
     });
-
-    setDecided((current) => new Set(current).add(`${draft.id}:${blockCode}`));
   };
 
   if (program.kind === 'cardio') {
@@ -174,9 +177,9 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
         program={program}
         draft={draft}
         week={week}
-        states={states}
+        states={scelte.toEvaluate}
         tests={tests}
-        decided={decided}
+        decided={scelte.decided}
         onUpdate={update}
         onDecide={decide}
         onSave={saveAndExit}

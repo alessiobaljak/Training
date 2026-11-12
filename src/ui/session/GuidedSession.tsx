@@ -15,6 +15,7 @@ import {
   findLoggedExercise,
   isStepLogged,
   markStarted,
+  sessionDecisions,
   setTempoRespected,
   setVariant,
   statesToSave,
@@ -25,6 +26,8 @@ import {
   variantLabelFor,
   variantNoteAt,
 } from '../../engine/draft.ts';
+import type { RecordedDecision } from '../../engine/draft.ts';
+import { useSuggestions } from '../hooks/useData.ts';
 import { initialExerciseState } from '../../engine/progression.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import type { LoadAvailability } from '../../engine/loading.ts';
@@ -475,9 +478,14 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
   const [inPartenza, setInPartenza] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [confermaUscita, setConfermaUscita] = useState(false);
-  const [decided, setDecided] = useState<ReadonlySet<string>>(new Set());
-  /* Le leve accettate a fine seduta: alla chiusura vincono sul diario (A13). */
-  const accettate = useRef(new Map<ExerciseSlug, ExerciseState>());
+  /*
+   * Le scelte di fine seduta si ricostruiscono da quello che è salvato, non
+   * si tengono in memoria: una ricarica fra «Accetto» e «Salva e chiudi»
+   * le cancellava (B11). `locali` copre l'istante prima che il database
+   * restituisca la scelta appena fatta.
+   */
+  const registrate = useSuggestions();
+  const [locali, setLocali] = useState<readonly RecordedDecision[]>([]);
   const posizionato = useRef(false);
 
   useWakeLock(!showSummary);
@@ -523,8 +531,10 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
     );
   }
 
+  const scelte = sessionDecisions(draft.id, registrate ?? [], locali, states);
+
   const chiudi = (): void => {
-    for (const next of statesToSave(syncStatesFromLog(draft, states), accettate.current)) {
+    for (const next of statesToSave(syncStatesFromLog(draft, states), scelte.accepted)) {
       confirmExercise(next);
     }
     update((session) => closeSession(session, new Date().toISOString()));
@@ -548,29 +558,28 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
   ): void => {
     const block = program.blocks.find((entry) => entry.code === blockCode);
     if (block === undefined) return;
-    const before = states.get(block.exercise);
+    /* Lo stato di prima della scelta, anche se la schermata è stata ricaricata. */
+    const before = scelte.toEvaluate.get(block.exercise) ?? states.get(block.exercise);
     if (before === undefined) return;
+    if (scelte.decided.has(`${draft.id}:${blockCode}`)) return;
 
-    if (accepted) {
-      confirmExercise(suggestion.nextState);
-      accettate.current.set(block.exercise, suggestion.nextState);
-    } else {
-      accettate.current.delete(block.exercise);
-    }
+    if (accepted) confirmExercise(suggestion.nextState);
 
-    void repository.recordSuggestion({
-      id: `${draft.id}:${blockCode}:${lever}`,
-      date: draft.date,
+    const record: RecordedDecision = {
       sessionLogId: draft.id,
       exercise: block.exercise,
       blockCode,
-      lever,
       decision: accepted ? 'accepted' : 'postponed',
       stateBefore: before,
       stateAfter: accepted ? suggestion.nextState : before,
+    };
+    setLocali((current) => [...current, record]);
+    void repository.recordSuggestion({
+      ...record,
+      id: `${draft.id}:${blockCode}:${lever}`,
+      date: draft.date,
+      lever,
     });
-
-    setDecided((current) => new Set(current).add(`${draft.id}:${blockCode}`));
   };
 
   if (showSummary) {
@@ -579,9 +588,9 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
         program={program}
         draft={draft}
         week={week}
-        states={states}
+        states={scelte.toEvaluate}
         tests={state.tests}
-        decided={decided}
+        decided={scelte.decided}
         plannedSeconds={durata}
         onUpdate={update}
         onDecide={decide}

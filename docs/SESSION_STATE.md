@@ -45,8 +45,14 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   circonduzioni e step rapidi nuovi, frecce tolte, braccia fuori dalla testa.
 
 ## Domande aperte per Alessio
-0. **B6** (attrezzatura), **B8** (nessuna figura approvata da lui), **B9**
-   (30" di dead hang a chi ne ha misurati 8): ancora Bloccanti.
+0. **Approvare S1-S10 ha reso Bloccanti A2, A3, A4, M1, M4** (la griglia
+   chiama Bloccante una soglia approvata superata). Voluto, o trattamento
+   come B1-B4? Senza risposta restano Bloccanti, e richiedono regole nuove di
+   training-designer prima di essere implementati.
+   Restano anche **B6** (attrezzatura), **B8** (nessuna figura approvata da
+   lui), **B9** (30" di dead hang a chi ne ha misurati 8), **B10** (plank →
+   slam senza pausa fra i giri della finitura di S4: 15" o un altro ordine,
+   insieme a D-12) e il disaccordo su `circonduzioni-spalle`.
 1. **R2 si scosta dall'orologio scritto della scheda** di 15 secondi a seduta
    (tra Tri-set 2 e finitura). Si toglie con una riga se preferisci
    l'originale.

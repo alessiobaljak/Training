@@ -8,6 +8,7 @@ import {
   lastLoggedByBlock,
   markStarted,
   sessionDurationSeconds,
+  sessionDecisions,
   statesToSave,
   plannedSets,
   removeLoggedSet,
@@ -661,5 +662,60 @@ describe('l’etichetta del gradino segue il gradino (training-quality A11)', ()
     const riga = findLoggedExercise(bozza, 'A2');
     expect(riga?.level).toBe(3);
     expect(riga?.variantLabel).toBe('Liv. 3 · Trazioni complete');
+  });
+});
+
+describe('sessionDecisions — le scelte sopravvivono a una ricarica (training-quality B11, A15)', () => {
+  const prima: ExerciseState = {
+    exercise: 'trazioni-prona-presa-media',
+    level: 1,
+    eccentricBonusSeconds: 0,
+    bottomPauseBonusSeconds: 0,
+    loadKg: 0,
+  };
+  const dopo: ExerciseState = { ...prima, level: 3 };
+  const accettata = {
+    sessionLogId: 's1',
+    exercise: prima.exercise,
+    blockCode: 'A1',
+    decision: 'accepted' as const,
+    stateBefore: prima,
+    stateAfter: dopo,
+  };
+
+  it('dopo una ricarica il blocco risulta già deciso e la leva resta accettata', () => {
+    /* La memoria della schermata è vuota: tutto viene dal database. */
+    const scelte = sessionDecisions('s1', [accettata], [], new Map([[prima.exercise, dopo]]));
+    expect(scelte.decided.has('s1:A1')).toBe(true);
+    expect(scelte.accepted.get(prima.exercise)).toEqual(dopo);
+  });
+
+  it('il riepilogo valuta sullo stato di prima, non su quello appena accettato', () => {
+    /*
+     * Prima, dopo «sali al gradino 3», il riepilogo si ricalcolava sul 3 e
+     * mostrava «sali al gradino 4» sopra «Scelta registrata».
+     */
+    const scelte = sessionDecisions('s1', [accettata], [], new Map([[prima.exercise, dopo]]));
+    expect(scelte.toEvaluate.get(prima.exercise)?.level).toBe(1);
+  });
+
+  it('le scelte di un’altra seduta non contano', () => {
+    const scelte = sessionDecisions('s2', [accettata], [], new Map([[prima.exercise, dopo]]));
+    expect(scelte.decided.size).toBe(0);
+    expect(scelte.accepted.size).toBe(0);
+    expect(scelte.toEvaluate.get(prima.exercise)?.level).toBe(3);
+  });
+
+  it('una scelta locale vale prima che il database la restituisca', () => {
+    const scelte = sessionDecisions('s1', [], [accettata], new Map([[prima.exercise, dopo]]));
+    expect(scelte.decided.has('s1:A1')).toBe(true);
+    expect(statesToSave([], scelte.accepted)).toEqual([dopo]);
+  });
+
+  it('un rimando non lascia niente da salvare', () => {
+    const rimandata = { ...accettata, decision: 'postponed' as const, stateAfter: prima };
+    const scelte = sessionDecisions('s1', [rimandata], [], new Map([[prima.exercise, prima]]));
+    expect(scelte.decided.has('s1:A1')).toBe(true);
+    expect(scelte.accepted.size).toBe(0);
   });
 });
