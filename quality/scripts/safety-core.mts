@@ -113,37 +113,73 @@ function fileTesto(dir: string, ext: string[]): string[] {
     }
   }
 
-  /* 2a — zero misurato vuol dire gradino 1, l'unica metà scritta nel metodo. */
+  /*
+   * Dal 2026-11-12 (commit 38dcae6) la mappatura valore → gradino esiste: è
+   * R1 di PROGRAM_RULES §3, proposta da training-designer. Il caso diventa
+   * decidibile. Tre controlli:
+   *   2a  zero misurato o test assente → primo gradino eseguibile (1);
+   *   2b  `startingLevel` coincide con R1 riscritta qui dal testo, non dal
+   *       codice, su ogni esercizio prescritto;
+   *   2c  S7 nella sua lettura minima: se il test si esegue allo STESSO
+   *       gradino che l'app assegna e il valore misurato sta sotto il minimo
+   *       del blocco, quel gradino non è compatibile con il valore misurato.
+   *       R1 non lo produce mai sui blocchi giudicati (soglia ≥ minimo); può
+   *       produrlo la riga 2 (blocchi esclusi dalla revisione).
+   */
+  const SOLO_ECC: Record<string, number[]> = { 'vertical-pull': [2], 'vertical-push': [3], dip: [2], 'posterior-chain': [2, 3, 4] };
+  const ecc = (p: string, l: number): boolean => (SOLO_ECC[p] ?? []).includes(l);
+  const primo = (p: string): number => { for (let c = 1; c <= 6; c += 1) if (!ecc(p, c)) return c; return 1; };
+  const giu = (p: string, L: number): number => { for (let c = L - 1; c >= 1; c -= 1) if (!ecc(p, c)) return c; return 1; };
+  const rirMax = (r: string): number => (r === '—' ? 0 : Number(r.split('-').at(-1)));
+  const blocchiDi = (slug: ExerciseSlug) => CIRCUIT_SESSIONS.flatMap((x) => x.blocks.filter((b) => b.exercise === slug));
+  const r1 = (slug: ExerciseSlug): number | null => {
+    const e = getExercise(slug);
+    const P = e.defaultLevel;
+    if (e.pattern === null || P === null) return P;
+    const B = blocchiDi(slug);
+    if (B.length > 0 && B.every((b) => b.excludeFromReview === true)) return P;
+    const t = testBaseline(e.pattern);
+    if (t === null) return P <= 2 ? P : 1;
+    if (P < t.level) return P;
+    if (t.measurement !== e.measurement) return P;
+    const r = PROVE.get(t.testId);
+    if (r === undefined || r.value <= 0) return primo(e.pattern);
+    const soglie = B.filter((b) => b.excludeFromReview !== true).flatMap((b) =>
+      b.prescription.kind === 'reps' ? [b.prescription.min + rirMax(b.rir)]
+        : b.prescription.kind === 'seconds' ? [b.prescription.min + Math.ceil(0.2 * b.prescription.min)] : []);
+    if (soglie.length === 0) return Math.min(P, t.level);
+    return r.value >= Math.max(...soglie) ? t.level : giu(e.pattern, t.level);
+  };
+
   const sopraLoZero: string[] = [];
-  /* 2b — il tetto del test non si applica fra misure diverse: resta scoperto. */
-  const fuoriMisura: string[] = [];
-  /* 2c — nessun test registrato per quel pattern: nessun tetto dal valore. */
-  const senzaTest: string[] = [];
+  const diversiDaR1: string[] = [];
+  const incompatibili: string[] = [];
   for (const slug of [...prescritti].sort()) {
     const e = getExercise(slug);
     const livello = startingLevel(e, PROVE);
+    if (livello !== r1(slug)) diversiDaR1.push(`${slug}: app ${String(livello)}, R1 ${String(r1(slug))}`);
     if (livello === null || e.pattern === null) continue;
     const prova = testBaseline(e.pattern);
     if (prova === null) continue;
     const risultato = PROVE.get(prova.testId);
-    if (risultato === undefined) {
-      if (livello > 1) senzaTest.push(`${slug}: test ${prova.testId} non registrato → gradino ${String(livello)}`);
-      continue;
+    if ((risultato === undefined || risultato.value <= 0) && livello > 1 && blocchiDi(slug).some((b) => b.excludeFromReview !== true)) {
+      sopraLoZero.push(`${slug}: misurato ${String(risultato?.value ?? 'nessuno')} → gradino ${String(livello)}, atteso 1`);
     }
-    if (risultato.value <= 0 && livello > 1) {
-      sopraLoZero.push(`${slug}: misurato ${String(risultato.value)} → gradino ${String(livello)}, atteso 1`);
-      continue;
-    }
-    if (risultato.value > 0 && livello > prova.level) {
-      fuoriMisura.push(`${slug}: misurato ${String(risultato.value)} (${prova.measurement}) → gradino ${String(livello)}, sopra il gradino ${String(prova.level)} dell'esercizio del test`);
+    if (risultato === undefined || prova.level !== livello || prova.measurement !== e.measurement) continue;
+    for (const s of CIRCUIT_SESSIONS) for (const b of s.blocks) {
+      if (b.exercise !== slug) continue;
+      const p = b.prescription;
+      const min = p.kind === 'reps' || p.kind === 'seconds' ? p.min : null;
+      if (min !== null && risultato.value < min) {
+        incompatibili.push(`${s.id}/${b.code} ${slug}: test ${prova.testId} = ${String(risultato.value)} misurato al gradino ${String(livello)}, il blocco chiede ${String(min)}${p.kind === 'seconds' ? '"' : ''} allo stesso gradino${b.excludeFromReview === true ? ' (blocco escluso dalla revisione: R1 riga 2 lo lascia al gradino della scheda)' : ''}`);
+      }
     }
   }
 
-  const coda = `2a zero → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato su tutti gli esercizi prescritti' : `${String(sopraLoZero.length)} violazioni → ${sopraLoZero.join(' | ')}`}. 2b mappatura valore → gradino sopra lo zero: NON SCRITTA nel metodo, quindi «nessun esercizio sopra il gradino compatibile con il valore misurato» non è decidibile${fuoriMisura.length === 0 ? '' : `; fuori misura: ${fuoriMisura.join(' | ')}`}. 2c test non registrato (P1 non ha il TRX): ${senzaTest.length === 0 ? 'nessun esercizio sopra il gradino 1' : senzaTest.join(' | ')}.`;
+  const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 ? 'FALLITO' : 'PASS';
+  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. R1 e S7 sono PROPOSTE, non approvate.`;
 
-  registra('2', 'Principiante senza esercizi oltre il suo gradino',
-    sopraLoZero.length > 0 ? 'FALLITO' : 'NON COPERTO',
-    coda);
+  registra('2', 'Principiante senza esercizi oltre il suo gradino', esito2, coda);
 }
 
 /* ====================================================================== */
@@ -260,6 +296,26 @@ function fileTesto(dir: string, ext: string[]): string[] {
     const s = seduta('sc4f', 1, 'circuito-1', [esercizio('F1', 'kb-swing', sets([12, 11, 12]), true, null)]);
     const r = reviewWeek({ week: 1, sessions: [s], states: new Map(), tests: VUOTO });
     if (r.verdicts.length > 0) violazioni.push(`excludeFromReview ignorato: verdetto "${r.verdicts[0]!.kind}" sulla finitura metabolica`);
+  }
+
+  /* 4g — T2: mai più di un gradino ESEGUIBILE alla volta (salto dei solo eccentrici, R1/PROGRESSION §5). */
+  {
+    const casi: [string, LoggedSession['sessionId'], string, ExerciseSlug, LevelIndex, number][] = [
+      ['trazioni', 'circuito-1', 'A1', 'trazioni-prona-presa-media', 1, 3],
+      ['dip', 'circuito-1', 'A3', 'dip-parallele-anelli', 1, 3],
+      ['pike', 'circuito-2', 'A1', 'pike-pushup-piedi-rialzati', 2, 4],
+      ['push-up', 'circuito-3', 'A2', 'push-up', 2, 3],
+    ];
+    for (const [nome, sid, code, slug, da, atteso] of casi) {
+      const blocco = findCircuitSession(sid)!.blocks.find((b) => b.code === code)!;
+      const p = blocco.prescription;
+      const sopra = (p.kind === 'reps' ? p.max : 0) + 1;
+      const s = seduta(`sc4g${nome}`, 3, sid, [esercizio(code, slug, sets([sopra, sopra, sopra]), true, da)]);
+      const r = reviewWeek({ week: 3, sessions: [s], states: new Map([[slug, stato(slug, da)]]), tests: VUOTO });
+      const v = r.verdicts.find((x) => x.kind === 'sali-di-livello');
+      const a = v?.stateAfter.level ?? null;
+      if (a !== null && a !== atteso) violazioni.push(`T2: ${nome} da ${String(da)} a ${String(a)}, atteso ${String(atteso)} (un solo gradino eseguibile)`);
+    }
   }
 
   registra('4', 'Progressione entro le soglie',

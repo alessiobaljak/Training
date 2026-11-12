@@ -84,3 +84,13 @@ quattordici restano un'opinione mia.
 - Backup esportato e reimportato a metà mesociclo.
 - Due utenti sullo stesso dispositivo (serve l'emulatore).
 - Seduta chiusa senza registrare nessun carico su un esercizio a manubri.
+
+## 9. Scenari aggiunti il 2026-11-12 (da far validare)
+
+| ID | Persona | Scenario | Comportamento atteso | Val. | Esito 2026-11-12 |
+|---|---|---|---|---|---|
+| P-TEMPO | P2 | trazioni 9-9-9 su 6-8 in 22" ciascuna (2,4"/rip contro 4" di TUT), player guidato con partenza automatica | «tempo non rispettato»: nessuna leva | — | DIFETTO (A12, `07`) |
+| P-ACC | P2 | a fine seduta accetta «variante» (gradino 1 → 3), poi «Salva e chiudi» | la seduta dopo è al gradino 3 | — | DIFETTO (A13, `08`) |
+| G8 | P1 | dead hang misurato 8", decompressione 30" al gradino 2 | gradino 1 (piedi che sfiorano) o tempo ridotto; l'onboarding non dice «non usato» | — | DIFETTO (B9, caso 2c) |
+| M-RIEP-SEDUTA | P2 | settimana 6 (scarico), seduta completa | «12 serie su 12», nessun «chiusa prima della fine» | — | DIFETTO (M14) |
+| R1-PART | P1, P2 | gradino di partenza per ogni esercizio con valori 0..40 | = R1 di PROGRAM_RULES §3 | — | OK (`09`, 3024 celle) |

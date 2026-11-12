@@ -79,9 +79,17 @@ function durata(s: ProgramSession): { totale: number; righe: string[] } {
     const giroSec = r.kind === 'superset' ? r.roundRestSec : 0;
     const dentro = blocchi.length > 1 ? (blocchi.length - 1) * t * giri : 0;
     const traGiri = (giri - 1) * giroSec;
-    const blocco = i === gruppi.length - 1
+    const bloccoDichiarato = i === gruppi.length - 1
       ? 0
       : (r.kind === 'superset' ? (r.blockRestSec ?? r.roundRestSec) : 0);
+    /*
+     * R2 (PROGRAM_RULES §2, proposta 2026-11-12): dove la pausa di blocco è 0
+     * si entra nel gruppo seguente con la SUA transizione — 15" fra il
+     * Tri-set B e la finitura; la decompressione ha transizione 0.
+     */
+    const prossimo = i === gruppi.length - 1 ? undefined : s.blocks.find((b) => b.group === gruppi[i + 1]);
+    const giunzione = bloccoDichiarato === 0 && prossimo?.rest.kind === 'superset' ? prossimo.rest.transitionMinSec : 0;
+    const blocco = bloccoDichiarato + giunzione;
     const sub = lavoro + dentro + traGiri + blocco;
     totale += sub;
     righe.push(

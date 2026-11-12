@@ -116,6 +116,20 @@ incrina.
    coerenza: l'etichetta usata come titolo viene dalla seduta precedente mentre
    il gradino viene dallo stato di adesso (difetto A11 in RESULTS.md).
 
+## U7 — Verifica del 2026-11-12 (commit `47c7f6d`)
+- U1 rieseguito (`04`): 8 stringhe ostili nelle note e nell'etichetta,
+  numeri **invariati**; caso 7 del nucleo: PASS.
+- Superfici nuove: riepilogo di fine seduta, diario, onboarding, compito della
+  pausa (`pauseTasks`). Tutto il testo arriva come figlio JSX. L'unico
+  `dangerouslySetInnerHTML` resta in `ExerciseArt`, su SVG del bundle.
+- `variantLabel` decide **cosa si mostra** nel riepilogo e nel diario
+  (`endsWith(nome)` ⇒ «Liv. N» dal campo numerico, altrimenti l'etichetta):
+  è resa, non calcolo. Nel player guidato l'etichetta non la scrive l'atleta;
+  resta la via del backup (U4). Il difetto che ne esce è di coerenza, non di
+  input: l'etichetta copiata dalla seduta precedente (A11 ristretto).
+- `tempoRespected` ora lo scrive il cronometro, non l'atleta: non è testo, ma
+  è un campo che decide una leva senza una risposta esplicita (A12).
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.

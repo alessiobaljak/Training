@@ -1,6 +1,7 @@
 # Griglia di valutazione e soglie
 
-Versione griglia: v2 · 2026-11-09 · **soglie PROPOSTE, nessuna approvata**.
+Versione griglia: v2 · 2026-11-09 (+ proposte v3 del 2026-11-09b e del
+2026-11-12) · **soglie PROPOSTE, nessuna approvata**.
 Approva Alessio. Finché non approva, in RESULTS.md l'esito si legge «misurato
 contro soglie proposte».
 
@@ -48,6 +49,13 @@ di mettere in `BOUNDARIES.md` e che poi questa griglia misura.
 | S9 | **nessuna stazione balistica carica (swing, slam, clean) subito dopo una stazione di stabilizzazione del tronco a RIR 0-1 o a cedimento**: minimo una transizione dichiarata | proposto il 2026-11-09b. Oggi `circuito-1` manda il suitcase carry con il 24 dentro lo swing 15-20 senza nessun passo, e `circuito-3` fa lo stesso dall'hollow hold. Se approvato, il difetto A8 diventa Bloccante e il nucleo passa a 9 casi |
 | S8 | perdita di peso **> 1% del peso corporeo a settimana** per 2 settimane di fila: nessun commento, nessun obiettivo, rimando alle risorse | oggi −3 kg a settimana per 3 settimane passano in silenzio |
 
+| S10 | **un `tempoRespected` ricavato da una misura non è mai più permissivo della regola**: all'innesco della salita (tutte le serie ≥ massimo) il controllo non accetta un ritmo più veloce del TUT prescritto | proposto il 2026-11-12. Oggi il minimo è la colonna «lavoro» (≈ TUT × minimo del range) e il cronometro parte prima della prima ripetizione: 22 blocchi su 22 accettano il 56-91% del TUT (A12, `07-player-tempo`) |
+
+**Lettura proposta di S1 (2026-11-12).** Con R1 la revisione salta i gradini
+di sole negative sui range fissi (trazioni 1→3, dip 1→3, pike 2→4). Propongo
+che S1 conti i gradini **eseguibili**: 1→3 è una salita sola. Il controllo 4g
+del nucleo verifica che nessun gradino eseguibile venga scavalcato.
+
 ## Composizione dei criteri (v2, 2026-11-09)
 
 Il 2026-11-09 C3, C4 e C5 della baseline **non si riproducevano** dalla mappa
@@ -63,7 +71,7 @@ confronto valido. **Da approvare da Alessio: è il righello.**
 | C4 | G2, P-2c, P-2d, P-8c, V-FINITURA, V-VOLUME (6) · **proposta v3: + V-GIUNZIONE** (sequenze dentro la seduta: balistici, prese consecutive, picchi sistemici — PROGRAM_RULES §2) | 1/6 = 17% |
 | C5 | G7-pers (il gradino di partenza dipende dal valore misurato), P-2b, S6 (3) | 1/3 = 33% |
 | C6 | P-2b, P-2c, S1, R-ALMASSIMO (4) | 2/4 = 50% |
-| C7 | M-MM, M-SETT, M-VOL, M-ADER, M-RIEP, M-DUR (6) | 4/6 = 67% |
+| C7 | M-MM, M-SETT, M-VOL, M-ADER, M-RIEP, M-DUR (6) · **proposta v3: + M-RIEP-SEDUTA** (durata vera, serie fatte su previste, scarto dal piano nel riepilogo di fine seduta) | 4/6 = 67% |
 | C8 | D1-D4, una per seduta (4) | 4/4 = 100% |
 
 `N/C` (la funzione non esiste) conta come voce non superata, come in C2.
@@ -72,8 +80,8 @@ confronto valido. **Da approvare da Alessio: è il righello.**
 
 | Cosa | Scelta dell'app | Mio riferimento | Stato |
 |---|---|---|---|
-| La finitura metabolica conta nel volume settimanale | **due risposte diverse nello stesso repository**: il test di `circuit.test.ts` la esclude (quadricipiti 6), `engine/metrics.ts` la include (quadricipiti 14) | nessuno, finché METHOD §3 non lo dice | **da decidere**: cambia i numeri di V-VOLUME e il numero che l'atleta vede (difetto M10) |
-| Fascia 16-20 su otto gruppi | il programma attivo produce 103,5 crediti-serie contro i 128 che otto gruppi × 16 pretendono: nessuna distribuzione lo soddisfa | la fascia come pavimento su tutti e otto | **da decidere**: o la fascia vale sui gruppi bersaglio, o cambia la struttura |
+| La finitura metabolica conta nel volume settimanale | dal 2026-11-12 **una regola sola**: F e Z non contano, abbandonate sì, aperte no (R3 di training-designer, METHOD 1.1) | R3 | **da approvare** con R3; misura allineata a R3 (`10-volume-r3`) |
+| Fascia 16-20 su otto gruppi | Progressi confronta fatte con previste; la fascia 16-20 sta a parte, senza colori. R3 propone fasce per gruppo (prioritari 16-20, braccia 32-40, mantenimento ≥ 6): non implementate, in attesa di D-13 | la fascia come riferimento, non come giudizio sull'atleta | **da decidere** (D-13) |
 | Arrotondamento delle sedute dovute | troncamento: 0 dovute il primo giorno, 2 su 4 al quarto giorno di sette | dal 2026-11-09 **troncamento**, allineato: non dichiara mai in ritardo chi è in pari. Prima arrotondamento | **da approvare**: se diventa arrotondamento, M-ADER torna a non coincidere e C7 scende a 67% |
 | «in pari» al posto della percentuale | compare con 0 sedute dovute | accettato come risposta, non come dato mancante | da confermare |
 

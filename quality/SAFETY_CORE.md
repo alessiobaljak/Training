@@ -4,8 +4,9 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v3** · 2026-11-09b · misurato su `src/data/circuit.ts` (4 circuiti,
-52 blocchi) e `src/engine/` allo stato del commit `f63c9f1`.
+Versione: **v4** · 2026-11-12 · misurato su `src/data/circuit.ts` (4 circuiti,
+52 blocchi) e `src/engine/` al commit `47c7f6d` (HEAD `54e1bab`, `src/`
+identico). v4: caso 2 decidibile (R1 esiste), caso 4 con il controllo 4g.
 
 ## Fixture ripuntate il 2026-11-09b — da leggere prima di confrontare
 
@@ -56,7 +57,10 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-09: 2 PASS · 2 FALLITI · 4 NON COPERTI
+## Esito del 2026-11-12: 2 PASS · 3 FALLITI · 3 NON COPERTI
+
+Il caso 2 passa da NON COPERTO a **FALLITO**: non è peggiorato, è diventato
+misurabile. Il FALLITO viene dalla decompressione (2c), non da R1.
 
 ---
 
@@ -78,43 +82,42 @@ regola sul dolore. Non c'è niente da mettere alla prova.
   Bloccante corrispondente è aperto (vedi RESULTS.md, difetto B1).
 
 ## Caso 2 — Principiante senza esercizi oltre il suo gradino
-**Stato oggi: NON COPERTO** — metà verificata (lo zero), metà non decidibile
-(sopra lo zero). Era FALLITO il 2026-11-08.
+**Stato oggi: FALLITO** (era NON COPERTO): R1 rende il caso decidibile.
 
-- **Input.** Persona P1, 9 test di Settimana 0: trazioni 0, dip 0, nordic 0,
+- **Input.** Persona P1, test di Settimana 0: trazioni 0, dip 0, nordic 0,
   push-up 4, pike push-up 2, bulgarian 5 (lato debole), hollow 12", dead hang
-  8". Il rematore al TRX **non è registrato**: P1 non ha un TRX. La fixture sta
-  nello script e si passa a `startingLevel(exercise, tests)`.
-- **Atteso.** (2a) Con 0 ripetizioni misurate il gradino di partenza di quello
-  schema motorio è **1**. (2b) Nessun esercizio prescritto sopra il gradino
-  compatibile con il **valore** misurato.
-- **Misurato oggi.** 2a **rispettato su tutti gli esercizi prescritti dalle 4
-  sedute, alternative comprese**: le sei scale di trazione/dip/nordic scendono
-  da 3 a 1. 2b **non decidibile**: la mappatura valore → gradino non è scritta
-  nel metodo. Resta fuori dal tetto `hanging-leg-raise`, gradino 5 con 12" di
-  hollow misurati, perché il tetto non si applica fra misure diverse (scelta
-  dichiarata nel codice). Dove il test non è registrato — P1 senza TRX — il
-  ripiego è il tetto dell'esercizio del test: gradino 2.
-- **Perché NON COPERTO e non PASS.** Metà caso verificato non fa un PASS: è la
-  stessa regola del caso 6. Diventa PASS o FALLITO quando esiste la mappatura
-  valore → gradino (soglia S7 di GRID.md, compito di `training-designer`).
-  Il difetto Bloccante B5 resta aperto, ridotto allo zero coperto.
-- **Nota su questo script, 2026-11-09.** Fino a oggi il caso chiamava
-  `startingLevel(e)` senza massimali, e con la mappa vuota la funzione torna
-  per costruzione al comportamento vecchio: il FALLITO che si leggeva dopo la
-  correzione era un difetto della mia misura, non del codice. Corretto.
+  8". Il rematore al TRX **non è registrato** (P1 non ha un TRX). Si passa a
+  `startingLevel(exercise, tests)` per ogni esercizio delle 4 sedute.
+- **Atteso.** (2a) Zero misurato o test assente ⇒ primo gradino eseguibile (1)
+  su ogni esercizio giudicato. (2b) Il gradino coincide con R1
+  (PROGRAM_RULES §3, proposta), che lo script riscrive dal testo. (2c) S7 nella
+  lettura minima: se il test si esegue **allo stesso gradino** che l'app
+  assegna e il valore misurato sta **sotto il minimo** del blocco, quel
+  gradino non è compatibile con il valore misurato.
+- **Misurato oggi.** 2a rispettato. 2b: coincide su tutti i **39** esercizi
+  prescritti (e su 3024 celle catalogo × valori in `09-gradino-partenza`).
+  2c: **4 blocchi** — `circuito-1..4/Z1` dead hang 30" al gradino 2, con 8"
+  misurati allo stesso gradino. R1 riga 2 lascia gli esercizi dei blocchi
+  esclusi al gradino della scheda (difetto B9).
+- **Se Alessio decide che S7 non vale per i blocchi esclusi** dalla revisione,
+  2c va tolto e il caso diventa PASS: è una decisione, non una correzione
+  dello script.
+- **Nota di metodo.** Fino al 2026-11-09b il caso chiamava `startingLevel`
+  con i soli massimali e dichiarava «2b non decidibile»: corretto, perché la
+  mappatura non esisteva. Il controllo 2c non esisteva: la decompressione era
+  già così e nessuno lo vedeva.
 
 ## Caso 3 — Solo corpo libero: nessun esercizio fuori attrezzatura
-**Stato oggi: FALLITO** — 32 blocchi su 48, e metà del caso non è nemmeno
-verificabile.
+**Stato oggi: FALLITO** — 37 blocchi su 52 (invariato dal 2026-11-09b), e
+metà del caso non è nemmeno verificabile.
 
 - **Input.** Persona P1: nessun attrezzo dichiarato (tappetino, sedia, muro).
 - **Atteso.** Ogni blocco che richiede un attrezzo offre un'alternativa a
   corpo libero, oppure non viene proposto.
-- **Misurato oggi.** 32 blocchi su 48 richiedono sbarra, parallele, anelli,
+- **Misurato oggi.** 37 blocchi su 52 richiedono sbarra, parallele, anelli,
   TRX, manubri, kettlebell, elastico, box o panca **senza alcuna alternativa a
-  corpo libero**. Le sole 5 alternative dichiarate riguardano corda da
-  battaglia e kettlebell swing nella finitura.
+  corpo libero**. Le alternative dichiarate sono **0** dal commit `f63c9f1`
+  (erano 5, tutte nella finitura): M12.
 - **Non verificabile.** Né `Exercise` né `AppSettings` hanno un campo
   attrezzatura: l'atleta non ha modo di dichiarare cosa possiede. La lista
   attrezzo-per-esercizio usata dallo script è mantenuta a mano **in**
@@ -122,20 +125,21 @@ verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi: FALLITO** — 4 soglie proposte superate su 6 controlli
-(erano 5 il 2026-11-08: 4f è chiuso). Le soglie sono quelle di GRID.md e
+**Stato oggi: FALLITO** — 4 soglie proposte superate su 7 controlli
+(4g aggiunto il 2026-11-12, supera). Le soglie sono quelle di GRID.md e
 **attendono l'approvazione di Alessio**.
 
 - **Input e atteso, controllo per controllo:**
 
 | # | Input | Atteso | Misurato |
 |---|---|---|---|
-| 4a (S3) | sett. 2, rematore TRX, 19-19-19 su range 12-18, `tempoRespected=false` | nessuna salita di gradino | **salita proposta** al gradino 3, il tempo non rispettato resta solo una cautela testuale |
+| 4a (S3) | sett. 2, rematore TRX `circuito-2/A3`, 19-19-19 sopra il range (8-10), `tempoRespected=false` | nessuna salita di gradino | **salita proposta** al gradino 3, il tempo non rispettato resta solo una cautela testuale |
 | 4b (S5) | sett. 3, trazioni al gradino 1 (assistite con elastico), 10-10-10 su range 6-10 | prima la variante (leva 4) | **«aggiungi zavorra»** (leva 5) su una trazione assistita |
 | 4c (S1) | 3 settimane di fila con 19-19-19 su 12-18, sissy squat | massimo 1 gradino ogni 2 settimane | **3 salite in 3 settimane** (da 1 a 4; da 1 a 6 in 5 settimane) |
 | 4d (S4) | 1 sola seduta, single-leg RDL, 2 serie per lato (4 righe) da 13 su 8-12 | nessun verdetto: servono 2 sedute e 3 serie vere | **verdetto emesso**: `MIN_SETS_FOR_VERDICT` conta le righe, non le serie |
 | 4e (S2) | chin-up gradino 6, zavorra 5 kg, massimo chiuso | passo di +2,5 kg | **+2,5 kg: corretto** |
 | 4f | sett. 1, `kb-swing` della finitura (blocco con `excludeFromReview: true`), 12-11-12 su range 15-20 | nessun verdetto: il blocco è escluso dalla revisione | **nessun verdetto, nessuna uscita, `serie=0`: corretto dal 2026-11-09.** `review.ts` legge il flag; `effectiveBlock` lo conserva, quindi anche la stazione scambiata con l'alternativa resta fuori |
+| 4g (T2) | sett. 3, sopra il massimo su tutte le serie: trazioni e dip dal gradino 1, pike dal 2, push-up dal 2 | un solo gradino **eseguibile**: 1→3, 1→3, 2→4, 2→3 | **corretto**: le sole negative si saltano, nessun gradino eseguibile scavalcato |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
 **Stato oggi: PASS.**
@@ -213,3 +217,5 @@ verificabile.
 |---|---|---|---|---|---|
 | 2026-11-08 | v1 | 2 | 3 | 3 | training-quality (baseline) |
 | 2026-11-09 | v2 | 2 | 2 | 4 | training-quality (commit `1802631`) |
+| 2026-11-09b | v3 | 2 | 2 | 4 | training-quality (commit `f63c9f1`, 5 fixture ripuntate) |
+| 2026-11-12 | v4 | 2 | 3 | 3 | training-quality (commit `47c7f6d`) |
