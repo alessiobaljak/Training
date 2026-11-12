@@ -52,10 +52,6 @@ const wall = (x) =>
 const band = (points) =>
   prop(`<polyline points="${points.map(([x, y]) => `${x},${y}`).join(' ')}" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="4 3"/>`);
 
-const arrowUp = (x, y) =>
-  prop(
-    `<path d="M ${x} ${y} L ${x} ${y - 14} M ${x - 4} ${y - 9} L ${x} ${y - 14} L ${x + 4} ${y - 9}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
-  );
 
 /** Manubrio: una barra corta e spessa in mano. */
 const weight = (x, y, w = 11) =>
@@ -81,11 +77,40 @@ const strap = (from, to) =>
   prop(`<line x1="${from[0]}" y1="${from[1]}" x2="${to[0]}" y2="${to[1]}" stroke="currentColor" stroke-width="2"/>`);
 
 /** Testa, tronco, un braccio, una gamba, più eventuali arti secondari. */
+/**
+ * Un braccio non passa dentro la testa (GENERATOR_SPEC §4.2).
+ *
+ * Distanza fra il centro della testa e ogni segmento del braccio: sotto il
+ * raggio, il segmento attraversa il cerchio e a 230 px testa e braccio non
+ * si distinguono più. Le figure che lo violano finiscono in `HEAD_CROSSINGS`
+ * e lo script lo dice alla fine, invece di lasciarlo scoprire a occhio.
+ */
+const HEAD_R = 6;
+const HEAD_CROSSINGS = [];
+let currentFigureLabel = '';
+function distanceToSegment(point, a, b) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const len2 = dx * dx + dy * dy;
+  const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((point[0] - a[0]) * dx + (point[1] - a[1]) * dy) / len2));
+  return Math.hypot(point[0] - (a[0] + t * dx), point[1] - (a[1] + t * dy));
+}
+function checkArms(pose, shoulder, shoulder2) {
+  const segments = [];
+  if (pose.ha) segments.push([shoulder, pose.el], [pose.el, pose.ha]);
+  if (pose.ha2) segments.push([shoulder2, pose.el2], [pose.el2, pose.ha2]);
+  for (const [a, b] of segments) {
+    const d = distanceToSegment(pose.he, a, b);
+    if (d < HEAD_R) HEAD_CROSSINGS.push(`${currentFigureLabel}: ${a.join(',')}→${b.join(',')} a ${d.toFixed(1)} dal centro della testa`);
+  }
+}
+
 function figure(pose) {
   /* La spalla può staccarsi dal collo: appesi alla sbarra, un braccio che
      parte dal collo passa dentro la testa. */
   const shoulder = pose.sh ?? pose.ne;
   const shoulder2 = pose.sh2 ?? shoulder;
+  checkArms(pose, shoulder, shoulder2);
   const parts = [head(pose.he), poly([pose.ne, pose.hi])];
   if (pose.ha) parts.push(poly([shoulder, pose.el, pose.ha]));
   if (pose.ha2) parts.push(poly([shoulder2, pose.el2, pose.ha2], 3));
@@ -255,8 +280,25 @@ const ARCHETYPES = {
   },
 
   /* `height` è l'altezza del box: è la progressione dello step-up. */
-  'step-up': ({ height = 42 } = {}) => {
+  'step-up': ({ height = 42, alternate = false } = {}) => {
     const boxY = FLOOR - height;
+    /*
+     * Step rapidi (GENERATOR_SPEC §4.4): gradino basso e cambio di piede, non
+     * salita sopra il box. Prima la figura era lo step-up al box alto, uguale
+     * byte per byte: chi guardava la finitura vedeva una salita lenta su un
+     * box all'altezza del ginocchio. Qui il box è sotto il ginocchio, un
+     * piede sopra e uno a terra, e nel secondo pannello si scambiano; il
+     * bacino resta alla stessa altezza, la pianta è sempre piena sul bordo.
+     */
+    if (alternate) {
+      const gradino = box(56, boxY, 30, FLOOR - boxY);
+      return [
+        floor() + gradino +
+          figure({ he: [46, 22], ne: [46, 30], hi: [48, 58], el: [38, 44], ha: [36, 34], el2: [56, 44], ha2: [60, 54], kn: [62, 72], fo: [64, boxY - 2], kn2: [46, 80], fo2: [42, FLOOR - 2] }),
+        floor() + gradino +
+          figure({ he: [46, 22], ne: [46, 30], hi: [48, 58], el: [56, 44], ha: [60, 34], el2: [38, 44], ha2: [36, 54], kn: [46, 80], fo: [42, FLOOR - 2], kn2: [62, 72], fo2: [64, boxY - 2] }),
+      ];
+    }
     return [
       floor() + box(58, boxY, 34, FLOOR - boxY) +
         figure({ he: [40, 34], ne: [40, 42], hi: [40, 68], el: [34, 54], ha: [32, 66], kn: [56, 66], fo: [66, boxY - 2], kn2: [40, 84], fo2: [38, FLOOR - 2] }),
@@ -298,43 +340,70 @@ const ARCHETYPES = {
    * kettlebell appoggiato sull'anca, il gradino 4 e' monopodalico a corpo
    * libero, e con una figura sola uno dei due mostrava l'altro.
    */
-  'hip-thrust': ({ bilateral = false } = {}) => {
-    const bench = box(6, 50, 26, FLOOR - 50);
-    if (bilateral) {
-      /*
-       * Il kettlebell e' la campana, non una barra.
-       *
-       * Prima qui c'era un `weight` da 18 unita' appoggiato sull'anca: a
-       * bassa risoluzione leggeva come un gradino del pavimento nel primo
-       * fotogramma e come un bilanciere di traverso nel secondo. La campana
-       * ha una forma sua e nessun'altra cosa nel disegno le somiglia, e sta
-       * *sopra* la linea dell'anca: centrata sull'anca la linea del corpo le
-       * passava dentro e sembrava un'articolazione disegnata, non un peso.
-       *
-       * La gamba lontana sta vicina a quella vicina, non divaricata: due
-       * piedi affiancati visti di lato quasi si sovrappongono, e la forbice
-       * che si vedeva prima faceva sembrare l'appoggio sbilanciato.
-       */
+  /*
+   * Hip thrust e glute bridge: una famiglia, quattro varianti disegnabili.
+   *
+   * `bench` — spalle sulla panca o a terra. I gradini 1 e 3 della scala sono
+   * il glute bridge *a terra*, e prima avevano la panca come tutti gli altri:
+   * otto figure su nove erano lo stesso disegno byte per byte (GENERATOR_SPEC
+   * §4.18).
+   *
+   * `bilateral` — due gambe a terra, oppure una a terra e l'altra sollevata.
+   * Il monopodalico prima disegnava una gamba sola e basta: «una gamba» era
+   * detto da un'assenza, e non si distingueva da uno a due gambe visto di lato.
+   * Adesso la gamba libera è sollevata, come dice il cue 1, e quella lontana
+   * del bilaterale è sfalsata di otto unità al piede, con il tratto sottile
+   * che la libreria usa per gli arti lontani.
+   *
+   * `bell` — il kettlebell sull'anca, tenuto con le mani (cue 2). Il cerchio
+   * è tangente dall'alto alla coscia e nessuna linea del corpo lo attraversa:
+   * prima la coscia gli passava dentro e leggeva come un anello infilato.
+   *
+   * Il lockout è quello giusto (§4.21). Prima la panca aveva il bordo a 52
+   * unità da terra con una tibia da 27: chiudere l'anca bene era
+   * geometricamente impossibile, e la figura mostrava il bacino sopra la
+   * retta spalla-ginocchio — l'errore che il cue 4 chiama «inarcare la
+   * lombare». Adesso il bordo è all'altezza del ginocchio: in chiusura spalla,
+   * anca e ginocchio stanno sulla stessa retta, la coscia è orizzontale e la
+   * tibia verticale. Le pose sono calcolate dalle lunghezze dei segmenti
+   * (busto 26, coscia 20, tibia 27), non spostate a occhio.
+   *
+   * Nessuna freccia dentro l'immagine (STYLE_GUIDE §6, §4.1): il gesto lo
+   * dicono i due pannelli, inizio e fine.
+   */
+  'hip-thrust': ({ bench = true, bilateral = false, bell: conCampana = false } = {}) => {
+    if (bench) {
+      const panca = box(6, 77, 24, FLOOR - 77);
+      const testa = [21, 70];
+      const spalla = [30, 73];
+      const basso = { hi: [49, 90], kn: [63, 76], fo: [76, FLOOR - 2] };
+      const alto = { hi: [56, 73], kn: [76, 73], fo: [76, FLOOR - 2] };
+      const altra = bilateral
+        ? { basso: { kn2: [67, 79], fo2: [84, FLOOR - 2] }, alto: { kn2: [80, 76], fo2: [84, FLOOR - 2] } }
+        : { basso: { kn2: [66, 80], fo2: [83, 70] }, alto: { kn2: [75, 70], fo2: [94, 67] } };
+      const braccia = conCampana
+        ? { basso: { el: [40, 66], ha: [48, 71] }, alto: { el: [45, 63], ha: [59, 61] } }
+        : { basso: {}, alto: {} };
       return [
-        floor() + bench + arrowUp(78, 72) +
-          figure({
-            he: [24, 42], ne: [34, 48], hi: [58, 84],
-            kn: [78, 78], fo: [86, FLOOR - 2],
-            kn2: [76, 81], fo2: [84, FLOOR - 2],
-          }) + bell(61, 72),
-        floor() + bench +
-          figure({
-            he: [24, 42], ne: [34, 48], hi: [60, 56],
-            kn: [80, 74], fo: [86, FLOOR - 2],
-            kn2: [78, 77], fo2: [84, FLOOR - 2],
-          }) + bell(57, 44),
+        floor() + panca +
+          figure({ he: testa, ne: spalla, ...basso, ...altra.basso, ...braccia.basso }) +
+          (conCampana ? bell(51, 72) : ''),
+        floor() + panca +
+          figure({ he: testa, ne: spalla, ...alto, ...altra.alto, ...braccia.alto }) +
+          (conCampana ? bell(63, 60) : ''),
       ];
     }
+    /* A terra: spalle sul pavimento, il bacino sale dalla terra. */
+    const testa = [17, 95];
+    const spalla = [26, 96];
+    const basso = { hi: [50, FLOOR - 4], kn: [58, 80], fo: [76, FLOOR - 2] };
+    const alto = { hi: [47, 85], kn: [65, 75], fo: [76, FLOOR - 2] };
+    const altra = bilateral
+      ? { basso: { kn2: [62, 82], fo2: [84, FLOOR - 2] }, alto: { kn2: [69, 77], fo2: [84, FLOOR - 2] } }
+      : { basso: { kn2: [64, 86], fo2: [80, 78] }, alto: { kn2: [61, 71], fo2: [75, 57] } };
     return [
-      floor() + bench + arrowUp(62, 74) +
-        figure({ he: [24, 42], ne: [34, 48], hi: [58, 84], kn: [76, 78], fo: [84, FLOOR - 2] }),
-      floor() + bench +
-        figure({ he: [24, 42], ne: [34, 48], hi: [60, 56], kn: [78, 74], fo: [84, FLOOR - 2] }),
+      floor() + figure({ he: testa, ne: spalla, ...basso, ...altra.basso }),
+      floor() + figure({ he: testa, ne: spalla, ...alto, ...altra.alto }),
     ];
   },
 
@@ -428,6 +497,21 @@ const ARCHETYPES = {
       figure({ he: [48, 22], ne: [48, 30], hi: [50, 58], el: [42, 46], ha: [38, 60], el2: [58, 46], ha2: [62, 58], kn: [42, 80], fo: [36, FLOOR - 2], kn2: [60, 80], fo2: [66, FLOOR - 2] }),
   ],
 
+  /*
+   * Circonduzioni di spalla (GENERATOR_SPEC §4.3), vista di lato. Il corpo è
+   * identico nei due pannelli e si muove solo il braccio, teso: lungo il
+   * fianco, poi in alto davanti. Prima la figura era quella della mobilità
+   * generale, pixel per pixel, e nello stesso riscaldamento due esercizi
+   * diversi avevano un'immagine sola.
+   */
+  'shoulder-circle': () => {
+    const corpo = { he: [47, 24], ne: [50, 32], hi: [50, 60], sh: [51, 34], kn: [50, 80], fo: [50, FLOOR - 2], kn2: [53, 80], fo2: [54, FLOOR - 2] };
+    return [
+      floor() + figure({ ...corpo, el: [55, 47], ha: [58, 59] }),
+      floor() + figure({ ...corpo, el: [54, 20], ha: [56, 6] }),
+    ];
+  },
+
   mobility: () => [
     floor() +
       figure({ he: [50, 26], ne: [50, 34], hi: [52, 62], el: [40, 24], ha: [30, 18], el2: [62, 26], ha2: [72, 20], kn: [42, 82], fo: [34, FLOOR - 2], kn2: [62, 82], fo2: [70, FLOOR - 2] }),
@@ -501,7 +585,7 @@ const ARCHETYPES = {
     );
     return [
       rig + floor() + strap([50, 10], [32, 26]) + strap([50, 10], [35, 26]) +
-        figure({ he: [45, 40], ne: [47, 47], hi: [61, 70], el: [38, 32], ha: [32, 26], el2: [41, 34], ha2: [35, 26], kn: [63, 86], fo: [67, FLOOR - 2], kn2: [67, 86], fo2: [71, FLOOR - 2] }),
+        figure({ he: [39, 48], ne: [47, 47], hi: [61, 70], el: [38, 32], ha: [32, 26], el2: [41, 34], ha2: [35, 26], kn: [63, 86], fo: [67, FLOOR - 2], kn2: [67, 86], fo2: [71, FLOOR - 2] }),
       rig + floor() + strap([50, 10], [43, 66]) + strap([50, 10], [46, 66]) +
         figure({ he: [33, 42], ne: [37, 49], hi: [55, 71], el: [40, 59], ha: [43, 66], el2: [43, 59], ha2: [46, 66], kn: [57, 86], fo: [61, FLOOR - 2], kn2: [61, 86], fo2: [65, FLOOR - 2] }),
     ];
@@ -509,10 +593,10 @@ const ARCHETYPES = {
 
   /* Estensione sopra la testa: i gomiti restano in alto, le braccia no. */
   'overhead-ext': () => [
-    floor() + weight(60, 26) +
-      figure({ he: [50, 28], ne: [50, 36], hi: [50, 64], sh: [45, 38], el: [45, 18], ha: [58, 26], sh2: [55, 38], el2: [55, 18], ha2: [58, 26], kn: [48, 84], fo: [46, FLOOR - 2], kn2: [54, 84], fo2: [56, FLOOR - 2] }),
+    floor() + weight(60, 23) +
+      figure({ he: [50, 28], ne: [50, 36], hi: [50, 64], sh: [44, 38], el: [43, 16], ha: [58, 23], sh2: [56, 38], el2: [57, 16], ha2: [58, 23], kn: [48, 84], fo: [46, FLOOR - 2], kn2: [54, 84], fo2: [56, FLOOR - 2] }),
     floor() + weight(50, 8) +
-      figure({ he: [50, 28], ne: [50, 36], hi: [50, 64], sh: [45, 38], el: [46, 20], ha: [50, 8], sh2: [55, 38], el2: [54, 20], ha2: [50, 8], kn: [48, 84], fo: [46, FLOOR - 2], kn2: [54, 84], fo2: [56, FLOOR - 2] }),
+      figure({ he: [50, 28], ne: [50, 36], hi: [50, 64], sh: [44, 38], el: [43, 20], ha: [50, 8], sh2: [56, 38], el2: [57, 20], ha2: [50, 8], kn: [48, 84], fo: [46, FLOOR - 2], kn2: [54, 84], fo2: [56, FLOOR - 2] }),
   ],
 
   /*
@@ -655,7 +739,7 @@ const ARCHETYPES = {
 
   /* Burpee: il salto in alto e il petto a terra, i due estremi del gesto. */
   burpee: () => [
-    floor() + arrowUp(50, 14) +
+    floor() +
       figure({ he: [50, 24], ne: [50, 32], hi: [50, 60], el: [42, 24], ha: [36, 12], el2: [58, 24], ha2: [64, 12], kn: [46, 78], fo: [44, FLOOR - 8], kn2: [54, 78], fo2: [56, FLOOR - 8] }),
     floor() +
       figure({ he: [20, 88], ne: [31, 88], hi: [62, 90], el: [25, 95], ha: [23, FLOOR - 2], kn: [80, 92], fo: [92, FLOOR - 2] }),
@@ -767,7 +851,7 @@ const EXERCISES = {
   'wall-sit': ['wallsit', {}, 'Wall sit: schiena al muro, cosce parallele a terra, ginocchia a 90 gradi'],
   'shrimp-squat-o-skater-squat': ['shrimp', {}, 'Shrimp squat: in piedi, poi ginocchio posteriore a terra'],
   'nordic-curl': ['nordic', {}, 'Nordic curl: busto eretto, poi discesa in blocco'],
-  'hip-thrust-panca-bilaterale': ['hip-thrust', { bilateral: true }, 'Hip thrust a due gambe: spalle sulla panca, kettlebell sull\u2019anca, bacino in basso poi anca estesa'],
+  'hip-thrust-panca-bilaterale': ['hip-thrust', { bilateral: true, bell: true }, 'Hip thrust a due gambe: spalle sulla panca, kettlebell sull\u2019anca, bacino in basso poi anca estesa'],
   'hip-thrust-monopodalico': ['hip-thrust', {}, 'Hip thrust monopodalico: bacino in basso, poi anca estesa'],
   'single-leg-rdl': ['rdl', {}, 'Single-leg RDL: in piedi, poi busto e gamba libera in linea'],
   'calf-monopodalico-rialzo': ['calf', {}, 'Calf in piedi: tallone sotto il gradino, poi in punta'],
@@ -789,7 +873,7 @@ const EXERCISES = {
   /* Programma a circuito. */
   'corda-battaglia-onde-alternate': ['rope', {}, 'Corda da battaglia: onde alternate, un braccio su e uno giu'],
   'scapular-pull-up': ['scap-pull', {}, 'Scapular pull-up: braccia dritte, scendono solo le scapole'],
-  'circonduzioni-spalle': ['mobility', {}, 'Circonduzioni di spalla: cerchi ampi a braccio disteso'],
+  'circonduzioni-spalle': ['shoulder-circle', {}, 'Circonduzioni di spalla: cerchi ampi a braccio disteso'],
   'affondo-con-rotazione': ['lunge', {}, 'Affondo con rotazione: in affondo, poi il torace che ruota'],
   'stacco-rumeno-manubri': ['hinge', {}, 'Stacco rumeno: in piedi, poi anche indietro con le tibie verticali'],
   'goblet-squat': ['goblet', {}, 'Goblet squat: peso al petto, poi anca sotto il ginocchio'],
@@ -799,7 +883,7 @@ const EXERCISES = {
   'estensione-tricipiti-sopra-testa': ['overhead-ext', {}, 'Estensione sopra la testa: peso dietro la testa, poi braccia distese in alto'],
   'suitcase-carry': ['carry', {}, 'Suitcase carry: un peso solo a un lato, busto verticale'],
   'pallof-press-elastico': ['pallof', {}, 'Pallof press: mani allo sterno, poi braccia distese senza ruotare'],
-  'step-rapidi-box': ['step-up', {}, 'Step rapidi al box: cambio di piede continuo'],
+  'step-rapidi-box': ['step-up', { height: 16, alternate: true }, 'Step rapidi al box: cambio di piede continuo'],
   'mountain-climber': ['mountain-climber', {}, 'Mountain climber: plank alto, ginocchia che si alternano al petto'],
   'jumping-jack': ['jack', {}, 'Jumping jack: piedi uniti e braccia basse, poi gambe aperte e braccia alte'],
   'kb-swing': ['swing', {}, 'Swing: kettlebell indietro tra le gambe, poi all altezza del petto'],
@@ -889,7 +973,7 @@ const STEPS = {
   'single-leg-squat-l6': ['shrimp', {}, 'Pistol squat: accosciata su una gamba'],
 
   /* Catena posteriore: glute bridge e nordic curl. */
-  'posterior-chain-l1': ['hip-thrust', {}, 'Glute bridge monopodalico a terra'],
+  'posterior-chain-l1': ['hip-thrust', { bench: false }, 'Glute bridge monopodalico a terra'],
   'posterior-chain-l2': ['nordic', {}, 'Nordic eccentrico assistito con elastico'],
   'posterior-chain-l3': ['nordic', {}, 'Nordic eccentrico completo'],
   'posterior-chain-l4': ['nordic', {}, 'Nordic eccentrico lento'],
@@ -905,12 +989,12 @@ const STEPS = {
   'core-l6': ['ab-wheel', {}, 'Ab wheel completo'],
 
   /* Hip thrust: due gambe, poi una. */
-  'hip-thrust-l1': ['hip-thrust', {}, 'Glute bridge a terra a due gambe'],
-  'hip-thrust-l2': ['hip-thrust', {}, 'Hip thrust con le spalle sulla panca, due gambe'],
-  'hip-thrust-l3': ['hip-thrust', {}, 'Glute bridge monopodalico a terra'],
+  'hip-thrust-l1': ['hip-thrust', { bench: false, bilateral: true }, 'Glute bridge a terra a due gambe'],
+  'hip-thrust-l2': ['hip-thrust', { bilateral: true }, 'Hip thrust con le spalle sulla panca, due gambe'],
+  'hip-thrust-l3': ['hip-thrust', { bench: false }, 'Glute bridge monopodalico a terra'],
   'hip-thrust-l4': ['hip-thrust', {}, 'Hip thrust monopodalico con le spalle sulla panca'],
   'hip-thrust-l5': ['hip-thrust', {}, 'Hip thrust monopodalico con pausa in alto'],
-  'hip-thrust-l6': ['hip-thrust', {}, 'Hip thrust monopodalico zavorrato'],
+  'hip-thrust-l6': ['hip-thrust', { bell: true }, 'Hip thrust monopodalico zavorrato'],
 
   /* Hip hinge: il movimento d anca, a due gambe e poi a una. */
   'hip-hinge-l1': ['rdl', {}, 'Hip hinge a due gambe con il bastone'],
@@ -988,6 +1072,7 @@ let count = 0;
 for (const [slug, [archetype, options, label]] of Object.entries(EXERCISES)) {
   const build = ARCHETYPES[archetype];
   if (build === undefined) throw new Error(`Archetipo sconosciuto: ${archetype}`);
+  currentFigureLabel = slug;
   writeFileSync(join(OUT, `${slug}.svg`), `${render(build(options), label)}\n`, 'utf8');
   count += 1;
 }
@@ -1001,8 +1086,13 @@ let steps = 0;
 for (const [slug, [archetype, options, label]] of Object.entries(STEPS)) {
   const build = ARCHETYPES[archetype];
   if (build === undefined) throw new Error(`Archetipo sconosciuto: ${archetype}`);
+  currentFigureLabel = `gradino ${slug}`;
   writeFileSync(join(STEPS_OUT, `${slug}.svg`), `${render(build(options), label)}\n`, 'utf8');
   steps += 1;
 }
 
 console.log(`Generate ${count} illustrazioni di esercizi e ${steps} di gradini.`);
+if (HEAD_CROSSINGS.length > 0) {
+  console.log(`\nBraccia che attraversano la testa (GENERATOR_SPEC §4.2): ${String(HEAD_CROSSINGS.length)}`);
+  for (const riga of HEAD_CROSSINGS) console.log(`  ${riga}`);
+}
