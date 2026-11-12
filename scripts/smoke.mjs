@@ -1651,6 +1651,180 @@ try {
     }
   }
 
+  /* --------- Una scelta di fine seduta sopravvive a una ricarica --------- */
+
+  /*
+   * B11 e A15, provati dove succedevano: nel browser, con una ricarica vera
+   * fra «Accetto» e «Salva e chiudi».
+   *
+   * Prima la scelta viveva solo in memoria. Ricaricata la pagina, il
+   * riepilogo valutava di nuovo sullo stato già avanzato e riproponeva la
+   * leva dopo, con i pulsanti attivi: accettando ancora, le trazioni sono
+   * passate da 1 a 3 a 4 nella stessa seduta. E anche senza ricarica, subito
+   * dopo «Accetto» il titolo diventava già quello della leva seguente. Gli
+   * unit test di `sessionDecisions` provano la funzione; questo prova che il
+   * player la usa davvero.
+   *
+   * Si usa la Seduta 2, che il resto della prova non tocca: A1 è a range
+   * fisso 6-8, e otto alla prima serie chiudono il range.
+   */
+  const ESERCIZIO_A1_S2 = 'pike-pushup-piedi-rialzati';
+  const daFirestore = (value) => {
+    if (value === undefined || 'nullValue' in value) return null;
+    if ('integerValue' in value) return Number(value.integerValue);
+    if ('doubleValue' in value) return value.doubleValue;
+    if ('stringValue' in value) return value.stringValue;
+    if ('booleanValue' in value) return value.booleanValue;
+    if ('mapValue' in value) {
+      return Object.fromEntries(
+        Object.entries(value.mapValue.fields ?? {}).map(([key, inner]) => [key, daFirestore(inner)]),
+      );
+    }
+    return JSON.stringify(value);
+  };
+  const leve = (state) =>
+    JSON.stringify([
+      state?.level ?? null,
+      state?.eccentricBonusSeconds ?? null,
+      state?.bottomPauseBonusSeconds ?? null,
+      state?.loadKg ?? null,
+    ]);
+  /*
+   * Titolo e riga del cambiamento insieme: il titolo è solo il nome della
+   * leva, «Tempo», ed è uguale per due leve consecutive. I numeri — «da 3" a
+   * 4"» contro «da 4" a 5"» — stanno nella riga sotto.
+   */
+  const titoloLeva = (testo) => {
+    const trovato = /Leva successiva\s*\n+([^\n]+)\n+([^\n]+)/i.exec(testo);
+    return trovato === null ? null : `${trovato[1].trim()} — ${trovato[2].trim()}`;
+  };
+  const alRiepilogo = async () => {
+    await page.getByRole('button', { name: 'Esci dalla seduta' }).click();
+    await page.waitForTimeout(300);
+    await page.getByRole('button', { name: 'Chiudi la seduta', exact: true }).click();
+    await page.waitForTimeout(1200);
+  };
+  const accetta = () => page.getByRole('button', { name: 'Accetto, dalla prossima volta' });
+
+  await page.goto(`${BASE}/#/seduta/circuito-2`, { waitUntil: 'load' });
+  await page.waitForTimeout(1400);
+  const partiS2 = page.getByRole('button', { name: 'Parti subito', exact: true });
+  check((await partiS2.count()) === 1, 'La Seduta 2, mai aperta, deve partire dal preavviso.');
+
+  if ((await partiS2.count()) === 1) {
+    await partiS2.click();
+    await page.waitForTimeout(500);
+    let allaSerie = false;
+    for (let passo = 0; passo < 30 && !allaSerie; passo += 1) {
+      if ((await page.getByRole('button', { name: 'Fatto', exact: true }).count()) > 0) {
+        allaSerie = true;
+        break;
+      }
+      const avanti = page.getByRole('button', { name: /^(Avanti|Salta il recupero)$/ });
+      if ((await avanti.count()) === 0) break;
+      await avanti.first().click();
+      await page.waitForTimeout(350);
+    }
+    check(allaSerie, 'Nella Seduta 2 si deve arrivare alla prima serie di A1.');
+
+    if (allaSerie) {
+      const campi = page.locator('input[type=number]');
+      for (let k = 0; k < (await campi.count()); k += 1) await campi.nth(k).fill('8');
+      await page.getByRole('button', { name: 'Fatto', exact: true }).click();
+      await page.waitForTimeout(1200);
+      await alRiepilogo();
+
+      const si = page.getByRole('button', { name: /^Sì, / });
+      check(
+        (await si.count()) === 1,
+        `Otto su un range 6-8 chiudono il range: il riepilogo deve chiedere del tempo una volta. Pulsanti trovati: ${String(await si.count())}.`,
+      );
+      if ((await si.count()) === 1) {
+        await si.click();
+        await page.waitForTimeout(1200);
+      }
+
+      const titoloPrima = titoloLeva(await page.locator('main').innerText());
+      check(
+        titoloPrima !== null && (await accetta().count()) === 1,
+        `Range chiuso e tempo confermato: il riepilogo deve proporre una leva sola. Titolo letto: ${String(titoloPrima)}.`,
+      );
+
+      if (titoloPrima !== null && (await accetta().count()) === 1) {
+        await accetta().click();
+        await page.waitForTimeout(1500);
+        const dopoAccetto = await page.locator('main').innerText();
+        check(
+          dopoAccetto.includes('Scelta registrata.') && (await accetta().count()) === 0,
+          'Accettata la leva, il riepilogo deve dire «Scelta registrata» e togliere i pulsanti.',
+        );
+        check(
+          titoloLeva(dopoAccetto) === titoloPrima,
+          `A15: dopo «Accetto» il riepilogo deve mostrare la leva accettata, «${titoloPrima}», non la successiva. Legge «${String(titoloLeva(dopoAccetto))}».`,
+        );
+
+        /* Il telefono si blocca qui, prima di «Salva e chiudi». */
+        await page.reload({ waitUntil: 'load' });
+        await page.waitForTimeout(2200);
+        await alRiepilogo();
+        const dopoRicarica = await page.locator('main').innerText();
+        check(
+          dopoRicarica.includes('Scelta registrata.') && (await accetta().count()) === 0,
+          'B11: ricaricata la pagina, la scelta deve risultare già fatta, senza una seconda proposta da accettare.',
+        );
+        check(
+          titoloLeva(dopoRicarica) === titoloPrima,
+          `B11: ricaricata la pagina, il riepilogo deve mostrare ancora «${titoloPrima}». Legge «${String(titoloLeva(dopoRicarica))}».`,
+        );
+
+        const salva = page.getByRole('button', { name: 'Salva e chiudi', exact: true });
+        check((await salva.count()) === 1, 'Il riepilogo deve avere «Salva e chiudi».');
+        if ((await salva.count()) === 1) {
+          await salva.click();
+          await page.waitForTimeout(2000);
+
+          const sedute = (await readFromEmulator('sessions')).filter(
+            (doc) => doc.fields?.sessionId?.stringValue === 'circuito-2',
+          );
+          const idSeduta = sedute[0]?.fields?.id?.stringValue ?? null;
+          check(
+            sedute.length === 1 && sedute[0]?.fields?.status?.stringValue === 'completed',
+            `La Seduta 2 deve risultare chiusa: trovate ${String(sedute.length)}, stato ${String(sedute[0]?.fields?.status?.stringValue)}.`,
+          );
+
+          const scelte = (await readFromEmulator('suggestions')).filter(
+            (doc) =>
+              doc.fields?.sessionLogId?.stringValue === idSeduta &&
+              doc.fields?.blockCode?.stringValue === 'A1',
+          );
+          check(
+            scelte.length === 1 && scelte[0]?.fields?.decision?.stringValue === 'accepted',
+            `Una sola scelta registrata per A1, accettata: trovate ${String(scelte.length)}.`,
+          );
+
+          const scelta = scelte[0];
+          if (scelta !== undefined) {
+            const prima = daFirestore(scelta.fields.stateBefore);
+            const accettata = daFirestore(scelta.fields.stateAfter);
+            const salvato = (await readFromEmulator('exerciseStates'))
+              .map((doc) => Object.fromEntries(
+                Object.entries(doc.fields ?? {}).map(([key, value]) => [key, daFirestore(value)]),
+              ))
+              .find((state) => state.exercise === ESERCIZIO_A1_S2);
+            check(
+              leve(accettata) !== leve(prima),
+              `La leva accettata deve cambiare qualcosa: prima ${leve(prima)}, dopo ${leve(accettata)}.`,
+            );
+            check(
+              leve(salvato) === leve(accettata),
+              `B11: dopo «Salva e chiudi» lo stato salvato deve essere quello accettato, ${leve(accettata)}. Salvato: ${leve(salvato)} (prima: ${leve(prima)}).`,
+            );
+          }
+        }
+      }
+    }
+  }
+
   /* ------------------------- Chiaro e scuro ---------------------------- */
 
   /*
