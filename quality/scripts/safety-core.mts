@@ -19,6 +19,7 @@ import { testBaseline } from '../../src/data/tests.ts';
 import { evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
 import { reviewWeek } from '../../src/engine/review.ts';
+import { buildGuidedPlan } from '../../src/engine/circuit.ts';
 import { summarizeExercise } from '../../src/engine/metrics.ts';
 import { calibrateLoad } from '../../src/engine/loading.ts';
 import type {
@@ -177,7 +178,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
   }
 
   const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 ? 'FALLITO' : 'PASS';
-  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. R1 e S7 sono PROPOSTE, non approvate.`;
+  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3).`;
 
   registra('2', 'Principiante senza esercizi oltre il suo gradino', esito2, coda);
 }
@@ -244,9 +245,13 @@ function fileTesto(dir: string, ext: string[]): string[] {
 
   /* 4a — S3: nessuna salita senza tempo rispettato. */
   {
-    const s = seduta('sc4a', 2, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), false, 2)]);
-    const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['rematore-inverso-trx', stato('rematore-inverso-trx', 2)]]), tests: VUOTO });
-    if (r.verdicts.some((v) => v.kind === 'sali-di-livello')) violazioni.push('S3: salita di gradino proposta con tempoRespected=false');
+    /* v5: anche `null`. Dal 2d84d87 il player guidato non scrive più «sì» da solo:
+       senza risposta dell'atleta nel riepilogo il blocco resta a `null`. */
+    for (const tempo of [false, null] as const) {
+      const s = seduta('sc4a', 2, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), tempo, 2)]);
+      const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['rematore-inverso-trx', stato('rematore-inverso-trx', 2)]]), tests: VUOTO });
+      if (r.verdicts.some((v) => v.kind === 'sali-di-livello')) violazioni.push(`S3: salita di gradino proposta con tempoRespected=${String(tempo)}`);
+    }
   }
 
   /* 4b — S5: la zavorra non scavalca la variante. */
@@ -318,6 +323,56 @@ function fileTesto(dir: string, ext: string[]): string[] {
     }
   }
 
+  /* 4h — S9 (= BOUNDARIES L14), approvata il 2026-11-12: nessuna stazione
+     balistica carica subito dopo una stabilizzazione del tronco senza almeno
+     15" di transizione dichiarata. Si legge il piano guidato, non il dato:
+     è il piano che l'atleta esegue. Settimana 1 e 6 (scarico). */
+  {
+    const BALISTICI = new Set<string>(['kb-swing', 'corda-battaglia-slam']);
+    const TRONCO = new Set<string>(['suitcase-carry', 'hollow-hold', 'plank-trascinamento-kb', 'pallof-press-elastico', 'plank-tocco-spalla']);
+    let giunzioni = 0;
+    for (const sess of CIRCUIT_SESSIONS) {
+      for (const w of [1, 6]) {
+        const piano = buildGuidedPlan(sess, w);
+        for (let i = 0; i < piano.length; i += 1) {
+          const p = piano[i]!;
+          if (p.kind !== 'work' || !BALISTICI.has(p.exercise)) continue;
+          let j = i - 1;
+          let pausa = 0;
+          while (j >= 0 && piano[j]!.kind === 'rest') { pausa += (piano[j] as { seconds: number }).seconds; j -= 1; }
+          const prima = j >= 0 ? piano[j]! : null;
+          if (prima === null || prima.kind !== 'work' || !TRONCO.has(prima.exercise)) continue;
+          giunzioni += 1;
+          if (pausa < 15) violazioni.push(`S9: ${sess.id} sett. ${String(w)} ${prima.blockCode} ${prima.exercise} → ${p.blockCode} ${p.exercise} con ${String(pausa)}" di transizione`);
+        }
+      }
+    }
+    if (giunzioni === 0) violazioni.push('S9: nessuna giunzione tronco → balistico trovata: fixture da ripuntare, il controllo non ha misurato niente');
+  }
+
+  /* 4i — S10, approvata il 2026-11-12: un `tempoRespected` ricavato da una
+     misura non è mai più permissivo della regola. Due metà, tutte e due
+     eseguite: (1) engine — senza un «sì» la leva delle ripetizioni non è
+     esaurita, quindi nessuna leva oltre le ripetizioni; (2) controllo statico
+     del player guidato, come i casi 5 e 6a: ogni `setTempoRespected` scrive
+     solo `false`. Se il player tornasse a scrivere «sì» da una misura, il
+     controllo statico fallisce e va riscritto come misura (07-player-tempo). */
+  {
+    const block = findCircuitSession('circuito-3')!.blocks.find((b) => b.code === 'A2')!;
+    const ex = getExercise('push-up');
+    const ev = evaluateProgression({
+      block, exercise: ex, state: stato('push-up', 2),
+      logged: esercizio('A2', 'push-up', sets([18, 18, 18]), null, 2),
+      range: resolveBlockRange(block, ex, VUOTO), week: 3, currentMaxReps: null,
+    });
+    if (ev.suggestion !== null) violazioni.push(`S10: leva «${ev.suggestion.lever}» proposta senza nessun «sì» sul tempo`);
+    const player = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
+    const scritture = [...player.matchAll(/setTempoRespected\(([^;]*?)\)\s*[;:]/gs)].map((m) => m[1]!.replace(/\s+/g, ' '));
+    const nonFalse = scritture.filter((a) => !/,\s*false\s*$/.test(a));
+    if (scritture.length === 0) violazioni.push('S10: nessuna scrittura di tempoRespected trovata nel player guidato: controllo da riscrivere');
+    if (nonFalse.length > 0) violazioni.push(`S10: il player guidato scrive tempoRespected con un valore diverso da false: ${nonFalse.join(' | ')}`);
+  }
+
   registra('4', 'Progressione entro le soglie',
     violazioni.length === 0 ? 'PASS' : 'FALLITO',
     violazioni.length === 0 ? 'nessuna soglia superata' : `${String(violazioni.length)} soglie superate → ${violazioni.join(' | ')}`);
@@ -353,16 +408,41 @@ function fileTesto(dir: string, ext: string[]): string[] {
     if (REMOTO.test(testo)) problemi.push(`${f}: immagine da URL remoto`);
   }
   /*
-   * Il caso ha due metà. «Nessuna generata a runtime» è verificabile e oggi
-   * passa. «Solo immagini approvate da Alessio» non è verificabile: non
-   * esiste nessun registro delle approvazioni. Metà verificabile non fa un
-   * PASS, quindi il caso resta NON COPERTO.
+   * Il caso ha due metà. 6a «nessuna generata a runtime»: ricerca nel codice.
+   * 6b «solo immagini approvate da Alessio»: dalla v5 si esegue su
+   * `media/LIBRARY.md`, il registro di exercise-media-lead (una riga per
+   * immagine, stato `approvata` riservato ad Alessio). Esisteva dal
+   * 2026-11-08 (commit e204805) e fino alla v4 questo caso diceva che il
+   * registro non c'era: era una mia lettura ferma, non un limite del prodotto.
+   * Un file in src/assets entra nel bundle (import.meta.glob), quindi è servito.
    */
+  const righe = readFileSync('media/LIBRARY.md', 'utf8').split('\n').filter((r) => r.startsWith('| ') && r.includes('src/assets/'));
+  const stati = new Map<string, string[]>();
+  for (const r of righe) {
+    const c = r.split('|').map((x) => x.trim());
+    const file = c[6] ?? '';
+    const stato = c[5] ?? '';
+    stati.set(file, [...(stati.get(file) ?? []), stato]);
+  }
+  const serviti: string[] = [];
+  for (const d of ['exercises', 'steps', 'exercises-repdb']) {
+    for (const f of readdirSync(join('src/assets', d))) {
+      if (/\.(svg|webp|png|jpg)$/i.test(f)) serviti.push(`src/assets/${d}/${f}`);
+    }
+  }
+  const nonRegistrati = serviti.filter((f) => !stati.has(f));
+  const approvati = serviti.filter((f) => (stati.get(f) ?? []).length > 0 && stati.get(f)!.every((x) => x === 'approvata'));
+  const nonApprovati = serviti.length - approvati.length;
+  const conteggio = new Map<string, number>();
+  for (const f of serviti) for (const x of new Set(stati.get(f) ?? ['non registrata'])) conteggio.set(x, (conteggio.get(x) ?? 0) + 1);
+  const dettaglio6b = `6b su media/LIBRARY.md: ${String(serviti.length)} file nel bundle, ${String(approvati.length)} approvati, ${String(nonApprovati)} non approvati (file per stato, un file può avere più righe: ${[...conteggio].map(([k, v]) => `${k} ${String(v)}`).join(' · ')}), ${String(nonRegistrati.length)} non registrati${nonRegistrati.length > 0 ? ` (${nonRegistrati.slice(0, 3).join(', ')})` : ''}`;
+  if (righe.length === 0) problemi.push('6b: media/LIBRARY.md senza righe leggibili: controllo da riscrivere');
+  else if (nonApprovati > 0) problemi.push(dettaglio6b);
   registra('6', 'Nessuna immagine fuori libreria, nessuna generata a runtime',
-    problemi.length > 0 ? 'FALLITO' : 'NON COPERTO',
+    problemi.length > 0 ? 'FALLITO' : 'PASS',
     problemi.length > 0
-      ? problemi.join(' | ')
-      : '6a nessuna generazione a runtime e nessun URL remoto: VERIFICATO, le figure arrivano da import.meta.glob su src/assets a build time. 6b «solo immagini approvate da Alessio»: NON VERIFICABILE, non esiste un registro delle approvazioni in /media/. Per renderlo eseguibile serve /media/REGISTRY.md con una riga per immagine (file, esercizio, data di approvazione) e un confronto con i file presenti in src/assets.');
+      ? `6a ${problemi.some((x) => !x.startsWith('6b')) ? 'VIOLATO' : 'verificato: nessuna generazione a runtime né URL remoto'} · ${problemi.join(' | ')}`
+      : `6a verificato · ${dettaglio6b}`);
 }
 
 /* ====================================================================== */
@@ -385,7 +465,9 @@ function fileTesto(dir: string, ext: string[]): string[] {
       sets: sets([10, 10, 10], { rir: 1, kg: 5, note }), note,
     };
     const ev = evaluateProgression({ block, exercise: ex, state: stato(ex.slug, 3, 5), logged: l, range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: null });
-    const r = reviewWeek({ week: 4, sessions: [seduta('sc7', 4, 'circuito-1', [l])], states: new Map([[ex.slug, stato(ex.slug, 3, 5)]]), tests: VUOTO });
+    /* v5: anche LoggedSession.note. Fino alla v4 la nota della seduta era
+       dichiarata in SAFETY_CORE.md ma non veniva iniettata. */
+    const r = reviewWeek({ week: 4, sessions: [seduta('sc7', 4, 'circuito-1', [l], note)], states: new Map([[ex.slug, stato(ex.slug, 3, 5)]]), tests: VUOTO });
     return JSON.stringify({
       t: ev.triggered, lv: ev.suggestion?.lever, st: ev.suggestion?.nextState, lev: ev.levers.map((x) => [x.lever, x.available]),
       sm: summarizeExercise(l), cal: calibrateLoad(l.sets, 5),
@@ -396,7 +478,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
   const cambiati = ATTACCHI.filter((a) => impronta(a, 'Liv. 3 · Trazioni complete') !== base || impronta(null, a) !== base);
   registra('7', 'Nessun testo scritto dall’atleta cambia un numero prescritto',
     cambiati.length === 0 ? 'PASS' : 'FALLITO',
-    cambiati.length === 0 ? `${String(ATTACCHI.length)} stringhe ostili × 2 campi: impronta numerica identica` : `cambiato da: ${cambiati.join(' | ')}`);
+    cambiati.length === 0 ? `${String(ATTACCHI.length)} stringhe ostili × 4 campi (nota della serie, dell'esercizio e della seduta insieme; etichetta della variante da sola): impronta numerica identica` : `cambiato da: ${cambiati.join(' | ')}`);
 }
 
 /* ====================================================================== */

@@ -1,9 +1,11 @@
 # Griglia di valutazione e soglie
 
-Versione griglia: v2 · 2026-11-09 (+ proposte v3 del 2026-11-09b e del
-2026-11-12) · **soglie PROPOSTE, nessuna approvata**.
-Approva Alessio. Finché non approva, in RESULTS.md l'esito si legge «misurato
-contro soglie proposte».
+Versione griglia: **v3** · **approvate da Alessio il 2026-11-12**
+(`docs/SESSION_STATE.md` § «Decisioni prese», commit `8c8253d`): soglie
+C1-C8, regola di esito, S1-S10 (con la lettura di S1 sui gradini eseguibili),
+voci v3 V-GIUNZIONE e M-RIEP-SEDUTA. Da qui l'esito si legge contro soglie
+approvate. Restano in attesa solo le convenzioni in fondo (dipendono da R3 e
+D-13, non decisi).
 
 ## Gravità dei difetti
 
@@ -13,10 +15,18 @@ contro soglie proposte».
 | **Alto** | un numero mostrato all'atleta è sbagliato, o una regola del metodo è applicata al contrario, sempre e per tutti | NO-GO su rilascio di dimensione L; su M serve una mitigazione dichiarata |
 | **Medio** | l'app è corretta ma inutile o rumorosa in uno scenario reale | si può rilasciare, si registra con una data |
 | **Basso** | difetto cosmetico o rischio che si attiva solo con il secondo utente | si registra |
+| **Bloccante al rilascio pubblico** | B1-B4 (dolore, condizione medica, cibo e corpo, minorenni): decisione di Alessio del 2026-11-12 | finché l'app ha un solo utente: difetto noto, registrato, **non** blocca. Il nucleo li esegue comunque per intero e li riporta FALLITO o NON COPERTO, mai PASS. Diventano Bloccanti il giorno del secondo utente |
+
+**Conseguenza dell'approvazione (2026-11-12).** Con S1-S10 approvate, «superare
+una soglia di progressione» è un limite che esiste: le violazioni già aperte
+come Alto o Medio perché la soglia era solo proposta diventano Bloccanti
+(A2 = S3, A3 = S5, A4 = S1, M1 = S4, M4 = S6), come GRID prevedeva per S9.
+Gli ID restano quelli storici; la gravità sta nella colonna. **C2** è fatto
+solo di B1-B4: sotto soglia blocca il rilascio pubblico, non quello attuale.
 
 ## Gli otto criteri
 
-| # | Criterio | Misura | Soglia proposta |
+| # | Criterio | Misura | Soglia (approvata) |
 |---|---|---|---|
 | C1 | **Sicurezza** | % di scenari di sicurezza senza violazione dei limiti (livello, attrezzatura, soglie di progressione) | **100%** — ogni violazione è Bloccante |
 | C2 | **Rimandi** | % di rimandi corretti sui 4 scenari di limite che li richiedono (L1, L2, L3, L5) | **100%** — un rimando mancato è Bloccante |
@@ -27,15 +37,17 @@ contro soglie proposte».
 | C7 | **Analisi dei progressi** | % di metriche che coincidono con il ricalcolo indipendente | **100%** |
 | C8 | **Durata** | % di sedute entro il tetto dichiarato dal programma | **100%** |
 
-Regola di esito complessivo proposta: **GO possibile solo con Bloccanti = 0 e
+Regola di esito complessivo (approvata): **GO possibile solo con Bloccanti = 0 e
 Alti = 0 su rilascio L**. C4-C6 sotto soglia non bloccano da soli, ma tre
 criteri sotto soglia contemporaneamente valgono come un Alto.
 
-## Soglie di sicurezza sulla progressione (proposte)
+## Soglie di sicurezza sulla progressione (approvate il 2026-11-12)
 
-Oggi nel codice non esiste nessuna di queste: `review.ts` e `progression.ts`
-non hanno tetti temporali. Sono il contenuto che chiedo a `training-designer`
-di mettere in `BOUNDARIES.md` e che poi questa griglia misura.
+Al 2026-11-12 (`90b8b81`) rispettate: S2, S10. Violate: S1, S3, S4, S5, S6,
+S9 (giro della finitura, B10). S7: B9 (in attesa della decisione sui blocchi
+esclusi). S8: B3 (rilascio pubblico). `BOUNDARIES.md` 1.0 è ancora proposta e
+L9 non coincide con S1 e S6 (7 giorni contro 14, rientro da 21 contro 14):
+va allineata a queste, che sono approvate.
 
 | ID | Soglia proposta | Perché |
 |---|---|---|
@@ -46,12 +58,12 @@ di mettere in `BOUNDARIES.md` e che poi questa griglia misura.
 | S5 | **zavorra solo dopo che la variante è esaurita**, e mai sotto le soglie di `getLoadThreshold` (8 trazioni, 10 dip) | il metodo mette il carico alla leva 5; oggi la revisione lo propone al gradino 1 e non consulta mai `assessLoadNeed` |
 | S6 | dopo **≥ 14 giorni** senza sedute chiuse: volume ridotto per 1 settimana e ritest proposto | oggi dopo 20 giorni la seduta proposta è identica |
 | S7 | nessun esercizio al di sopra del **gradino compatibile con il valore misurato dal test**, non solo con l'esercizio del test | oggi trazioni complete e dip completi a chi ha misurato 0 |
-| S9 | **nessuna stazione balistica carica (swing, slam, clean) subito dopo una stazione di stabilizzazione del tronco a RIR 0-1 o a cedimento**: minimo una transizione dichiarata | proposto il 2026-11-09b. Oggi `circuito-1` manda il suitcase carry con il 24 dentro lo swing 15-20 senza nessun passo, e `circuito-3` fa lo stesso dall'hollow hold. Se approvato, il difetto A8 diventa Bloccante e il nucleo passa a 9 casi |
+| S9 | **nessuna stazione balistica carica (swing, slam, clean) subito dopo una stazione di stabilizzazione del tronco a RIR 0-1 o a cedimento**: minimo una transizione dichiarata | proposto il 2026-11-09b. Oggi `circuito-1` manda il suitcase carry con il 24 dentro lo swing 15-20 senza nessun passo, e `circuito-3` fa lo stesso dall'hollow hold. **Approvata.** Si legge come L14: RIR 0-1, «—» o a cedimento. Nel nucleo come controllo **4h** del caso 4 (il nucleo resta a 8 casi). Controlla ogni giunzione del piano guidato, giri compresi |
 | S8 | perdita di peso **> 1% del peso corporeo a settimana** per 2 settimane di fila: nessun commento, nessun obiettivo, rimando alle risorse | oggi −3 kg a settimana per 3 settimane passano in silenzio |
 
-| S10 | **un `tempoRespected` ricavato da una misura non è mai più permissivo della regola**: all'innesco della salita (tutte le serie ≥ massimo) il controllo non accetta un ritmo più veloce del TUT prescritto | proposto il 2026-11-12. Oggi il minimo è la colonna «lavoro» (≈ TUT × minimo del range) e il cronometro parte prima della prima ripetizione: 22 blocchi su 22 accettano il 56-91% del TUT (A12, `07-player-tempo`) |
+| S10 | **un `tempoRespected` ricavato da una misura non è mai più permissivo della regola**: all'innesco della salita (tutte le serie ≥ massimo) il controllo non accetta un ritmo più veloce del TUT prescritto | **approvata.** Rispettata dal `2d84d87`: il player scrive solo «no» (controllo 4i). Al 2026-11-12 il minimo è la colonna «lavoro» (≈ TUT × minimo del range) e il cronometro parte prima della prima ripetizione: 22 blocchi su 22 accettano il 56-91% del TUT (A12, `07-player-tempo`) |
 
-**Lettura proposta di S1 (2026-11-12).** Con R1 la revisione salta i gradini
+**Lettura di S1 (approvata il 2026-11-12).** Con R1 la revisione salta i gradini
 di sole negative sui range fissi (trazioni 1→3, dip 1→3, pike 2→4). Propongo
 che S1 conti i gradini **eseguibili**: 1→3 è una salita sola. Il controllo 4g
 del nucleo verifica che nessun gradino eseguibile venga scavalcato.
@@ -61,22 +73,24 @@ del nucleo verifica che nessun gradino eseguibile venga scavalcato.
 Il 2026-11-09 C3, C4 e C5 della baseline **non si riproducevano** dalla mappa
 di SCENARIOS.md §6: una misura che non si ripete non è una misura. La
 composizione è fissata qui, e la baseline ricalcolata con essa è l'unico
-confronto valido. **Da approvare da Alessio: è il righello.**
+confronto valido. **Approvata il 2026-11-12 come v3** (v2 + V-GIUNZIONE e
+M-RIEP-SEDUTA): C4 conta 7 voci, C7 ne conta 7. Lettura mia: approvare le voci
+v3 presuppone il righello v2 (domanda aperta nel rapporto del 2026-11-12b).
 
 | # | Voci contate | Baseline ricalcolata |
 |---|---|---|
 | C1 | G1, G3, G5, G7, P-2d, P-4b, S4 (7) | 1/7 = 14% |
 | C2 | L1, L2, L3, L5 (4) | 0/4 = 0% |
 | C3 | 3 clausole: esercizi fuori catalogo · progressi ricalcolabili · numeri del consiglio uguali a quelli delle regole | 2/3 = 67% |
-| C4 | G2, P-2c, P-2d, P-8c, V-FINITURA, V-VOLUME (6) · **proposta v3: + V-GIUNZIONE** (sequenze dentro la seduta: balistici, prese consecutive, picchi sistemici — PROGRAM_RULES §2) | 1/6 = 17% |
+| C4 | G2, P-2c, P-2d, P-8c, V-FINITURA, V-VOLUME (6) · **v3: + V-GIUNZIONE** (sequenze dentro la seduta: balistici, prese consecutive, picchi sistemici — PROGRAM_RULES §2) | 1/6 = 17% |
 | C5 | G7-pers (il gradino di partenza dipende dal valore misurato), P-2b, S6 (3) | 1/3 = 33% |
 | C6 | P-2b, P-2c, S1, R-ALMASSIMO (4) | 2/4 = 50% |
-| C7 | M-MM, M-SETT, M-VOL, M-ADER, M-RIEP, M-DUR (6) · **proposta v3: + M-RIEP-SEDUTA** (durata vera, serie fatte su previste, scarto dal piano nel riepilogo di fine seduta) | 4/6 = 67% |
+| C7 | M-MM, M-SETT, M-VOL, M-ADER, M-RIEP, M-DUR (6) · **v3: + M-RIEP-SEDUTA** (durata vera, serie fatte su previste, scarto dal piano nel riepilogo di fine seduta) | 4/6 = 67% |
 | C8 | D1-D4, una per seduta (4) | 4/4 = 100% |
 
 `N/C` (la funzione non esiste) conta come voce non superata, come in C2.
 
-## Convenzioni in attesa di approvazione
+## Convenzioni in attesa di approvazione (non coperte dalla decisione del 2026-11-12)
 
 | Cosa | Scelta dell'app | Mio riferimento | Stato |
 |---|---|---|---|
@@ -90,7 +104,7 @@ confronto valido. **Da approvare da Alessio: è il righello.**
 Non c'è nessun modello nel prodotto: la stessa fixture dà sempre lo stesso
 numero. Quindi una misura che cambia da un giro all'altro è **una regola che è
 cambiata**, mai rumore. Chi misura:
-1. esegue `quality/scripts/01..05` nell'ordine;
+1. esegue `quality/scripts/safety-core` e gli script `01..11` pertinenti (elenco in INDEX.md);
 2. confronta criterio per criterio con l'ultima riga di RESULTS.md;
 3. ogni scostamento va spiegato con una modifica a `src/data/` o `src/engine/`,
    altrimenti è un difetto nuovo da aprire.

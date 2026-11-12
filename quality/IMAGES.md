@@ -14,6 +14,28 @@ Render conservati in `quality/reports/immagini/`.
 Verifiche più vecchie (2026-11-08, 2026-11-09b): testo integrale in
 `ARCHIVE.md`.
 
+## 2026-11-12b · nessuna figura nuova, stato delle dieci
+
+`src/assets/` identico da `47c7f6d` a `90b8b81`: nessuna figura da guardare,
+nessuna riguardata. Cosa è cambiato è il primo passaggio:
+- **Hip thrust (1-6)**: `exercise-media-lead` le ha verificate (LIBRARY.md,
+  2026-11-12). La precondizione che mancava c'è. Restano **non idonee per
+  approvazione** per la regola della checklist §0.2: «nessuna immagine va in
+  approvata su una scheda incompleta» (M7: niente `equipment` né `frames`).
+  Non è un mio scrupolo: è la checklist, ed è la stessa di media-lead.
+- **circonduzioni-spalle**: media-lead `verificata`, io **SCARTATA (3)**.
+  Abbiamo misurato lo stesso numero (braccio a 6,0 dal centro della testa,
+  raggio 6): per lei è l'anatomia di un braccio sopra la testa visto di lato,
+  per me a 460 px il braccio attraversa il contorno. Disaccordo da portare ad
+  Alessio con la figura davanti, non da comporre fra noi.
+- **step-rapidi-box**: media-lead `da rifare` per la tibia sul box −40%
+  (anatomia, punto 3). Io l'avevo data «con riserva» sul punto 8: **la tibia
+  corta non l'avevo vista**. Si riguarda dopo il rifacimento.
+- **pull-over-trx, estensione-tricipiti-sopra-testa**: `da rifare` per tutte e
+  due le verifiche. Coerenti.
+- Caso 6 del nucleo ora eseguito su LIBRARY.md: 265 file nel bundle, 0
+  approvati (B8).
+
 ## 2026-11-12 · dieci figure rifatte in `47c7f6d`
 
 **Precondizione mancante.** Il flusso (CLAUDE.md) vuole la verifica di

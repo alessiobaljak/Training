@@ -10,6 +10,13 @@
  * Dell'engine importo solo `buildGuidedPlan` per leggere il `workSeconds` che
  * il player usa davvero, e lo confronto con quello del dato.
  *
+ * Dal 2d84d87 (A12 chiuso) il player scrive soltanto `tempoRespected = false`
+ * sotto il minimo; arrivare al minimo non scrive più niente e il «sì» lo dà
+ * l'atleta nel riepilogo. Quindi «lascia passare» qui sotto vuol dire «non
+ * scrive no», non più «scrive sì». La proprietà S10 si controlla nel nucleo
+ * (caso 4, controllo 4i); questo script resta la misura di quanto il «no» è
+ * prudente.
+ *
  * Esecuzione: node --experimental-strip-types quality/scripts/07-player-tempo.mts
  */
 import { CIRCUIT_SESSIONS } from '../../src/data/circuit.ts';

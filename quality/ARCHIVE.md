@@ -251,3 +251,46 @@ deciderla io.
 | Volume da log | 2026-11-09 non coincideva (A7) · 2026-11-12 coincide con la convenzione R3 (abbandonate contano: il controllo M2 di `03` resta sulla convenzione vecchia) | `10-volume-r3.mts` |
 | Durata delle 4 sedute | coincide al secondo con il mio ricalcolo; 39,6-39,9' su 40' dichiarati | `01-durata-volume.mts` |
 | Volume settimanale per gruppo | coincide; 5 gruppi su 8 fuori dalla fascia 16-20 del metodo | `01-durata-volume.mts` |
+
+## Da RESULTS.md (spostate il 2026-11-12b)
+
+### Voci chiuse e ricalcoli usciti dagli ultimi 10
+
+| ID / metrica | … | … | … | … |
+|---|---|---|---|---|
+| A1 | Alto | `review.ts` non leggeva `excludeFromReview` | 2026-11-09 | caso 4f del nucleo: `kb-swing` 12-11-12 su 15-20 → nessun verdetto, `serie=0`. I 12 blocchi con il flag sono esattamente i 12 blocchi `F`; `effectiveBlock` conserva il flag sull'alternativa |
+| A5 | Alto | Aderenza: denominatore su giorni assegnati | 2026-11-09 | `03-metriche.mts` M1: le dovute coincidono col mio ricalcolo proporzionale troncato su tutti e 7 i giorni (0,1,1,2,2,3,4) |
+| A6 | Alto | Aderenza: contava tutte le sedute di sempre (833%) | 2026-11-09 | `03-metriche.mts` M1: 24 sedute archiviate + 1 nel programma → 1/1 = 100%; una seduta `upper-a` del programma archiviato → 0/4 |
+| M9 | Medio | La pausa di blocco non nominava i blocchi | 2026-11-12 | piano guidato: «Tri-set A finito, ora Tri-set B» in tutte e 4 le sedute |
+| Media mobile a 7 giorni | coincide su tutti i punti | `03-metriche.mts` |
+| Medie settimanali e delta | coincide; `comparedTo` dichiarato correttamente | `03-metriche.mts` |
+| Aderenza | 2026-11-08 **non coincide** (A5, A6) · 2026-11-09 **coincide** su tutti e 7 i giorni e sullo storico archiviato, col troncamento come riferimento (convenzione da approvare); resta M8, latente | `03-metriche.mts` |
+| Riepilogo esercizio (totali, RIR medio, kg max) | coincide | `04-input-non-fidato.mts` |
+
+### Note di misura del 2026-11-09b, 2026-11-09 e 2026-11-08 (e paragrafo sulle soglie proposte)
+
+Soglie proposte in GRID.md: C1 100 · C2 100 · C3 100 · C4 ≥90 · C5 ≥80 ·
+C6 ≥90 · C7 100 · C8 100. **Nessuna soglia è ancora approvata da Alessio.**
+Esito del 2026-11-08 contro le soglie proposte: **NO-GO** (6 Bloccanti).
+Aggiornamento del 2026-11-08 (secondo giro, immagini): 1 figura giudicata,
+1 SCARTATA, 0 idonee. Difetto M7 aperto.
+Aggiornamento del 2026-11-08 (terzo giro, verifica cieca di 2 figure):
+2 giudicate, 2 SCARTATE, 0 idonee. Nuovo rilievo di convenzione sui manubri
+(punto 5), comune a tutte le figure viste finora: decisione aperta per Alessio.
+
+Misura del 2026-11-09b (commit `f63c9f1`, trascrizione del circuito):
+**NO-GO contro soglie proposte**. C3 scende (67% → 33%): i numeri proposti
+all'atleta non vengono più tutti dalle regole (B7, A9). C8 resta 100% e migliora
+in valore (39,6-39,9' → 35:48-39:13). `*` C5 e C6 non rimisurati, nessuna regola
+di consiglio toccata. **Il confronto del caso 3 del nucleo (32/48 → 37/52) non è
+uno a uno**: la mia mappa degli attrezzi non conosceva i 16 esercizi nuovi e
+sottostimava; estesa in questo giro. Cinque fixture del nucleo sono state
+ripuntate perché la riscrittura dei dati le aveva svuotate senza farle fallire.
+
+Misura del 2026-11-09 (commit `1802631`): **NO-GO contro soglie proposte**.
+C4, C5, C6 e C7 salgono di una voce ciascuno; C1, C2, C3 e C8 invariati. Le
+colonne di C3, C4 e C5 del 2026-11-08 **non si riproducevano** dalla
+composizione scritta: baseline ricalcolata C3 67% (2/3), C4 17% (1/6), C5 33%
+(1/3); la composizione è ora esplicita in GRID.md. Nessuna immagine nuova da
+verificare in questo giro.
+

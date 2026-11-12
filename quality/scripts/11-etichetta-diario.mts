@@ -32,3 +32,21 @@ livelli.forEach((l, i) => {
   /* la seduta si chiude con delle serie: diventa la «volta scorsa» del blocco */
   precedente = new Map([['A1', { ...a1, sets: [{ setIndex: 1, side: null, value: 7, rir: null, loadKg: 0, heartRate: null, note: null }] }]]);
 });
+
+/*
+ * v2, 2026-11-12 (commit 90b8b81: `buildDraftSession` tiene l'etichetta della
+ * volta scorsa solo se il gradino coincide). Due casi in più:
+ *  b — etichetta scritta a mano, stesso gradino: deve restare (scelta dichiarata
+ *      nel commento del codice: «può dire più del nome del gradino»);
+ *  c — etichetta scritta a mano al gradino 3, stato salito a 4: deve sparire.
+ */
+const amano = 'Trazioni complete, presa larga';
+for (const [nome, lPrima, lOra, atteso] of [
+  ['b stesso gradino', 3, 3, amano],
+  ['c gradino salito', 3, 4, variantLabelFor(ex, stato(4))],
+] as [string, LevelIndex, LevelIndex, string][]) {
+  const prima: LoggedExercise = { blockCode: 'A1', exercise: slug, variantLabel: amano, level: lPrima, tempoRespected: true, sets: [{ setIndex: 1, side: null, value: 7, rir: null, loadKg: 0, heartRate: null, note: null }], note: null };
+  const d = buildDraftSession({ id: `x${nome}`, date: '2026-11-20', week: 5, session: prog, states: new Map([[slug, stato(lOra)]]), previous: new Map([['A1', prima]]) });
+  const a1 = d.exercises.find((e) => e.blockCode === 'A1')!;
+  console.log(`${a1.variantLabel === atteso && a1.level === lOra ? 'ok  ' : 'NO  '} ${nome}: prima «${amano}» al ${String(lPrima)}, stato ${String(lOra)} → «${a1.variantLabel}» al ${String(a1.level)} · atteso «${atteso}»`);
+}

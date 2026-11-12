@@ -130,6 +130,21 @@ incrina.
 - `tempoRespected` ora lo scrive il cronometro, non l'atleta: non è testo, ma
   è un campo che decide una leva senza una risposta esplicita (A12).
 
+## U8 — Verifica del 2026-11-12b (commit `90b8b81`)
+- **Correzione mia.** U1 (2026-11-08) dichiarava la nota della **seduta** fra
+  i campi iniettati, ma `04` non passa da `reviewWeek`, l'unica funzione che
+  riceve una seduta, e il caso 7 del nucleo fino alla v4 non la iniettava.
+  Dalla v5 il caso 7 la inietta con le altre due note: impronta identica su
+  `evaluateProgression`, `reviewWeek`, `summarizeExercise`, `calibrateLoad`.
+  La proprietà tiene, adesso su 4 campi su 4 davvero.
+- `buildDraftSession` (A11) decide se tenere l'etichetta della volta scorsa
+  confrontando **`level`** (numero) con il gradino dello stato, mai il testo:
+  l'etichetta resta resa, non calcolo. Un'etichetta scritta a mano resta solo
+  allo stesso gradino (`11` v2).
+- Il player guidato scrive l'etichetta del gradino con `variantLabelFor`
+  (generata, non dell'atleta) e `tempoRespected` solo `false` (A12 chiuso):
+  nessun campo libero entra in una leva.
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.
