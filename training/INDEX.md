@@ -1,12 +1,13 @@
 # INDEX — training-designer
 
-**Stato.** 2026-11-08 audit + prima specifica. 2026-11-12: quattro regole per
-l'implementazione (R1 gradino di partenza, R2 giunzione B→F, R3 volume, R4
-test), rapporto `reports/2026-11-12-training.md`, decisioni D-12…D-15.
-**Regole in produzione: nessuna versione approvata.** Proposte in attesa:
-1.0 di tutto + programmi 2.0 · progressione/metodo/progressi/schema/limiti 1.1.
-Nessun file di `src/` toccato. Vincolo: circuit.ts è trascrizione, esercizi e
-ordine non si cambiano per regola.
+**Stato.** 2026-11-08 audit. 2026-11-12: R1-R4 (R1 ora in codice). **2026-11-14:
+R5-R9** per i Bloccanti A2, A3, A4, M1, M4 sulle soglie **approvate** S1, S3-S6
+(`quality/GRID.md`, vincolanti): rapporto `reports/2026-11-14-training.md`,
+ordine R8→R5→R6→R7→R9 (R7 mai senza R6), decisioni D-16…D-18.
+**Regole in produzione: nessuna versione approvata.** Proposte in attesa: fino a
+progressione/progressi/consigli 2.0, programmi 2.1, limiti 1.2.
+Nessun file di `src/` toccato. Vincolo: circuit.ts è trascrizione. **D-16**: con
+S4 alla lettera la revisione è muta sul circuito (ogni esercizio in un circuito).
 
 **Decisioni chiave.** Nessuna AI nel prodotto: i consigli sono verdetti
 deterministici di `engine/progression.ts` e `engine/review.ts` → ADVICE.md
@@ -17,12 +18,12 @@ dell'esercizio, non dell'atleta. **L'app non ha nessun limite di sicurezza.**
 ## File di memoria — cosa contiene, quando leggerlo
 - `METHOD.md` — leve, range, volume, frequenza, RIR, recupero, riscaldamento, deload, livelli. Leggi se tocchi un principio o un livello.
 - `EXERCISE_SCHEMA.md` — campi della scheda esercizio: 9 esistono, 7 mancano. Leggi se aggiungi o correggi un esercizio, o se prepari una scheda per le immagini.
-- `PROGRAM_RULES.md` — struttura del circuito e R2 (§2), R1 gradino di partenza e R4 test (§3), serie, durata, sostituzioni. Leggi se tocchi un blocco o un test.
-- `PROGRESSION_RULES.md` — soglie di avanzamento, tetti, salto dei gradini solo eccentrici (§5). Leggi prima di cambiare qualunque numero.
-- `PROGRESS_REVIEW.md` — metriche, massimale (misurato, nessuna stima), record, stallo, regole di presentazione. Leggi se tocchi i progressi.
-- `ADVICE.md` — le tre sorgenti dei consigli, i verdetti, i 6 difetti aperti. Leggi prima di toccare un testo di consiglio.
-- `BOUNDARIES.md` — **il file che vale di più.** 14 limiti (L14 = sequenza nella seduta, S9 di quality) con dove, innesco, cosa fa l'app, cosa legge l'atleta, come si verifica. Leggi sempre.
-- `RULES_CHANGELOG.md` · `DECISIONS.md` (15 per Alessio) · `BACKLOG.md` (D-01…D-07, W-01…W-18) · `reports/`. R3 volume: METHOD §3 + PROGRESS_REVIEW §5.
+- `PROGRAM_RULES.md` — circuito e R2 (§2), R1 e R4 (§3), serie, durata, sostituzioni, **R9 rientro (§8)**. Leggi se tocchi un blocco, un test o il volume. ~290 righe: condensa prima di aggiungere.
+- `PROGRESSION_RULES.md` — soglie, leve, verdetti, **R5 R6 R7 (§9) con tabelle di prova e ordine di implementazione**. Leggi prima di cambiare qualunque numero. ~295 righe.
+- `PROGRESS_REVIEW.md` — metriche, massimale, record, stallo, presentazione, **R8 evidenza minima (§6)**. Leggi se tocchi i progressi o la revisione.
+- `ADVICE.md` — sorgenti, verdetti, difetti, **testi di R5-R9 (§7)**. Leggi prima di toccare un testo di consiglio.
+- `BOUNDARIES.md` — **il file che vale di più.** 14 limiti; **L9 = S1-S6** (limiti 1.2). Leggi sempre. ~296 righe: condensa prima di aggiungere.
+- `RULES_CHANGELOG.md` · `DECISIONS.md` (D-1…D-18) · `BACKLOG.md` (W-19…W-23 Bloccanti oggi) · `ARCHIVE.md` (voci chiuse) · `reports/`. R3 volume: METHOD §3 + PROGRESS_REVIEW §5.
 
 ## Percorsi del catalogo e delle regole (modificabili da me)
 - Catalogo: `src/data/exercises.ts` (56) · `src/data/exercise-art.ts` (fotogrammi)

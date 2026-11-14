@@ -1,6 +1,8 @@
 # ADVICE.md — come nascono i consigli, oggi
 
 Versione **consigli 1.0 — PROPOSTA del 2026-11-08, non approvata.**
+Aggiunta del 2026-11-14 `[PROPOSTA, consigli 2.0]`: verdetti ed elenchi nuovi e
+i loro testi per R5-R9 (§7).
 
 **Nell'app non c'è nessuna AI.** Nessun modello, nessuna chiamata, nessun prompt.
 Ogni consiglio è un verdetto calcolato da soglie numeriche su numeri che
@@ -58,8 +60,10 @@ settimana e il range, sempre per esteso), `change` (cosa cambia accettando),
 Più due elenchi senza verdetto: `inRange` e `alMassimo` (massimo chiuso ma
 nessuna leva tirabile dalla revisione).
 
-`[PROPOSTA]` Due verdetti nuovi: `stallo` (PROGRESS_REVIEW §4) e
-`rifai-al-tempo-giusto` (PROGRESSION_RULES T3).
+`[PROPOSTA]` Verdetti nuovi: `stallo` (PROGRESS_REVIEW §4);
+`rifai-al-tempo-giusto` e `rispondi-sul-tempo` (R5); `riparti-dal-test` (R9b).
+Elenchi nuovi: `pocheProve` (R8), `inAttesa` (R7), `fermi` (R5 E4-E5);
+`alMassimo` prende un motivo (R6). Testi: §7.
 
 ## 4. Forma del consiglio e cosa cambia accettandolo
 
@@ -80,6 +84,10 @@ Regole, già in gran parte rispettate, da fissare:
    generati da soglie diverse non è rileggibile.
 
 ## 5. Difetti aperti nella catena dei consigli
+
+Stato al 2026-11-14: **D-01 chiuso in codice** (`review.ts` salta i blocchi
+`excludeFromReview`, verificato leggendo il motore). D-02 → R7, D-03 → R5
+(PROGRESSION_RULES §9). Il testo sotto resta come storia del difetto.
 
 **D-01 — `excludeFromReview` non è letto da nessuno. Alto.**
 Il campo è dichiarato in `src/types/program.ts:154`, con il commento che spiega
@@ -145,3 +153,74 @@ nel testo dell'atleta, e il percorso di fallback quando il modello non risponde
 (che è: mostrare il verdetto deterministico, nudo).
 
 **Costo oggi: zero.** Nessun modello da pagare, nessun budget da fissare.
+
+## 7. Testi di R5-R9 `[PROPOSTA, consigli 2.0 — 2026-11-14]`
+
+Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.1).
+
+**Revisione — verdetti nuovi.** Stato invariato, un pulsante «Ho capito» (come
+`range-da-rifare`), registrato `postponed` con `reviewDecisionId`.
+- `rifai-al-tempo-giusto` · leva `reps`. Titolo «<Esercizio>: rifai la settimana
+  al tempo giusto». Evidenza «<numeri> Tempo non rispettato in <n> sedute su
+  <m>.» Cambio «Niente cambia: stesso gradino, stesso peso. Si sale quando
+  chiudi il massimo al tempo della scheda, con un sì sul tempo in ogni seduta.»
+- `rispondi-sul-tempo` · leva `reps`. Titolo «<Esercizio>: manca la risposta sul
+  tempo». Evidenza «<numeri> Nessuna risposta sul tempo in <n> sedute su <m>.»
+  Cambio «Niente cambia. Senza un sì sul tempo la salita non si propone: a fine
+  seduta rispondi alla domanda sul tempo prescritto.»
+- `sali-di-livello` e `aggiungi-peso` perdono `cautelaTempo`: con R5 non nascono
+  più senza tempo confermato. La cautela del 30-40% resta.
+- `riparti-dal-test` (R9b) · leva `variant`, «Applica» / «Lascia com'è». Titolo
+  «Riparti dal livello <g>: <nome>». Evidenza «Test di rientro: <M> su <test>.
+  Sotto <soglia> il livello <L> non regge il range del blocco.» Cambio «Livello
+  <L> → <g>. Tempo e pause tornano a quelli della scheda.»
+
+**Revisione — elenchi senza verdetto.**
+- `pocheProve`: «Troppo pochi numeri per giudicare: <Esercizio> (<s> sedute,
+  <n> serie al livello <L>), … Per cambiare gradino o peso la revisione vuole
+  almeno 2 sedute e 3 serie complete dello stesso esercizio, allo stesso
+  livello, nella stessa settimana. Il riepilogo di fine seduta continua a
+  proporre le sue leve.»
+- `inAttesa`: «<Esercizio>: sopra il massimo su tutte le serie, ma sei al
+  livello <L> dal <inizio>. Un gradino ogni due settimane: il prossimo si può
+  proporre dal <dal>.»
+- `fermi` · scarico: «Settimana di scarico: niente aumenti, anche con il massimo
+  chiuso. Si riprende dopo lo scarico.» · rientro: «Sedute di rientro dopo la
+  pausa: niente aumenti finché non torni al volume pieno.»
+- `alMassimo`, per motivo: `tempo` «Massimo chiuso ma non superato: la prossima
+  leva è il tempo, e si decide a fine seduta.» · `settimana` =
+  `getLoadAvailability(…).explanation` · `soglia` = `assessLoadNeed(…).message`
+  + «Ultimo test: <M>.» · `nessun-test` «Per proporre la zavorra serve un test
+  di <test> registrato.» · `leve-finite` «Hai esaurito le leve su questo
+  esercizio: serve un cambio di programmazione, non un altro giro.» Il testo di
+  oggi («la variante non c'è o è finita») è falso sul caso 4b e va sostituito.
+- Nota in fondo, al posto di «meno di tre serie»: «Un esercizio con meno di 2
+  sedute o meno di 3 serie complete nella settimana non viene giudicato, e una
+  serie storta in mezzo a due buone non fa scendere di livello.»
+
+**Fine seduta — `blockedReason` e motivi nuovi.**
+- E3: «Per cambiare leva servono almeno 3 serie complete: oggi ne hai chiuse
+  <n>. Resta sulla leva 1.»
+- E4: «Settimana di scarico: niente aumenti, anche con il massimo chiuso. Stessa
+  difficoltà, metà delle serie.»
+- E5: «Seduta di rientro (<k> di 4): niente aumenti finché non torni al volume
+  pieno.»
+- R7 (`variant.reason`; `blockedReason` se non resta altra leva): «Un gradino
+  ogni due settimane: sei al livello <L> dal <inizio>, il prossimo si può
+  proporre dal <dal>.» Senza sedute chiuse al livello: «Sei appena arrivato al
+  livello <L>: il prossimo gradino si può proporre dal <dal>», con `dal =
+  draft.date + 14` se la seduta in corso è a quel livello, altrimenti «14 giorni
+  dopo la prima seduta chiusa a questo livello».
+- R6 (`load.reason`): «Prima la variante: la zavorra arriva dopo l'ultimo gradino
+  della scala.» · soglia e test come sopra.
+
+**Rientro (R9) — Home e player.**
+- Prima della seduta: «Sono passati <g> giorni dall'ultima seduta. Le prossime
+  <4> sedute sono ridotte: stessi esercizi, stesso ordine, <2> giri invece di
+  <3> nei tri-set e <1> invece di <2> nella finitura. Niente aumenti finché non
+  torni al volume pieno.» (giri letti dal piano, non scritti a mano).
+- Etichetta: «Rientro · seduta <k> di <4>».
+- Ritest (R9a): «Dopo la pausa rifai i test dei massimali, in un giorno senza
+  seduta, con 4-5 minuti fra un test e l'altro.» Con R9b: «Servono a controllare
+  che i gradini siano ancora quelli giusti.» Senza R9b: «I risultati restano
+  nello storico dei test.» Mai «l'app ricalcola» (M16).

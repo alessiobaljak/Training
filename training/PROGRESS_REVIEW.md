@@ -1,6 +1,8 @@
 # PROGRESS_REVIEW.md — analisi dei progressi
 
 Versione **progressi 1.0 — PROPOSTA del 2026-11-08, non approvata.**
+Aggiunta del 2026-11-14 `[PROPOSTA, progressi 2.0]`: **R8** evidenza minima per
+un verdetto (§6, soglia S4).
 Motore: `src/engine/metrics.ts`, `src/engine/history.ts`, `src/engine/review.ts`.
 Schermate: `src/ui/screens/ProgressScreen.tsx`, `ReviewScreen.tsx`, `LogScreen.tsx`.
 
@@ -55,7 +57,7 @@ prescrizioni restano sui numeri misurati.
 `[PROPOSTA]` Oggi la parola «stallo» non esiste nel codice. Definizione:
 
 Un esercizio è **in stallo** alla settimana `N` quando tutte queste sono vere:
-1. nelle settimane `N-2`, `N-1`, `N` ci sono almeno **3 serie registrate** per
+1. nelle settimane `N-2`, `N-1`, `N` ci sono almeno **3 serie vere** (§6) per
    settimana su quell'esercizio, nello stesso blocco o in blocchi con lo stesso
    range;
 2. gradino e zavorra sono **invariati** su tutte e tre;
@@ -114,5 +116,63 @@ metodo 16-20 (prioritario)»*.
    l'aderenza senza data di inizio è `null`, non 0%.
 6. La revisione non giudica ciò che non ha titolo per giudicare: blocchi senza
    range, blocchi a cedimento, attività a durata e **blocchi marcati
-   `excludeFromReview`** restano fuori. L'ultimo oggi non funziona: vedi
-   ADVICE §5 D-01, è il difetto più grave di tutta la catena dei consigli.
+   `excludeFromReview`** restano fuori. L'ultimo è in codice dal 2026-11-12
+   (`review.ts`, ADVICE D-01 chiuso).
+
+## 6. R8 — Quanto serve per un verdetto `[PROPOSTA, progressi 2.0 — 2026-11-14]`
+
+Attua S4 (approvata il 2026-11-12), chiude **M1** (caso 4d). Oggi
+`MIN_SETS_FOR_VERDICT = 3` conta le righe: 2 serie per lato di una seduta sola
+fanno 4 e bastano. Ingressi: `W`, `sessions`, `states`, `tests` (come oggi).
+
+- **Voce valida** per `e` in W: seduta `completed` con `week === W`; blocco
+  dichiarato trovato; `effectiveBlock(…).exercise === logged.exercise` (A10
+  resta aperto); `excludeFromReview !== true`; range con `max > 0`;
+  `sets.length > 0`; **stesso stato su cui si giudica**: se `e.pattern ≠ null`,
+  `logged.level === L.level`; se `loadPolicy ≠ 'forbidden'`, `max(loadKg)` della
+  voce `=== L.loadKg`. Numeri fatti a un altro gradino o a un altro carico non
+  dicono niente di quello attuale, e senza il filtro la revisione aggiungerebbe
+  una seconda salita o un secondo +2,5 kg sopra una leva già accettata a fine
+  seduta (S1, S2).
+- **`serieVere(voce)`** = numero di `setIndex` distinti per cui c'è una riga con
+  `side === null`, **oppure** ci sono sia `left` sia `right`. Una serie per lato
+  incompleta non conta e le sue righe non entrano nei valori.
+- **Valori** del verdetto: tutte le righe delle serie vere, i due lati ognuno col
+  suo valore (come oggi).
+- **`sedute(e)`** = `LoggedSession.id` distinti fra le voci valide.
+- **Verdetto possibile ⇔ `sedute ≥ 2` e `Σ serieVere ≥ 3`**, per **ogni**
+  verdetto, discesa compresa. `MIN_SETS_FOR_VERDICT` resta 3 ma conta serie
+  vere; nuovo `MIN_SESSIONS_FOR_VERDICT = 2`.
+- Sotto soglia: nessun verdetto; nuovo elenco **`pocheProve`** con nome, sedute
+  e serie al gradino attuale (testo: ADVICE §7). Compare se ha almeno una voce
+  che passa tutti i filtri tranne quello sullo stato; se non ne ha nessuna, non
+  compare.
+- `setsCounted` («N serie lette») = Σ serie vere delle voci valide, non righe.
+
+**Conseguenza sul programma attivo (DECISIONS D-16).** Ogni esercizio dei
+circuiti sta in un circuito solo. Con 4 sedute a settimana nessun esercizio ha
+2 sedute nella stessa settimana: R8 alla lettera rende la revisione muta, discesa
+compresa. Restano le leve di fine seduta (con R5-R7) e la discesa a mano.
+
+*Casi limite.* Tempo null: non conta qui (R5). perSide: sopra. Blocchi esclusi:
+né seduta né serie, mai in `pocheProve`. Solo eccentrici: nessun effetto (la
+voce si giudica al suo gradino). Scarico: le sedute contano (2 giri = 2 serie a
+seduta), gli aumenti li blocca R5. Ritest appena fatto: un test non è una
+seduta. Decisione registrata: `pendingVerdicts` filtra `(W, e)`; una leva
+accettata dopo la settimana cambia `L` e quelle voci escono. In corso e
+abbandonate: fuori.
+
+| # | ingresso | atteso |
+|---|---|---|
+| 8.1 | caso 4d: bulgarian `circuito-1/A2`, W=2, 1 seduta, serie 1-2 × sinistra/destra da 13 su 8-12 | nessun verdetto; `pocheProve` «1 seduta, 2 serie» |
+| 8.2 | 8.1 con 2 sedute, tempo sì, R7 soddisfatta | 4 serie vere: `sali-di-livello` 2→3 |
+| 8.3 | push-up, 1 seduta 19-19-19 | `pocheProve` (1 seduta) |
+| 8.4 | push-up, 2 sedute da 1 serie | `pocheProve` (2 serie) |
+| 8.5 | push-up gradino 2, 2 sedute: 9-9 e 9 su 12-18 | `scendi-di-livello` 2→1 |
+| 8.6 | bulgarian, 2 sedute: (1 S+D, 2 solo S) e (1 S+D) | 2 serie vere: `pocheProve`; la riga orfana fuori dai valori |
+| 8.7 | push-up, 2 sedute di cui una in corso | `pocheProve` |
+| 8.8 | push-up, 2 chiuse e 1 abbandonata, 3 serie | si giudica con 2 sedute |
+| 8.9 | kb-swing in F, 2 sedute × 2 giri | non giudicato, non in `pocheProve`, non in `setsCounted` |
+| 8.10 | trazioni, stato 3, voci di W al gradino 1 (2 sedute 9-9-9) | voci fuori: `pocheProve` «0 sedute al livello 3» |
+| 8.11 | curl a martello, 2 sedute a 10 kg, stato 12,5 kg (leva accettata) | voci fuori: nessun secondo +2,5 kg |
+| 8.12 | 8.2 | `setsCounted` = 4, non 8 |

@@ -13,6 +13,27 @@ ADVICE.md. Quella trascrizione **non cambia niente**: descrive.
 
 ## Voci aperte
 
+### progressione 2.0 · progressi 2.0 · consigli 2.0 · programmi 2.1 · limiti 1.2
+- **Data.** 2026-11-14
+- **Stato.** PROPOSTA, specifica pronta da implementare. Nessun file di `src/`
+  toccato. Soglie di riferimento **approvate** (S1, S3-S6, 2026-11-12).
+- **Cosa.** R5 una regola di avanzamento per revisione e fine seduta (tempo `===
+  true` su tutte le sedute, 3 serie vere, niente aumenti in scarico e in
+  rientro; verdetti `rifai-al-tempo-giusto`, `rispondi-sul-tempo`). R6 zavorra
+  solo a variante esaurita e con test ≥ 8 trazioni / 10 dip, anche a fine seduta.
+  R7 un gradino eseguibile ogni 14 giorni dalla prima seduta al gradino attuale.
+  R8 2 sedute e 3 serie vere per un verdetto, voci solo allo stato attuale
+  (gradino e carico). R9 rientro dopo ≥ 14 giorni: 4 sedute e ≥ 7 giorni a giri
+  dimezzati, tutte le stazioni, ritest proposto; R9b ritest che può solo far
+  scendere. L9 allineato: 7 → 14 giorni sui gradini, 21 → 14 sul rientro.
+  Sostituiti T1 (sui gradini), T2, T3, T4. La parte di T1 sulle altre leve resta
+  proposta: **nessun limite allentato** senza decisione.
+- **Perché.** A2, A3, A4, M1, M4 Bloccanti per decisione di Alessio (2026-11-12).
+- **Strutturali (major).** Verdetti ed elenchi nuovi; ingressi nuovi (`today`,
+  storico delle sedute, stato di rientro); conteggio delle serie cambiato.
+- **Esito training-quality.** Non ancora valutato. Casi 4a-4c da portare a due
+  sedute nella stessa settimana.
+
 ### programmi 2.0 · progressione 1.1 · metodo 1.1 · progressi 1.1 · schema 1.1 · limiti 1.1
 - **Data.** 2026-11-12
 - **Stato.** PROPOSTA. Nessun file di `src/` toccato.

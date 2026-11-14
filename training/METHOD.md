@@ -110,6 +110,8 @@ schermata lo dice una volta e non lo ripropone.
 
 `[IN CODICE]` Settimane **6, 12, 18**: stessa difficoltà, metà delle serie
 (`effectiveSets`, minimo 1). Ritest dei massimali a fine settimana 6 e 12.
+`[PROPOSTA]` Rientro dopo ≥ 14 giorni di pausa: stessa formula per 4 sedute e
+almeno 7 giorni, ritest proposto (PROGRAM_RULES §8, R9).
 **Difetto noto:** quel calendario è importato da `src/data/program.ts`, che è il
 programma archiviato, e il banner del ritest promette di ricalcolare i range —
 cosa che sotto il programma attivo non può avvenire, perché nessun blocco dei

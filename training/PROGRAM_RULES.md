@@ -150,7 +150,8 @@ inverted-row-trx, pike-push-up, bulgarian-split-squat, hollow-hold.
 
 `[IN CODICE]`
 - Serie: dal dato del blocco; nelle settimane di deload (6, 12, 18) si
-  dimezzano con minimo 1 (`effectiveSets`).
+  dimezzano con minimo 1 (`effectiveSets`). `[PROPOSTA]` Stessa formula nelle
+  sedute di rientro (§8, R9), una volta sola se coincidono.
 - Ripetizioni: range fisso nei circuiti; `round(max × 0,55)`-`round(max × 0,75)`
   dove la prescrizione è `reps-from-test` (solo nel programma archiviato).
 - Durata minima di serie: `workSeconds`, oppure calcolata da TUT × minimo del
@@ -204,3 +205,85 @@ box o panca non ha nessuna via.
 - Nessun esercizio fuori dal catalogo approvato.
 - Nessuna immagine generata a runtime: solo `src/assets/`.
 - Nessun numero di questo file nasce da un testo scritto dall'atleta.
+
+## 8. R9 — Rientro dopo una pausa `[PROPOSTA, programmi 2.1 — 2026-11-14]`
+
+Attua S6 (approvata il 2026-11-12), chiude **M4** (scenario S3 di quality,
+`05`). Notazione e R5: PROGRESSION_RULES §9. Oggi `rotation.ts` calcola
+`daysSince` e non lo usa per niente: dopo 20 giorni la seduta è identica.
+
+**Ingressi**: `oggi`, `chiuse` (sedute `completed` di qualunque programma, in
+ordine `(date, id)`), `TestResult`.
+- **Ancora**: una seduta chiusa `A` preceduta da una chiusa `P` con
+  `daysBetween(P.date, A.date) ≥ 14`; `inizioPausa = P.date`. La prima seduta
+  in assoluto non è un'ancora.
+- `rientro(oggi, chiuse)`: (1) nessuna chiusa ⇒ pieno; (2)
+  `daysBetween(ultima.date, oggi) ≥ 14` ⇒ **ridotta**, posizione 1 (la seduta
+  di oggi sarà l'ancora); (3) `A` = ancora più recente, nessuna ⇒ pieno; (4)
+  `k` = chiuse da `A` compresa: **ridotta ⇔ `k < 4` oppure
+  `daysBetween(A.date, oggi) ≤ 6`**, posizione `k + 1`. 4 =
+  `CIRCUIT_ORDER.length`: un giro di rotazione, ogni esercizio una volta.
+- Una seduta chiusa `s` è ridotta se `rientro(s.date, chiuse prima di s)` lo
+  dice. Derivato dalle date: nessun campo nuovo nel database.
+
+**Volume ridotto nel circuito.**
+- **Giri**: ogni gruppo `max(1, round(giri / 2))`, la formula dello scarico:
+  tri-set A e B 3 → 2, finitura 2 → 1, decompressione 1 → 1. Serie per
+  stazione = giri. Passi di lavoro per seduta **29 → 19** (A 9→6, B 9→6, F 8→4,
+  Z 3→3); serie dei tri-set 18 → 12.
+- **Stazioni**: tutte, nell'ordine della trascrizione. Nessuna tolta.
+- **Invariati**: esercizi, gradini, range, TUT, RIR, recuperi, riscaldamento con
+  il giro di prova. Il volume è il problema di chi rientra, non il gradino.
+- Scarico e rientro insieme: si dimezza **una volta**.
+- Nessun aumento (R5 E5); la discesa resta permessa.
+- Piano guidato, riepilogo («N serie su M»), Progressi (R3): stesse serie ridotte.
+
+**Fine**: alla prima seduta che `rientro` dice piena, cioè dopo **4 sedute
+chiuse dall'ancora e non prima del giorno A+7**. Più lunga di una settimana solo
+per chi si allena meno di 4 volte in 7 giorni: più prudente, non meno.
+**Rotazione**: invariata. La prossima resta `sessionAfter(ultima chiusa)`; con 4
+ridotte in ordine, ogni circuito ne ha una. Il numero di settimana resta di
+calendario (M6, DECISIONS D-17).
+
+**R9a — Ritest proposto.** Scheda in Home visibile ⇔ esiste un'ancora `A` con
+≥ 2 sedute chiuse da `A`; nessuna seduta piena chiusa dopo `A`; nessun
+`TestResult` con `date > inizioPausa`; nessuna seduta chiusa con data `oggi` (un
+massimale dopo una seduta misura la fatica). Test: quelli richiesti da R4. Non
+blocca niente; senza test sparisce alla prima seduta piena. In settimana 6 o 12
+un ritest vale per entrambi i banner.
+**R9b — Effetto del ritest (separabile, DECISIONS D-18).** Per gli esercizi in
+cui R1 arriva alla riga 8, con `M` del ritest: `0 < M < soglia` e `L > giù(Lt)`
+⇒ proposta `riparti-dal-test` L → `giù(Lt)`, bonus a 0; `M = 0` ⇒ verso il
+primo gradino eseguibile, se L è sopra; `M ≥ soglia` ⇒ niente. **Mai una
+salita.** Decisione `rientro-<A.date>:<slug>`. Senza R9b la scheda non dice che
+i gradini si ricontrollano (M16).
+
+*Casi limite.* Tempo null: non serve. perSide: si dimezzano i giri, i lati
+restano due. Blocchi esclusi: la finitura scende a 1 giro, la decompressione
+resta. Solo eccentrici: nessun effetto. Scarico: una riduzione sola. Ritest
+appena fatto: la scheda sparisce, la riduzione resta (il volume è tolleranza,
+non capacità). Decisione registrata: nelle ridotte non ci sono leve. Seduta in
+corso o abbandonata: non interrompe la pausa e non conta fra le 4. Bozza: si
+giudica su `draft.date`.
+
+Base: ultima chiusa `circuito-2` il 2026-03-02.
+
+| # | ingresso | atteso |
+|---|---|---|
+| 9.1 | oggi 03-15 (13 giorni) | piena, nessuna scheda |
+| 9.2 | oggi 03-16 (14) | ridotta 1 di 4, `circuito-3`; giri 2 / 2 / 1 / 1; 19 passi |
+| 9.3 | chiuse 03-16, 03-18, 03-20, 03-21 | tutte ridotte |
+| 9.4 | 5ª il 03-23 | piena |
+| 9.5 | una al giorno dal 03-16 al 03-20 | 5 ridotte; la 6ª il 03-23 piena |
+| 9.6 | 03-16 poi 03-29 (13) | 03-29 ridotta 2 di 4 |
+| 9.7 | 03-16 poi 03-31 (15) | nuova ancora, ridotta 1 di 4 |
+| 9.8 | rientro in settimana 6 | 3→2, 2→1, una volta |
+| 9.9 | bozza del 03-05 mai chiusa, oggi 03-16 | ridotta |
+| 9.10 | fine di una ridotta, 11-11-11, sì | nessuna leva, testo rientro |
+| 9.11 | revisione con voci da ridotte, tutte sopra | nessun aumento; tutte sotto: discesa |
+| 9.12 | chiuse 03-16 e 03-18, oggi 03-19 | scheda ritest visibile |
+| 9.13 | 9.12 più una seduta chiusa il 03-19 | scheda non visibile quel giorno |
+| 9.14 | test il 03-19 | scheda via; il 03-20 resta ridotta |
+| 9.15 | nessun test, 5ª seduta (piena) chiusa | scheda via |
+| 9.16 | prima seduta in assoluto | piena |
+| 9.17 | R9b trazioni: L=3 M=5 · L=3 M=9 · L=5 M=9 · L=1 M=5 | 3→1 · niente · niente · niente |

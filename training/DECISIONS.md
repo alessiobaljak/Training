@@ -36,10 +36,29 @@ né soglie per loro, e dichiararli supportati senza averle sarebbe falso.
 (principiante/intermedio/avanzato con mediana dei gradini), usato **solo** per
 decidere cosa l'app ha diritto di proporre? Senza, il limite L8 non è esprimibile.
 
-**D-4 · Soglie di progressione.** Confermi i cinque tetti mancanti di
-PROGRESSION_RULES §6 così come sono scritti: 1 aumento per esercizio ogni 7
-giorni, 1 gradino alla volta, +2,5 kg a settimana, nessuna salita senza tempo
-confermato, nessun aumento al rientro da ≥ 21 giorni?
+**D-4 · Soglie di progressione.** *Decisa in gran parte il 2026-11-12* (S1-S10
+approvate: R5-R9 le attuano). Resta solo T1 sulle leve diverse dal gradino:
+**un aumento di tempo, pausa o carico per esercizio ogni 7 giorni**, sì o no?
+
+**D-16 · R8 e il circuito: la revisione settimanale diventa muta (2026-11-14).**
+Ogni esercizio sta in un circuito solo; con 4 sedute a settimana nessun
+esercizio ha 2 sedute nella stessa settimana. S4 alla lettera (R8, che ho
+scritto così) ⇒ nessun verdetto sul programma attivo, **discesa compresa**:
+restano le leve di fine seduta (con R5-R7) e la discesa a mano. Alternativa
+pronta: al posto della settimana di calendario, **le ultime 2 sedute chiuse
+dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni**.
+È una lettura di S4, come quella approvata per S1: serve il tuo ok e quello di
+training-quality. Fino ad allora vale la lettera.
+
+**D-17 · Settimana del programma dopo una pausa (M6).** Il numero di settimana
+è di calendario: chi si ferma 3 settimane in settimana 3 rientra in settimana 6,
+e lo scarico di calendario cade sulle sedute già ridotte di R9 (si dimezza una
+volta sola: lo scarico vero va perso). Sposti la data di inizio della durata
+della pausa, o resta il calendario?
+
+**D-18 · R9b, effetto del ritest.** Il ritest di rientro può proporre di
+**scendere** di gradino (mai salire) dove R1 dice che il massimale non regge il
+range. Lo vuoi? E lo stesso ai ritest di settimana 6 e 12 (chiuderebbe M16)?
 
 **D-5 · Questionario di idoneità.** PAR-Q+ nella sua forma standard, o una
 versione corta a sette domande? E: resta saltabile per te, con la scelta

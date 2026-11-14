@@ -186,16 +186,24 @@ attuale>.»*
 **Verifica.** Test: per ogni combinazione di livello e attrezzatura, nessun piano
 contiene esercizi fuori perimetro. Nel nucleo di sicurezza.
 
-## L9 — Tetti di progressione
+## L9 — Tetti di progressione (= S1-S6, approvate il 2026-11-12) — limiti 1.2
 
-**Regola.** Un solo aumento di difficoltà per esercizio ogni 7 giorni; mai più
-di un gradino alla volta; mai più di +2,5 kg a settimana; nessuna salita di
-gradino senza tempo confermato; nessun aumento al rientro da ≥ 21 giorni di
-pausa. Dettaglio e soglie: PROGRESSION_RULES §6, T1-T4.
-**Stato oggi.** Nessuno dei cinque tetti esiste. Tre aumenti di gradino in una
-settimana sono accettabili (ADVICE D-02).
-**Verifica.** Test sulle `suggestions` registrate: nessuna sequenza di decisioni
-accettate può produrre più di un aumento in 7 giorni per esercizio.
+**Regola.** (S1) Un gradino **eseguibile** per esercizio ogni **2 settimane**:
+14 giorni dalla prima seduta chiusa al gradino attuale, uno alla volta (R7).
+(S2) Mai più di +2,5 kg per esercizio a settimana. (S3) Nessun aumento senza
+`tempoRespected === true` su tutte le sedute considerate (R5). (S4) Nessun
+verdetto con meno di 2 sedute e 3 serie vere (R8). (S5) Zavorra solo a variante
+esaurita e mai sotto 8 trazioni o 10 dip misurati (R6). (S6) Dopo **≥ 14
+giorni** senza sedute chiuse: 4 sedute (e almeno 7 giorni) a giri dimezzati,
+nessun aumento, ritest proposto (R9). Scendere è sempre permesso.
+Dettaglio: PROGRESSION_RULES §9, PROGRESS_REVIEW §6, PROGRAM_RULES §8.
+Proposta a parte, **non approvata**: un aumento di tempo, pausa o carico per
+esercizio ogni 7 giorni (T1, DECISIONS D-4).
+**Stato oggi.** Rispettata solo S2. A2, A3, A4, M1, M4: Bloccanti dal 2026-11-12.
+**Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nella stessa settimana**
+(con una sola li chiude R8 e R5-R7 restano non verificate), 4d com'è, più un
+caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni
+accettate produce due prime sedute a gradini successivi a meno di 14 giorni.
 
 ## L10 — Mai promettere risultati
 
@@ -281,7 +289,8 @@ immagini. Non cambia un numero perché l'atleta l'ha chiesto a parole.
 ## Priorità per l'uso pubblico
 
 Bloccanti prima del secondo utente: **L1, L2, L13, L11, L12**.
-Subito dopo: **L8** (richiede EXERCISE_SCHEMA §2), **L9**, **L7**, **L14**.
+Subito dopo: **L8** (richiede EXERCISE_SCHEMA §2), **L7**, **L14**.
+**L9 blocca già oggi**, con un solo utente (decisione di Alessio, 2026-11-12).
 Già in parte rispettati e da proteggere con un test: **L6, L10, L12**.
 Il contorno legale — informativa, consenso sui dati sanitari, termini,
 cancellazione — è in `compliance/PENDING.md` e non è mio.
