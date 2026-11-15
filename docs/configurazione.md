@@ -249,7 +249,10 @@ appena `npm run verify` passa: anche con un NO-GO di `release-gate`, anche
 senza il tuo ok.
 
 Controlla su Vercel: **Settings > Environments > Production > Branch
-Tracking**.
+Tracking**. Al 2026-11-14 c'è proprio quel ramo, con l'assegnazione automatica
+accesa: ogni push è un rilascio. Il 2026-11-15 Alessio ha deciso di tenerlo
+così per ora; prima di ogni push si eseguono verify, smoke e offline, perché
+Vercel esegue solo verify.
 
 Qualunque ramo ci sia scritto, la protezione è la stessa: nella stessa
 sezione spegni **Auto-assign Custom Production Domains**. Da quel momento ogni
