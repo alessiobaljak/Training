@@ -11,7 +11,7 @@ Ordine obbligato: W-19 → W-20 → W-21 → W-22 → W-23 (PROGRESSION_RULES §
 
 | id | cosa | dove | chi |
 |---|---|---|---|
-| W-19 | R8 serie vere, 2 sedute, voci allo stato attuale (M1) | `review.ts`, `ReviewScreen.tsx` | sessione principale |
+| W-19 | R8 rev. 2026-11-15: ultime 2 sedute allo stato attuale nei 14 giorni fino a `fine(W)`, serie vere, `weekEnd`, `rimandati`, stati della revisione (M1, D-16) | `review.ts`, `schedule.ts`, `ReviewScreen.tsx`, `HomeScreen.tsx` | sessione principale |
 | W-20 | R5 cancello unico, verdetti sul tempo, scarico (A2) | `progression.ts`, `review.ts`, `SessionSummary.tsx` | sessione principale |
 | W-21 | R6 variante prima del carico, soglia del test anche a fine seduta (A3) | `review.ts`, `progression.ts`, `SessionSummary.tsx` | sessione principale |
 | W-22 | R7 un gradino ogni 14 giorni (A4; assorbe D-02 e W-18) | `review.ts`, `progression.ts`, `ReviewScreen.tsx` | sessione principale |
@@ -40,7 +40,7 @@ Ordine obbligato: W-19 → W-20 → W-21 → W-22 → W-23 (PROGRESSION_RULES §
 
 | id | cosa |
 |---|---|
-| D-05 | `reviewWeek` mescola serie di blocchi con range diversi sullo stesso slug: latente oggi, basta un blocco nuovo |
+| D-05 | `reviewWeek` mescola serie di blocchi con range diversi sullo stesso slug: latente oggi. Lo chiude R8 rev. 2026-11-15 (stesso range nella coppia) quando W-19 è in codice |
 | D-06 | Due `variantNote` parlano di silhouette e «vita sottile» in un'app che misura la circonferenza vita |
 | W-05 | Record personali (PROGRESS_REVIEW §3): non esistono |
 | W-06 | 25 esercizi su 56 hanno `pattern: null`: nessuna regressione, nessuna progressione, nessuna via d'uscita |

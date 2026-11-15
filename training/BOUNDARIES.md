@@ -191,17 +191,17 @@ contiene esercizi fuori perimetro. Nel nucleo di sicurezza.
 **Regola.** (S1) Un gradino **eseguibile** per esercizio ogni **2 settimane**:
 14 giorni dalla prima seduta chiusa al gradino attuale, uno alla volta (R7).
 (S2) Mai più di +2,5 kg per esercizio a settimana. (S3) Nessun aumento senza
-`tempoRespected === true` su tutte le sedute considerate (R5). (S4) Nessun
-verdetto con meno di 2 sedute e 3 serie vere (R8). (S5) Zavorra solo a variante
-esaurita e mai sotto 8 trazioni o 10 dip misurati (R6). (S6) Dopo **≥ 14
-giorni** senza sedute chiuse: 4 sedute (e almeno 7 giorni) a giri dimezzati,
-nessun aumento, ritest proposto (R9). Scendere è sempre permesso.
+`tempoRespected === true` su tutte le sedute considerate (R5). (S4) Verdetto
+solo su ≥ 2 sedute e ≥ 3 serie vere: le ultime 2, stesso stato, nei 14 giorni
+(R8, D-16). (S5) Zavorra solo a variante esaurita e mai sotto 8 trazioni o 10
+dip misurati (R6). (S6) Dopo **≥ 14 giorni** senza sedute chiuse: 4 sedute (≥ 7
+giorni) a giri dimezzati, nessun aumento, ritest proposto (R9). Si scende sempre.
 Dettaglio: PROGRESSION_RULES §9, PROGRESS_REVIEW §6, PROGRAM_RULES §8.
 Proposta a parte, **non approvata**: un aumento di tempo, pausa o carico per
 esercizio ogni 7 giorni (T1, DECISIONS D-4).
 **Stato oggi.** Rispettata solo S2. A2, A3, A4, M1, M4: Bloccanti dal 2026-11-12.
-**Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nella stessa settimana**
-(con una sola li chiude R8 e R5-R7 restano non verificate), 4d com'è, più un
+**Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre
+barriere aperte (rapporto 2026-11-15), 4d con controlli positivi, più un
 caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni
 accettate produce due prime sedute a gradini successivi a meno di 14 giorni.
 

@@ -62,7 +62,7 @@ nessuna leva tirabile dalla revisione).
 
 `[PROPOSTA]` Verdetti nuovi: `stallo` (PROGRESS_REVIEW §4);
 `rifai-al-tempo-giusto` e `rispondi-sul-tempo` (R5); `riparti-dal-test` (R9b).
-Elenchi nuovi: `pocheProve` (R8), `inAttesa` (R7), `fermi` (R5 E4-E5);
+Elenchi nuovi: `pocheProve` e `rimandati` (R8), `inAttesa` (R7), `fermi` (R5 E4-E5);
 `alMassimo` prende un motivo (R6). Testi: §7.
 
 ## 4. Forma del consiglio e cosa cambia accettandolo
@@ -160,14 +160,17 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
 
 **Revisione — verdetti nuovi.** Stato invariato, un pulsante «Ho capito» (come
 `range-da-rifare`), registrato `postponed` con `reviewDecisionId`.
-- `rifai-al-tempo-giusto` · leva `reps`. Titolo «<Esercizio>: rifai la settimana
-  al tempo giusto». Evidenza «<numeri> Tempo non rispettato in <n> sedute su
-  <m>.» Cambio «Niente cambia: stesso gradino, stesso peso. Si sale quando
-  chiudi il massimo al tempo della scheda, con un sì sul tempo in ogni seduta.»
+- **`<numeri>`** (rev. 2026-11-15, R8), in ogni verdetto al posto di «Settimana
+  N: …»: «Ultime due sedute al livello <L>[, <kg> kg]: <giorno b> <valori b> ·
+  <giorno a> <valori a>, su un range di <range>.» Giorni con `formatDayLong`.
+- `rifai-al-tempo-giusto` · leva `reps`. Titolo «<Esercizio>: rifai al tempo
+  giusto». Evidenza «<numeri> Tempo non rispettato <giorni con il no>.» Cambio
+  «Niente cambia: stesso gradino, stesso peso. Si sale quando chiudi il massimo
+  al tempo della scheda, con un sì sul tempo nelle ultime due sedute.»
 - `rispondi-sul-tempo` · leva `reps`. Titolo «<Esercizio>: manca la risposta sul
-  tempo». Evidenza «<numeri> Nessuna risposta sul tempo in <n> sedute su <m>.»
-  Cambio «Niente cambia. Senza un sì sul tempo la salita non si propone: a fine
-  seduta rispondi alla domanda sul tempo prescritto.»
+  tempo». Evidenza «<numeri> Nessuna risposta sul tempo <giorni>.» Cambio «Niente
+  cambia. Senza un sì sul tempo in tutte e due le sedute la salita non si
+  propone: a fine seduta rispondi alla domanda sul tempo prescritto.»
 - `sali-di-livello` e `aggiungi-peso` perdono `cautelaTempo`: con R5 non nascono
   più senza tempo confermato. La cautela del 30-40% resta.
 - `riparti-dal-test` (R9b) · leva `variant`, «Applica» / «Lascia com'è». Titolo
@@ -176,17 +179,28 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   <L> → <g>. Tempo e pause tornano a quelli della scheda.»
 
 **Revisione — elenchi senza verdetto.**
-- `pocheProve`: «Troppo pochi numeri per giudicare: <Esercizio> (<s> sedute,
-  <n> serie al livello <L>), … Per cambiare gradino o peso la revisione vuole
-  almeno 2 sedute e 3 serie complete dello stesso esercizio, allo stesso
-  livello, nella stessa settimana. Il riepilogo di fine seduta continua a
-  proporre le sue leve.»
+- `pocheProve` (rev. 2026-11-15): «Troppo pochi numeri per giudicare:
+  <Esercizio> (<s> sedute, <n> serie al livello <L>[ con <kg> kg]), … La
+  revisione giudica le ultime due sedute di un esercizio se sono allo stesso
+  livello e carico, cadono entrambe fra <dal> e <al> e hanno almeno 3 serie
+  complete in tutto. Il riepilogo di fine seduta continua a proporre le sue
+  leve.»
+- `rimandati`: «<Esercizio>: l'hai già rifatto <giorno>. Lo giudica la
+  revisione della settimana prossima, con le ultime due sedute.»
+- Stato `in-corso`: «La settimana <N> chiude <giorno fine(N)>: la revisione si
+  apre il giorno dopo.» · `scaduta`: «Questa revisione si poteva decidere fino a
+  <giorno fine(N)+7>. I numeri nuovi sono nella revisione dell'ultima settimana
+  chiusa.» con il pulsante verso quella. Nessun verdetto, nessun elenco.
+- Sottotitolo: «<k> sedute in settimana · <m> serie lette dal <dal> al <al>».
 - `inAttesa`: «<Esercizio>: sopra il massimo su tutte le serie, ma sei al
   livello <L> dal <inizio>. Un gradino ogni due settimane: il prossimo si può
   proporre dal <dal>.»
-- `fermi` · scarico: «Settimana di scarico: niente aumenti, anche con il massimo
-  chiuso. Si riprende dopo lo scarico.» · rientro: «Sedute di rientro dopo la
-  pausa: niente aumenti finché non torni al volume pieno.»
+- `fermi` · scarico (W o W+1 di scarico): «Settimana di scarico: niente aumenti,
+  anche con il massimo chiuso. Si riprende dopo lo scarico.» · scarico nella
+  coppia (solo una seduta lo è): «Una delle due sedute lette è di scarico
+  (<giorno>): niente aumenti da quei numeri. Si riprende con due sedute piene.»
+  · rientro: «Sedute di rientro dopo la pausa: niente aumenti finché non torni
+  al volume pieno.»
 - `alMassimo`, per motivo: `tempo` «Massimo chiuso ma non superato: la prossima
   leva è il tempo, e si decide a fine seduta.» · `settimana` =
   `getLoadAvailability(…).explanation` · `soglia` = `assessLoadNeed(…).message`
@@ -194,9 +208,14 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   di <test> registrato.» · `leve-finite` «Hai esaurito le leve su questo
   esercizio: serve un cambio di programmazione, non un altro giro.» Il testo di
   oggi («la variante non c'è o è finita») è falso sul caso 4b e va sostituito.
-- Nota in fondo, al posto di «meno di tre serie»: «Un esercizio con meno di 2
-  sedute o meno di 3 serie complete nella settimana non viene giudicato, e una
-  serie storta in mezzo a due buone non fa scendere di livello.»
+- Nota in fondo, al posto di «meno di tre serie» (rev. 2026-11-15): «Ogni
+  esercizio si giudica sulle sue ultime due sedute chiuse, se sono allo stesso
+  livello e carico, cadono fra <dal> e <al> e hanno almeno 3 serie complete in
+  tutto. Una serie storta in mezzo a due buone non fa scendere di livello.»
+- «Niente da cambiare per la settimana prossima… stanno dove devono stare» solo
+  se non ci sono verdetti aperti **e** `pocheProve`, `rimandati`, `fermi`,
+  `inAttesa` sono vuoti; altrimenti «Nessun cambio da decidere.» e gli elenchi.
+  In W1 tutti finiscono in `pocheProve`: il testo di oggi sarebbe falso.
 
 **Fine seduta — `blockedReason` e motivi nuovi.**
 - E3: «Per cambiare leva servono almeno 3 serie complete: oggi ne hai chiuse

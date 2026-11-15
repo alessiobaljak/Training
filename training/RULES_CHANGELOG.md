@@ -31,8 +31,16 @@ ADVICE.md. Quella trascrizione **non cambia niente**: descrive.
 - **Perché.** A2, A3, A4, M1, M4 Bloccanti per decisione di Alessio (2026-11-12).
 - **Strutturali (major).** Verdetti ed elenchi nuovi; ingressi nuovi (`today`,
   storico delle sedute, stato di rientro); conteggio delle serie cambiato.
-- **Esito training-quality.** Non ancora valutato. Casi 4a-4c da portare a due
-  sedute nella stessa settimana.
+- **Revisione 2026-11-15 (D-16 decisa da Alessio).** R8 riscritta: le ultime 2
+  sedute chiuse allo stesso gradino e carico, entrambe nei 14 giorni che
+  chiudono la settimana rivista (`weekEnd`); stati `in-corso`/`aperta`/`scaduta`;
+  elenco `rimandati`; stesso range nella coppia. Allineati R5 E1-E5 (E4 sulla
+  coppia: nessun aumento da una seduta di scarico della settimana prima), base
+  di 5.x/6.x, 7.11-7.12, nuovi 5.13-5.15 e 8.13-8.28; testi ADVICE §7; L9.
+  S4 invariata nei numeri. **Fine seduta invariata.** Resta 2.0: la versione non
+  è mai stata rilasciata.
+- **Esito training-quality.** Non ancora valutato, lettura di S4 compresa. Casi
+  4a-4d da riscrivere con date e barriere aperte (rapporto 2026-11-15).
 
 ### programmi 2.0 · progressione 1.1 · metodo 1.1 · progressi 1.1 · schema 1.1 · limiti 1.1
 - **Data.** 2026-11-12

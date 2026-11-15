@@ -17,6 +17,7 @@ quelle che spettano ad Alessio e bloccano il lavoro.
 | P-8 | Solo immagini approvate, nel bundle. Nessuna generazione in produzione. | `CLAUDE.md` |
 | P-9 | Nessun URL di video nel codice: solo `videoQuery`. | `check:no-video-urls` |
 | P-10 | La schermata delle misure non ha obiettivi di peso né azioni suggerite. | `src/ui/screens/MeasuresScreen.tsx` |
+| D-16 | **Decisa da Alessio il 2026-11-15** (alternativa): per un verdetto della revisione contano le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni, non la settimana di calendario. S4 non si allenta (≥ 2 sedute, ≥ 3 serie vere). Finestra ancorata alla fine della settimana rivista. Manca l'esito di training-quality sulla lettura di S4. | PROGRESS_REVIEW §6, rapporto `reports/2026-11-15-training.md` |
 
 ## Da decidere — spettano ad Alessio
 
@@ -40,21 +41,13 @@ decidere cosa l'app ha diritto di proporre? Senza, il limite L8 non è esprimibi
 approvate: R5-R9 le attuano). Resta solo T1 sulle leve diverse dal gradino:
 **un aumento di tempo, pausa o carico per esercizio ogni 7 giorni**, sì o no?
 
-**D-16 · R8 e il circuito: la revisione settimanale diventa muta (2026-11-14).**
-Ogni esercizio sta in un circuito solo; con 4 sedute a settimana nessun
-esercizio ha 2 sedute nella stessa settimana. S4 alla lettera (R8, che ho
-scritto così) ⇒ nessun verdetto sul programma attivo, **discesa compresa**:
-restano le leve di fine seduta (con R5-R7) e la discesa a mano. Alternativa
-pronta: al posto della settimana di calendario, **le ultime 2 sedute chiuse
-dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni**.
-È una lettura di S4, come quella approvata per S1: serve il tuo ok e quello di
-training-quality. Fino ad allora vale la lettera.
-
 **D-17 · Settimana del programma dopo una pausa (M6).** Il numero di settimana
 è di calendario: chi si ferma 3 settimane in settimana 3 rientra in settimana 6,
 e lo scarico di calendario cade sulle sedute già ridotte di R9 (si dimezza una
 volta sola: lo scarico vero va perso). Sposti la data di inizio della durata
-della pausa, o resta il calendario?
+della pausa, o resta il calendario? *Da D-16 (2026-11-15)*: se sposti la data,
+R8 legge la finestra sulle date e «chi compare» su `session.week`: va deciso
+anche se il `week` delle sedute passate si riscrive, o resta quello di allora.
 
 **D-18 · R9b, effetto del ritest.** Il ritest di rientro può proporre di
 **scendere** di gradino (mai salire) dove R1 dice che il massimale non regge il

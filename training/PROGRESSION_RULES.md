@@ -5,18 +5,16 @@ Aggiunta del 2026-11-12 `[PROPOSTA, progressione 1.1]`: salto dei gradini solo
 eccentrici nei range fissi (§5, T2). Gradino di partenza: PROGRAM_RULES R1.
 Aggiunta del 2026-11-14 `[PROPOSTA, progressione 2.0]`: **R5, R6, R7, R9** (§9),
 che attuano le soglie S1, S3, S5, S6 approvate il 2026-11-12. R8 (S4):
-PROGRESS_REVIEW §6.
+PROGRESS_REVIEW §6, **riscritta il 2026-11-15** (D-16: ultime 2 sedute, 14
+giorni); qui allineate solo le parti di revisione. Fine seduta invariata.
 Motore: `src/engine/progression.ts` (fine seduta), `src/engine/review.ts`
 (fine settimana), `src/engine/loading.ts` (zavorra).
 
-Ogni soglia qui è un numero, non un giudizio. Dove c'è `[PROPOSTA]` la regola
-oggi non esiste.
+Ogni soglia è un numero, non un giudizio; `[PROPOSTA]` = la regola oggi non c'è.
 
 ## 1. Condizione di avanzamento (fine seduta)
 
-`[IN CODICE]` `evaluateProgression`
-
-Avanza **solo se entrambe** sono vere:
+`[IN CODICE]` `evaluateProgression`. Avanza **solo se entrambe** sono vere:
 - `ripetizioni ≥ massimo del range` su **tutte** le serie registrate;
 - `tempoRespected === true`, risposto esplicitamente.
 
@@ -70,10 +68,9 @@ Tempo e pause restano elencate ma dichiarate scavalcate, con il motivo.
 
 ## 5. Verdetti di fine settimana
 
-`[IN CODICE]` `reviewWeek`, su esercizio, con almeno **3 serie** nella settimana
-(`MIN_SETS_FOR_VERDICT`, che oggi conta le **righe**: R8 la corregge) e un range
-confrontabile. Con R5-R8 la tabella resta, ma ogni aumento passa dal cancello
-di R5, la salita da R7, il peso da R6:
+`[IN CODICE]` `reviewWeek`, con almeno **3 serie** nella settimana (oggi conta
+le **righe**; R8: coppia delle ultime 2 sedute, serie vere) e un range
+confrontabile. Con R5-R8 ogni aumento passa da R5, la salita da R7, il peso da R6:
 
 | verdetto | condizione | effetto accettando |
 |---|---|---|
@@ -96,16 +93,14 @@ TUT 3-0-1-0 non sono eseguibili. Fuori dai range fissi ±1 resta letterale.
 passo zavorra 2,5 kg · zavorra solo da settimana 3 e solo in whitelist.
 
 `[PROPOSTA]` T1-T4 della 1.0 **sostituiti** (§9): gradini → R7, T3 → R5, T4 →
-R9 (14 giorni, non 21). Resta proposta, non approvata, la parte di T1 sulle
-altre leve: un aumento di tempo, pausa o carico ogni 7 giorni (DECISIONS D-4).
-In discesa non c'è tetto.
+R9 (14 giorni). Resta proposta la parte di T1 sulle altre leve: un aumento di
+tempo, pausa o carico ogni 7 giorni (D-4). In discesa non c'è tetto.
 
 ## 7. Quando si tiene fermo
 
 - Numeri dentro il range: si tiene. Nessun messaggio, nessuna azione.
 - Tempo non risposto: si tiene e si chiede la risposta.
-- Settimana di deload: nessun aumento. **Non è in codice** (nessun file del
-  motore legge `DELOAD_WEEKS`, 2026-11-14): diventa R5 E4.
+- Settimana di deload: nessun aumento (R5 E4; a fine seduta in lavorazione).
 - Sedute di rientro dopo una pausa: nessun aumento (R5 E5, R9).
 - `[PROPOSTA]` Stallo (PROGRESS_REVIEW §4): si tiene, si spiega, non si aumenta.
 
@@ -124,32 +119,41 @@ In discesa non c'è tetto.
 e chiudono A2, A3, A4, M4. R8: PROGRESS_REVIEW §6; testi: ADVICE §7; L9.
 
 **Notazione.** `chiuse`: sedute `completed` in ordine `(date, id)`; in corso e
-abbandonate non contano mai (R3). `voce`: `LoggedExercise` con sets; voci
-valide e `serieVere`: R8. `L`: stato su cui si giudica — revisione
+abbandonate non contano mai (R3). `voce`: `LoggedExercise` con sets; `serieVere`:
+R8. **Voci utili**: fine seduta, la voce del blocco; revisione, le due della
+**coppia** di R8 (ultime 2 sedute allo stato `L`, nei 14 giorni fino a
+`fine(W)`, anche a cavallo di W−1 e W). `L`: stato su cui si giudica — revisione
 `states.get(e) ?? R1`, fine seduta lo stato **di prima della scelta**
 (`sessionDecisions().toEvaluate`). `esaurita(e, L, fisso)` ⇔ `pattern === null
 || L.level === null || adjacentLevel(pattern, L.level, 1, fisso) === null`:
 strutturale, R7 non la rende vera. `scarico(w)` ⇔ `DELOAD_WEEKS.includes(w)`.
-`ridotta`: R9. `oggi`: revisione = data del calcolo (campo nuovo `today` di
-`WeeklyReviewInput`); fine seduta = `draft.date`.
+`ridotta`: R9. `oggi`: revisione = data del calcolo (`today` di
+`WeeklyReviewInput`), che R8 tiene nella settimana W+1; fine seduta = `draft.date`.
 
 ### R5 — Una sola regola di avanzamento (S3 · chiude A2 · P-2c, caso 4a)
 
 `cancello` è vero **solo se tutte**:
-- **E1** ogni serie vera di ogni voce valida ha `value ≥ range.max`;
-- **E2** ogni voce valida ha `tempoRespected === true` (`null` e `false` no);
-- **E3** serie vere ≥ 3. Fine seduta: nella voce (più stretta di S3: una salita
-  da una seduta chiusa dopo uno o due giri non è una prova). Revisione: R8;
+- **E1** ogni serie vera di ogni voce utile ha `value ≥ range.max`;
+- **E2** ogni voce utile ha `tempoRespected === true` (`null` e `false` no):
+  in revisione, tutte e due le sedute della coppia;
+- **E3** serie vere ≥ 3. Fine seduta: nella voce (`poche-serie`, invariato).
+  Revisione: R8 (2 sedute, 3 serie vere sulla coppia), che viene prima: lì
+  `poche-serie` non scatta mai;
 - **E4** nessun aumento si applica in scarico né nasce da numeri di scarico.
-  Fine seduta: `!scarico(session.week)`. Revisione: `!scarico(W) && !scarico(W+1)`;
-- **E5** fine seduta: la seduta non è ridotta. Revisione: nessuna voce valida
+  Fine seduta: `!scarico(session.week)`. Revisione: `!scarico(W+1)` e **nessuna
+  seduta della coppia con `scarico(seduta.week)`** (rev. 2026-11-15: la coppia
+  di W=7 può contenere una seduta della 6);
+- **E5** fine seduta: la seduta non è ridotta. Revisione: nessuna voce utile
   viene da una seduta ridotta.
 
 Vale per **ogni aumento** (gradino, tempo, pausa, zavorra, manubrio) in
 `reviewWeek` e in `evaluateProgression`, con una funzione condivisa. La discesa
 non passa dal cancello. `cautelaTempo` di `review.ts` sparisce.
-Ordine nella revisione, per esercizio: R8 → tutte sotto il minimo (discesa, in
-codice) → tutte ≥ max: E4/E5 → E2 → R7, R6 → altrimenti `inRange`.
+Ordine nella revisione, per esercizio: R8 (revisione aperta, chi compare,
+`rimandati`, coppia) → tutte sotto il minimo (discesa, in codice) → tutte ≥ max:
+E4/E5 → E2 → R7, R6 → altrimenti `inRange`. In codice: la revisione chiama
+`motivoBlocco` con `tempo` delle due voci, `serieVere` della coppia, `scarico`
+come in E4, `rientro` come in E5; la funzione non cambia.
 
 | esito, con E1 vero | revisione | fine seduta |
 |---|---|---|
@@ -159,14 +163,15 @@ codice) → tutte ≥ max: E4/E5 → E2 → R7, R6 → altrimenti `inRange`.
 | E3 falsa | `pocheProve` (R8) | «servono 3 serie complete» |
 
 *Casi limite.* Tempo null: mai un sì. perSide: il tempo è per voce, le serie
-vere per coppia (R8). Blocchi esclusi: non si valutano, niente domanda sul
+vere per coppia di lati (R8). Blocchi esclusi: non si valutano, niente domanda sul
 tempo (in codice). Solo eccentrici: nessun effetto. Scarico: E4. Ritest appena
 fatto: nessun effetto. Decisione registrata: fine seduta, una leva per blocco
 (`sessionDecisions`); revisione, una per `(W, e)`, anche per i due verdetti
 nuovi («Ho capito» registra `postponed`).
 
 Base: rematore TRX `circuito-2/A3`, gradino 2, 8-10, W=2; chiuse 2026-03-10 e
-03-13 da 11-11-11; prima seduta al 2 il 03-02; oggi 03-16.
+03-13 da 11-11-11 (la coppia); prima seduta al 2 il 03-02; `weekEnd` 03-15,
+oggi 03-16. Inizio programma 03-02, come PROGRESS_REVIEW §6.
 
 | # | ingresso | atteso |
 |---|---|---|
@@ -182,6 +187,9 @@ Base: rematore TRX `circuito-2/A3`, gradino 2, 8-10, W=2; chiuse 2026-03-10 e
 | 5.10 | fine seduta 11-11, sì | nessuna leva, «oggi ne hai chiuse 2» |
 | 5.11 | fine seduta in settimana 6, 11-11-11, sì | nessuna leva, testo scarico |
 | 5.12 | fine seduta ridotta (R9), 11-11-11, sì | nessuna leva, testo rientro |
+| 5.13 | W=7: coppia 04-08 (W6, 2 giri al massimo) e 04-15, [sì, sì] | nessun aumento, `fermi` scarico «una delle due sedute è di scarico» |
+| 5.14 | W=7: coppia 04-13 e 04-16 (entrambe W7), [sì, sì] | `sali-di-livello`: lo scarico ferma solo le coppie che lo contengono |
+| 5.15 | una seduta a settimana: 03-05 sì, 03-12 no, 03-19 sì, 03-26 sì, sempre 11-11-11 | W2 e W3 `rifai-al-tempo-giusto` (il no sta in due coppie) · W4 `sali-di-livello` |
 
 ### R6 — Prima la variante, poi la zavorra (S5 · chiude A3 · P-2d, caso 4b)
 
@@ -212,8 +220,9 @@ mai (lo swing non riceve +2,5 kg). Solo eccentrici: Z2 salta come
 Ritest appena fatto: `M` è l'ultimo test, un ritest sotto soglia toglie subito
 la zavorra. Decisione registrata: come R5.
 
-Base: trazioni `circuito-1/A1`, 6-8, due sedute chiuse in W, tempo [sì, sì],
-R7 soddisfatta dove non detto.
+Base: trazioni `circuito-1/A1`, 6-8, la coppia di R8 (ultime 2 sedute chiuse,
+in W o in W−1 e W), tempo [sì, sì], R7 soddisfatta dove non detto. Gli attesi
+non cambiano con la finestra: R6 legge solo i valori che R8 le passa.
 
 | # | ingresso | atteso |
 |---|---|---|
@@ -246,8 +255,10 @@ eseguito blocca ogni altra salita (seconda difesa su B11 Q2); dopo una discesa
 si risale solo dopo 14 giorni al gradino più basso (assorbe W-18, ping-pong
 1↔3); con i soli stati di R1 non si sale.
 Esiti: revisione ⇒ elenco `inAttesa` (L, `inizio`, `dal`), nessuna zavorra al
-suo posto. Fine seduta ⇒ `variant.available = false` con il motivo; si propone
-la prima leva disponibile fra tempo e pausa, o nessuna.
+suo posto; si valuta solo su una coppia valida di R8 e con `oggi` nella
+settimana W+1: aprirla più tardi può solo raggiungere un `dal`, mai scavalcarlo
+(8.23). Fine seduta ⇒ `variant.available = false` con il motivo; si propone la
+prima leva disponibile fra tempo e pausa, o nessuna.
 
 *Casi limite.* Tempo null: R5 prima. perSide: nessun effetto. Blocchi esclusi:
 le loro voci contano per `inizio`, l'esercizio non si valuta. Solo eccentrici:
@@ -272,25 +283,17 @@ seduta; chiuse W1 2026-03-02 e 03-05, W2 03-09 e 03-12, W3 03-16 e 03-19.
 | 7.8 | discesa 3→2 il 03-20, prima seduta al 2 il 03-23 | nessuna salita prima del 04-06 |
 | 7.9 | stato 3 da 2 giorni, 2 sedute sotto il minimo | `scendi-di-livello` |
 | 7.10 | solo stati di R1, nessuna seduta | nessuna salita |
-| 7.11 | voci 2, 2, 3, 2 (03-02, 03-05, 03-09, 03-12), stato 2, oggi 03-20 | inizio 03-12: `inAttesa`, dal 03-26 |
-| 7.12 | ultima al 2 il 03-02, rientro il 03-20 | R7 vera, R9 blocca le sedute ridotte |
+| 7.11 | `salitaConsentita`: voci 2, 2, 3, 2 (03-02, 03-05, 03-09, 03-12), stato 2, oggi 03-20 | inizio 03-12, dal 03-26. In revisione W2 la coppia (03-09 al 3, 03-12 al 2) non regge: `pocheProve` prima di R7 |
+| 7.12 | ultima al 2 il 03-02, rientro il 03-20 | R7 vera, R9 blocca le sedute ridotte; in revisione 03-02 è fuori finestra: `pocheProve` |
 
 ### R9 — Rientro dopo una pausa (S6 · chiude M4 · scenario S3)
-
-Sta in **PROGRAM_RULES §8**, perché cambia il piano della seduta: dopo ≥ 14
-giorni senza sedute chiuse, 4 sedute (e almeno 7 giorni) a giri dimezzati, tutte
-le stazioni, nessun aumento (R5 E5), ritest proposto.
+In **PROGRAM_RULES §8**: dopo ≥ 14 giorni senza sedute chiuse, 4 sedute (≥ 7
+giorni) a giri dimezzati, tutte le stazioni, nessun aumento (R5 E5), ritest.
 
 ### Ordine di implementazione e dipendenze
-
-1. **R8** — base: voci per seduta, serie vere, filtro su gradino e carico.
-2. **R5** — usa voci e serie vere di R8; `ridotta` entra come ingresso, falso
-   finché R9 non c'è.
-3. **R6** — usa il cancello di R5. Esaurimento strutturale: non dipende da R7.
-4. **R7** — **solo dopo R6**: senza Z2 la variante bloccata farebbe scivolare
-   `evaluateProgression` sulla leva successiva, `load` — zavorra al gradino 1,
-   A3 riaperto. Usa il filtro sul gradino di R8.
-5. **R9** — usa E5; R9a dopo; R9b separabile (dipende da R1, in codice, e da R4
-   per «non eseguito»).
-R8, R5, R6, R7 in un rilascio solo: separate, ognuna lascia un buco che
-un'altra chiude. R9 può essere il secondo.
+1. **R8** (coppia, finestra, serie vere, stato) → 2. **R5** (cancello; `ridotta`
+falso finché R9 non c'è) → 3. **R6** (esaurimento strutturale, non dipende da R7)
+→ 4. **R7**, **solo dopo R6**: senza Z2 la variante bloccata fa scivolare
+`evaluateProgression` su `load` (zavorra al gradino 1, A3 riaperto) → 5. **R9**
+(usa E5; R9b separabile). R8, R5, R6, R7 in un rilascio solo; R9 può seguire.
+Le parti di fine seduta di R5-R7 non dipendono dalla finestra di R8.
