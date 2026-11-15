@@ -7,7 +7,9 @@ import {
   getWeekState,
   isRetestDue,
   programWeek,
+  weekEndDate,
 } from './schedule.ts';
+import { addDays, startOfWeek } from './dates.ts';
 
 describe('stato della settimana', () => {
   it('marca come scarico solo le settimane 6, 12 e 18', () => {
@@ -95,3 +97,22 @@ describe('ritest', () => {
   });
 });
 
+
+describe('weekEndDate (R8)', () => {
+  it('la domenica che chiude la settimana', () => {
+    expect(weekEndDate('2026-03-02', 1)).toBe('2026-03-08');
+    /* Un programma che parte di mercoledì ha comunque la settimana da lunedì. */
+    expect(weekEndDate('2026-03-04', 2)).toBe('2026-03-15');
+  });
+
+  it('coincide con programWeek su ogni giorno di otto settimane', () => {
+    for (const inizio of ['2026-03-02', '2026-03-04', '2026-03-08']) {
+      for (let giorno = 0; giorno < 56; giorno += 1) {
+        const data = addDays(startOfWeek(inizio), giorno);
+        const settimana = programWeek(inizio, data);
+        const fine = weekEndDate(inizio, settimana);
+        expect(data <= fine && data >= addDays(fine, -6)).toBe(true);
+      }
+    }
+  });
+});

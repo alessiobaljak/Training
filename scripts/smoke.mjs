@@ -1567,6 +1567,52 @@ try {
     const inizio = lunedi.toISOString().slice(0, 10);
     await updateInEmulator(riga.name, { programStartDate: { stringValue: inizio } });
 
+    /*
+     * R8: la revisione giudica le ultime due sedute di ogni esercizio, se
+     * cadono nei 14 giorni fino alla fine della settimana. Le sedute chiuse
+     * sopra hanno la data di oggi, cioè dopo la fine della settimana 1: per
+     * la revisione sarebbero già «rifatte». Si portano al mercoledì della
+     * settimana 1, e accanto a ognuna si mette una copia al primo giorno
+     * della finestra, sette giorni prima dell'inizio: è la coppia. Il tempo
+     * si segna come rispettato, perché da R5 senza un sì non sale niente.
+     */
+    const spostaGiorni = (data, giorni) => {
+      const d = new Date(`${data}T00:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + giorni);
+      return d.toISOString().slice(0, 10);
+    };
+    const oggiIso = new Date().toISOString().slice(0, 10);
+    const conTempo = (exercises) => ({
+      arrayValue: {
+        values: (exercises?.arrayValue?.values ?? []).map((voce) => ({
+          mapValue: {
+            fields: { ...voce.mapValue.fields, tempoRespected: { booleanValue: true } },
+          },
+        })),
+      },
+    });
+    const daSpostare = (await readFromEmulator('sessions')).filter(
+      (doc) =>
+        doc.fields?.status?.stringValue === 'completed' && doc.fields?.date?.stringValue === oggiIso,
+    );
+    check(daSpostare.length > 0, 'Per la revisione servono sedute chiuse oggi da riportare in settimana 1.');
+    for (const doc of daSpostare) {
+      const esercizi = conTempo(doc.fields.exercises);
+      await updateInEmulator(doc.name, {
+        date: { stringValue: spostaGiorni(inizio, 2) },
+        week: { integerValue: '1' },
+        exercises: esercizi,
+      });
+      const idCopia = `${doc.fields.id.stringValue}-coppia`;
+      await writeToEmulator(doc.name.slice(0, doc.name.lastIndexOf('/sessions/')), 'sessions', idCopia, {
+        ...doc.fields,
+        id: { stringValue: idCopia },
+        date: { stringValue: spostaGiorni(inizio, -7) },
+        week: { integerValue: '0' },
+        exercises: esercizi,
+      });
+    }
+
     await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
     await page.waitForTimeout(2200);
     const homeRevisione = await page.locator('main').innerText();

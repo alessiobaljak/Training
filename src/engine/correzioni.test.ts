@@ -31,17 +31,30 @@ const massimale = (testId: TestId, value: number): readonly [TestId, TestResult]
 function seduta(
   sessionId: LoggedSession['sessionId'],
   esercizi: LoggedSession['exercises'],
+  date = '2026-01-05',
+  week = 1,
 ): LoggedSession {
   return {
-    id: `${sessionId}-2026-01-05`,
-    date: '2026-01-05',
-    week: 1,
+    id: `${sessionId}-${date}`,
+    date,
+    week,
     sessionId,
     status: 'completed',
     exercises: esercizi,
     note: null,
   };
 }
+
+/*
+ * R8: la revisione giudica le ultime due sedute di un esercizio nei 14 giorni
+ * fino alla fine della settimana. Qui la stessa seduta lunedì 5 e lunedì 12
+ * gennaio, e la revisione della settimana 2 aperta il lunedì dopo.
+ */
+const dueSettimane = (log: LoggedSession): LoggedSession[] => [
+  log,
+  { ...log, id: `${log.id}-bis`, date: '2026-01-12', week: 2 },
+];
+const FINESTRA = { week: 2, weekEnd: '2026-01-18', today: '2026-01-19' } as const;
 
 describe('la finitura metabolica non riceve verdetti', () => {
   const circuito1 = CIRCUIT_SESSIONS[0];
@@ -80,14 +93,15 @@ describe('la finitura metabolica non riceve verdetti', () => {
     ]);
 
     const esito = reviewWeek({
-      week: 1,
-      sessions: [log],
+      ...FINESTRA,
+      sessions: dueSettimane(log),
       states: statiDi(finitura.exercise),
       tests: new Map(),
     });
 
     expect(esito.verdicts.map((v) => v.exercise)).not.toContain(finitura.exercise);
-    expect(esito.alMassimo).not.toContain(getExercise(finitura.exercise).name);
+    expect(esito.alMassimo.map((voce) => voce.exercise)).not.toContain(finitura.exercise);
+    expect(esito.pocheProve).toHaveLength(0);
     expect(esito.setsCounted).toBe(0);
   });
 
@@ -121,8 +135,8 @@ describe('la finitura metabolica non riceve verdetti', () => {
     ]);
 
     const esito = reviewWeek({
-      week: 1,
-      sessions: [log],
+      ...FINESTRA,
+      sessions: dueSettimane(log),
       states: statiDi(corda.exercise),
       tests: new Map(),
     });
@@ -141,7 +155,8 @@ describe('la finitura metabolica non riceve verdetti', () => {
         blockCode: 'B3',
         exercise: lavoro.exercise,
         variantLabel: getExercise(lavoro.exercise).name,
-        level: null,
+        /* Allo stato su cui si giudica: numeri a un altro gradino non contano (R8). */
+        level: initialExerciseState(getExercise(lavoro.exercise)).level,
         tempoRespected: true,
         sets: [1, 2, 3].map((setIndex) => ({
           setIndex,
@@ -157,13 +172,20 @@ describe('la finitura metabolica non riceve verdetti', () => {
     ]);
 
     const esito = reviewWeek({
-      week: 1,
-      sessions: [log],
+      ...FINESTRA,
+      sessions: dueSettimane(log),
       states: statiDi(lavoro.exercise),
       tests: new Map(),
     });
-    expect(esito.setsCounted).toBe(3);
-    expect(esito.verdicts.length + esito.alMassimo.length).toBeGreaterThan(0);
+    expect(esito.setsCounted).toBe(6);
+    expect(esito.pocheProve).toHaveLength(0);
+    const giudicato = [
+      ...esito.verdicts.map((voce) => voce.exercise),
+      ...esito.alMassimo.map((voce) => voce.exercise),
+      ...esito.inAttesa.map((voce) => voce.exercise),
+      ...esito.fermi.map((voce) => voce.exercise),
+    ];
+    expect(giudicato).toContain(lavoro.exercise);
   });
 });
 

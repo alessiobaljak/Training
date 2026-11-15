@@ -4,7 +4,7 @@ import { findCircuitSession, isCircuitSessionId } from '../../data/circuit.ts';
 import { daysBetween, formatDayLong, formatDayShort, formatDaysAgo, plural, todayIso } from '../../engine/dates.ts';
 import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
 import { IN_A_ROW_WARNING, rotationState } from '../../engine/rotation.ts';
-import { getWeekState, programWeek } from '../../engine/schedule.ts';
+import { getWeekState, programWeek, weekEndDate } from '../../engine/schedule.ts';
 import { pendingVerdicts, reviewWeek } from '../../engine/review.ts';
 import { sessionDurationSeconds } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
@@ -134,6 +134,7 @@ export function HomeScreen() {
   const settimanaChiusa = week - 1;
   const revisione =
     settimanaChiusa >= 1 &&
+    startDate !== null &&
     sessions !== undefined &&
     exerciseStates !== undefined &&
     latestTests !== undefined
@@ -142,6 +143,8 @@ export function HomeScreen() {
           sessions,
           states: new Map(exerciseStates.map((state) => [state.exercise, state])),
           tests: latestTests,
+          weekEnd: weekEndDate(startDate, settimanaChiusa),
+          today,
         })
       : null;
   const daDecidere =

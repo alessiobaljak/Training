@@ -1,6 +1,6 @@
 import { DELOAD_WEEKS, RETEST_WEEKS } from '../data/program.ts';
 import { LOAD_UNLOCK_WEEK } from '../data/method.ts';
-import { daysBetween, startOfWeek } from './dates.ts';
+import { addDays, daysBetween, startOfWeek } from './dates.ts';
 import type { WeekdayIndex } from '../types/index.ts';
 
 /**
@@ -62,6 +62,16 @@ export function programWeek(startDate: string, date: string): number {
   const diff = daysBetween(startOfWeek(startDate), date);
   if (diff < 0) return 0;
   return Math.floor(diff / 7) + 1;
+}
+
+/**
+ * La domenica che chiude la settimana `week` del programma (R8).
+ *
+ * Le settimane partono dal lunedì della data di inizio: un programma che
+ * comincia di mercoledì ha comunque la settimana 1 da lunedì a domenica.
+ */
+export function weekEndDate(startDate: string, week: number): string {
+  return addDays(startOfWeek(startDate), 7 * week - 1);
 }
 
 /** Il ritest si propone a fine settimana 6 e 12, mai prima. */
