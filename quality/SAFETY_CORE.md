@@ -4,11 +4,18 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v5** · 2026-11-12b · misurato su `src/` al commit `90b8b81`
-(HEAD `8c8253d`, `src/` identico), **soglie approvate da Alessio il
-2026-11-12**. v5: caso 4 con 4a anche su `tempoRespected = null`, 4h (S9) e
-4i (S10); caso 7 inietta davvero la nota della seduta (la v4 la dichiarava e
-non la iniettava). v4: caso 2 decidibile (R1), controllo 4g.
+Versione: **v6** · 2026-11-15 · misurato su `src/` al commit `ff42dfb`
+(head locale, non pushato). v6: con R8 una revisione legge solo le ultime 2
+sedute chiuse allo stesso stato nei 14 giorni fino a `fine(W)`; le fixture di
+4a-4d e 4g avevano una seduta sola e sarebbero passate senza misurare niente.
+Ora ogni controllo ha una coppia vera e un **controllo positivo** che deve
+produrre il verdetto (se non lo produce il controllo fallisce: fixture vuota).
+Provato al contrario: sul codice di `0d2bb92` lo stesso caso 4 dà 31
+violazioni (S3 ×5, S5, S1 ×2 serie di date, S4 ×3), su `ff42dfb` solo S9.
+4e porta tempo e pausa a fine corsa (prima la leva era il tempo e il
+controllo non misurava S2); 4f con due sedute; caso 7 su una coppia che
+arriva a un verdetto, impronta su tutti gli elenchi e sull'evidenza.
+v5: 4a anche su `null`, 4h (S9), 4i (S10); caso 7 con la nota della seduta.
 
 ## Lettura dopo le decisioni del 2026-11-12
 
@@ -68,16 +75,15 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-12b: 2 PASS · 4 FALLITI · 2 NON COPERTI
+## Esito del 2026-11-15: 2 PASS · 4 FALLITI · 2 NON COPERTI
 
-Il caso 6 passa da NON COPERTO a **FALLITO**: il registro che chiedevo esiste
-dal 2026-11-08 (`media/LIBRARY.md`, stato `approvata` riservato ad Alessio) e
-non l'avevo letto come tale per quattro giri. Il difetto è B8, già aperto e
-non deciso. Il caso 4 ha 3 controlli in
-più e 2 violazioni in più (S3 con `null`; S9 sul giro della finitura di
-`circuito-4`, B10), nessuna delle due introdotta dai commit misurati: sono
-controlli che prima non esistevano. 4i (S10) supera. Il caso 7 copre adesso
-tutti e 4 i campi che dichiarava.
+Stesso conteggio del 2026-11-12b, contenuto diverso: il caso 4 fallisce
+**solo per 4h** (S9, B10). 4a (S3), 4b (S5), 4c (S1), 4d (S4) superati con la
+finestra nuova e i controlli positivi; 4e, 4f, 4g, 4i superati. Casi 2, 3, 6
+FALLITI invariati (B9, B6, B8); 1 e 8 NON COPERTI invariati; 5 e 7 PASS.
+
+Esito del 2026-11-12b (2 PASS · 4 FALLITI · 2 NON COPERTI): il caso 6 era
+passato a FALLITO su `media/LIBRARY.md`; 4 aveva 6 violazioni su 10 controlli.
 
 ---
 
@@ -147,22 +153,24 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi: FALLITO** — 6 violazioni di soglie **approvate** su 10
-controlli (4a doppio, 4b-4i). Supera: 4e (S2), 4f, 4g (T2), 4i (S10).
+**Stato oggi (2026-11-15, `ff42dfb`): FALLITO** — 1 violazione su 9
+controlli: 4h (S9, B10). Superano 4a (S3), 4b (S5), 4c (S1), 4d (S4), 4e (S2),
+4f, 4g (T2), 4i (S10). Inizio programma 2026-03-02; revisione della settimana W
+con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 
 - **Input e atteso, controllo per controllo:**
 
 | # | Input | Atteso | Misurato |
 |---|---|---|---|
-| 4a (S3) | sett. 2, rematore TRX `circuito-2/A3`, 19-19-19 sopra il range (8-10), `tempoRespected=false` **e, dalla v5, `null`** | nessuna salita di gradino | **salita proposta** al gradino 3 in tutti e due i casi; il tempo resta una cautela testuale («Non hai risposto sul tempo…»). Con `null` pesa di più dal `2d84d87`: il player guidato non scrive più «sì», quindi `null` è lo stato normale di chi non risponde nel riepilogo |
-| 4b (S5) | sett. 3, trazioni `circuito-1/A1` al gradino 1 (assistite con elastico), 8-8-8 su range 6-8 (massimo esatto) | prima la variante (leva 4) | **«aggiungi zavorra»** (leva 5) su una trazione assistita |
-| 4c (S1) | 3 settimane di fila con 19-19-19 su 12-18, push-up `circuito-3/A2` (era sissy squat, uscito dal circuito) | massimo 1 gradino ogni 2 settimane | **3 salite in 3 settimane** (da 1 a 4; da 1 a 6 in 5 settimane) |
-| 4d (S4) | 1 sola seduta, bulgarian split squat `circuito-1/A2` (era single-leg RDL), 2 serie per lato (4 righe) da 13 su 8-12 | nessun verdetto: servono 2 sedute e 3 serie vere | **verdetto emesso**: `MIN_SETS_FOR_VERDICT` conta le righe, non le serie |
-| 4e (S2) | chin-up gradino 6, zavorra 5 kg, massimo chiuso | passo di +2,5 kg | **+2,5 kg: corretto** |
-| 4f | sett. 1, `kb-swing` della finitura (blocco con `excludeFromReview: true`), 12-11-12 su range 15-20 | nessun verdetto: il blocco è escluso dalla revisione | **nessun verdetto, nessuna uscita, `serie=0`: corretto dal 2026-11-09.** `review.ts` legge il flag; `effectiveBlock` lo conserva, quindi anche la stazione scambiata con l'alternativa resta fuori |
-| 4g (T2) | sett. 3, sopra il massimo su tutte le serie: trazioni e dip dal gradino 1, pike dal 2, push-up dal 2 | un solo gradino **eseguibile**: 1→3, 1→3, 2→4, 2→3 | **corretto**: le sole negative si saltano, nessun gradino eseguibile scavalcato |
+| 4a (S3) | rematore TRX `circuito-2/A3`, stato 2, 8-10; chiuse 03-05 (W1) e 03-12 (W2) da 19-19-19; revisione W2 il 03-19 (R7 aperta). Tempo [sì,no] [sì,null] [no,no] [null,null] [no,null]; positivo [sì,sì]. Fine seduta 19-19-19 con «no» | nessuna salita; `rifai-al-tempo-giusto` se c'è un no, `rispondi-sul-tempo` se c'è un null e nessun no, stato invariato; positivo 2→3; fine seduta nessuna leva | **corretto** nei 5 casi; positivo 2→3; fine seduta nessuna leva (A2 chiuso) |
+| 4b (S5) | trazioni `circuito-1/A1`, chiuse 03-11 (W2) e 03-18 (W3) da 8-8-8, tempo [sì,sì], **test trazioni 12** (con `tests` vuoto Z4 maschera Z2); revisione W3. Positivo: stato e sedute al 6. Variante: 9-9-9 al 1 | gradino 1: nessuna zavorra, `alMassimo` «tempo»; gradino 6: zavorra 0→2,5; 9-9-9: `inAttesa` senza zavorra al suo posto | **corretto** in tutti e tre (A3 chiuso) |
+| 4c (S1) | push-up `circuito-3/A2` 12-18 dal gradino 2, 19-19-19, tempo sì. (i) 03-04, 03-11, 03-18, 03-25; (ii) 03-02, 03-05, 03-09, 03-12, 03-16, 03-19, 03-23, 03-26. Revisioni W1-W4, ogni salita accettata, le sedute dopo al gradino nuovo; **il ciclo non si ferma** su una settimana senza verdetto | (i) 1 salita; (ii) 2 salite (03-16, 03-30); mai due salite a meno di 14 giorni; meno salite delle attese = fixture che non arriva alla regola | **corretto**: (i) 1, (ii) 2 a 14 giorni (A4 chiuso). In più `12` C: 300 atleti simulati 12 settimane, fine seduta + revisione: 0 coppie di salite sotto i 14 giorni |
+| 4d (S4) | bulgarian `circuito-1/A2` (8-10, non 8-12 come scrive la base di R8), stato 2. (1) solo 03-11, 2 serie per lato; (2) 03-04 e 03-11 con 1 S+D; (3) W3: 03-08 (`fine−14`) e 03-18; (4) 03-11 al gradino 1 e 03-18 al 2; (6) righe orfane (8.6). Positivo: 03-09 e 03-18, 2 S+D da 7 | (1)-(6): nessun verdetto, `pocheProve`; (1) `setsCounted` 2; positivo `scendi-di-livello` 2→1 (la discesa non passa da R5-R7: isola S4) | **corretto** (M1 chiuso) |
+| 4e (S2) | chin-up gradino 6, 5 kg, 10-10-10 a RIR 0, **tempo e pausa a fine corsa**, M = 12, settimana 4 | leva `load`, passo +2,5 kg; se la leva non è `load` il controllo fallisce (non misura) | **corretto**: +2,5 kg |
+| 4f | `kb-swing` della finitura, chiuse 03-04 e 03-11 da 21-21-21 | non compare in nessun elenco, `setsCounted` 0 | **corretto** |
+| 4g (T2) | coppia 03-05 e 03-12 sopra il massimo, revisione W2 il 03-19: trazioni e dip dal 1, pike dal 2, push-up dal 2 | 1→3, 1→3, 2→4, 2→3; senza salita il controllo fallisce | **corretto** |
 | 4h (S9) | `buildGuidedPlan` delle 4 sedute, settimane 1 e 6. Stabilizzazione del tronco: suitcase carry, hollow hold, plank con trascinamento, Pallof press, plank tocco spalla. Balistici carichi: swing, corda slam | ogni giunzione tronco → balistico ha ≥ 15" di passi `rest` in mezzo; se non ne trova nessuna il controllo fallisce (fixture vuota) | **violata**: `circuito-4` sett. 1, F4 plank tocco spalla → F1 corda slam del giro 2, **0"** (finitura: 15" fra stazioni, 0 fra i giri). Le giunzioni B3 → F hanno 15" (R2). In sett. 6 la finitura ha un giro e il caso non si presenta (B10) |
-| 4i (S10) | (1) push-up `circuito-3/A2` gradino 2, 18-18-18 su 12-18, `tempoRespected=null`; (2) controllo statico di `GuidedSession.tsx`, come 5 e 6a | (1) nessuna leva oltre le ripetizioni; (2) ogni `setTempoRespected` del player scrive `false` | **corretto**: nessuna leva; 1 scrittura, `false`. Se il player tornasse a scrivere «sì» da una misura, (2) fallisce e il controllo va riscritto come misura (`07`) |
+| 4i (S10) | (1) push-up `circuito-3/A2` gradino 2, 18-18-18 su 12-18, `tempoRespected=null`, R7 aperta; (2) controllo statico di `GuidedSession.tsx`, come 5 e 6a | (1) nessuna leva oltre le ripetizioni; (2) ogni `setTempoRespected` del player scrive `false` | **corretto**: nessuna leva; 1 scrittura, `false`. Se il player tornasse a scrivere «sì» da una misura, (2) fallisce e il controllo va riscritto come misura (`07`) |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
 **Stato oggi: PASS.**
@@ -214,6 +222,14 @@ controlli (4a doppio, 4b-4i). Supera: 4e (S2), 4f, 4g (T2), 4i (S10).
   `evaluateProgression` (trigger, leva scelta, stato successivo, disponibilità
   di tutte e cinque le leve), `reviewWeek` (verdetti, stati, liste),
   `summarizeExercise`, `calibrateLoad`.
+- **v6 (2026-11-15).** Con R8 una seduta sola non arriva a un verdetto e
+  l'impronta della revisione sarebbe stata vuota. Ora tre sedute chiuse
+  (03-02, 03-11, 03-18) al gradino 3 con 5 kg, test trazioni 12, revisione W3
+  e bozza del 03-25: la base produce `sali-di-livello` 3→4 e la leva
+  `variant`, e lo script **fallisce se la base non arriva a un verdetto**.
+  L'impronta copre anche `pocheProve`, `rimandati`, `fermi`, `inAttesa`,
+  `setsCounted`, `sessionsCounted`, evidenza e testo del cambio, e
+  `blockedReason` a fine seduta. La nota sta in tutte le sedute, R7 compresa.
 - **Misurato oggi.** Identica in tutti i casi. È la proprietà da difendere: va
   rieseguito ogni volta che si tocca `engine/` e **obbligatoriamente** il
   giorno in cui un modello comincia a leggere le note.
@@ -254,3 +270,4 @@ controlli (4a doppio, 4b-4i). Supera: 4e (S2), 4f, 4g (T2), 4i (S10).
 | 2026-11-09b | v3 | 2 | 2 | 4 | training-quality (commit `f63c9f1`, 5 fixture ripuntate) |
 | 2026-11-12 | v4 | 2 | 3 | 3 | training-quality (commit `47c7f6d`) |
 | 2026-11-12b | v5 | 2 | 4 | 2 | training-quality (commit `90b8b81`, soglie approvate; caso 6 eseguibile su LIBRARY.md) |
+| 2026-11-15 | v6 | 2 | 4 | 2 | training-quality (commit `ff42dfb`, R5-R8; caso 4 fallisce solo per 4h) |

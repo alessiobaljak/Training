@@ -1,7 +1,7 @@
 /* I quattro campi di testo libero dell'atleta: nessuno deve entrare in un calcolo. */
 import { findCircuitSession } from '../../src/data/circuit.ts';
 import { getExercise } from '../../src/data/exercises.ts';
-import { evaluateProgression } from '../../src/engine/progression.ts';
+import { evaluateProgression, salitaConsentita } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
 import { summarizeExercise } from '../../src/engine/metrics.ts';
 import { logRows } from '../../src/engine/history.ts';
@@ -35,7 +35,11 @@ function logged(note: string | null, variantLabel: string): LoggedExercise {
 
 function impronta(note: string | null, variantLabel: string): string {
   const l = logged(note, variantLabel);
-  const ev = evaluateProgression({ block, exercise: ex, state: stato, logged: l, range: resolveBlockRange(block, ex, vuoto), week: 4, currentMaxReps: null });
+  /* v2, 2026-11-15: R7 e R9 nella firma; la storia di R7 porta la stessa nota (non deve contare) */
+  const storia: LoggedSession[] = [{ id: 'u1-prima', date: '2026-03-02', week: 1, sessionId: 'circuito-1', status: 'completed', exercises: [l], note }];
+  const bozza: LoggedSession = { id: 'u1', date: '2026-03-25', week: 4, sessionId: 'circuito-1', status: 'in-progress', exercises: [l], note };
+  const ev = evaluateProgression({ block, exercise: ex, state: stato, logged: l, range: resolveBlockRange(block, ex, vuoto), week: 4, currentMaxReps: 12,
+    salita: salitaConsentita(ex.slug, 3, storia, bozza.date, bozza), rientro: null });
   const sm = summarizeExercise(l);
   const cal = calibrateLoad(l.sets, 5);
   return JSON.stringify({

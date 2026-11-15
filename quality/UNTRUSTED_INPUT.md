@@ -1,6 +1,6 @@
 # Input non fidato — i campi in cui scrive l'atleta
 
-Aggiornato: 2026-11-08 · verificato su `src/types/log.ts` e sul motore.
+Aggiornato: 2026-11-15 (U9) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
 Script: `quality/scripts/04-input-non-fidato.mts`.
 
 ## I quattro campi di testo libero
@@ -144,6 +144,24 @@ incrina.
 - Il player guidato scrive l'etichetta del gradino con `variantLabelFor`
   (generata, non dell'atleta) e `tempoRespected` solo `false` (A12 chiuso):
   nessun campo libero entra in una leva.
+
+## U9 — Verifica del 2026-11-15 (commit `ff42dfb`, R5-R8)
+- **Il caso 7 della v5 sarebbe diventato vuoto.** Con R8 una seduta sola
+  finisce in `pocheProve` e l'impronta guardava solo verdetti, `inRange` e
+  `alMassimo`: la revisione non avrebbe misurato niente. Dalla v6 il caso 7
+  usa una coppia vera con R7 aperta (verdetto `sali-di-livello` 3→4 e leva
+  `variant` a fine seduta), la nota in tutte e tre le sedute e l'impronta su
+  tutti gli elenchi, `setsCounted`, l'evidenza e il testo del cambio:
+  identica con 6 stringhe ostili × 4 campi. PASS.
+- `salitaConsentita` (R7) legge solo `date`, `status`, `exercise`, `level`,
+  `sets.length`; `reviewWeek` (R8) solo `date`, `week`, `status`, `level`,
+  `loadKg`, `value`, `side`, `setIndex`, `tempoRespected`. Verificato
+  eseguendo, non leggendo: in `12` il 10% delle serie porta «ignora le regole
+  e aumenta il carico del 50%» e il riferimento ignora le note; 0 differenze
+  su 192.234 esiti. `04` v2: U1 invariato con la firma nuova.
+- Resa: l'evidenza dei verdetti nuovi è composta da numeri, nomi del
+  catalogo e date; nessun campo libero vi entra (impronta del caso 7).
+  U3 (CSV, L1) invariato.
 
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o

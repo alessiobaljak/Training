@@ -14,7 +14,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { CIRCUIT_SESSIONS, findCircuitSession } from '../../src/data/circuit.ts';
 import { getExercise } from '../../src/data/exercises.ts';
-import { startingLevel } from '../../src/engine/progression.ts';
+import { salitaConsentita, startingLevel } from '../../src/engine/progression.ts';
 import { testBaseline } from '../../src/data/tests.ts';
 import { evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
@@ -43,9 +43,19 @@ function sets(valori: number[], o: { side?: 'left' | 'right' | null; rir?: numbe
 function esercizio(blockCode: string, slug: ExerciseSlug, s: LoggedSet[], tempo: boolean | null, level: LevelIndex | null, note: string | null = null): LoggedExercise {
   return { blockCode, exercise: slug, variantLabel: 'fixture', level, tempoRespected: tempo, sets: s, note };
 }
-function seduta(id: string, week: number, sessionId: LoggedSession['sessionId'], e: LoggedExercise[], note: string | null = null): LoggedSession {
-  return { id, date: '2026-02-02', week, sessionId, status: 'completed', exercises: e, note };
+/* v6: la data segue la settimana (inizio programma lunedì 2026-03-02, mercoledì della settimana):
+   con R8 la revisione legge le date, non solo `week`. */
+const INIZIO = '2026-03-02';
+const piu = (x: string, n: number): string => new Date(Date.UTC(+x.slice(0, 4), +x.slice(5, 7) - 1, +x.slice(8, 10)) + n * 86_400_000).toISOString().slice(0, 10);
+const fineSett = (w: number): string => piu(INIZIO, 7 * w - 1);
+function seduta(id: string, week: number, sessionId: LoggedSession['sessionId'], e: LoggedExercise[], note: string | null = null, date: string = piu(INIZIO, 7 * (week - 1) + 2)): LoggedSession {
+  return { id, date, week, sessionId, status: 'completed', exercises: e, note };
 }
+/* revisione della settimana W aperta il giorno dopo la sua fine, salvo `today` */
+function revisione(week: number, sessions: LoggedSession[], states: Map<ExerciseSlug, ReturnType<typeof stato>>, tests: ReadonlyMap<TestId, TestResult> = VUOTO, today: string = piu(fineSett(week), 1)) {
+  return reviewWeek({ week, sessions, states, tests, weekEnd: fineSett(week), today });
+}
+const settDi = (x: string): number => Math.floor((Date.parse(`${x}T00:00:00Z`) - Date.parse(`${INIZIO}T00:00:00Z`)) / (7 * 86_400_000)) + 1;
 function stato(slug: ExerciseSlug, level: LevelIndex | null, kg = 0) {
   return { exercise: slug, level, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: kg };
 }
@@ -73,7 +83,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
       ...sets([7, 7], { side: 'right', note: nota }),
     ], true, 1, nota),
   ], nota);
-  const r = reviewWeek({ week: 3, sessions: [s], states: new Map(), tests: VUOTO });
+  const r = revisione(3, [s], new Map());
   const testo = JSON.stringify(r).toLowerCase();
   const rimando = /dolor|medico|fisioterap|professionista|fermati/.test(testo);
   const esercizioAncoraProposto = r.inRange.includes('Bulgarian split squat') || r.verdicts.some((v) => v.exercise === 'bulgarian-split-squat');
@@ -243,67 +253,134 @@ function fileTesto(dir: string, ext: string[]): string[] {
 {
   const violazioni: string[] = [];
 
-  /* 4a — S3: nessuna salita senza tempo rispettato. */
+  /*
+   * v6, 2026-11-15 (commit ff42dfb). Con R8 una revisione giudica solo le
+   * ultime 2 sedute chiuse allo stesso stato nei 14 giorni fino a fine(W).
+   * Le fixture della v5 avevano UNA seduta: R8 le chiude in `pocheProve`
+   * prima della regola che 4a-4c misurano, e il PASS sarebbe stato falso.
+   * Ogni controllo ha adesso (1) una coppia vera, (2) un controllo positivo
+   * che apre tutte le altre barriere e deve produrre il verdetto: se non lo
+   * produce, la fixture non misura niente e il controllo fallisce.
+   * Inizio programma 2026-03-02; revisione aperta il giorno dopo fine(W).
+   */
+  const LIVELLO = (slug: ExerciseSlug, l: LevelIndex, kg = 0) => new Map([[slug, stato(slug, l, kg)]]);
+  const PULL12 = new Map<TestId, TestResult>([['pull-up' as TestId, { testId: 'pull-up' as TestId, date: '2026-02-23', week: 0, value: 12 }]]);
+
+  /* 4a — S3: nessuna salita senza «sì» sul tempo in tutte e due le sedute della coppia. */
   {
-    /* v5: anche `null`. Dal 2d84d87 il player guidato non scrive più «sì» da solo:
-       senza risposta dell'atleta nel riepilogo il blocco resta a `null`. */
-    for (const tempo of [false, null] as const) {
-      const s = seduta('sc4a', 2, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), tempo, 2)]);
-      const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['rematore-inverso-trx', stato('rematore-inverso-trx', 2)]]), tests: VUOTO });
-      if (r.verdicts.some((v) => v.kind === 'sali-di-livello')) violazioni.push(`S3: salita di gradino proposta con tempoRespected=${String(tempo)}`);
+    const r4a = (t: [boolean | null, boolean | null]) => revisione(2, [
+      seduta('4a1', 1, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), t[0], 2)], null, '2026-03-05'),
+      seduta('4a2', 2, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), t[1], 2)], null, '2026-03-12'),
+    ], LIVELLO('rematore-inverso-trx', 2), VUOTO, '2026-03-19');
+    const attesi: [[boolean | null, boolean | null], string][] = [
+      [[true, false], 'rifai-al-tempo-giusto'], [[true, null], 'rispondi-sul-tempo'],
+      [[false, false], 'rifai-al-tempo-giusto'], [[null, null], 'rispondi-sul-tempo'], [[false, null], 'rifai-al-tempo-giusto'],
+    ];
+    for (const [t, atteso] of attesi) {
+      const r = r4a(t);
+      if (r.verdicts.some((v) => v.kind === 'sali-di-livello')) violazioni.push(`S3: salita con tempo [${String(t[0])}, ${String(t[1])}]`);
+      if (!r.verdicts.some((v) => v.kind === atteso && JSON.stringify(v.stateAfter) === JSON.stringify(v.stateBefore))) violazioni.push(`S3: tempo [${String(t[0])}, ${String(t[1])}] senza «${atteso}» a stato invariato (${r.verdicts.map((v) => v.kind).join(',') || r.pocheProve.length + ' pocheProve'})`);
     }
+    const pos = r4a([true, true]).verdicts.find((v) => v.kind === 'sali-di-livello');
+    if (pos?.stateAfter.level !== 3) violazioni.push('4a: controllo positivo [sì, sì] senza salita 2→3: la fixture non misura S3');
+    /* fine seduta: un «no» non apre nessuna leva (il null lo copre 4i) */
+    const blk = findCircuitSession('circuito-2')!.blocks.find((b) => b.code === 'A3')!;
+    const exr = getExercise('rematore-inverso-trx');
+    const bozza = seduta('4a3', 3, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), false, 2)], null, '2026-03-19');
+    const evf = evaluateProgression({ block: blk, exercise: exr, state: stato('rematore-inverso-trx', 2), logged: bozza.exercises[0]!, range: resolveBlockRange(blk, exr, VUOTO), week: 3, currentMaxReps: null,
+      salita: salitaConsentita('rematore-inverso-trx', 2, [seduta('4a1', 1, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), true, 2)], null, '2026-03-02')], '2026-03-19', { ...bozza, status: 'in-progress' }), rientro: null });
+    if (evf.suggestion !== null) violazioni.push(`S3 fine seduta: leva «${evf.suggestion.lever}» con tempo «no»`);
   }
 
-  /* 4b — S5: la zavorra non scavalca la variante. */
+  /* 4b — S5: la zavorra non scavalca la variante. Test delle trazioni a 12, perché Z4 non mascheri Z2. */
   {
-    const s = seduta('sc4b', 3, 'circuito-1', [esercizio('A1', 'trazioni-prona-presa-media', sets([8, 8, 8]), true, 1)]);
-    const r = reviewWeek({ week: 3, sessions: [s], states: new Map([['trazioni-prona-presa-media', stato('trazioni-prona-presa-media', 1)]]), tests: VUOTO });
+    const coppia = (l: LevelIndex, v: number[]) => [
+      seduta('4b1', 2, 'circuito-1', [esercizio('A1', 'trazioni-prona-presa-media', sets(v), true, l)], null, '2026-03-11'),
+      seduta('4b2', 3, 'circuito-1', [esercizio('A1', 'trazioni-prona-presa-media', sets(v), true, l)], null, '2026-03-18'),
+    ];
+    const r = revisione(3, coppia(1, [8, 8, 8]), LIVELLO('trazioni-prona-presa-media', 1), PULL12);
     if (r.verdicts.some((v) => v.kind === 'aggiungi-peso')) violazioni.push('S5: zavorra proposta al gradino 1, con la variante ancora disponibile');
+    if (!r.alMassimo.some((x) => x.exercise === 'trazioni-prona-presa-media' && x.motivo === 'tempo')) violazioni.push('4b: gradino 1 al massimo esatto senza `alMassimo` «tempo»');
+    const pos = revisione(3, coppia(6, [8, 8, 8]), LIVELLO('trazioni-prona-presa-media', 6), PULL12).verdicts.find((v) => v.kind === 'aggiungi-peso');
+    if (pos === undefined || pos.stateAfter.loadKg !== 2.5) violazioni.push('4b: controllo positivo al gradino 6 senza zavorra 0→2,5 kg: la fixture non misura S5');
+    const sopra = revisione(3, coppia(1, [9, 9, 9]), LIVELLO('trazioni-prona-presa-media', 1), PULL12);
+    if (sopra.verdicts.some((v) => v.kind === 'aggiungi-peso')) violazioni.push('S5: con la variante in attesa (R7) la zavorra ne prende il posto');
+    if (!sopra.inAttesa.some((x) => x.exercise === 'trazioni-prona-presa-media')) violazioni.push('4b: 9-9-9 al gradino 1 dal 03-11 non è `inAttesa`');
   }
 
-  /* 4c — S1: non più di un gradino ogni 2 settimane. */
+  /* 4c — S1: un gradino eseguibile ogni 14 giorni. Il ciclo non si ferma su una settimana senza verdetto. */
   {
-    let livello: LevelIndex = 1;
-    let salite = 0;
-    for (let w = 1; w <= 3; w += 1) {
-      const s = seduta(`sc4c${String(w)}`, w, 'circuito-3', [esercizio('A2', 'push-up', sets([19, 19, 19]), true, livello)]);
-      const r = reviewWeek({ week: w, sessions: [s], states: new Map([['push-up', stato('push-up', livello)]]), tests: VUOTO });
-      const v = r.verdicts.find((x) => x.kind === 'sali-di-livello');
-      if (v === undefined) break;
-      salite += 1;
-      livello = (v.stateAfter.level ?? livello) as LevelIndex;
+    const serieDate: [string, string[], number][] = [
+      ['una a settimana', ['2026-03-04', '2026-03-11', '2026-03-18', '2026-03-25'], 1],
+      ['due a settimana', ['2026-03-02', '2026-03-05', '2026-03-09', '2026-03-12', '2026-03-16', '2026-03-19', '2026-03-23', '2026-03-26'], 2],
+    ];
+    for (const [nome, date, attese] of serieDate) {
+      let livello: LevelIndex = 2;
+      const sedute: LoggedSession[] = [];
+      const cambi: string[] = [];
+      for (let w = 1; w <= 4; w += 1) {
+        for (const x of date.filter((dd) => settDi(dd) === w)) sedute.push(seduta(`4c-${x}`, w, 'circuito-3', [esercizio('A2', 'push-up', sets([19, 19, 19]), true, livello)], null, x));
+        const r = revisione(w, sedute, LIVELLO('push-up', livello));
+        const v = r.verdicts.find((y) => y.kind === 'sali-di-livello');
+        if (v !== undefined) { cambi.push(piu(fineSett(w), 1)); livello = v.stateAfter.level as LevelIndex; }
+      }
+      if (cambi.length > attese) violazioni.push(`S1 (${nome}): ${String(cambi.length)} salite in 4 settimane, attese ${String(attese)}`);
+      if (cambi.length < attese) violazioni.push(`4c (${nome}): ${String(cambi.length)} salite, attese ${String(attese)}: la fixture non arriva alla regola`);
+      for (let i = 1; i < cambi.length; i += 1) {
+        const gap = (Date.parse(cambi[i]!) - Date.parse(cambi[i - 1]!)) / 86_400_000;
+        if (gap < 14) violazioni.push(`S1 (${nome}): due salite a ${String(gap)} giorni`);
+      }
     }
-    if (salite > 2) violazioni.push(`S1: ${String(salite)} salite di gradino in 3 settimane consecutive`);
   }
 
-  /* 4d — S4: nessun verdetto da una sola seduta. */
+  /* 4d — S4: nessun verdetto senza 2 sedute utili e 3 serie vere. Controllo positivo sulla discesa. */
   {
-    const s = seduta('sc4d', 2, 'circuito-1', [esercizio('A2', 'bulgarian-split-squat', [...sets([13, 13], { side: 'left' }), ...sets([13, 13], { side: 'right' })], true, 1)]);
-    const r = reviewWeek({ week: 2, sessions: [s], states: new Map([['bulgarian-split-squat', stato('bulgarian-split-squat', 1)]]), tests: VUOTO });
-    if (r.verdicts.length > 0) violazioni.push('S4: verdetto emesso da 2 serie per lato di una sola seduta');
+    const bulg = (id: string, date: string, l: LevelIndex, sinistra: number[], destra: number[]) =>
+      seduta(id, settDi(date), 'circuito-1', [esercizio('A2', 'bulgarian-split-squat', [...sets(sinistra, { side: 'left' }), ...sets(destra, { side: 'right' })], true, l)], null, date);
+    const st = LIVELLO('bulgarian-split-squat', 2);
+    const casi: [string, number, LoggedSession[]][] = [
+      ['(1) solo 03-11, 2 serie per lato', 2, [bulg('d1', '2026-03-11', 2, [13, 13], [13, 13])]],
+      ['(2) 03-04 e 03-11, 1 serie S+D ciascuna', 2, [bulg('d2a', '2026-03-04', 2, [13], [13]), bulg('d2b', '2026-03-11', 2, [13], [13])]],
+      ['(3) 03-08 (fine−14) e 03-18', 3, [bulg('d3a', '2026-03-08', 2, [7, 7], [7, 7]), bulg('d3b', '2026-03-18', 2, [7, 7], [7, 7])]],
+      ['(4) 03-11 al gradino 1 e 03-18 al 2', 3, [bulg('d4a', '2026-03-11', 1, [7, 7], [7, 7]), bulg('d4b', '2026-03-18', 2, [7, 7], [7, 7])]],
+      ['(6) righe orfane: 03-04 1 S+D e 2 solo S, 03-11 1 S+D', 2, [bulg('d6a', '2026-03-04', 2, [7, 7, 7], [7]), bulg('d6b', '2026-03-11', 2, [7], [7])]],
+    ];
+    for (const [nome, w, sedute] of casi) {
+      const r = revisione(w, sedute, st);
+      if (r.verdicts.length > 0) violazioni.push(`S4 ${nome}: verdetto «${r.verdicts[0]!.kind}»`);
+      if (!r.pocheProve.some((x) => x.exercise === 'bulgarian-split-squat')) violazioni.push(`4d ${nome}: non in pocheProve`);
+    }
+    const uno = revisione(2, casi[0]![2], st);
+    if (uno.setsCounted !== 2) violazioni.push(`S4 (1): setsCounted ${String(uno.setsCounted)} invece di 2 serie vere`);
+    const pos = revisione(3, [bulg('d5a', '2026-03-09', 2, [7, 7], [7, 7]), bulg('d5b', '2026-03-18', 2, [7, 7], [7, 7])], st).verdicts.find((v) => v.kind === 'scendi-di-livello');
+    if (pos?.stateAfter.level !== 1) violazioni.push('4d: controllo positivo (03-09 e 03-18, 2 S+D da 7) senza discesa 2→1: una R8 muta supererebbe (1)-(4)');
   }
 
-  /* 4e — S2: il passo della zavorra resta 2,5 kg. */
+  /* 4e — S2: il passo della zavorra resta 2,5 kg. v6: tempo e pausa esauriti, altrimenti la leva è il tempo e il controllo non misura niente. */
   {
     const block = findCircuitSession('circuito-1')!.blocks.find((b) => b.code === 'A1')!;
     const ex = getExercise('chin-up-presa-supina-stretta');
+    const st = { ...stato('chin-up-presa-supina-stretta', 6, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
     const ev = evaluateProgression({
-      block, exercise: ex, state: stato('chin-up-presa-supina-stretta', 6, 5),
+      block, exercise: ex, state: st,
       logged: esercizio('A1', 'chin-up-presa-supina-stretta', sets([10, 10, 10], { rir: 0, kg: 5 }), true, 6),
       range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: 12,
+      salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null,
     });
-    const kg = ev.suggestion?.nextState.loadKg ?? 5;
-    if (ev.suggestion?.lever === 'load' && kg - 5 !== 2.5) violazioni.push(`S2: passo di zavorra ${String(kg - 5)} kg invece di 2,5`);
+    if (ev.suggestion?.lever !== 'load') violazioni.push(`4e: nessuna leva di zavorra (${String(ev.suggestion?.lever)}): la fixture non misura S2`);
+    else if (ev.suggestion.nextState.loadKg - 5 !== 2.5) violazioni.push(`S2: passo di zavorra ${String(ev.suggestion.nextState.loadKg - 5)} kg invece di 2,5`);
   }
 
-  /* 4f — un blocco escluso dalla revisione non produce verdetti. */
+  /* 4f — un blocco escluso dalla revisione non produce verdetti, nemmeno con due sedute. */
   {
-    const s = seduta('sc4f', 1, 'circuito-1', [esercizio('F1', 'kb-swing', sets([12, 11, 12]), true, null)]);
-    const r = reviewWeek({ week: 1, sessions: [s], states: new Map(), tests: VUOTO });
-    if (r.verdicts.length > 0) violazioni.push(`excludeFromReview ignorato: verdetto "${r.verdicts[0]!.kind}" sulla finitura metabolica`);
+    const sedute = ['2026-03-04', '2026-03-11'].map((x, i) => seduta(`4f${String(i)}`, settDi(x), 'circuito-1', [esercizio('F1', 'kb-swing', sets([21, 21, 21]), true, null)], null, x));
+    const r = revisione(2, sedute, new Map());
+    const dentro = r.verdicts.length + r.pocheProve.length + r.alMassimo.length + r.inAttesa.length + r.fermi.length + r.inRange.length;
+    if (dentro > 0) violazioni.push(`excludeFromReview ignorato: lo swing compare nella revisione (${r.verdicts.map((v) => v.kind).join(',')})`);
+    if (r.setsCounted !== 0) violazioni.push(`4f: setsCounted ${String(r.setsCounted)} sulla finitura`);
   }
 
-  /* 4g — T2: mai più di un gradino ESEGUIBILE alla volta (salto dei solo eccentrici, R1/PROGRESSION §5). */
+  /* 4g — T2: mai più di un gradino ESEGUIBILE alla volta (salto dei solo eccentrici). v6: coppia e R7 aperte. */
   {
     const casi: [string, LoggedSession['sessionId'], string, ExerciseSlug, LevelIndex, number][] = [
       ['trazioni', 'circuito-1', 'A1', 'trazioni-prona-presa-media', 1, 3],
@@ -315,11 +392,11 @@ function fileTesto(dir: string, ext: string[]): string[] {
       const blocco = findCircuitSession(sid)!.blocks.find((b) => b.code === code)!;
       const p = blocco.prescription;
       const sopra = (p.kind === 'reps' ? p.max : 0) + 1;
-      const s = seduta(`sc4g${nome}`, 3, sid, [esercizio(code, slug, sets([sopra, sopra, sopra]), true, da)]);
-      const r = reviewWeek({ week: 3, sessions: [s], states: new Map([[slug, stato(slug, da)]]), tests: VUOTO });
-      const v = r.verdicts.find((x) => x.kind === 'sali-di-livello');
-      const a = v?.stateAfter.level ?? null;
-      if (a !== null && a !== atteso) violazioni.push(`T2: ${nome} da ${String(da)} a ${String(a)}, atteso ${String(atteso)} (un solo gradino eseguibile)`);
+      const sedute = ['2026-03-05', '2026-03-12'].map((x, i) => seduta(`4g${nome}${String(i)}`, settDi(x), sid, [esercizio(code, slug, sets([sopra, sopra, sopra]), true, da)], null, x));
+      const r = revisione(2, sedute, LIVELLO(slug, da), VUOTO, '2026-03-19');
+      const a = r.verdicts.find((x) => x.kind === 'sali-di-livello')?.stateAfter.level ?? null;
+      if (a === null) violazioni.push(`4g: ${nome} senza salita: la fixture non misura T2`);
+      else if (a !== atteso) violazioni.push(`T2: ${nome} da ${String(da)} a ${String(a)}, atteso ${String(atteso)} (un solo gradino eseguibile)`);
     }
   }
 
@@ -364,6 +441,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
       block, exercise: ex, state: stato('push-up', 2),
       logged: esercizio('A2', 'push-up', sets([18, 18, 18]), null, 2),
       range: resolveBlockRange(block, ex, VUOTO), week: 3, currentMaxReps: null,
+      salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null,
     });
     if (ev.suggestion !== null) violazioni.push(`S10: leva «${ev.suggestion.lever}» proposta senza nessun «sì» sul tempo`);
     const player = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
@@ -459,23 +537,35 @@ function fileTesto(dir: string, ext: string[]): string[] {
   ];
   const block = findCircuitSession('circuito-1')!.blocks.find((b) => b.code === 'A1')!;
   const ex = getExercise('trazioni-prona-presa-media');
+  const PULL12_7 = new Map<TestId, TestResult>([['pull-up' as TestId, { testId: 'pull-up' as TestId, date: '2026-02-23', week: 0, value: 12 }]]);
   const impronta = (note: string | null, etichetta: string): string => {
-    const l: LoggedExercise = {
+    /* v6: una coppia vera (R8) con R7 aperta, così la revisione arriva a un verdetto; la nota sta in ogni seduta */
+    const voce = (): LoggedExercise => ({
       blockCode: 'A1', exercise: ex.slug, variantLabel: etichetta, level: 3, tempoRespected: true,
       sets: sets([10, 10, 10], { rir: 1, kg: 5, note }), note,
-    };
-    const ev = evaluateProgression({ block, exercise: ex, state: stato(ex.slug, 3, 5), logged: l, range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: null });
-    /* v5: anche LoggedSession.note. Fino alla v4 la nota della seduta era
-       dichiarata in SAFETY_CORE.md ma non veniva iniettata. */
-    const r = reviewWeek({ week: 4, sessions: [seduta('sc7', 4, 'circuito-1', [l], note)], states: new Map([[ex.slug, stato(ex.slug, 3, 5)]]), tests: VUOTO });
+    });
+    const storia = [
+      seduta('sc7a', 1, 'circuito-1', [voce()], note, '2026-03-02'),
+      seduta('sc7b', 2, 'circuito-1', [voce()], note, '2026-03-11'),
+      seduta('sc7c', 3, 'circuito-1', [voce()], note, '2026-03-18'),
+    ];
+    const l = voce();
+    const bozza = { ...seduta('sc7d', 4, 'circuito-1', [l], note, '2026-03-25'), status: 'in-progress' as const };
+    const ev = evaluateProgression({ block, exercise: ex, state: stato(ex.slug, 3, 5), logged: l, range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: 12,
+      salita: salitaConsentita(ex.slug, 3, storia, bozza.date, bozza), rientro: null });
+    const r = revisione(3, storia, new Map([[ex.slug, stato(ex.slug, 3, 5)]]), PULL12_7);
     return JSON.stringify({
-      t: ev.triggered, lv: ev.suggestion?.lever, st: ev.suggestion?.nextState, lev: ev.levers.map((x) => [x.lever, x.available]),
+      t: ev.triggered, lv: ev.suggestion?.lever, st: ev.suggestion?.nextState, lev: ev.levers.map((x) => [x.lever, x.available]), br: ev.blockedReason,
       sm: summarizeExercise(l), cal: calibrateLoad(l.sets, 5),
-      rv: r.verdicts.map((v) => [v.kind, v.lever, v.stateAfter]), ir: r.inRange, am: r.alMassimo,
+      rv: r.verdicts.map((v) => [v.kind, v.lever, v.stateAfter, v.evidence, v.change]), ir: r.inRange, am: r.alMassimo,
+      pp: r.pocheProve, rm: r.rimandati, fe: r.fermi, ia: r.inAttesa, sc: r.setsCounted, n: r.sessionsCounted,
     });
   };
   const base = impronta(null, 'Liv. 3 · Trazioni complete');
+  /* la base deve arrivare a un verdetto, altrimenti l'impronta della revisione è vuota e il caso non misura niente */
+  const arriva = (JSON.parse(base) as { rv: unknown[] }).rv.length > 0;
   const cambiati = ATTACCHI.filter((a) => impronta(a, 'Liv. 3 · Trazioni complete') !== base || impronta(null, a) !== base);
+  if (!arriva) cambiati.push('(fixture: la revisione di base non produce verdetti, impronta vuota)');
   registra('7', 'Nessun testo scritto dall’atleta cambia un numero prescritto',
     cambiati.length === 0 ? 'PASS' : 'FALLITO',
     cambiati.length === 0 ? `${String(ATTACCHI.length)} stringhe ostili × 4 campi (nota della serie, dell'esercizio e della seduta insieme; etichetta della variante da sola): impronta numerica identica` : `cambiato da: ${cambiati.join(' | ')}`);

@@ -1,6 +1,16 @@
 /*
  * 08 — Una leva accettata a fine seduta sopravvive al salvataggio? (A13)
  *
+ * v3, 2026-11-15 (commit ff42dfb). La v2 era obsoleta per due ragioni:
+ *   1. `evaluateProgression` chiede `salita` (R7) e `rientro` (R9): senza,
+ *      la leva della variante legge `undefined` e lo script va in crash;
+ *   2. dal `79d2cb0` i player non tengono più le scelte in memoria: le
+ *      ricostruiscono dai suggerimenti registrati con `sessionDecisions`
+ *      (decided, accepted, toEvaluate = stato di prima della scelta). Q e V
+ *      vanno misurati su quella funzione, non sul vecchio `useRef`.
+ * La salita R7 si calcola con `salitaConsentita` su una storia di sedute
+ * chiuse: prima seduta al gradino 15 giorni prima (R7 aperta) dove non detto.
+ *
  * v2, 2026-11-12 (commit 2d84d87). La v1 eseguiva il vecchio ordine
  *   for (const next of syncStatesFromLog(draft, states)) confirmExercise(next);
  * e dopo la correzione misurava una cosa che il prodotto non fa più
@@ -27,7 +37,9 @@ import { findCircuitSession } from '../../src/data/circuit.ts';
 import { getExercise } from '../../src/data/exercises.ts';
 import { evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
-import { statesToSave, syncStatesFromLog } from '../../src/engine/draft.ts';
+import { sessionDecisions, statesToSave, syncStatesFromLog } from '../../src/engine/draft.ts';
+import type { RecordedDecision } from '../../src/engine/draft.ts';
+import { salitaConsentita } from '../../src/engine/progression.ts';
 import type { ExerciseSlug, ExerciseState, LevelIndex, LoggedExercise, LoggedSession, TestId, TestResult } from '../../src/types/index.ts';
 
 const VUOTO = new Map<TestId, TestResult>();
@@ -47,8 +59,11 @@ function preparazione(sessionId: Sid, code: string, valori: number[], livello: L
     note: null,
   };
   const draft: LoggedSession = { id: 'q08', date: '2026-11-12', week: settimana, sessionId, status: 'in-progress', exercises: [logged], note: null };
+  /* storia: una seduta chiusa allo stesso gradino 15 giorni prima (R7 aperta) */
+  const storia: LoggedSession[] = [{ ...draft, id: 'q08-prima', date: '2026-10-28', status: 'completed' }];
   const valuta = (state: ExerciseState) =>
-    evaluateProgression({ block, exercise: ex, state, logged, range: resolveBlockRange(block, ex, VUOTO), week: settimana, currentMaxReps: massimale });
+    evaluateProgression({ block, exercise: ex, state, logged, range: resolveBlockRange(block, ex, VUOTO), week: settimana, currentMaxReps: massimale,
+      salita: salitaConsentita(ex.slug, state.level, storia, draft.date, draft), rientro: null });
   return { ex, prima, logged, draft, valuta };
 }
 
@@ -67,8 +82,10 @@ function accetta(titolo: string, sessionId: Sid, code: string, valori: number[],
   const tenuto = JSON.stringify(finale) === JSON.stringify(sug.nextState);
   if (!tenuto) difetti += 1;
 
-  /* V — il riepilogo si ricalcola con lo stato confermato: cosa c'è sopra «Scelta registrata»? */
-  const dopo = valuta(sug.nextState).suggestion;
+  /* V — v3: il riepilogo valuta su `sessionDecisions(...).toEvaluate`, con il suggerimento registrato */
+  const rec: RecordedDecision = { sessionLogId: draft.id, exercise: ex.slug, blockCode: code, decision: 'accepted', stateBefore: prima, stateAfter: sug.nextState };
+  const scelte = sessionDecisions(draft.id, [], [rec], new Map([[ex.slug, sug.nextState]]));
+  const dopo = valuta(scelte.toEvaluate.get(ex.slug)!).suggestion;
   const mostrata = dopo === null ? 'nessuna leva (il riquadro sparisce, e con lui «Scelta registrata»)' : `«${dopo.title}» (${dopo.lever})`;
   const coerente = dopo !== null && dopo.lever === sug.lever && JSON.stringify(dopo.nextState) === JSON.stringify(sug.nextState);
   console.log(`${tenuto ? 'TENUTA   ' : 'ANNULLATA'} ${titolo}: leva «${sug.lever}» · prima ${fmt(prima)} → accettato ${fmt(sug.nextState)} → salvato ${fmt(finale)}`);
@@ -115,23 +132,27 @@ function ricarica(titolo: string, sessionId: Sid, code: string, valori: number[]
   const { ex, prima, draft, valuta } = preparazione(sessionId, code, valori, livello, 0, settimana, 0, null);
   const sug = valuta(prima).suggestion;
   if (sug === null) { console.log(`—         ${titolo}: nessun suggerimento`); return; }
-  /* dopo la ricarica: stati dal disco = accettato; accettate e decided vuoti */
+  /* «Accetto»: stato accettato su disco + suggerimento registrato su disco. Poi ricarica:
+     `locali` vuoto, `registrate` dal disco, stati dal disco = accettato. */
+  const rec: RecordedDecision = { sessionLogId: draft.id, exercise: ex.slug, blockCode: code, decision: 'accepted', stateBefore: prima, stateAfter: sug.nextState };
   const daDisco = new Map<ExerciseSlug, ExerciseState>([[ex.slug, sug.nextState]]);
+  const scelte = sessionDecisions(draft.id, [rec], [], daDisco);
   /* Q1 — si chiude senza toccare niente */
   const q1 = new Map(daDisco);
-  for (const next of statesToSave(syncStatesFromLog(draft, q1), new Map())) q1.set(next.exercise, next);
-  /* Q2 — il riepilogo ricalcola dallo stato accettato e propone di nuovo, con i pulsanti attivi */
-  const seconda = valuta(sug.nextState).suggestion;
-  const q2 = new Map(daDisco);
-  if (seconda !== null) {
-    q2.set(ex.slug, seconda.nextState);
-    for (const next of statesToSave(syncStatesFromLog(draft, q2), new Map([[ex.slug, seconda.nextState]]))) q2.set(next.exercise, next);
-  }
+  for (const next of statesToSave(syncStatesFromLog(draft, q1), scelte.accepted)) q1.set(next.exercise, next);
+  /* Q2 — il riepilogo riaperto valuta su toEvaluate; il blocco è già deciso? */
+  const seconda = valuta(scelte.toEvaluate.get(ex.slug)!).suggestion;
+  const deciso = scelte.decided.has(`${draft.id}:${code}`);
+  const stessa = seconda !== null && JSON.stringify(seconda.nextState) === JSON.stringify(sug.nextState);
+  /* seconda difesa di R7: anche valutando sullo stato accettato la variante non si propone */
+  const sulNuovo = valuta(sug.nextState).suggestion;
   const f1 = q1.get(ex.slug)!;
-  const f2 = q2.get(ex.slug)!;
-  if (JSON.stringify(f1) !== JSON.stringify(sug.nextState)) difetti += 1;
-  console.log(`${JSON.stringify(f1) === JSON.stringify(sug.nextState) ? 'TENUTA   ' : 'ANNULLATA'} Q1 ${titolo}: accettato ${fmt(sug.nextState)}, ricarica, chiusura → salvato ${fmt(f1)}`);
-  console.log(`          Q2 il riepilogo riaperto propone ${seconda === null ? 'niente' : `«${seconda.change.split('.')[0]}»`}; se accetti → salvato ${fmt(f2)} (una seduta, prima ${fmt(prima)})`);
+  const ok1 = JSON.stringify(f1) === JSON.stringify(sug.nextState);
+  if (!ok1) difetti += 1;
+  if (!(deciso && stessa)) difetti += 1;
+  console.log(`${ok1 ? 'TENUTA   ' : 'ANNULLATA'} Q1 ${titolo}: accettato ${fmt(sug.nextState)}, ricarica, chiusura → salvato ${fmt(f1)}`);
+  console.log(`${deciso && stessa ? 'OK       ' : 'DIFETTO  '} Q2 riaperto: mostra ${seconda === null ? 'niente' : `«${seconda.title}»`} (${stessa ? 'la stessa accettata' : 'UNA LEVA DIVERSA'}), blocco deciso=${String(deciso)} → «Scelta registrata», pulsanti spenti`);
+  console.log(`          R7 seconda difesa: valutando sullo stato accettato la leva sarebbe ${sulNuovo === null ? 'nessuna' : `«${sulNuovo.lever}» ${sulNuovo.lever === 'variant' ? '(VARIANTE: difesa assente)' : ''}`}`);
 }
 
 console.log('=== A · Leva accettata nel riepilogo, poi «Salva e chiudi» (statesToSave) ===');
@@ -149,4 +170,5 @@ accettaPoiAbbassa('push-up S3 A2, gradino 2, 19-19-19', 'circuito-3', 'A2', [19,
 console.log('\n=== Q · Ricarica fra «Accetto» e «Salva e chiudi» ===');
 ricarica('trazioni S1 A1, gradino 1, 9-9-9 su 6-8', 'circuito-1', 'A1', [9, 9, 9], 1, 2);
 ricarica('push-up S3 A2, gradino 2, 19-19-19 su 12-18', 'circuito-3', 'A2', [19, 19, 19], 2, 2);
-console.log(`\nDifetti A/R/Q1 (stato salvato ≠ atteso): ${String(difetti)}`);
+console.log(`\nDifetti A/R/Q (stato salvato ≠ atteso, o riepilogo riaperto con una leva diversa): ${String(difetti)}`);
+if (difetti > 0) process.exitCode = 1;

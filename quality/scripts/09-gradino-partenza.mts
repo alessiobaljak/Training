@@ -203,12 +203,14 @@ console.log('\n=== G. Revisione settimanale: salire e scendere saltano le sole n
 function rev(sessionId: LoggedSession['sessionId'], code: string, valori: number[], livello: LevelIndex): string {
   const b = findCircuitSession(sessionId)!.blocks.find((x) => x.code === code)!;
   const slug = b.exercise;
-  const sedute: LoggedSession[] = [1, 2].map((i) => ({
-    id: `g${String(i)}`, date: `2026-11-0${String(i + 1)}`, week: 3, sessionId, status: 'completed', note: null,
+  /* v3, 2026-11-15: R8 vuole la coppia nei 14 giorni fino a fine(W) e R7 14 giorni al gradino.
+     Inizio 2026-03-02: seduta del 02-23 allo stesso gradino (R7 aperta), coppia 03-10 (W2) e 03-18 (W3). */
+  const sedute: LoggedSession[] = [0, 1, 2].map((i) => ({
+    id: `g${String(i)}`, date: ['2026-02-23', '2026-03-10', '2026-03-18'][i]!, week: [0, 2, 3][i]!, sessionId, status: 'completed', note: null,
     exercises: [{ blockCode: code, exercise: slug, variantLabel: 'fixture', level: livello, tempoRespected: true, note: null,
       sets: valori.map((v, k) => ({ setIndex: k + 1, side: null, value: v, rir: null, loadKg: 0, heartRate: null, note: null })) }],
   }));
-  const r = reviewWeek({ week: 3, sessions: sedute, states: new Map([[slug, { exercise: slug, level: livello, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 }]]), tests: new Map() });
+  const r = reviewWeek({ week: 3, sessions: sedute, states: new Map([[slug, { exercise: slug, level: livello, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 }]]), tests: new Map(), weekEnd: '2026-03-22', today: '2026-03-23' });
   const v = r.verdicts.find((x) => x.exercise === slug);
   return v === undefined ? 'nessun verdetto' : `${v.kind} → ${String(v.stateAfter.level)}`;
 }

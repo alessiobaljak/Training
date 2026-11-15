@@ -43,6 +43,8 @@ criteri sotto soglia contemporaneamente valgono come un Alto.
 
 ## Soglie di sicurezza sulla progressione (approvate il 2026-11-12)
 
+Al 2026-11-15 (`ff42dfb`, R5-R8) rispettate anche **S1, S3, S4, S5** (A4, A2, M1, A3 chiusi:
+`12`, `13`, nucleo 4 v6). Restano violate S6 (M4, R9 rimandata) e S9 (B10).
 Al 2026-11-12 (`90b8b81`) rispettate: S2, S10. Violate: S1, S3, S4, S5, S6,
 S9 (giro della finitura, B10). S7: B9 (in attesa della decisione sui blocchi
 esclusi). S8: B3 (rilascio pubblico). `BOUNDARIES.md` 1.0 è ancora proposta e
@@ -54,7 +56,7 @@ va allineata a queste, che sono approvate.
 | S1 | massimo **1 gradino di scala per esercizio ogni 2 settimane** | oggi si va da 1 a 6 in 5 settimane su 5 settimane di numeri sopra il range; una scala a 6 gradini attraversata in 5 settimane non è una progressione, è un cambio di esercizio ogni lunedì |
 | S2 | massimo **+2,5 kg per esercizio a settimana** (già rispettata da `stepLoad`) | passo unico del metodo |
 | S3 | nessuna salita di gradino **senza `tempoRespected === true`** su tutte le sedute della settimana | è la regola di `METHOD.md` (`ADVANCEMENT_REQUIRES_REACHING_MAX` + tempo prescritto); oggi la revisione settimanale la aggira con una semplice cautela testuale |
-| S4 | nessun verdetto con **meno di 2 sedute** e **meno di 3 serie vere** (non righe) su quell'esercizio nella settimana | oggi 2 serie per lato (4 righe) di una sola seduta bastano |
+| S4 | nessun verdetto con **meno di 2 sedute** e **meno di 3 serie vere** (non righe) su quell'esercizio. **Lettura D-16** (Alessio, 2026-11-15; parere favorevole di training-quality il 2026-11-15): le **ultime 2 sedute chiuse** dell'esercizio, allo stesso gradino e carico, entrambe nei 14 giorni fino alla domenica che chiude la settimana rivista; mai le «ultime due buone». Riserva di training-quality: due date diverse (L15) | fino al `ff42dfb` 2 serie per lato (4 righe) di una sola seduta bastavano (M1, chiuso) |
 | S5 | **zavorra solo dopo che la variante è esaurita**, e mai sotto le soglie di `getLoadThreshold` (8 trazioni, 10 dip) | il metodo mette il carico alla leva 5; oggi la revisione lo propone al gradino 1 e non consulta mai `assessLoadNeed` |
 | S6 | dopo **≥ 14 giorni** senza sedute chiuse: volume ridotto per 1 settimana e ritest proposto | oggi dopo 20 giorni la seduta proposta è identica |
 | S7 | nessun esercizio al di sopra del **gradino compatibile con il valore misurato dal test**, non solo con l'esercizio del test | oggi trazioni complete e dip completi a chi ha misurato 0 |
