@@ -19,13 +19,15 @@ Contesto esteso e storia in `docs/`. Leggili solo quando servono: `docs/configur
 | Test prima del rilascio, verdetto GO / NO-GO | `release-gate` |
 | Codice, interfaccia, testi dell'app, integrazioni, pubblicazione delle immagini | sessione principale |
 
-Chi progetta non valuta. Il rilascio lo decide Alessio.
+Chi progetta non valuta. Le regole di rilascio le decide Alessio (vedi «Regole che non si toccano»).
 
 ## Flussi
 
 - **Modifica al metodo**: `training-designer` → implementazione → `training-quality` → `release-gate` (dimensione L) → ok di Alessio → deploy.
 - **Immagine**: scheda tecnica di `training-designer` → verifica di `exercise-media-lead` → verifica indipendente di `training-quality` → approvazione di Alessio → pubblicazione (sessione principale) → `release-gate` (dimensione M) → ok di Alessio → deploy.
 - **Tutto il resto**: implementazione → `release-gate` con la dimensione corretta → ok di Alessio → deploy.
+
+Fino al rilascio pubblico il passo «ok di Alessio» nei flussi non c'è: vale la regola sul deploy in «Regole che non si toccano».
 
 ## Regole sui token, per tutti i subagent
 
@@ -47,7 +49,7 @@ Chi progetta non valuta. Il rilascio lo decide Alessio.
 - L'app serve solo immagini approvate; nessuna generazione di immagini in produzione.
 - Nessun GO, PASS o test superato su ciò che non è stato eseguito davvero. Ciò che non è verificabile è NON COPERTO, mai PASS.
 - Nessuna compressione di difetti Bloccanti o Alti e di domande aperte.
-- Il deploy in produzione richiede sempre l'ok esplicito di Alessio.
+- Fino al rilascio pubblico, un push con verify, smoke e offline verdi va in produzione senza ok; le modifiche al metodo aspettano training-quality. Dal rilascio pubblico l'ok di Alessio torna obbligatorio. (Decisione di Alessio, 2026-11-15: l'ambiente è ancora privato. Su Vercel ogni push su questo ramo è un rilascio.)
 
 ## Comandi
 

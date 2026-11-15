@@ -49,8 +49,8 @@ degli altri progetti. Questa sessione gira ancora sul Default.
    da lui), **B9** (30" di dead hang a chi ne ha misurati 8), **B10** (plank
    → slam senza pausa fra i giri della finitura di S4: 15" o un altro ordine,
    insieme a D-12) e il disaccordo su `circonduzioni-spalle`.
-   **D-16** (revisione settimanale: lettera di S4 o ultime 2 sedute in 14
-   giorni) blocca l'implementazione di R8, R5, R6, R7.
+   Domande del designer per R9 (secondo rilascio): D-17, D-18, quando il
+   ritest di rientro, D-4.
 1. **R2 si scosta dall'orologio scritto della scheda** di 15 secondi a seduta
    (tra Tri-set 2 e finitura). Si toglie con una riga se preferisci
    l'originale.
@@ -80,13 +80,18 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   nucleo di sicurezza continua a eseguirli per intero a ogni rilascio e a
   riportarli per quello che sono (FALLITO o NON COPERTO, mai PASS). Diventano
   Bloccanti il giorno in cui l'app ha un secondo utente.
+- **2026-11-15, Alessio: D-16 alternativa.** Per un verdetto della revisione
+  valgono le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e
+  carico, entrambe negli ultimi 14 giorni, non la settimana di calendario.
+  Serve ancora il parere di training-quality su questa lettura di S4.
+- **2026-11-15, Alessio: CLAUDE.md aggiornato.** Fino al rilascio pubblico un
+  push con verify, smoke e offline verdi va in produzione senza ok; le
+  modifiche al metodo aspettano training-quality.
 - **2026-11-15, Alessio: per ora un push va in produzione senza il suo ok se
   i test passano.** Il ramo di produzione su Vercel è questo, con
   l'assegnazione automatica accesa: ogni push è un rilascio. Prima di ogni
   push la sessione principale esegue verify, smoke e offline (Vercel esegue
-  solo verify). Contrasta con CLAUDE.md («il deploy in produzione richiede
-  sempre l'ok esplicito di Alessio»): CLAUDE.md non è stato cambiato, va
-  allineato su sua indicazione.
+  solo verify). CLAUDE.md allineato lo stesso giorno.
 - **2026-11-12, Alessio: A2, A3, A4, M1, M4 restano Bloccanti.** Toccano lui
   già oggi (gradino e carico di ogni settimana), a differenza di B1-B4. Prima
   servono le regole di training-designer, poi codice, quality e gate.
