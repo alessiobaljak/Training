@@ -7,7 +7,9 @@ import {
   setTempoRespected,
 } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
-import { evaluateProgression } from '../../engine/progression.ts';
+import { evaluateProgression, salitaConsentita } from '../../engine/progression.ts';
+import { testBaseline } from '../../data/tests.ts';
+import { useSessions } from '../hooks/useData.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
 import { resolveBlockRange } from '../../engine/ranges.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
@@ -68,6 +70,8 @@ export function SessionSummary({
   onBack,
 }: SessionSummaryProps) {
   const [note, setNote] = useState(draft.note ?? '');
+  /* Le sedute chiuse servono a R7: da quando sei al gradino di oggi. */
+  const sessions = useSessions();
   /*
    * Nel player guidato il cronometro può dire soltanto «no»: una serie chiusa
    * prima del minimo. Il «sì» lo dà l'atleta, qui (PROGRESSION_RULES §1).
@@ -94,9 +98,18 @@ export function SessionSummary({
 
         const range = resolveBlockRange(block, exercise, tests);
         const summary = summarizeExercise(logged);
-        const latest = tests.get(
-          block.prescription.kind === 'reps-from-test' ? block.prescription.testId : ('pull-up' as TestId),
-        );
+        /*
+         * R6 Z4: il massimale del test dello schema motorio, su ogni blocco.
+         * Prima arrivava solo ai blocchi `reps-from-test`, cioè a nessun
+         * blocco del circuito, e la soglia della zavorra non si leggeva mai.
+         */
+        const baseline = exercise.pattern === null ? null : testBaseline(exercise.pattern);
+        const latest =
+          block.prescription.kind === 'reps-from-test'
+            ? tests.get(block.prescription.testId)
+            : baseline === null
+              ? undefined
+              : tests.get(baseline.testId);
 
         const evaluation = evaluateProgression({
           block,
@@ -105,8 +118,9 @@ export function SessionSummary({
           logged,
           range,
           week,
-          currentMaxReps:
-            block.prescription.kind === 'reps-from-test' ? (latest?.value ?? null) : null,
+          currentMaxReps: latest?.value ?? null,
+          salita: salitaConsentita(block.exercise, state.level, sessions ?? [], draft.date, draft),
+          rientro: null,
         });
 
         const calibration =
@@ -114,7 +128,7 @@ export function SessionSummary({
 
         return [{ block, exercise, logged, summary, evaluation, calibration }];
       }),
-    [program, draft, states, tests, week],
+    [program, draft, states, tests, week, sessions],
   );
 
   /*
@@ -320,7 +334,12 @@ export function SessionSummary({
                 </div>
               ) : null}
 
-              {evaluation.suggestion !== null ? (
+              {/*
+                Finché le sedute non sono lette R7 non si può calcolare: si
+                aspetta, invece di mostrare per un istante una leva che
+                sparirebbe e che si potrebbe accettare per sbaglio.
+              */}
+              {sessions === undefined ? null : evaluation.suggestion !== null ? (
                 <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 p-4">
                   <div className="flex items-center gap-2">
                     <Badge tone="accent">Leva successiva</Badge>
@@ -362,7 +381,15 @@ export function SessionSummary({
                     </div>
                   )}
                 </div>
-              ) : evaluation.triggered ? (
+              ) : evaluation.blockedReason !== null &&
+                evaluation.closedRange &&
+                evaluation.motivoBlocco !== 'tempo-null' &&
+                evaluation.motivoBlocco !== 'tempo-no' ? (
+                /*
+                  Massimo chiuso e nessuna leva: si dice perché. Scarico,
+                  rientro, serie troppo poche o gradino in attesa (R5, R7).
+                  Sul tempo lo dice già la domanda qui sopra.
+                */
                 <p className="mt-3 text-sm leading-relaxed text-warn">{evaluation.blockedReason}</p>
               ) : null}
 

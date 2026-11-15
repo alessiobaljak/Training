@@ -1,8 +1,9 @@
 import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
 import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import { getExercise as getExerciseBySlug } from '../data/exercises.ts';
-import { ENDURANCE_REP_THRESHOLD } from '../data/method.ts';
-import { testBaseline } from '../data/tests.ts';
+import { ENDURANCE_REP_THRESHOLD, getLoadThreshold } from '../data/method.ts';
+import { DELOAD_WEEKS } from '../data/program.ts';
+import { getTest, testBaseline } from '../data/tests.ts';
 import {
   ECCENTRIC_TEMPO_LADDER,
   ISO_PAUSE_LADDER,
@@ -17,6 +18,8 @@ import type {
   LevelIndex,
   MotorPattern,
   LoggedExercise,
+  LoggedSession,
+  LoggedSet,
   OverloadLever,
   ProgramBlock,
   TempoPhase,
@@ -29,6 +32,7 @@ import { isTempoBreakdown, parseRir, parseTut } from './notation.ts';
 import { getLoadAvailability, assessLoadNeed, stepLoad } from './loading.ts';
 import type { RangeResolution } from './ranges.ts';
 import { formatRange } from './ranges.ts';
+import { addDays, daysBetween, formatDayLong } from './dates.ts';
 
 /**
  * Regola di avanzamento e scelta della leva.
@@ -201,6 +205,163 @@ export function effectiveTempo(notation: TutNotation, state: ExerciseState): Tut
 }
 
 /* -------------------------------------------------------------------------- */
+/* Serie vere, salita consentita, motivi di blocco (R5, R7, R8)                */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Le serie vere di una voce, come numeri di serie (R8).
+ *
+ * Una serie conta se ha una riga senza lato, oppure se ha sia il sinistro sia
+ * il destro. Due righe per lato sono una serie, non due: prima il conto
+ * diceva «4 serie» a chi ne aveva fatte 2 per lato, e bastava per un verdetto.
+ */
+export function serieVere(sets: readonly LoggedSet[]): readonly number[] {
+  const perIndice = new Map<number, Set<string>>();
+  for (const set of sets) {
+    const lati = perIndice.get(set.setIndex) ?? new Set<string>();
+    lati.add(set.side ?? 'nessuno');
+    perIndice.set(set.setIndex, lati);
+  }
+  return [...perIndice]
+    .filter(([, lati]) => lati.has('nessuno') || (lati.has('left') && lati.has('right')))
+    .map(([indice]) => indice)
+    .sort((a, b) => a - b);
+}
+
+/** Le righe che appartengono a serie vere: le orfane non entrano nei valori. */
+export function righeVere(sets: readonly LoggedSet[]): readonly LoggedSet[] {
+  const vere = new Set(serieVere(sets));
+  return sets.filter((set) => vere.has(set.setIndex));
+}
+
+/** Esito di R7 per un esercizio a un gradino. */
+export interface SalitaConsentita {
+  readonly consentita: boolean;
+  /** Prima seduta chiusa della serie ininterrotta al gradino. `null` se non ce n'è. */
+  readonly inizio: string | null;
+  /** Da quando si può proporre il gradino dopo. `null` se non si sa ancora. */
+  readonly dal: string | null;
+}
+
+/** Giorni minimi fra la prima seduta a un gradino e la salita al successivo (S1). */
+export const GIORNI_PER_GRADINO = 14;
+
+/**
+ * R7: un gradino eseguibile ogni due settimane (S1).
+ *
+ * Il conto parte dalla prima seduta chiusa della serie **ininterrotta** di
+ * sedute a questo gradino: una discesa e una risalita lo fanno ripartire, e
+ * un gradino accettato ma non ancora eseguito non ha ancora un inizio, quindi
+ * blocca ogni altra salita. La seduta in corso non è chiusa e non conta; se
+ * è a questo gradino, dice solo da quando si potrà salire.
+ *
+ * Prima non c'era nessun tetto: con cinque settimane sopra il range si
+ * attraversava una scala di sei gradini in cinque settimane.
+ */
+export function salitaConsentita(
+  slug: ExerciseSlug,
+  level: LevelIndex | null,
+  sessions: readonly LoggedSession[],
+  oggi: string,
+  inCorso: LoggedSession | null = null,
+): SalitaConsentita {
+  if (level === null) return { consentita: false, inizio: null, dal: null };
+
+  const chiuse = sessions
+    .filter((session) => session.status === 'completed' && session.id !== inCorso?.id)
+    .sort((a, b) => (a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date < b.date ? -1 : 1));
+
+  let inizio: string | null = null;
+  let precedente: LevelIndex | null | undefined;
+  for (const session of chiuse) {
+    for (const voce of session.exercises) {
+      if (voce.exercise !== slug || voce.level === null || voce.sets.length === 0) continue;
+      if (voce.level === level) {
+        if (precedente !== level) inizio = session.date;
+      } else {
+        inizio = null;
+      }
+      precedente = voce.level;
+    }
+  }
+
+  if (inizio !== null) {
+    const dal = addDays(inizio, GIORNI_PER_GRADINO);
+    return { consentita: daysBetween(inizio, oggi) >= GIORNI_PER_GRADINO, inizio, dal };
+  }
+
+  const oggiAlGradino =
+    inCorso?.exercises.some(
+      (voce) => voce.exercise === slug && voce.level === level && voce.sets.length > 0,
+    ) ?? false;
+  return {
+    consentita: false,
+    inizio: null,
+    dal: oggiAlGradino && inCorso !== null ? addDays(inCorso.date, GIORNI_PER_GRADINO) : null,
+  };
+}
+
+/** Il testo di R7, uguale a fine seduta e nella revisione (ADVICE §7). */
+export function testoSalitaInAttesa(level: LevelIndex, salita: SalitaConsentita): string {
+  if (salita.inizio !== null && salita.dal !== null) {
+    return `Un gradino ogni due settimane: sei al livello ${String(level)} dal ${formatDayLong(salita.inizio)}, il prossimo si può proporre dal ${formatDayLong(salita.dal)}.`;
+  }
+  if (salita.dal !== null) {
+    return `Sei appena arrivato al livello ${String(level)}: il prossimo gradino si può proporre dal ${formatDayLong(salita.dal)}.`;
+  }
+  return `Sei appena arrivato al livello ${String(level)}: il prossimo gradino si può proporre 14 giorni dopo la prima seduta chiusa a questo livello.`;
+}
+
+/** Seduta di rientro dopo una pausa (R9). `null` finché R9 non c'è. */
+export interface Rientro {
+  readonly seduta: number;
+  readonly di: number;
+}
+
+/** Il primo motivo per cui nessun aumento si può applicare (R5). */
+export type MotivoBlocco = 'scarico' | 'rientro' | 'tempo-no' | 'tempo-null' | 'poche-serie';
+
+/** Serie vere minime per un aumento (R5 E3). */
+export const MIN_SERIE_PER_AUMENTO = 3;
+
+/**
+ * R5: una sola regola per ogni aumento, a fine seduta e nella revisione.
+ *
+ * Si chiama con il massimo del range già chiuso (E1). L'ordine conta: chi è
+ * in scarico legge «scarico», non una domanda sul tempo che non cambierebbe
+ * niente. Un `null` sul tempo non vale mai come sì.
+ */
+export function motivoBlocco(condizioni: {
+  readonly tempo: readonly (boolean | null)[];
+  readonly serieVere: number;
+  readonly scarico: boolean;
+  readonly rientro: boolean;
+}): MotivoBlocco | null {
+  if (condizioni.scarico) return 'scarico';
+  if (condizioni.rientro) return 'rientro';
+  if (condizioni.tempo.some((valore) => valore === false)) return 'tempo-no';
+  if (condizioni.tempo.length === 0 || condizioni.tempo.some((valore) => valore === null)) {
+    return 'tempo-null';
+  }
+  if (condizioni.serieVere < MIN_SERIE_PER_AUMENTO) return 'poche-serie';
+  return null;
+}
+
+/** La settimana è di scarico (R5 E4). */
+export function isScarico(week: number): boolean {
+  return DELOAD_WEEKS.includes(week);
+}
+
+/** Stato dell'esercizio con la variante strutturalmente esaurita (R6 Z2). */
+export function varianteEsaurita(exercise: Exercise, state: ExerciseState, block: ProgramBlock): boolean {
+  return (
+    exercise.pattern === null ||
+    state.level === null ||
+    adjacentLevel(exercise.pattern, state.level, 1, isFixedRange(block)) === null
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Disponibilità delle leve                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -219,8 +380,16 @@ export interface ProgressionInput {
   readonly logged: LoggedExercise;
   readonly range: RangeResolution;
   readonly week: number;
-  /** Ultimo massimale noto, per la soglia della zavorra. `null` se non c'è. */
+  /**
+   * Ultimo massimale del test dello schema motorio, per la soglia della
+   * zavorra (R6 Z4). `null` se non c'è: senza test niente zavorra su trazioni
+   * e dip.
+   */
   readonly currentMaxReps: number | null;
+  /** R7, calcolata sullo stato di prima della scelta. */
+  readonly salita: SalitaConsentita;
+  /** R9: la seduta è di rientro. `null` fuori dal rientro. */
+  readonly rientro: Rientro | null;
 }
 
 function tempoLever(input: ProgressionInput): LeverAvailability {
@@ -272,6 +441,9 @@ function variantLever(input: ProgressionInput): LeverAvailability {
   if (adjacentLevel(exercise.pattern, state.level, 1, isFixedRange(input.block)) === null) {
     return { lever: 'variant', label, available: false, reason: 'Sei già all’ultimo gradino eseguibile della scala.' };
   }
+  if (!input.salita.consentita) {
+    return { lever: 'variant', label, available: false, reason: testoSalitaInAttesa(state.level, input.salita) };
+  }
   return { lever: 'variant', label, available: true, reason: null };
 }
 
@@ -305,14 +477,50 @@ function loadLever(input: ProgressionInput): LeverAvailability {
     };
   }
 
+  /*
+   * R6 Z2: prima la variante. Il metodo mette il carico alla leva 5, dopo
+   * l'ultimo gradino; prima, con tempo e pausa esauriti, la zavorra arrivava
+   * al gradino 1. Una variante solo in attesa per R7 non è esaurita: il
+   * carico non prende il suo posto.
+   */
+  if (!varianteEsaurita(input.exercise, input.state, input.block)) {
+    return {
+      lever: 'load',
+      label,
+      available: false,
+      reason: 'Prima la variante: la zavorra arriva dopo l’ultimo gradino della scala.',
+    };
+  }
+
   const availability = getLoadAvailability(input.exercise, input.week);
   if (!availability.allowed) {
     return { lever: 'load', label, available: false, reason: availability.explanation };
   }
-  if (input.currentMaxReps !== null) {
+
+  /*
+   * R6 Z4: su trazioni e dip la soglia del test si legge sempre. Prima il
+   * riepilogo del circuito passava `null` a ogni blocco e la soglia non era
+   * mai letta; senza un test registrato, adesso, niente zavorra.
+   */
+  if (getLoadThreshold(input.exercise.pattern) !== null) {
+    if (input.currentMaxReps === null) {
+      const baseline = input.exercise.pattern === null ? null : testBaseline(input.exercise.pattern);
+      const nome = baseline === null ? 'massimale' : getTest(baseline.testId).label;
+      return {
+        lever: 'load',
+        label,
+        available: false,
+        reason: `Per proporre la zavorra serve un test di ${nome} registrato.`,
+      };
+    }
     const need = assessLoadNeed(input.exercise, input.currentMaxReps);
     if (need.need === 'discouraged') {
-      return { lever: 'load', label, available: false, reason: need.message };
+      return {
+        lever: 'load',
+        label,
+        available: false,
+        reason: `${need.message ?? ''} Ultimo test: ${String(input.currentMaxReps)}.`.trim(),
+      };
     }
   }
   return { lever: 'load', label, available: true, reason: null };
@@ -345,6 +553,8 @@ export interface ProgressionEvaluation {
   readonly blockedReason: string | null;
   /** Avviso quando le ripetizioni entrano nel territorio della resistenza. */
   readonly enduranceWarning: string | null;
+  /** Il motivo di R5 per cui nessun aumento si applica, se c'è. */
+  readonly motivoBlocco: MotivoBlocco | null;
 }
 
 function meanValue(logged: LoggedExercise): number {
@@ -472,11 +682,18 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       suggestion: null,
       blockedReason: 'Questo blocco non ha un range di lavoro: la regola di avanzamento non si applica.',
       enduranceWarning,
+      motivoBlocco: null,
     };
   }
 
-  const closedRange =
-    logged.sets.length > 0 && logged.sets.every((set) => set.value >= range.range.max);
+  /*
+   * Si giudicano le serie vere (R8): una serie per lato a cui manca un lato
+   * non conta e i suoi numeri non entrano. Senza nessuna serie vera restano
+   * le righe com'erano, così il riepilogo dice comunque come è andata.
+   */
+  const vere = serieVere(logged.sets);
+  const righe = vere.length > 0 ? righeVere(logged.sets) : logged.sets;
+  const closedRange = righe.length > 0 && righe.every((set) => set.value >= range.range.max);
   /*
    * `null` è «non hai ancora risposto», e non vale come sì.
    *
@@ -485,15 +702,35 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
    * dava per rispettato un tempo che nessuno aveva confermato. La condizione
    * di avanzamento si reggeva su una risposta mai data.
    */
-  const triggered = closedRange && logged.tempoRespected === true;
+  /*
+   * R5: la stessa regola della revisione. Massimo chiuso (E1), tempo
+   * confermato (E2), almeno tre serie vere (E3), niente scarico (E4), niente
+   * rientro (E5). Prima bastava il massimo con il tempo: una seduta chiusa
+   * dopo due giri o la settimana di scarico proponevano un aumento.
+   */
+  const motivo = closedRange
+    ? motivoBlocco({
+        tempo: [logged.tempoRespected],
+        serieVere: vere.length,
+        scarico: isScarico(input.week),
+        rientro: input.rientro !== null,
+      })
+    : null;
+  const triggered = closedRange && motivo === null;
 
   if (!triggered) {
     levers[0] = repsLever;
     const blockedReason = !closedRange
       ? `Non hai ancora chiuso ${String(range.range.max)} su tutte le serie. Resta sulla leva 1 e sali dentro il range.`
-      : logged.tempoRespected === null
-        ? 'Manca una risposta sul tempo prescritto: finché non c’è, la leva 1 non si può dire esaurita.'
-        : 'Il tempo prescritto non è stato rispettato su tutte le serie: la leva 1 non è ancora esaurita.';
+      : motivo === 'scarico'
+        ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Stessa difficoltà, metà delle serie.'
+        : motivo === 'rientro' && input.rientro !== null
+          ? `Seduta di rientro (${String(input.rientro.seduta)} di ${String(input.rientro.di)}): niente aumenti finché non torni al volume pieno.`
+          : motivo === 'tempo-null'
+            ? 'Manca una risposta sul tempo prescritto: finché non c’è, la leva 1 non si può dire esaurita.'
+            : motivo === 'tempo-no'
+              ? 'Il tempo prescritto non è stato rispettato su tutte le serie: la leva 1 non è ancora esaurita.'
+              : `Per cambiare leva servono almeno ${String(MIN_SERIE_PER_AUMENTO)} serie complete: oggi ne hai chiuse ${String(vere.length)}. Resta sulla leva 1.`;
     return {
       closedRange,
       tempoRespected: logged.tempoRespected,
@@ -502,6 +739,7 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       suggestion: null,
       blockedReason,
       enduranceWarning,
+      motivoBlocco: motivo,
     };
   }
 
@@ -542,13 +780,10 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
    *    tetto richiesto: se avanzavano ripetizioni a ogni serie, il gradino
    *    non era il limite.
    */
-  const sopraIlRange =
-    logged.sets.length > 0 && logged.sets.every((set) => set.value > range.range.max);
+  const sopraIlRange = righe.every((set) => set.value > range.range.max);
   const rirTarget = parseRir(input.block.rir);
   const conMargine =
-    rirTarget !== null &&
-    logged.sets.length > 0 &&
-    logged.sets.every((set) => set.rir !== null && set.rir > rirTarget.max);
+    rirTarget !== null && righe.every((set) => set.rir !== null && set.rir > rirTarget.max);
   const gradinoTroppoFacile =
     input.exercise.measurement === 'reps' &&
     (sopraIlRange || enduranceWarning !== null || conMargine) &&
@@ -559,6 +794,15 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     : OVERLOAD_LEVERS.find((lever) => byLever.get(lever)?.available === true);
 
   if (next === undefined) {
+    /*
+     * Con la variante solo in attesa (R7) le leve non sono finite: dirlo
+     * sarebbe falso, e spingerebbe a cambiare programma due settimane prima
+     * del gradino successivo.
+     */
+    const inAttesa =
+      input.state.level !== null &&
+      !varianteEsaurita(input.exercise, input.state, input.block) &&
+      !input.salita.consentita;
     return {
       closedRange,
       tempoRespected: true,
@@ -566,8 +810,11 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       levers,
       suggestion: null,
       blockedReason:
-        'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.',
+        inAttesa && input.state.level !== null
+          ? testoSalitaInAttesa(input.state.level, input.salita)
+          : 'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.',
       enduranceWarning,
+      motivoBlocco: null,
     };
   }
 
@@ -593,6 +840,7 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     suggestion: buildSuggestion(next, input),
     blockedReason: null,
     enduranceWarning,
+    motivoBlocco: null,
   };
 }
 

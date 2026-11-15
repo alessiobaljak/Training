@@ -667,9 +667,16 @@ try {
           'Premere «Sì» deve cambiare qualcosa: prima non succedeva niente perché era già la risposta.',
         );
         const dopoRisposta = await page.locator('main').innerText();
+        /*
+         * Risposto sì, il riepilogo deve dire qualcosa di nuovo: la leva
+         * successiva, oppure perché non c'è. Qui le serie registrate sono
+         * meno di tre, e da R5 la risposta giusta è la seconda: un aumento
+         * da una serie sola non è una prova.
+         */
         check(
-          dopoRisposta.includes('Leva successiva'),
-          'Risposto sì sul tempo chiuso il range, la leva successiva deve comparire.',
+          dopoRisposta.includes('Leva successiva') ||
+            dopoRisposta.includes('servono almeno 3 serie complete'),
+          'Risposto sì sul tempo chiuso il range, il riepilogo deve proporre la leva successiva o dire perché non c’è.',
         );
       }
 
@@ -1665,8 +1672,10 @@ try {
    * unit test di `sessionDecisions` provano la funzione; questo prova che il
    * player la usa davvero.
    *
-   * Si usa la Seduta 2, che il resto della prova non tocca: A1 è a range
-   * fisso 6-8, e otto alla prima serie chiudono il range.
+   * Si usa la Seduta 2, che il resto della prova non tocca. Si fanno i tre
+   * giri del tri-set A con otto ripetizioni ovunque: chiudono A1 (6-8) e non
+   * A2 (8-12) né A3 (8-10). Tre giri e non uno perché R5 vuole almeno tre
+   * serie vere per un aumento.
    */
   const ESERCIZIO_A1_S2 = 'pike-pushup-piedi-rialzati';
   const daFirestore = (value) => {
@@ -1728,16 +1737,30 @@ try {
     check(allaSerie, 'Nella Seduta 2 si deve arrivare alla prima serie di A1.');
 
     if (allaSerie) {
-      const campi = page.locator('input[type=number]');
-      for (let k = 0; k < (await campi.count()); k += 1) await campi.nth(k).fill('8');
-      await page.getByRole('button', { name: 'Fatto', exact: true }).click();
-      await page.waitForTimeout(1200);
+      let serieFatte = 0;
+      for (let passo = 0; passo < 60 && serieFatte < 9; passo += 1) {
+        const fatto = page.getByRole('button', { name: 'Fatto', exact: true });
+        if ((await fatto.count()) > 0) {
+          const campi = page.locator('input[type=number]');
+          for (let k = 0; k < (await campi.count()); k += 1) await campi.nth(k).fill('8');
+          await fatto.click();
+          serieFatte += 1;
+          await page.waitForTimeout(500);
+          continue;
+        }
+        const avanti = page.getByRole('button', { name: /^(Avanti|Salta il recupero)$/ });
+        if ((await avanti.count()) === 0) break;
+        await avanti.first().click();
+        await page.waitForTimeout(300);
+      }
+      check(serieFatte === 9, `Il tri-set A della Seduta 2 sono 9 serie: registrate ${String(serieFatte)}.`);
+      await page.waitForTimeout(800);
       await alRiepilogo();
 
       const si = page.getByRole('button', { name: /^Sì, / });
       check(
         (await si.count()) === 1,
-        `Otto su un range 6-8 chiudono il range: il riepilogo deve chiedere del tempo una volta. Pulsanti trovati: ${String(await si.count())}.`,
+        `Tre serie da otto su un range 6-8 chiudono il range: il riepilogo deve chiedere del tempo una volta. Pulsanti trovati: ${String(await si.count())}.`,
       );
       if ((await si.count()) === 1) {
         await si.click();

@@ -19,7 +19,7 @@ import type {
   SessionId,
   TestResult,
 } from '../types/index.ts';
-import type { ProgressionInput } from './progression.ts';
+import type { ProgressionInput, SalitaConsentita } from './progression.ts';
 import { OVERLOAD_LEVERS } from '../types/index.ts';
 import { loggedExercise, perSideSets, set, sets } from './__fixtures.ts';
 
@@ -32,6 +32,12 @@ const DEFAULT_TESTS: TestResult[] = [
   testResultSingle('bulgarian-split-squat', '2026-09-14', 0, 12),
   testResultSingle('hollow-hold', '2026-09-14', 0, 45),
 ];
+
+/*
+ * R7 fuori dai piedi dove non è l'oggetto della prova: al gradino da mesi.
+ * Le prove di R7 passano una salita vera, calcolata da sedute.
+ */
+const SALITA_LIBERA: SalitaConsentita = { consentita: true, inizio: '2026-01-05', dal: '2026-01-19' };
 
 function blockOf(sessionId: SessionId, code: string): ProgramBlock {
   const block = getSession(sessionId).blocks.find((candidate) => candidate.code === code);
@@ -48,6 +54,7 @@ function makeInput(options: {
   week?: number;
   currentMaxReps?: number | null;
   tests?: readonly TestResult[];
+  salita?: SalitaConsentita;
 }): ProgressionInput {
   const block = blockOf(options.sessionId, options.code);
   const exercise = getExercise(block.exercise);
@@ -69,6 +76,8 @@ function makeInput(options: {
     range: resolveBlockRange(block, exercise, tests),
     week: options.week ?? 4,
     currentMaxReps: options.currentMaxReps ?? null,
+    salita: options.salita ?? SALITA_LIBERA,
+    rientro: null,
   };
 }
 
@@ -307,6 +316,8 @@ describe('ordine delle leve', () => {
         loggedSets: sets([8, 8, 8, 8]),
         state: { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2, level: 6 },
         week: 4,
+        /* R6 Z4: senza un test sopra la soglia la zavorra non si propone. */
+        currentMaxReps: 12,
       }),
     );
     expect(evaluation.suggestion?.lever).toBe('load');
@@ -565,6 +576,8 @@ describe('avviso sulla resistenza', () => {
       range: resolveBlockRange(block, exercise, latestTestResults(DEFAULT_TESTS)),
       week: 4,
       currentMaxReps: null,
+      salita: SALITA_LIBERA,
+      rientro: null,
     });
     expect(evaluation.enduranceWarning).toBeNull();
   });
@@ -581,6 +594,8 @@ describe('avviso sulla resistenza', () => {
       range: resolveBlockRange(block, exercise, latestTestResults(DEFAULT_TESTS)),
       week: 4,
       currentMaxReps: null,
+      salita: SALITA_LIBERA,
+      rientro: null,
     });
     expect(evaluation.enduranceWarning).toContain('resistenza');
   });
