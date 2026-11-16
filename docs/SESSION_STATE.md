@@ -166,6 +166,14 @@ degli altri progetti. Questa sessione gira ancora sul Default.
    le unità tornavano, l'orologio stava nei quaranta minuti: tutto verde su
    una scheda con metà degli esercizi sbagliati. Serviva la lista.
 
+## Produzione
+Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
+Punto di ritorno, aggiornato a ogni push:
+- in produzione: `a747e09` (2026-11-16, R5-R8); prima: `0d2bb92`.
+- `git diff 79d2cb0..a747e09` su `src/data`, `src/types`, `src/db` e
+  `firestore.rules` è vuoto (release-gate): tornare indietro non rompe
+  catalogo né dati.
+
 ## Prossimi passi
 0. Fatto dopo il gate su `79d2cb0`: `npm run smoke` prova in browser
    «Accetto» → ricarica → «Salva e chiudi» (B11, A15). Fallisce sul player di

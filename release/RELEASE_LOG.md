@@ -3,3 +3,4 @@
 2026-11-09 | claude/calisthenics-pwa-offline-kor52w | eb6bb89 | L | NO-GO | release/reports/2026-11-09-claude-calisthenics-pwa-offline-kor52w.md
 2026-11-12 | claude/calisthenics-pwa-offline-kor52w | 2d84d87 | L | NO-GO | release/reports/2026-11-12-claude-calisthenics-pwa-offline-kor52w.md
 2026-11-12b | claude/calisthenics-pwa-offline-kor52w | 79d2cb0 | L | NO-GO | release/reports/2026-11-12b-claude-calisthenics-pwa-offline-kor52w.md
+2026-11-16 | claude/calisthenics-pwa-offline-kor52w | a747e09 | L | GO per regressioni vs 79d2cb0 (criteri pieni: NO-GO, 4 FALLITI e 5 Bloccanti); verify/smoke/offline verdi; B11/A15 chiusi | release/reports/2026-11-16-claude-calisthenics-pwa-offline-kor52w.md

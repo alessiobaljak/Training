@@ -265,7 +265,9 @@ e non una promessa.
 ### Prima di ogni rilascio (un minuto)
 
 1. In **Deployments** annota il deploy segnato **Current** e i sette caratteri
-   del suo commit. È il punto a cui torni.
+   del suo commit. È il punto a cui torni. Finché ogni push va in produzione
+   da solo, lo annota la sessione principale: a ogni push scrive in
+   `docs/SESSION_STATE.md` il commit che era in produzione prima.
 2. Scarica il backup da «App e dati». Il rollback non tocca i dati, ma se il
    guasto è nei dati quel file è l'unica copia che controlli tu.
 
