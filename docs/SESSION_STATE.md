@@ -80,6 +80,15 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   nucleo di sicurezza continua a eseguirli per intero a ogni rilascio e a
   riportarli per quello che sono (FALLITO o NON COPERTO, mai PASS). Diventano
   Bloccanti il giorno in cui l'app ha un secondo utente.
+- **2026-11-16, Alessio: sì ai tre punti di training-quality.** (1) Il criterio
+  «non peggiorati» vale anche per gli Alti preesistenti A10, A16, A17: GO al
+  push di R5-R8. (2) A17 (due aumenti in 4 giorni: carico in revisione dopo la
+  leva del tempo a fine seduta) e M17 (revisione aperta dopo la seduta del
+  lunedì: esercizi sempre «rimandati») si correggono nel prossimo giro, con
+  regole nuove di training-designer insieme a D-4. (3) Confermate la
+  composizione dei criteri v2 e la lettura di S1 sui gradini eseguibili; per
+  S9 il RIR «—» conta come a cedimento; `media/LIBRARY.md` è il registro delle
+  approvazioni delle immagini.
 - **2026-11-15, Alessio: D-16 alternativa.** Per un verdetto della revisione
   valgono le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e
   carico, entrambe negli ultimi 14 giorni, non la settimana di calendario.
@@ -164,8 +173,10 @@ degli altri progetti. Questa sessione gira ancora sul Default.
    rollback in `docs/configurazione.md` §10, mai eseguita. Le impostazioni
    mostrano il commit del build («Versione»), per verificare un rollback dal
    telefono.
-1. `training-designer`: regole per A2, A3, A4, M1, M4. Poi codice,
-   `training-quality`, `release-gate` (L).
+1. Fatto: R5-R8 (A2, A3, A4, M1) implementate, training-quality GO,
+   pushate il 2026-11-16. Prossimo giro: `training-designer` su A17, M17,
+   L15 (due sedute nello stesso giorno = un campione), D-4; poi R9 (M4) con
+   D-17 e D-18.
 2. Le domande aperte qui sopra.
 3. `BOUNDARIES.md`: è ancora il buco più grande.
 4. Compromessi sui token: proposti, non applicati.
