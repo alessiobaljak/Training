@@ -1888,6 +1888,38 @@ try {
               leve(salvato) === leve(accettata),
               `B11: dopo «Salva e chiudi» lo stato salvato deve essere quello accettato, ${leve(accettata)}. Salvato: ${leve(salvato)} (prima: ${leve(prima)}).`,
             );
+
+            /*
+             * A18: la seduta dopo deve annunciare il tempo accettato. Prima il
+             * player mostrava quello della scheda: dopo «eccentrica da 3" a
+             * 4"» diceva ancora 3".
+             */
+            const eccentricaAccettata = /da (\d)" a (\d)"/.exec(titoloPrima)?.[2] ?? null;
+            if (eccentricaAccettata !== null) {
+              /*
+               * Riaprendo la Seduta 2 il player riparte dalla prima stazione
+               * non registrata, il B1; si torna indietro fino all'A1, il
+               * pike push-up su cui la leva è stata accettata.
+               */
+              await page.goto(`${BASE}/#/seduta/circuito-2`, { waitUntil: 'load' });
+              await page.waitForTimeout(1400);
+              let annuncioA1 = '';
+              for (let passo = 0; passo < 12; passo += 1) {
+                const testo = await page.locator('main').innerText();
+                if (/^A1\b/.test(testo.trim())) {
+                  annuncioA1 = testo;
+                  break;
+                }
+                const indietro = page.getByRole('button', { name: 'Passo precedente' });
+                if ((await indietro.count()) === 0 || (await indietro.isDisabled())) break;
+                await indietro.click();
+                await page.waitForTimeout(300);
+              }
+              check(
+                new RegExp(`${eccentricaAccettata}″\\s*discesa`).test(annuncioA1),
+                `A18: accettata l'eccentrica a ${eccentricaAccettata}", la seduta dopo deve annunciarla. Legge: ${JSON.stringify(annuncioA1.slice(0, 240))}`,
+              );
+            }
           }
         }
       }

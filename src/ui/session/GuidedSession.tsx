@@ -28,7 +28,7 @@ import {
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
 import { useSuggestions } from '../hooks/useData.ts';
-import { initialExerciseState } from '../../engine/progression.ts';
+import { effectiveTempo, initialExerciseState } from '../../engine/progression.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import type { LoadAvailability } from '../../engine/loading.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
@@ -372,7 +372,17 @@ function leggiStazione(step: GuidedWorkStep, contesto: Contesto): Stazione | nul
     titolo,
     perSide,
     prescrizione,
-    tempo: tempoSteps(parseTut(blocco.tut)),
+    /*
+     * Il tempo di adesso, con i secondi accettati dalle leve (A18). Prima il
+     * player mostrava quello della scheda: dopo «eccentrica da 3" a 4"» la
+     * seduta seguente diceva ancora 3".
+     */
+    tempo: tempoSteps(
+      (() => {
+        const stato = states.get(esercizio.slug);
+        return stato === undefined ? parseTut(blocco.tut) : effectiveTempo(blocco.tut, stato);
+      })(),
+    ),
     riserva,
     voltaScorsa,
   };
@@ -1012,7 +1022,14 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
   const [valore, setValore] = useState(suggerito?.value ?? minimoRange);
   const [sinistra, setSinistra] = useState(suggerito?.value ?? minimoRange);
   const [destra, setDestra] = useState(suggeritoDestra?.value ?? suggerito?.value ?? minimoRange);
-  const [kg, setKg] = useState(suggerito?.loadKg ?? 0);
+  /*
+   * Il peso da cui partire è quello dello stato, se c'è (A18): dopo una
+   * zavorra o un manubrio accettati, precompilare il peso della volta scorsa
+   * faceva salvare il peso vecchio a chi non lo correggeva, e lo stato
+   * tornava indietro.
+   */
+  const kgDalloStato = contesto.states.get(stazione?.esercizio.slug ?? step.exercise)?.loadKg ?? 0;
+  const [kg, setKg] = useState(kgDalloStato > 0 ? kgDalloStato : (suggerito?.loadKg ?? 0));
 
   /* La serie è cominciata: da qui in poi comanda la registrazione. */
   const partita = cronometro.running || cronometro.seconds > 0;
