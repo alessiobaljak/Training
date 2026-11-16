@@ -19,6 +19,9 @@ nessuna riga di codice è stata toccata.
 La leva si cambia solo quando quella precedente è esaurita. Unica eccezione in
 codice: se il gradino non fa più resistenza (vedi PROGRESSION_RULES §4) la
 variante scavalca tempo e pause, e la schermata dichiara lo scavalco.
+`[PROPOSTA, R10 — 2026-11-16]` Vale anche in revisione, che oggi salta tempo e
+pause e va al carico (A17). Sui manubri (`inherent`) il peso non è una leva
+(R10c-0) finché Alessio non decide D-19.
 
 ## 2. Range di lavoro
 

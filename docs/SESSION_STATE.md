@@ -169,7 +169,7 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: `a747e09` (2026-11-16, R5-R8); prima: `0d2bb92`.
+- in produzione: `89bb610` (codice di `a747e09`, R5-R8, 2026-11-16); prima: `0d2bb92`.
 - `git diff 79d2cb0..a747e09` su `src/data`, `src/types`, `src/db` e
   `firestore.rules` è vuoto (release-gate): tornare indietro non rompe
   catalogo né dati.
@@ -182,9 +182,18 @@ Punto di ritorno, aggiornato a ogni push:
    mostrano il commit del build («Versione»), per verificare un rollback dal
    telefono.
 1. Fatto: R5-R8 (A2, A3, A4, M1) implementate, training-quality GO,
-   pushate il 2026-11-16. Prossimo giro: `training-designer` su A17, M17,
-   L15 (due sedute nello stesso giorno = un campione), D-4; poi R9 (M4) con
-   D-17 e D-18.
+   pushate il 2026-11-16; release-gate GO per regressioni.
+   **In corso: R10-R13** (`training/reports/2026-11-16-training.md`, task
+   T-1…T-9). Ordine: R12 (date diverse) → registro scritto insieme allo stato
+   → R10a + R10c-0 (carico in revisione solo dopo tempo e pausa; manubri
+   «leve finite» finché D-19 non decide) → R10b (coppia invalidata da una leva
+   di tempo/pausa accettata) → R11 (rifatto dopo fine(W): si giudica se
+   conferma) → R13a (un aumento di carico ogni 7 giorni, S2). Nove prove
+   esistenti cambiano atteso: gli attesi vengono dal rapporto, non dal codice.
+   Poi training-quality (domande 4-6 del designer), release-gate, push.
+   Aperte per Alessio: D-4 (a/b/c), D-19 (manubri come leva 5, elenco,
+   salti fra i suoi manubri), reset di tempo e pausa al cambio di manubrio.
+   Dopo: R9 (M4) con D-17, D-18.
 2. Le domande aperte qui sopra.
 3. `BOUNDARIES.md`: è ancora il buco più grande.
 4. Compromessi sui token: proposti, non applicati.

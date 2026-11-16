@@ -5,17 +5,28 @@ Ordinato per rischio, non per fatica. `D-nn` = difetto trovato nell'audit del
 Ogni voce serve codice e passa da `training-quality` e `release-gate`. Chiuse
 o assorbite: `ARCHIVE.md`.
 
-## Bloccanti oggi (decisione di Alessio, 2026-11-12) — spec 2026-11-14
+## Bloccanti oggi (decisione di Alessio, 2026-11-12)
 
-Ordine obbligato: W-19 → W-20 → W-21 → W-22 → W-23 (PROGRESSION_RULES §9).
+W-19…W-22 (R5-R8) chiusi in codice, in produzione `a747e09`: `ARCHIVE.md`.
 
 | id | cosa | dove | chi |
 |---|---|---|---|
-| W-19 | R8 rev. 2026-11-15: ultime 2 sedute allo stato attuale nei 14 giorni fino a `fine(W)`, serie vere, `weekEnd`, `rimandati`, stati della revisione (M1, D-16) | `review.ts`, `schedule.ts`, `ReviewScreen.tsx`, `HomeScreen.tsx` | sessione principale |
-| W-20 | R5 cancello unico, verdetti sul tempo, scarico (A2) | `progression.ts`, `review.ts`, `SessionSummary.tsx` | sessione principale |
-| W-21 | R6 variante prima del carico, soglia del test anche a fine seduta (A3) | `review.ts`, `progression.ts`, `SessionSummary.tsx` | sessione principale |
-| W-22 | R7 un gradino ogni 14 giorni (A4; assorbe D-02 e W-18) | `review.ts`, `progression.ts`, `ReviewScreen.tsx` | sessione principale |
 | W-23 | R9 rientro, R9a ritest, R9b separabile (M4) | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts` (motore), `HomeScreen.tsx` | sessione principale |
+
+## Giro 2026-11-16 — A17, M17, L15, D-4 (spec: rapporto 2026-11-16, T-1…T-9)
+
+Ordine: W-24 → W-25 → W-26 → W-27 → W-28 → W-29, un rilascio. Poi W-30, W-31.
+
+| id | cosa | dove | gravità |
+|---|---|---|---|
+| W-24 | R12 due date diverse (L15) | `review.ts` | Basso |
+| W-25 | Registro in ingresso a revisione e fine seduta, scrittura atomica stato + record | `types`, `review.ts`, `progression.ts`, `GuidedSession`, `SessionScreen`, `ReviewScreen` | prerequisito |
+| W-26 | R10a ordine delle leve in revisione + R10c-0 niente carico su `inherent` (A17; assorbe W-10) | `progression.ts` (`leveDiTempo`), `review.ts` | Alto |
+| W-27 | R10b stato completo dal registro (A17) | `review.ts` | Alto |
+| W-28 | R11 rimandati solo con stato cambiato o smentita (M17) + scheda della Home | `review.ts`, `ReviewScreen`, `HomeScreen` | Medio |
+| W-29 | R13a S2 su 7 giorni (rischio R-1, da misurare da quality) | `progression.ts`, `review.ts` | da quality |
+| W-30 | R13b, dopo D-4 | come W-29 | — |
+| W-31 | R10c-1 manubrio = leva 5, dopo D-19 e W-29; `formatKg` con la virgola (L17) | `method.ts`, `progression.ts`, `review.ts` | — |
 
 ## Bloccanti per l'uso pubblico
 
@@ -53,7 +64,7 @@ Ordine obbligato: W-19 → W-20 → W-21 → W-22 → W-23 (PROGRESSION_RULES §
 | id | cosa |
 |---|---|
 | W-09 | Tre slug mentono sull'attrezzo (`alzate-laterali-elastico`, `curl-elastico-presa-neutra`, `croci-elastico-o-pushup-presa-larga`): gli slug restano, `equipment` dice la verità |
-| W-10 | Il titolo di `aggiungi-peso` dice «passa al manubrio successivo» anche sulla kettlebell, i cui salti reali sono di 4 kg |
+| W-10 | Il titolo di `aggiungi-peso` dice «passa al manubrio successivo» anche sulla kettlebell (salti di 4 kg). **Assorbito da W-26** (R10c-0); con R10c-1 kettlebell fuori dall'elenco |
 | W-11 | `SESSIONS_PER_WEEK` in `ProgressScreen.tsx` è corretto (4) ma il commento sopra dice «sei»: denominatore dell'aderenza, vale la pena che il commento non menta |
 | W-12 | Tetto di durata della seduta (PROGRAM_RULES §5): oggi `estimatedMinutes` è un dato scritto a mano, 40 su tutti e quattro i circuiti |
 | W-13 | Il riscaldamento non è saltabile dall'app quando la seduta ha un blocco a RIR 0-1 o una stazione balistica (METHOD §7) |

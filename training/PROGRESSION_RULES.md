@@ -3,10 +3,11 @@
 Versione **progressione 1.0 — PROPOSTA del 2026-11-08, non approvata.**
 Aggiunta del 2026-11-12 `[PROPOSTA, progressione 1.1]`: salto dei gradini solo
 eccentrici nei range fissi (§5, T2). Gradino di partenza: PROGRAM_RULES R1.
-Aggiunta del 2026-11-14 `[PROPOSTA, progressione 2.0]`: **R5, R6, R7, R9** (§9),
-che attuano le soglie S1, S3, S5, S6 approvate il 2026-11-12. R8 (S4):
-PROGRESS_REVIEW §6, **riscritta il 2026-11-15** (D-16: ultime 2 sedute, 14
-giorni); qui allineate solo le parti di revisione. Fine seduta invariata.
+Aggiunta del 2026-11-14 `[progressione 2.0]`: **R5, R6, R7, R9** (§9). **R5-R7
+e R8 in produzione da `a747e09` (2026-11-16)**, GO di training-quality del
+2026-11-15; R9 no. R8: PROGRESS_REVIEW §6.
+Aggiunta del 2026-11-16 `[PROPOSTA, progressione 3.0]`: **R10** (A17) e **R13**
+(D-4, S2) in §10; R11, R12 in PROGRESS_REVIEW §6.
 Motore: `src/engine/progression.ts` (fine seduta), `src/engine/review.ts`
 (fine settimana), `src/engine/loading.ts` (zavorra).
 
@@ -51,9 +52,10 @@ programmazione, non un altro giro.
   media ≤ **4** ⇒ −2,5 kg; in mezzo si tiene. Media su tutte le serie, non
   sull'ultima.
 
-`[PROPOSTA]` Quando la zavorra si può proporre: **R6** (§9). +2,5 kg a settimana
-al massimo (S2): rispettato da `stepLoad` per proposta; R8 impedisce che la
-revisione ne aggiunga un secondo su numeri fatti al carico di prima.
+Quando la zavorra si può proporre: **R6** (§9), dopo tempo e pausa (**R10a**).
++2,5 kg a settimana al massimo (S2): oggi `stepLoad` lo rispetta **solo per
+proposta**; revisione + fine seduta ravvicinate sommano +5 kg (rischio R-1 del
+2026-11-16). Su 7 giorni: **R13a** (§10).
 
 ## 4. Quando la variante scavalca tempo e pause
 
@@ -92,9 +94,9 @@ TUT 3-0-1-0 non sono eseguibili. Fuori dai range fissi ±1 resta letterale.
 `[IN CODICE]` eccentrica ≤ 5" · pausa in allungamento ≤ 2" · gradino ≤ 6 ·
 passo zavorra 2,5 kg · zavorra solo da settimana 3 e solo in whitelist.
 
-`[PROPOSTA]` T1-T4 della 1.0 **sostituiti** (§9): gradini → R7, T3 → R5, T4 →
-R9 (14 giorni). Resta proposta la parte di T1 sulle altre leve: un aumento di
-tempo, pausa o carico ogni 7 giorni (D-4). In discesa non c'è tetto.
+T1-T4 della 1.0 **sostituiti**: gradini → R7, T3 → R5, T4 → R9 (14 giorni),
+T1 sulle altre leve → **R13** (§10: R13a = S2, R13b = D-4 da decidere). In
+discesa non c'è tetto.
 
 ## 7. Quando si tiene fermo
 
@@ -113,10 +115,12 @@ tempo, pausa o carico ogni 7 giorni (D-4). In discesa non c'è tetto.
   programma, nessuna progressione proposta, nessuna riduzione «terapeutica»
   suggerita. Vedi BOUNDARIES L2 e L3.
 
-## 9. R5, R6, R7, R9 — le soglie approvate, da implementare
+## 9. R5, R6, R7, R9 — le soglie approvate
 
-`[PROPOSTA, progressione 2.0 — 2026-11-14]` Attuano S1, S3, S5, S6 (vincolanti)
-e chiudono A2, A3, A4, M4. R8: PROGRESS_REVIEW §6; testi: ADVICE §7; L9.
+`[progressione 2.0 — 2026-11-14]` Attuano S1, S3, S5, S6 e chiudono A2, A3, A4
+(in codice, `a747e09`) e M4 (R9, non ancora). R8: PROGRESS_REVIEW §6; testi:
+ADVICE §7; L9. **Tabelle 5.x, 6.x, 7.x: `ARCHIVE.md`** (con le righe che R10
+cambia).
 
 **Notazione.** `chiuse`: sedute `completed` in ordine `(date, id)`; in corso e
 abbandonate non contano mai (R3). `voce`: `LoggedExercise` con sets; `serieVere`:
@@ -169,27 +173,7 @@ fatto: nessun effetto. Decisione registrata: fine seduta, una leva per blocco
 (`sessionDecisions`); revisione, una per `(W, e)`, anche per i due verdetti
 nuovi («Ho capito» registra `postponed`).
 
-Base: rematore TRX `circuito-2/A3`, gradino 2, 8-10, W=2; chiuse 2026-03-10 e
-03-13 da 11-11-11 (la coppia); prima seduta al 2 il 03-02; `weekEnd` 03-15,
-oggi 03-16. Inizio programma 03-02, come PROGRESS_REVIEW §6.
-
-| # | ingresso | atteso |
-|---|---|---|
-| 5.1 | tempo [sì, sì] | `sali-di-livello` 2→3 |
-| 5.2 | [sì, no] | `rifai-al-tempo-giusto`, `stateAfter = stateBefore` |
-| 5.3 | [sì, null] | `rispondi-sul-tempo` |
-| 5.4 | [no, null] | `rifai-al-tempo-giusto` (il no vince) |
-| 5.5 | caso 4a com'è: 1 seduta 19-19-19, no o null | nessun verdetto (lo chiude R8) |
-| 5.6 | 7-7-7 e 7-7-7, [no, no] | `scendi-di-livello` 2→1 |
-| 5.7 | W=5 o W=6, [sì, sì] | nessun aumento, `fermi` scarico |
-| 5.8 | curl a martello `circuito-1/B1`, 2 sedute al massimo, [sì, null] | `rispondi-sul-tempo`, nessun +2,5 kg |
-| 5.9 | fine seduta 11-11-11, null | nessuna leva (in codice) |
-| 5.10 | fine seduta 11-11, sì | nessuna leva, «oggi ne hai chiuse 2» |
-| 5.11 | fine seduta in settimana 6, 11-11-11, sì | nessuna leva, testo scarico |
-| 5.12 | fine seduta ridotta (R9), 11-11-11, sì | nessuna leva, testo rientro |
-| 5.13 | W=7: coppia 04-08 (W6, 2 giri al massimo) e 04-15, [sì, sì] | nessun aumento, `fermi` scarico «una delle due sedute è di scarico» |
-| 5.14 | W=7: coppia 04-13 e 04-16 (entrambe W7), [sì, sì] | `sali-di-livello`: lo scarico ferma solo le coppie che lo contengono |
-| 5.15 | una seduta a settimana: 03-05 sì, 03-12 no, 03-19 sì, 03-26 sì, sempre 11-11-11 | W2 e W3 `rifai-al-tempo-giusto` (il no sta in due coppie) · W4 `sali-di-livello` |
+Tabella 5.1-5.15: `ARCHIVE.md`.
 
 ### R6 — Prima la variante, poi la zavorra (S5 · chiude A3 · P-2d, caso 4b)
 
@@ -220,23 +204,8 @@ mai (lo swing non riceve +2,5 kg). Solo eccentrici: Z2 salta come
 Ritest appena fatto: `M` è l'ultimo test, un ritest sotto soglia toglie subito
 la zavorra. Decisione registrata: come R5.
 
-Base: trazioni `circuito-1/A1`, 6-8, la coppia di R8 (ultime 2 sedute chiuse,
-in W o in W−1 e W), tempo [sì, sì], R7 soddisfatta dove non detto. Gli attesi
-non cambiano con la finestra: R6 legge solo i valori che R8 le passa.
-
-| # | ingresso | atteso |
-|---|---|---|
-| 6.1 | caso 4b: W=3, gradino 1, 8-8-8 ×2 | nessuna zavorra; `alMassimo` `tempo` |
-| 6.2 | W=3, gradino 1, 9-9-9 ×2 | `sali-di-livello` 1→3 |
-| 6.3 | 6.2 con R7 non soddisfatta | `inAttesa`, nessuna zavorra |
-| 6.4 | W=4, gradino 6, 8-8-8 ×2, M=12 | `aggiungi-peso` 0→2,5 kg |
-| 6.5 | 6.4 con M=6 | `alMassimo` `soglia`, cita 6 e 8 |
-| 6.6 | 6.4 senza test | `alMassimo` `nessun-test` |
-| 6.7 | W=1, gradino 6, M=12 | `alMassimo` `settimana` |
-| 6.8 | fine seduta W=4, gradino 1, 8-8-8, sì | leva ≠ `load`; `load`: «prima la variante» |
-| 6.9 | fine seduta W=4, gradino 6, 8-8-8, M=6 | `load.available = false`, motivo soglia |
-| 6.10 | dip `circuito-1/A3`, gradino 6, 2 sedute al massimo, M=9 | nessuna zavorra (soglia 10) |
-| 6.11 | curl a martello, 2 sedute al massimo, sì | `aggiungi-peso` (manubrio successivo) |
+Tabella 6.1-6.11: `ARCHIVE.md`. Con R10: 6.4-6.7 e 6.10 solo a tempo e pausa
+esauriti; 6.11 superata da R10c.
 
 ### R7 — Un gradino ogni due settimane (S1 · chiude A4 · P-4b, caso 4c)
 
@@ -268,32 +237,59 @@ ripartire il conto. Decisione registrata: a fine seduta `L` è lo stato di
 prima, quindi dopo una ricarica il riepilogo mostra la stessa proposta con
 «Scelta registrata», non quella successiva.
 
-Base: push-up `circuito-3/A2`, 12-18, gradino 2, 19-19-19 e tempo sì in ogni
-seduta; chiuse W1 2026-03-02 e 03-05, W2 03-09 e 03-12, W3 03-16 e 03-19.
-
-| # | ingresso | atteso |
-|---|---|---|
-| 7.1 | revisione W1, oggi 03-09 | 7 giorni: `inAttesa`, dal 03-16 |
-| 7.2 | revisione W2, oggi 03-16 | `sali-di-livello` 2→3, accettata |
-| 7.3 | fine seduta 03-16 al 3 (in corso) | `variant` non disponibile, dal 03-30 |
-| 7.4 | revisione W3, oggi 03-23 | 7 giorni al 3: `inAttesa`, dal 03-30 |
-| 7.5 | caso 4c: le tre settimane | 1 salita (oggi 3) |
-| 7.6 | trazioni 1→3, prima seduta al 3 il 03-17, poi 9-9-9 | nessuna salita al 4 prima del 03-31 |
-| 7.7 | salita accettata, seduta ricaricata (B11) | stessa proposta + «Scelta registrata», nessuna 3→4 |
-| 7.8 | discesa 3→2 il 03-20, prima seduta al 2 il 03-23 | nessuna salita prima del 04-06 |
-| 7.9 | stato 3 da 2 giorni, 2 sedute sotto il minimo | `scendi-di-livello` |
-| 7.10 | solo stati di R1, nessuna seduta | nessuna salita |
-| 7.11 | `salitaConsentita`: voci 2, 2, 3, 2 (03-02, 03-05, 03-09, 03-12), stato 2, oggi 03-20 | inizio 03-12, dal 03-26. In revisione W2 la coppia (03-09 al 3, 03-12 al 2) non regge: `pocheProve` prima di R7 |
-| 7.12 | ultima al 2 il 03-02, rientro il 03-20 | R7 vera, R9 blocca le sedute ridotte; in revisione 03-02 è fuori finestra: `pocheProve` |
+Tabella 7.1-7.12: `ARCHIVE.md`.
 
 ### R9 — Rientro dopo una pausa (S6 · chiude M4 · scenario S3)
 In **PROGRAM_RULES §8**: dopo ≥ 14 giorni senza sedute chiuse, 4 sedute (≥ 7
 giorni) a giri dimezzati, tutte le stazioni, nessun aumento (R5 E5), ritest.
 
-### Ordine di implementazione e dipendenze
-1. **R8** (coppia, finestra, serie vere, stato) → 2. **R5** (cancello; `ridotta`
-falso finché R9 non c'è) → 3. **R6** (esaurimento strutturale, non dipende da R7)
-→ 4. **R7**, **solo dopo R6**: senza Z2 la variante bloccata fa scivolare
-`evaluateProgression` su `load` (zavorra al gradino 1, A3 riaperto) → 5. **R9**
-(usa E5; R9b separabile). R8, R5, R6, R7 in un rilascio solo; R9 può seguire.
-Le parti di fine seduta di R5-R7 non dipendono dalla finestra di R8.
+Ordine seguito: R8 → R5 → R6 → R7 (fatto, `a747e09`); R9 (con E5) resta da fare.
+
+## 10. R10, R13 — A17 e D-4 `[PROPOSTA, progressione 3.0 — 2026-11-16]`
+
+Tabelle 10.1-10.15, 13.1-13.11, proprietà 10.P e 13.P, testi: rapporto
+`reports/2026-11-16-training.md` e ADVICE §7. R11 (M17), R12 (L15): PROGRESS_REVIEW §6.
+
+### R10 — In revisione, le leve nell'ordine della fine seduta (chiude A17)
+Con E1 vero e il cancello di R5 superato sulla coppia allo stato `L`; `blocco` =
+blocco della voce di `a`; `tp = leveDiTempo(blocco, L)` (le stesse `tempoLever`
+e `isoPauseLever` della fine seduta, esportate).
+**R10a** (primo vero): (1) tutte sopra il massimo ∧ variante strutturale ⇒ R7:
+`sali-di-livello` | `inAttesa` (scavalco, §4); (2) `tp.tempo` disponibile ⇒
+`alMassimo` `tempo`; (3) `tp.pausa` ⇒ `alMassimo` `pausa`; (4) variante non
+esaurita ⇒ `alMassimo` `variante` (+ data R7); (5) `forbidden` ⇒ `leve-finite`;
+(6) `inherent` ⇒ R10c; (7) `allowed` ⇒ R6 Z3, Z4 ⇒ R13a ⇒ `aggiungi-peso`.
+La revisione propone solo gradino e carico; tempo e pausa solo la fine seduta.
+**R10b** stato completo: la coppia vale solo se, oltre a gradino e carico (R8),
+nel registro (`SuggestionRecord`) non c'è un `accepted` su `e` che alza
+`eccentricBonusSeconds` o `bottomPauseBonusSeconds` con `date ≥ b.date`.
+Altrimenti `rimandati` motivo `leva`. Le sedute non registrano i bonus.
+**R10c** manubri. **R10c-0** (subito; è il metodo scritto: `LoadPolicy`,
+catalogo, fine seduta): mai `aggiungi-peso` su `inherent` ⇒ `leve-finite`.
+**R10c-1** (solo con D-19 = sì): per `e ∈ LEVA_MANUBRIO` a ripetizioni il
+manubrio successivo è la leva 5, stessa funzione in revisione e a fine seduta:
+cancello R5, tempo e pausa esauriti, settimana ≥ 3, R13a; `loadKg = L + 2,5`
+come **tetto**, bonus a 0. Kettlebell fuori (salto 4 kg > S2).
+Servono tutte e due: solo (a) lascia il carico se la leva accettata era l'ultimo
+passo di tempo (10.10); solo (b) lascia il carico prima di tempo e pausa a bonus
+0 (10.8). Registro perso ⇒ R10b fail-open: scrittura atomica (T-2).
+
+### R13 — Un aumento per esercizio ogni 7 giorni (D-4, S2)
+`aumenti(e)`: (i) decisioni `accepted` del registro con gradino, eccentrica,
+pausa o carico in salita (data `r.date`); (ii) dal diario, sedute chiuse di `e`
+con carico massimo o gradino più alti della seduta chiusa precedente (peso o
+livello scritti dall'atleta; a fine seduta anche quella in corso). Mai le note.
+**R13a** (S2 approvata, letta su 7 giorni): un aumento di carico si propone il
+giorno `oggi` solo se nessun aumento di carico ha `daysBetween(d, oggi) < 7`.
+**R13b** (D-4 da decidere): lo stesso per ogni aumento; raccomandata con il
+gradino nel conto e nel blocco, alla lettera solo tempo, pausa, carico.
+`oggi`: `draft.date` a fine seduta, `today` in revisione; `dal = d + 7`. Discese
+mai ferme; `postponed` non conta. Fine seduta: leva non disponibile e
+`blockedReason` R13 se era quella da proporre. Revisione: `fermi` `sette-giorni`.
+**D-4 da sola non chiude A17** (13.2: tempo accettato lunedì, revisione il
+lunedì dopo = 7 giorni; 10.8: ordine). Chiude i doppi a fine seduta su sedute
+ravvicinate; R13a chiude S2, che oggi vale per proposta.
+
+### Ordine di implementazione (giro 2026-11-16)
+R12 → registro in ingresso + scrittura atomica → R10a + R10c-0 → R10b → R11 →
+R13a: un rilascio. Poi R13b (D-4) e R10c-1 (D-19, solo dopo R13a). R9 dopo.

@@ -185,8 +185,8 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   livello e carico, cadono entrambe fra <dal> e <al> e hanno almeno 3 serie
   complete in tutto. Il riepilogo di fine seduta continua a proporre le sue
   leve.»
-- `rimandati`: «<Esercizio>: l'hai già rifatto <giorno>. Lo giudica la
-  revisione della settimana prossima, con le ultime due sedute.»
+- `rimandati`: **sostituito da consigli 3.0** (sotto). Il testo «Lo giudica la
+  revisione della settimana prossima» era falso ogni settimana (M17).
 - Stato `in-corso`: «La settimana <N> chiude <giorno fine(N)>: la revisione si
   apre il giorno dopo.» · `scaduta`: «Questa revisione si poteva decidere fino a
   <giorno fine(N)+7>. I numeri nuovi sono nella revisione dell'ultima settimana
@@ -232,6 +232,41 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   dopo la prima seduta chiusa a questo livello».
 - R6 (`load.reason`): «Prima la variante: la zavorra arriva dopo l'ultimo gradino
   della scala.» · soglia e test come sopra.
+
+**Consigli 3.0 — R10-R13 `[PROPOSTA, 2026-11-16]`** (rapporto 2026-11-16).
+- `alMassimo` `tempo` (sostituisce «Massimo chiuso ma non superato…», falso a
+  variante finita): «<Esercizio>: massimo chiuso su tutte le serie. La prossima
+  leva è il tempo, eccentrica da <e>" a <e+1>": te la propone il riepilogo di
+  fine seduta, la prossima volta che chiudi il massimo con il tempo rispettato.»
+  · `pausa`: «… la pausa in allungamento, da <p>" a <p+1>": …» (stessa coda) ·
+  `variante`: «… Tempo e pausa sono al massimo: la prossima leva è il livello
+  <su> (<nome>). Te lo propone il riepilogo di fine seduta, …[. Un gradino ogni
+  due settimane: si può proporre dal <dal>].»
+- `rimandati` · `leva`: «<Esercizio>: <giorno> hai accettato un secondo in più
+  di <eccentrica | pausa in allungamento>. Le sedute lette sono di prima: si
+  giudica quando avrai due sedute al tempo nuovo.» · `stato`: «<Esercizio>: dopo
+  le sedute lette hai cambiato livello o carico (<giorno>). Si giudica quando
+  avrai due sedute allo stato nuovo.» · `smentito`: «<Esercizio>: rifatto
+  <giorno> (<valori>[, tempo non confermato]). L'ultima seduta non conferma le
+  due lette: niente cambia, conta la prossima coppia di sedute.»
+- Evidenza con R11: `<numeri>` + « Rifatto <giorno>: <valori>[ · …].»
+- `pocheProve` con R12: «(1 seduta: le ultime due sono del <giorno>, e lo stesso
+  giorno conta una volta)»; nota in fondo + «Due sedute nello stesso giorno
+  contano come una.»
+- R13 · revisione `fermi` `sette-giorni`: «<Esercizio>: massimo chiuso, ma un
+  aumento per esercizio ogni 7 giorni. L'ultimo è del <giorno> (<cosa>): il
+  prossimo si può proporre dal <giorno+7>.» · fine seduta: «Un aumento [di
+  carico] per esercizio ogni 7 giorni: l'ultimo è del <giorno> (<cosa>). Il
+  prossimo si può proporre dal <giorno+7>: oggi resta tutto com'è.» · `<cosa>`:
+  «livello <x> → <y>», «eccentrica +1"», «pausa +1"», «carico <x> → <y> kg»,
+  «peso scritto da te, <x> → <y> kg», «livello scritto da te, <x> → <y>».
+- R10c-1 (solo con D-19): titolo «<Esercizio>: passa al manubrio successivo».
+  Cambio «Manubrio successivo, al massimo <L+2,5> kg: oggi usi <L> kg. Tempo e
+  pausa tornano a quelli della scheda. Nel player scrivi il peso vero: da lì in
+  poi comanda quello che scrivi. Se il tuo manubrio successivo pesa più di
+  <L+2,5> kg, resta a <L> kg.» Cautela «Aspettati di scendere verso <min>
+  ripetizioni: è il segno che il carico è aumentato davvero.» Kg con la virgola
+  (L17). Con R10c-0 nessun testo nuovo: `leve-finite` com'è.
 
 **Rientro (R9) — Home e player.**
 - Prima della seduta: «Sono passati <g> giorni dall'ultima seduta. Le prossime

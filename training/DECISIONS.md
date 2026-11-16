@@ -17,7 +17,8 @@ quelle che spettano ad Alessio e bloccano il lavoro.
 | P-8 | Solo immagini approvate, nel bundle. Nessuna generazione in produzione. | `CLAUDE.md` |
 | P-9 | Nessun URL di video nel codice: solo `videoQuery`. | `check:no-video-urls` |
 | P-10 | La schermata delle misure non ha obiettivi di peso né azioni suggerite. | `src/ui/screens/MeasuresScreen.tsx` |
-| D-16 | **Decisa da Alessio il 2026-11-15** (alternativa): per un verdetto della revisione contano le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni, non la settimana di calendario. S4 non si allenta (≥ 2 sedute, ≥ 3 serie vere). Finestra ancorata alla fine della settimana rivista. Manca l'esito di training-quality sulla lettura di S4. | PROGRESS_REVIEW §6, rapporto `reports/2026-11-15-training.md` |
+| P-11 | **Alessio, 2026-11-16**: GO al push di R5-R8 (eccezione «non peggiorati» estesa agli Alti A10, A16, A17); A17, M17 e L15 al giro di training-designer insieme a D-4; confermate la composizione dei criteri v2 e la lettura di S1 sui gradini eseguibili. In produzione `a747e09`. | `docs/SESSION_STATE.md` |
+| D-16 | **Decisa da Alessio il 2026-11-15** (alternativa): per un verdetto della revisione contano le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni, non la settimana di calendario. S4 non si allenta (≥ 2 sedute, ≥ 3 serie vere). Finestra ancorata alla fine della settimana rivista. training-quality: lettura di S4 OK (2026-11-15), riserva L15 ⇒ R12. | PROGRESS_REVIEW §6, rapporto `reports/2026-11-15-training.md` |
 
 ## Da decidere — spettano ad Alessio
 
@@ -37,9 +38,22 @@ né soglie per loro, e dichiararli supportati senza averle sarebbe falso.
 (principiante/intermedio/avanzato con mediana dei gradini), usato **solo** per
 decidere cosa l'app ha diritto di proporre? Senza, il limite L8 non è esprimibile.
 
-**D-4 · Soglie di progressione.** *Decisa in gran parte il 2026-11-12* (S1-S10
-approvate: R5-R9 le attuano). Resta solo T1 sulle leve diverse dal gradino:
-**un aumento di tempo, pausa o carico per esercizio ogni 7 giorni**, sì o no?
+**D-4 · Un aumento per esercizio ogni 7 giorni (R13b).** *S1-S10 approvate il
+2026-11-12.* La parte sul carico è S2 e la propongo subito (R13a, 7 giorni
+mobili: oggi S2 vale solo per proposta). Da decidere l'estensione: (a)
+**raccomandata** un aumento di qualunque leva, gradino compreso (al massimo 7
+giorni di attesa su un gradino); (b) alla lettera: tempo, pausa, carico; (c) no.
+Non chiude A17 da sola: lo chiude R10 (PROGRESSION §10, rapporto 2026-11-16).
+
+**D-19 · Il manubrio successivo è una leva? (2026-11-16)** Oggi fine seduta dice
+no, revisione propone +2,5 kg. Il metodo scritto (`LoadPolicy`, catalogo) dice
+no ⇒ correggo la revisione (R10c-0, «leve finite» dopo tempo e pausa). Proposta
+**raccomandata** (R10c-1): leva 5 come la zavorra, solo dopo tempo e pausa, da
+settimana 3, cancello R5, R13a, **tetto** +2,5 kg e non bersaglio, tempo e pausa
+tornano alla scheda. Se sì: elenco (proposti curl ×4, military press, rematore a
+un braccio, alzate laterali, croci; fuori le kettlebell; goblet squat, stacco
+rumeno, estensione tricipiti: manubri o kettlebell?) e fuori chi ha salti > 2,5
+kg. Sotto-domanda: cambio di manubrio a mano ⇒ tempo e pausa alla scheda?
 
 **D-17 · Settimana del programma dopo una pausa (M6).** Il numero di settimana
 è di calendario: chi si ferma 3 settimane in settimana 3 rientra in settimana 6,

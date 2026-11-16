@@ -5,13 +5,26 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## In produzione oggi
 
-**Nessuna versione approvata.** Il comportamento dell'app è quello del codice,
-che fino a oggi non era descritto da nessun documento di metodo. Le regole
-effettivamente in vigore sono trascritte, con il marcatore `[IN CODICE]`, in
-METHOD.md, PROGRAM_RULES.md, PROGRESSION_RULES.md, PROGRESS_REVIEW.md e
-ADVICE.md. Quella trascrizione **non cambia niente**: descrive.
+**`a747e09` (2026-11-16): R5, R6, R7 (progressione 2.0) e R8 (progressi 2.0),
+senza R9.** GO di training-quality del 2026-11-15; Alessio ha esteso il 2026-11-16
+l'eccezione «non peggiorati» agli Alti preesistenti (A10, A16, A17). Il resto del
+comportamento è il codice trascritto con `[IN CODICE]` nei file di metodo.
 
 ## Voci aperte
+
+### progressione 3.0 · progressi 3.0 · consigli 3.0 · limiti 1.3
+- **Data.** 2026-11-16. **Stato.** PROPOSTA; `src/` non toccato.
+- **Cosa.** R10 (A17): revisione nell'ordine delle leve della fine seduta,
+  stato completo dal registro (bonus di tempo e pausa), manubri: R10c-0 subito,
+  R10c-1 se D-19. R11 (M17): `rimandati` solo con stato cambiato o seduta nuova
+  che smentisce. R12 (L15): due date diverse. R13: R13a S2 su 7 giorni, R13b
+  (D-4) da decidere. `alMassimo` + `pausa`, `variante`; `rimandati` con motivo;
+  `fermi` + `sette-giorni`.
+- **Perché.** A17 Alto, M17 Medio, L15 Basso (quality 2026-11-15), D-4; R-1 (S2
+  per proposta) trovato leggendo il codice.
+- **Major.** Ingresso nuovo (registro), elenchi e motivi nuovi. Nessuna soglia
+  approvata allentata. Cambiano atteso 6.4-6.7, 6.10, 6.11, 8.19, 8.27.
+- **Esito training-quality.** Non ancora valutato.
 
 ### progressione 2.0 · progressi 2.0 · consigli 2.0 · programmi 2.1 · limiti 1.2
 - **Data.** 2026-11-14
@@ -39,8 +52,9 @@ ADVICE.md. Quella trascrizione **non cambia niente**: descrive.
   di 5.x/6.x, 7.11-7.12, nuovi 5.13-5.15 e 8.13-8.28; testi ADVICE §7; L9.
   S4 invariata nei numeri. **Fine seduta invariata.** Resta 2.0: la versione non
   è mai stata rilasciata.
-- **Esito training-quality.** Non ancora valutato, lettura di S4 compresa. Casi
-  4a-4d da riscrivere con date e barriere aperte (rapporto 2026-11-15).
+- **Esito training-quality (2026-11-15).** GO al push: A2, A3, A4, M1 chiusi;
+  lettura di S4 OK con la riserva L15; nuovi A17 (Alto) e M17 (Medio). R5-R8 in
+  produzione da `a747e09`; R9 no.
 
 ### programmi 2.0 · progressione 1.1 · metodo 1.1 · progressi 1.1 · schema 1.1 · limiti 1.1
 - **Data.** 2026-11-12

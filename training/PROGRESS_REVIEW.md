@@ -120,7 +120,11 @@ metodo 16-20 (prioritario)»*.
    `excludeFromReview`** restano fuori. L'ultimo è in codice dal 2026-11-12
    (`review.ts`, ADVICE D-01 chiuso).
 
-## 6. R8 — Quanto serve per un verdetto `[PROPOSTA, progressi 2.0 — rev. 2026-11-15]`
+## 6. R8 — Quanto serve per un verdetto `[IN CODICE da a747e09 · rev. 2026-11-16 PROPOSTA, progressi 3.0]`
+
+Rev. 2026-11-16: **R11** sostituisce il punto 3 (M17), **R12** aggiunge le
+date diverse al punto 4 (L15), **R10b** completa «allo stato L» (A17).
+Tabelle 11.x e 12.x: rapporto `reports/2026-11-16-training.md`.
 
 Attua S4 (approvata il 2026-11-12) nella lettura scelta da Alessio il
 2026-11-15 (D-16): **le ultime 2 sedute chiuse dell'esercizio allo stesso
@@ -143,7 +147,9 @@ esattamente le settimane W−1 e W del programma.
   ordine `(date, id)`. In corso e abbandonate non esistono per nessun conto.
 - **Allo stato `L`** (`states.get(e) ?? R1`): ogni voce strutturale di `e`
   nella seduta ha `level === L.level` se `pattern ≠ null`, e `max(loadKg) ===
-  L.loadKg` se `loadPolicy ≠ 'forbidden'`.
+  L.loadKg` se `loadPolicy ≠ 'forbidden'`. **R10b**: la coppia vale solo se
+  nel registro non c'è un `accepted` su `e` che alza un bonus di tempo o pausa
+  con `date ≥ b.date`; altrimenti `rimandati` motivo `leva`.
 - **`serieVere(voce)`**: `setIndex` distinti con una riga `side === null`,
   oppure con `left` e `right` (in codice: `serieVere`, `righeVere`). Le righe
   orfane non entrano nei valori.
@@ -151,8 +157,9 @@ esattamente le settimane W−1 e W del programma.
   più recente.
 - **Utili**: `a` conta se è allo stato `L` e in `finestra(W)`; `b` conta se `a`
   conta, se è allo stato `L`, in `finestra(W)` e con lo stesso range di `a`
-  (min, max, unità: chiude D-05 per la revisione). **Una seduta più vecchia di
-  `b` non ne prende mai il posto**: sono le ultime due, non le ultime due buone.
+  (min, max, unità: chiude D-05 per la revisione) e, **R12**, con `b.date <
+  a.date`. **Una seduta più vecchia di `b` non ne prende mai il posto**: sono
+  le ultime due, non le ultime due buone.
 
 **Predicato**, per la revisione di W e per ogni esercizio `e`:
 1. **Stato della revisione**: `in-corso` se `today ≤ fine(W)`; `aperta` se
@@ -160,9 +167,15 @@ esattamente le settimane W−1 e W del programma.
    verdetti ed elenchi.
 2. **Chi compare**: `e` ⇔ ha una voce strutturale in una seduta chiusa con
    `week === W`. Quindi `a` sta in W.
-3. **Rimandato**: `e` ha una seduta chiusa con `fine(W) < date ≤ today` ⇒ la
-   coppia non è più l'ultima: elenco `rimandati`, nessun verdetto. La giudica la
-   revisione della settimana di quella seduta.
+3. **R11** (rev. 2026-11-16; prima: qualunque seduta dopo `fine(W)` ⇒
+   `rimandati`, e con la revisione aperta dopo la seduta la discesa non
+   arrivava mai, M17). `dopo` = sedute chiuse di `e` con `fine(W) < date ≤
+   today`. (a) Una di `dopo` non allo stato `L` per gradino e carico ⇒
+   `rimandati` `stato`. (b) Punto 4, poi R10b. (c) `E` = esito sulla coppia;
+   se `dopo ≠ ∅`, `E⁺` = lo stesso calcolo su coppia + `dopo` (stesso range di
+   `a`, tempo e scarico di ogni seduta, stessi `L`, `today`): `tipo(E⁺) =
+   tipo(E)` ⇒ `E` con «Rifatto <giorno>: <valori>» nell'evidenza, altrimenti
+   `rimandati` `smentito`. R11 può solo togliere un verdetto, mai crearne uno.
 4. **Verdetto possibile ⇔ due utili e `Σ serieVere(utili) ≥ 3`**, per ogni
    verdetto, discesa compresa. `MIN_SESSIONS_FOR_VERDICT = 2` (nuovo),
    `MIN_SETS_FOR_VERDICT = 3` su serie vere. Altrimenti `pocheProve`.
@@ -170,8 +183,11 @@ esattamente le settimane W−1 e W del programma.
    valore. Da qui R5, R6, R7 nell'ordine di PROGRESSION_RULES §9.
 
 **Esito.** Chi compare finisce in uno solo fra: un verdetto, `pocheProve` (nome,
-`sedute` = utili, `serie` = Σ serie vere delle utili, `L`), `rimandati` (nome,
-data della seduta nuova), `fermi`, `inAttesa`, `alMassimo`, `inRange`.
+`sedute` = utili, `serie` = Σ serie vere delle utili, `L`, `stessoGiorno`),
+`rimandati` (nome, data, `motivo` `stato` | `leva` | `smentito`, testo), `fermi`
+(+ `sette-giorni`, R13), `inAttesa`, `alMassimo` (+ `pausa`, `variante`, R10a),
+`inRange`. Ordine per esercizio: stato → chi compare → R11a → coppia + R12 →
+R10b → discesa → `inRange` → R5 → R10a (R7, R6, R10c) → R13 → R11c.
 `WeeklyReview` aggiunge `stato`, `finestra {dal, al}`, `pocheProve`,
 `rimandati`. `sessionsCounted` = sedute chiuse con `week === W` (come oggi);
 `setsCounted` = Σ serie vere delle utili di chi compare, mai righe.
@@ -192,9 +208,10 @@ data della seduta nuova), `fermi`, `inAttesa`, `alMassimo`, `inRange`.
 - *Con giorni di ritardo*: dentro la settimana N+1 i numeri sono gli stessi e
   cambiano tre cose, tutte prudenti: R7 su `today` può sbloccare una salita che
   il lunedì era in attesa, mai prima dei 14 giorni (8.23); un esercizio già
-  rifatto va in `rimandati` (8.19); uno stato cambiato nel frattempo (leva
-  accettata a fine seduta) fa uscire le voci, quindi nessun doppio aumento
-  (8.10, 8.11). Dalla settimana N+2 la revisione è `scaduta` (8.20): nessun
+  rifatto si giudica se le sedute nuove sono allo stesso stato e confermano,
+  altrimenti `rimandati` (R11, 8.19); uno stato cambiato nel frattempo (leva
+  accettata a fine seduta, anche di tempo o pausa con R10b) fa uscire la coppia:
+  nessun doppio aumento (8.10, 8.11, 10.1). Dalla N+2 è `scaduta` (8.20): nessun
   verdetto su numeri vecchi, magari prima di una pausa. La Home già oggi mostra
   solo la settimana `week − 1`.
 
@@ -203,8 +220,8 @@ settimana · <m> serie lette dal <dal> al <al>». `pocheProve`: «Troppo pochi
 numeri per giudicare: <Esercizio> (<s> sedute, <n> serie al livello <L>) … La
 revisione giudica le ultime due sedute di un esercizio se sono allo stesso
 livello e carico, cadono entrambe in questi 14 giorni e hanno almeno 3 serie
-complete in tutto.» `rimandati`: «<Esercizio>: l'hai già rifatto <giorno>. Lo
-giudica la revisione della settimana prossima, con le ultime due sedute.»
+complete in tutto.» `rimandati`: tre testi per motivo (ADVICE §7, consigli 3.0);
+«Lo giudica la revisione della settimana prossima» sparisce (falso, M17).
 
 **Sul circuito.** Un esercizio per circuito, ~1 seduta a settimana: la coppia è
 di norma (N−1, N) e la revisione parla da W2. W1: tutti in `pocheProve`.
@@ -215,7 +232,7 @@ non spezzano la coppia, mai in `pocheProve` (8.9). Solo eccentrici: nessun
 effetto. Scarico: le sedute contano (2 giri = 2 serie); nessun aumento da una
 coppia che ne contiene una (R5 E4), la discesa sì (8.24). Rientro: oltre 13
 giorni la seduta esce dalla finestra; le ridotte le ferma R5 E5. Ritest: un
-test non è una seduta. Due sedute nello stesso giorno: contano 2 (8.27). Seduta
+test non è una seduta. Due sedute nello stesso giorno: contano 1 (R12). Seduta
 chiusa tardi con data in W: entra alla prossima apertura. In corso e
 abbandonate: fuori (8.7, 8.8). `programStartDate` assente: nessuna finestra,
 nessun verdetto. Data e `week` in disaccordo (solo se cambia la data di inizio,
@@ -247,7 +264,7 @@ non detto.
 | 8.16 | 8.8, W2 «Lascia com'è»; nessun push-up in W3 | revisione W3: push-up assente |
 | 8.17 | 8.16 + 03-18 al 2 da 19-19-19 | W3: coppia (03-11, 03-18), `sali-di-livello` con chiave `revisione-3:push-up` |
 | 8.18 | 8.8, W2 «Applica» (stato 3) + 03-18 al 3 | W3: `pocheProve` (1 seduta al livello 3), nessuna seconda salita |
-| 8.19 | 8.8, revisione W2 con `today` 03-17, push-up chiuso il 03-16 | `rimandati`, nessun verdetto; W3 giudica (03-11, 03-16) |
+| 8.19 | 8.8, revisione W2 con `today` 03-17, push-up chiuso il 03-16 da 19-19-19 sì al 2 | **R11** (= 11.14): `sali-di-livello` con «Rifatto…»; se accettata, W3 `pocheProve`. Con 03-16 sotto il massimo: `rimandati` `smentito` |
 | 8.20 | 8.8 con `today` 03-23 | `stato = scaduta`, nessun verdetto, nessun elenco |
 | 8.21 | 8.8 con `today` 03-15 | `stato = in-corso`, nessun verdetto |
 | 8.22 | 8.2 con `today` 03-16 e con 03-22, nessuna bulgarian dopo il 03-15 | stessi verdetti, stessa evidenza |
@@ -255,5 +272,5 @@ non detto.
 | 8.24 | W=7, push-up 04-08 (W6, 2 giri 19-19) e 04-15 (19-19-19) · con 9-9 e 9-9-9 | `fermi` scarico · `scendi-di-livello` 2→1 |
 | 8.25 | voci della coppia con range diversi (se un esercizio sta in due blocchi) | la più vecchia non conta: `pocheProve` (1 seduta) |
 | 8.26 | bulgarian, 03-04 (2 S+D da 7) e 03-11 (1 S+D da 7) | 3 serie vere, 2 sedute: `scendi-di-livello` 2→1 |
-| 8.27 | push-up 19-19-19, due sedute chiuse il 03-11 (id diversi) | 2 sedute: giudicato |
+| 8.27 | push-up 19-19-19, due sedute chiuse il 03-11 (id diversi) | **R12** (= 12.1): `pocheProve` (1 seduta, stesso giorno); anche con 03-04 in più (12.2) |
 | 8.28 | caso 4c sul circuito: push-up 19-19-19 il 03-04, 03-11, 03-18, 03-25, nessuna prima al 2, ogni salita accettata, W1-W4 | W1 `pocheProve` · W2 `inAttesa` dal 03-18 · W3 2→3 · W4 `pocheProve` (1 al 3): una salita |

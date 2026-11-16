@@ -186,7 +186,7 @@ attuale>.»*
 **Verifica.** Test: per ogni combinazione di livello e attrezzatura, nessun piano
 contiene esercizi fuori perimetro. Nel nucleo di sicurezza.
 
-## L9 — Tetti di progressione (= S1-S6, approvate il 2026-11-12) — limiti 1.2
+## L9 — Tetti di progressione (= S1-S6, approvate il 2026-11-12) — limiti 1.3 (proposta)
 
 **Regola.** (S1) Un gradino **eseguibile** per esercizio ogni **2 settimane**:
 14 giorni dalla prima seduta chiusa al gradino attuale, uno alla volta (R7).
@@ -197,9 +197,9 @@ solo su ≥ 2 sedute e ≥ 3 serie vere: le ultime 2, stesso stato, nei 14 giorn
 dip misurati (R6). (S6) Dopo **≥ 14 giorni** senza sedute chiuse: 4 sedute (≥ 7
 giorni) a giri dimezzati, nessun aumento, ritest proposto (R9). Si scende sempre.
 Dettaglio: PROGRESSION_RULES §9, PROGRESS_REVIEW §6, PROGRAM_RULES §8.
-Proposta a parte, **non approvata**: un aumento di tempo, pausa o carico per
-esercizio ogni 7 giorni (T1, DECISIONS D-4).
-**Stato oggi.** Rispettata solo S2. A2, A3, A4, M1, M4: Bloccanti dal 2026-11-12.
+S2 si legge su 7 giorni mobili (R13a, 2026-11-16). **Non approvata**: un aumento
+di qualunque leva ogni 7 giorni (R13b, D-4). Revisione nell'ordine delle leve (R10).
+**Stato oggi** (`a747e09`): S1, S3, S4, S5 in codice; S6 no (R9); S2 solo per proposta.
 **Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre
 barriere aperte (rapporto 2026-11-15), 4d con controlli positivi, più un
 caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni
