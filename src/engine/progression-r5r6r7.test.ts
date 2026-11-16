@@ -70,6 +70,7 @@ function input(options: {
     currentMaxReps: options.currentMaxReps === undefined ? 12 : options.currentMaxReps,
     salita: options.salita ?? SALITA_LIBERA,
     rientro: options.rientro ?? null,
+    aumentoRecente: null,
   };
 }
 

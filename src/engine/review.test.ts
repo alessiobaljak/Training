@@ -8,6 +8,7 @@ import { addDays } from './dates.ts';
 import { getExercise } from '../data/exercises.ts';
 import { loggedExercise, perSideSets, set, sets } from './__fixtures.ts';
 import type {
+  DecisioneRegistrata,
   ExerciseSlug,
   ExerciseState,
   LevelIndex,
@@ -38,6 +39,7 @@ const DIP = 'dip-parallele-anelli';
 const MARTELLO = 'curl-martello-manubri';
 const TRX = 'rematore-inverso-trx';
 const SWING = 'kb-swing';
+const PULLOVER = 'pull-over-trx';
 
 const BLOCCO: Record<string, { sessionId: SessionId; code: string }> = {
   [PUSH]: { sessionId: 'circuito-3', code: 'A2' },
@@ -47,6 +49,7 @@ const BLOCCO: Record<string, { sessionId: SessionId; code: string }> = {
   [MARTELLO]: { sessionId: 'circuito-1', code: 'B1' },
   [TRX]: { sessionId: 'circuito-2', code: 'A3' },
   [SWING]: { sessionId: 'circuito-1', code: 'F1' },
+  [PULLOVER]: { sessionId: 'circuito-3', code: 'A3' },
 };
 
 let progressivo = 0;
@@ -111,7 +114,11 @@ function rivedi(
   week: number,
   sessions: readonly LoggedSession[],
   stati: readonly ExerciseState[],
-  options: { today?: string; tests?: ReadonlyMap<TestResult['testId'], TestResult> } = {},
+  options: {
+    today?: string;
+    tests?: ReadonlyMap<TestResult['testId'], TestResult>;
+    decisioni?: readonly DecisioneRegistrata[];
+  } = {},
 ): WeeklyReview {
   return reviewWeek({
     week,
@@ -120,6 +127,7 @@ function rivedi(
     tests: options.tests ?? TEST_PIENI,
     weekEnd: fine(week),
     today: options.today ?? addDays(fine(week), 1),
+    decisioni: options.decisioni ?? [],
   });
 }
 
@@ -277,15 +285,16 @@ describe('R8 · quanto serve per un verdetto', () => {
     expect(applicato.pocheProve[0]).toEqual(expect.objectContaining({ sedute: 1, level: 3 }));
   });
 
-  it('8.19 · un esercizio già rifatto dopo la fine della settimana va nei rimandati', () => {
+  it('8.19 → 11.14 · rifatto dopo la fine della settimana e confermato: si giudica, con la conferma', () => {
     const r = rivedi(
       2,
       [storia(PUSH), seduta('2026-03-04', [S([19, 19, 19])]), seduta('2026-03-11', [S([19, 19, 19])]), seduta('2026-03-16', [S([19, 19, 19])])],
       [stato(PUSH)],
       { today: '2026-03-17' },
     );
-    expect(r.verdicts).toHaveLength(0);
-    expect(r.rimandati).toEqual([expect.objectContaining({ exercise: PUSH, date: '2026-03-16' })]);
+    expect(r.rimandati).toHaveLength(0);
+    expect(r.verdicts[0]?.kind).toBe('sali-di-livello');
+    expect(r.verdicts[0]?.evidence).toContain('Rifatto lunedì 16 marzo: 19-19-19');
   });
 
   it('8.20 e 8.21 · in corso prima della fine, scaduta dopo una settimana', () => {
@@ -345,13 +354,14 @@ describe('R8 · quanto serve per un verdetto', () => {
     expect(r.setsCounted).toBe(3);
   });
 
-  it('8.27 · due sedute chiuse lo stesso giorno contano due', () => {
+  it('8.27 → 12.1 · due sedute chiuse lo stesso giorno contano una', () => {
     const r = rivedi(
       2,
       [storia(PUSH), seduta('2026-03-11', [S([19, 19, 19])]), seduta('2026-03-11', [S([19, 19, 19])])],
       [stato(PUSH)],
     );
-    expect(r.verdicts[0]?.kind).toBe('sali-di-livello');
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.pocheProve[0]).toEqual(expect.objectContaining({ sedute: 1, stessoGiorno: '2026-03-11' }));
   });
 
   it('8.28 · caso 4c sul circuito: una seduta a settimana, una salita sola in quattro settimane', () => {
@@ -476,24 +486,26 @@ describe('R6 in revisione · prima la variante, poi la zavorra', () => {
   });
 
   const cima = [t('2026-03-18', [8, 8, 8], 6), t('2026-03-25', [8, 8, 8], 6)];
+  /* R10a: la zavorra arriva solo con tempo e pausa al massimo (eccentrica 5", pausa 2"). */
+  const esauriti = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
   const conTest = (value: number | null) =>
     latestTestResults(value === null ? [] : [testResultSingle('pull-up', '2026-02-23', 0, value)]);
 
   it('6.4 · all’ultimo gradino con il test sopra la soglia, la zavorra', () => {
-    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6 })], { tests: conTest(12) });
+    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6, ...esauriti })], { tests: conTest(12) });
     expect(r.verdicts[0]?.kind).toBe('aggiungi-peso');
     expect(r.verdicts[0]?.stateAfter.loadKg).toBe(2.5);
   });
 
   it('6.5 · con il test sotto la soglia, niente zavorra e il perché', () => {
-    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6 })], { tests: conTest(6) });
+    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6, ...esauriti })], { tests: conTest(6) });
     expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'soglia' }));
     expect(r.alMassimo[0]?.testo).toContain('Ultimo test: 6');
     expect(r.alMassimo[0]?.testo).toContain('8');
   });
 
   it('6.6 · senza test, niente zavorra', () => {
-    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6 })], { tests: conTest(null) });
+    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6, ...esauriti })], { tests: conTest(null) });
     expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'nessun-test' }));
   });
 
@@ -501,7 +513,7 @@ describe('R6 in revisione · prima la variante, poi la zavorra', () => {
     const r = rivedi(
       1,
       [t('2026-02-25', [8, 8, 8], 6), t('2026-03-04', [8, 8, 8], 6)],
-      [stato(TRAZIONI, { level: 6 })],
+      [stato(TRAZIONI, { level: 6, ...esauriti })],
       { tests: conTest(12) },
     );
     expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'settimana' }));
@@ -512,19 +524,33 @@ describe('R6 in revisione · prima la variante, poi la zavorra', () => {
     const r = rivedi(
       4,
       [d('2026-03-18'), d('2026-03-25')],
-      [stato(DIP, { level: 6 })],
+      [stato(DIP, { level: 6, ...esauriti })],
       { tests: latestTestResults([testResultSingle('dip', '2026-02-23', 0, 9)]) },
     );
     expect(r.verdicts.filter((v) => v.kind === 'aggiungi-peso')).toHaveLength(0);
     expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'soglia' }));
   });
 
-  it('6.11 · sui manubri la leva è il peso', () => {
+  it('6.11 → 10.4 · sui manubri il manubrio successivo arriva dopo tempo e pausa (R10c-1, D-19)', () => {
     const c = (date: string) => seduta(date, [voce(MARTELLO, [10, 10, 10], { loadKg: 10 })]);
-    const r = rivedi(4, [c('2026-03-17'), c('2026-03-24')], [stato(MARTELLO, { loadKg: 10 })]);
+    const r = rivedi(4, [c('2026-03-17'), c('2026-03-24')], [stato(MARTELLO, { loadKg: 10, ...esauriti })]);
     expect(r.verdicts[0]?.kind).toBe('aggiungi-peso');
-    expect(r.verdicts[0]?.stateAfter.loadKg).toBe(12.5);
-    expect(r.verdicts[0]?.stateAfter.level).toBeNull();
+    expect(r.verdicts[0]?.stateAfter).toEqual(
+      expect.objectContaining({ loadKg: 12.5, level: null, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+    );
+    expect(r.verdicts[0]?.change).toContain('al massimo 12,5 kg');
+
+    /* 10.2: a bonus 0 la prossima leva è il tempo, e la propone la fine seduta. */
+    const bonusZero = rivedi(4, [c('2026-03-17'), c('2026-03-24')], [stato(MARTELLO, { loadKg: 10 })]);
+    expect(bonusZero.verdicts).toHaveLength(0);
+    expect(bonusZero.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'tempo' }));
+    expect(bonusZero.alMassimo[0]?.testo).toContain('da 3" a 4"');
+  });
+
+  it('10.8 · trazioni all’ultimo gradino a bonus 0: prima il tempo, poi il carico', () => {
+    const r = rivedi(4, cima, [stato(TRAZIONI, { level: 6 })], { tests: conTest(12) });
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'tempo' }));
   });
 });
 
@@ -540,6 +566,233 @@ describe('R7 in revisione · un gradino ogni due settimane', () => {
       3,
       [seduta('2026-03-17', [S([9, 9, 9], 3)]), seduta('2026-03-19', [S([9, 9, 9], 3)])],
       [stato(PUSH, { level: 3 })],
+    );
+    expect(r.verdicts[0]?.kind).toBe('scendi-di-livello');
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* R10-R13 (training/reports/2026-11-16-training.md)                          */
+/* -------------------------------------------------------------------------- */
+
+const scelta = (
+  date: string,
+  slug: ExerciseSlug,
+  prima: Partial<ExerciseState>,
+  dopo: Partial<ExerciseState>,
+  decision: 'accepted' | 'postponed' = 'accepted',
+): DecisioneRegistrata => ({
+  date,
+  exercise: slug,
+  decision,
+  stateBefore: stato(slug, prima),
+  stateAfter: stato(slug, { ...prima, ...dopo }),
+});
+
+describe('R10 · in revisione le leve nell’ordine della fine seduta', () => {
+  const ESAURITI = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+  const curl = (date: string, kg = 12) => seduta(date, [voce(MARTELLO, [10, 10, 10], { loadKg: kg })]);
+  const coppiaCurl = [curl('2026-03-19'), curl('2026-03-26')];
+
+  it('10.1 · caso A17: tempo accettato dopo le sedute lette, nessun manubrio in più', () => {
+    const r = rivedi(4, coppiaCurl, [stato(MARTELLO, { loadKg: 12, eccentricBonusSeconds: 1 })], {
+      decisioni: [scelta('2026-03-26', MARTELLO, { loadKg: 12 }, { eccentricBonusSeconds: 1 })],
+    });
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'leva' }));
+    expect(r.rimandati[0]?.testo).toContain('un secondo in più di eccentrica');
+  });
+
+  it('10.3 · con l’eccentrica al massimo, la prossima è la pausa', () => {
+    const r = rivedi(4, coppiaCurl, [stato(MARTELLO, { loadKg: 12, eccentricBonusSeconds: 2 })]);
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'pausa' }));
+    expect(r.alMassimo[0]?.testo).toContain('da 0" a 1"');
+  });
+
+  it('10.5, 10.6, 10.7 · la leva di pausa conta solo se accettata dopo la prima seduta della coppia', () => {
+    const stessoGiorno = rivedi(4, coppiaCurl, [stato(MARTELLO, { loadKg: 12, ...ESAURITI })], {
+      decisioni: [scelta('2026-03-19', MARTELLO, { loadKg: 12, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 1 }, { bottomPauseBonusSeconds: 2 })],
+    });
+    expect(stessoGiorno.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'leva' }));
+
+    const prima = rivedi(4, coppiaCurl, [stato(MARTELLO, { loadKg: 12, ...ESAURITI })], {
+      decisioni: [scelta('2026-03-12', MARTELLO, { loadKg: 12, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 1 }, { bottomPauseBonusSeconds: 2 })],
+    });
+    expect(prima.verdicts[0]?.kind).toBe('aggiungi-peso');
+
+    const rimandata = rivedi(4, coppiaCurl, [stato(MARTELLO, { loadKg: 12, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 1 })], {
+      decisioni: [scelta('2026-03-19', MARTELLO, { loadKg: 12, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 1 }, {}, 'postponed')],
+    });
+    expect(rimandata.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'pausa' }));
+    expect(rimandata.alMassimo[0]?.testo).toContain('da 1" a 2"');
+  });
+
+  it('10.10 · trazioni a 5 kg, tempo 4" → 5" accettato a fine seduta: nessun +2,5 kg', () => {
+    const t = (date: string) => seduta(date, [voce(TRAZIONI, [8, 8, 8], { level: 6, loadKg: 5 })]);
+    const r = rivedi(4, [t('2026-03-19'), t('2026-03-26')], [stato(TRAZIONI, { level: 6, loadKg: 5, ...ESAURITI })], {
+      decisioni: [scelta('2026-03-26', TRAZIONI, { level: 6, loadKg: 5, eccentricBonusSeconds: 1, bottomPauseBonusSeconds: 2 }, { eccentricBonusSeconds: 2 })],
+    });
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'leva' }));
+  });
+
+  it('10.11 · superare il massimo all’ultimo gradino non fa saltare al carico', () => {
+    const t = (date: string) => seduta(date, [voce(TRAZIONI, [9, 9, 9], { level: 6 })]);
+    const r = rivedi(4, [t('2026-03-19'), t('2026-03-26')], [stato(TRAZIONI, { level: 6 })]);
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'tempo' }));
+  });
+
+  it('10.12 e 10.13 · tempo e pausa al massimo, al massimo del range: la prossima è la variante', () => {
+    const p = (date: string) => seduta(date, [S([18, 18, 18])]);
+    /* Il push-up prescrive 2-0-1-0: l'eccentrica arriva a 5" con tre secondi in più. */
+    const PUSH_ESAURITI = { eccentricBonusSeconds: 3, bottomPauseBonusSeconds: 2 } as const;
+    const conStoria = rivedi(4, [storia(PUSH), p('2026-03-19'), p('2026-03-26')], [stato(PUSH, PUSH_ESAURITI)]);
+    expect(conStoria.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'variante' }));
+    expect(conStoria.alMassimo[0]?.testo).toContain('livello 3');
+
+    const appena = rivedi(4, [p('2026-03-19'), p('2026-03-26')], [stato(PUSH, PUSH_ESAURITI)]);
+    expect(appena.alMassimo[0]?.testo).toContain('dal giovedì 2 aprile');
+  });
+
+  it('10.14 · senza carico: prima il tempo, poi le leve sono finite', () => {
+    const p = (date: string) => seduta(date, [voce(PULLOVER, [15, 15, 15])]);
+    const zero = rivedi(4, [p('2026-03-19'), p('2026-03-26')], [stato(PULLOVER)]);
+    expect(zero.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'tempo' }));
+    const finite = rivedi(4, [p('2026-03-19'), p('2026-03-26')], [stato(PULLOVER, ESAURITI)]);
+    expect(finite.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'leve-finite' }));
+  });
+});
+
+describe('R11 · rifatto dopo la fine della settimana', () => {
+  const p3 = (date: string, values: readonly number[], options: { tempo?: boolean | null; level?: LevelIndex } = {}) =>
+    seduta(date, [voce(PUSH, values, { level: options.level ?? 3, ...(options.tempo === undefined ? {} : { tempo: options.tempo }) })]);
+  const L3 = stato(PUSH, { level: 3 });
+
+  it('11.1 e 11.2 · M17: aperta dopo la seduta del lunedì, la discesa arriva lo stesso', () => {
+    const dopo = rivedi(2, [p3('2026-03-02', [9, 9, 9]), p3('2026-03-09', [9, 9, 9]), p3('2026-03-16', [9, 9, 9])], [L3], { today: '2026-03-16' });
+    expect(dopo.verdicts[0]?.kind).toBe('scendi-di-livello');
+    expect(dopo.verdicts[0]?.evidence).toContain('Rifatto lunedì 16 marzo: 9-9-9');
+
+    const prima = rivedi(2, [p3('2026-03-02', [9, 9, 9]), p3('2026-03-09', [9, 9, 9])], [L3], { today: '2026-03-16' });
+    expect(prima.verdicts[0]?.kind).toBe('scendi-di-livello');
+  });
+
+  it('11.3 · una seduta nuova che smentisce: niente cambia', () => {
+    const r = rivedi(2, [p3('2026-03-02', [9, 9, 9]), p3('2026-03-09', [9, 9, 9]), p3('2026-03-16', [13, 12, 12])], [L3], { today: '2026-03-16' });
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'smentito' }));
+    expect(r.rimandati[0]?.testo).toContain('non conferma');
+  });
+
+  it('11.4 · discesa accettata: la settimana dopo nessuna seconda discesa', () => {
+    const r = rivedi(
+      3,
+      [p3('2026-03-02', [9, 9, 9]), p3('2026-03-09', [9, 9, 9]), p3('2026-03-16', [9, 9, 9]), p3('2026-03-23', [13, 13, 13], { level: 2 })],
+      [stato(PUSH, { level: 2 })],
+      { today: '2026-03-23' },
+    );
+    expect(r.verdicts).toHaveLength(0);
+  });
+
+  it('11.5, 11.6, 11.7 · la salita si conferma solo con il massimo e il tempo', () => {
+    const p2 = (date: string, values: readonly number[], tempo: boolean | null = true) =>
+      seduta(date, [voce(PUSH, values, { tempo })]);
+    const base = [p2('2026-03-02', [19, 19, 19]), p2('2026-03-09', [19, 19, 19])];
+    const confermata = rivedi(2, [...base, p2('2026-03-16', [19, 19, 19])], [stato(PUSH)], { today: '2026-03-16' });
+    expect(confermata.verdicts[0]?.kind).toBe('sali-di-livello');
+
+    const smentita = rivedi(2, [...base, p2('2026-03-16', [17, 16, 16])], [stato(PUSH)], { today: '2026-03-16' });
+    expect(smentita.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'smentito' }));
+
+    const senzaTempo = rivedi(2, [...base, p2('2026-03-16', [19, 19, 19], null)], [stato(PUSH)], { today: '2026-03-16' });
+    expect(senzaTempo.rimandati[0]?.testo).toContain('tempo non confermato');
+  });
+
+  it('11.8 · gradino cambiato dopo le sedute lette: rimandato per stato', () => {
+    const p2 = (date: string) => seduta(date, [voce(PUSH, [19, 19, 19])]);
+    const r = rivedi(2, [p2('2026-03-02'), p2('2026-03-09'), p2('2026-03-16')], [stato(PUSH, { level: 3 })], { today: '2026-03-16' });
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'stato' }));
+  });
+
+  it('11.10 · tempo accettato alla seduta nuova: rimandato per leva', () => {
+    const p2 = (date: string) => seduta(date, [voce(PUSH, [18, 18, 18])]);
+    const r = rivedi(2, [p2('2026-03-02'), p2('2026-03-09'), p2('2026-03-16')], [stato(PUSH, { eccentricBonusSeconds: 1 })], {
+      today: '2026-03-16',
+      decisioni: [scelta('2026-03-16', PUSH, {}, { eccentricBonusSeconds: 1 })],
+    });
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'leva' }));
+  });
+
+  it('11.11 e 11.12 · più sedute nuove: devono confermare tutte', () => {
+    const base = [p3('2026-03-02', [9, 9, 9]), p3('2026-03-09', [9, 9, 9]), p3('2026-03-16', [9, 9, 9])];
+    const confermata = rivedi(2, [...base, p3('2026-03-19', [9, 9, 9])], [L3], { today: '2026-03-22' });
+    expect(confermata.verdicts[0]?.kind).toBe('scendi-di-livello');
+
+    const smentita = rivedi(2, [...base, p3('2026-03-19', [12, 12, 11])], [L3], { today: '2026-03-22' });
+    expect(smentita.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'smentito' }));
+  });
+
+  it('11.13 · aperta sempre dopo la seduta del lunedì, da W2 lo stesso esito di prima della seduta', () => {
+    const lunedi = (n: number) => addDays('2026-03-02', 7 * n);
+    const sedute = Array.from({ length: 8 }, (_, n) => p3(lunedi(n), [9, 9, 9]));
+    for (let w = 2; w <= 7; w += 1) {
+      const oggi = lunedi(w);
+      const primaDellaSeduta = rivedi(w, sedute.filter((x) => x.date < oggi), [L3], { today: oggi });
+      const dopoLaSeduta = rivedi(w, sedute.filter((x) => x.date <= oggi), [L3], { today: oggi });
+      expect(dopoLaSeduta.verdicts.map((v) => v.kind)).toEqual(primaDellaSeduta.verdicts.map((v) => v.kind));
+      expect(dopoLaSeduta.verdicts[0]?.kind).toBe('scendi-di-livello');
+    }
+  });
+});
+
+describe('R12 · due date diverse', () => {
+  it('12.2 · una seduta più vecchia non prende il posto di quella dello stesso giorno', () => {
+    const r = rivedi(
+      2,
+      [storia(PUSH), seduta('2026-03-04', [S([19, 19, 19])]), seduta('2026-03-11', [S([19, 19, 19])]), seduta('2026-03-11', [S([19, 19, 19])])],
+      [stato(PUSH)],
+    );
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.pocheProve[0]?.stessoGiorno).toBe('2026-03-11');
+  });
+
+  it('12.3 · nessuna discesa da un giorno solo', () => {
+    const r = rivedi(2, [seduta('2026-03-11', [S([9, 9, 9])]), seduta('2026-03-11', [S([9, 9, 9])])], [stato(PUSH)]);
+    expect(r.verdicts).toHaveLength(0);
+  });
+
+  it('12.4 · una seduta per giorno: si giudica (controllo)', () => {
+    const r = rivedi(2, [storia(PUSH), seduta('2026-03-04', [S([19, 19, 19])]), seduta('2026-03-11', [S([19, 19, 19])])], [stato(PUSH)]);
+    expect(r.verdicts[0]?.kind).toBe('sali-di-livello');
+  });
+});
+
+describe('R13 in revisione · un aumento per esercizio ogni 7 giorni', () => {
+  const ESAURITI = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+  const t = (date: string, kg: number) => seduta(date, [voce(TRAZIONI, [8, 8, 8], { level: 6, loadKg: kg })]);
+  const diario = [t('2026-03-17', 0), t('2026-03-24', 2.5), t('2026-03-26', 2.5)];
+  const conTest = latestTestResults([testResultSingle('pull-up', '2026-02-23', 0, 12)]);
+
+  it('13.10 · zavorra scritta dall’atleta martedì: nessun altro +2,5 kg prima del martedì dopo', () => {
+    const r = rivedi(4, diario, [stato(TRAZIONI, { level: 6, loadKg: 2.5, ...ESAURITI })], { tests: conTest, today: '2026-03-30' });
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'sette-giorni' }));
+    expect(r.fermi[0]?.testo).toContain('dal martedì 31 marzo');
+    expect(r.fermi[0]?.testo).toContain('peso scritto da te');
+  });
+
+  it('13.11 · aperta il giorno dopo: +2,5 kg', () => {
+    const r = rivedi(4, diario, [stato(TRAZIONI, { level: 6, loadKg: 2.5, ...ESAURITI })], { tests: conTest, today: '2026-03-31' });
+    expect(r.verdicts[0]?.kind).toBe('aggiungi-peso');
+    expect(r.verdicts[0]?.stateAfter.loadKg).toBe(5);
+  });
+
+  it('13.9 · le discese non si fermano', () => {
+    const r = rivedi(
+      3,
+      [seduta('2026-03-18', [S([9, 9, 9], 3)]), seduta('2026-03-19', [S([9, 9, 9], 3)])],
+      [stato(PUSH, { level: 3 })],
+      { today: '2026-03-23', decisioni: [scelta('2026-03-17', PUSH, {}, { level: 3 })] },
     );
     expect(r.verdicts[0]?.kind).toBe('scendi-di-livello');
   });

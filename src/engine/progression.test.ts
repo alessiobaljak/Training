@@ -78,6 +78,7 @@ function makeInput(options: {
     currentMaxReps: options.currentMaxReps ?? null,
     salita: options.salita ?? SALITA_LIBERA,
     rientro: null,
+    aumentoRecente: null,
   };
 }
 
@@ -578,6 +579,7 @@ describe('avviso sulla resistenza', () => {
       currentMaxReps: null,
       salita: SALITA_LIBERA,
       rientro: null,
+      aumentoRecente: null,
     });
     expect(evaluation.enduranceWarning).toBeNull();
   });
@@ -596,6 +598,7 @@ describe('avviso sulla resistenza', () => {
       currentMaxReps: null,
       salita: SALITA_LIBERA,
       rientro: null,
+      aumentoRecente: null,
     });
     expect(evaluation.enduranceWarning).toContain('resistenza');
   });

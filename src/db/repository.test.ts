@@ -308,6 +308,54 @@ describe('tracciamento dei suggerimenti', () => {
     expect(stored).toHaveLength(1);
     expect(stored[0]?.decision).toBe('postponed');
   });
+
+  /*
+   * T-2: stato e traccia insieme. Uno stato cambiato senza traccia fa passare
+   * R10b e R13, che leggono il registro.
+   */
+  it('una scelta accettata scrive lo stato e la traccia insieme', async () => {
+    const base = initialExerciseState(getExercise('trazioni-prona-presa-media'));
+    const dopo = { ...base, eccentricBonusSeconds: 1 };
+    await repo.recordDecision(
+      {
+        id: 's2',
+        date: '2026-09-14',
+        sessionLogId: 'sess-1',
+        exercise: 'trazioni-prona-presa-media',
+        blockCode: 'A1',
+        lever: 'tempo',
+        decision: 'accepted',
+        stateBefore: base,
+        stateAfter: dopo,
+      },
+      dopo,
+    );
+    expect(await repo.listSuggestions('trazioni-prona-presa-media')).toHaveLength(1);
+    expect((await repo.getExerciseState('trazioni-prona-presa-media')).eccentricBonusSeconds).toBe(1);
+  });
+
+  it('se la traccia non si può scrivere, lo stato non cambia', async () => {
+    const base = initialExerciseState(getExercise('trazioni-prona-presa-media'));
+    const dopo = { ...base, eccentricBonusSeconds: 1 };
+    await expect(
+      repo.recordDecision(
+        {
+          id: 's3',
+          date: 'non è una data',
+          sessionLogId: 'sess-1',
+          exercise: 'trazioni-prona-presa-media',
+          blockCode: 'A1',
+          lever: 'tempo',
+          decision: 'accepted',
+          stateBefore: base,
+          stateAfter: dopo,
+        },
+        dopo,
+      ),
+    ).rejects.toThrow();
+    expect(await repo.listSuggestions('trazioni-prona-presa-media')).toHaveLength(0);
+    expect(await repo.listExerciseStates()).toHaveLength(0);
+  });
 });
 
 describe('svuotamento', () => {

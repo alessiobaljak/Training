@@ -191,8 +191,12 @@ Punto di ritorno, aggiornato a ogni push:
    conferma) → R13a (un aumento di carico ogni 7 giorni, S2). Nove prove
    esistenti cambiano atteso: gli attesi vengono dal rapporto, non dal codice.
    Poi training-quality (domande 4-6 del designer), release-gate, push.
-   Aperte per Alessio: D-4 (a/b/c), D-19 (manubri come leva 5, elenco,
-   salti fra i suoi manubri), reset di tempo e pausa al cambio di manubrio.
+   **Decise da Alessio il 2026-11-16:** D-4 (a), un aumento per esercizio
+   ogni 7 giorni di qualunque tipo, gradino compreso; D-19 sì, il manubrio
+   successivo è la leva 5 come la zavorra; reset di tempo e pausa quando cambi
+   manubrio di tua iniziativa: sì. Ancora aperte: goblet squat, stacco
+   rumeno ed estensione dei tricipiti con manubri o kettlebell; quali
+   manubri ha e se fra due consecutivi il salto supera 2,5 kg.
    Dopo: R9 (M4) con D-17, D-18.
 2. Le domande aperte qui sopra.
 3. `BOUNDARIES.md`: è ancora il buco più grande.

@@ -5,7 +5,7 @@ import { daysBetween, formatDayLong, formatDayShort, formatDaysAgo, plural, toda
 import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
 import { IN_A_ROW_WARNING, rotationState } from '../../engine/rotation.ts';
 import { getWeekState, programWeek, weekEndDate } from '../../engine/schedule.ts';
-import { pendingVerdicts, reviewWeek } from '../../engine/review.ts';
+import { pendingVerdicts, reviewDecisionId, reviewWeek } from '../../engine/review.ts';
 import { sessionDurationSeconds } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
 import { IconaImpostazioni } from '../components/icons.tsx';
@@ -137,7 +137,8 @@ export function HomeScreen() {
     startDate !== null &&
     sessions !== undefined &&
     exerciseStates !== undefined &&
-    latestTests !== undefined
+    latestTests !== undefined &&
+    suggestions !== undefined
       ? reviewWeek({
           week: settimanaChiusa,
           sessions,
@@ -145,12 +146,27 @@ export function HomeScreen() {
           tests: latestTests,
           weekEnd: weekEndDate(startDate, settimanaChiusa),
           today,
+          decisioni: suggestions,
         })
       : null;
-  const daDecidere =
-    revisione === null || suggestions === undefined
-      ? []
-      : pendingVerdicts(revisione, new Set(suggestions.map((record) => record.id)));
+  const decise = new Set((suggestions ?? []).map((record) => record.id));
+  const daDecidere = revisione === null ? [] : pendingVerdicts(revisione, decise);
+  /*
+   * Anche senza niente da decidere la revisione può avere qualcosa da dire:
+   * un gradino in attesa, una settimana di scarico, troppo pochi numeri. La
+   * scheda resta finché la revisione è aperta (M17: prima spariva appena la
+   * seduta del lunedì rimandava tutto).
+   */
+  const daLeggere =
+    revisione === null
+      ? 0
+      : [
+          ...revisione.pocheProve,
+          ...revisione.rimandati,
+          ...revisione.fermi,
+          ...revisione.inAttesa,
+          ...revisione.alMassimo,
+        ].filter((voce) => !decise.has(reviewDecisionId(settimanaChiusa, voce.exercise))).length;
 
   const ripetuti = rotazione.repeatedMuscles.map((gruppo) => MUSCLE_GROUP_LABELS[gruppo]);
 
@@ -259,6 +275,25 @@ export function HomeScreen() {
             </ul>
             <div className="mt-3">
               <Button full onClick={() => { navigate({ name: 'review', week: settimanaChiusa }); }}>
+                Rivedi la settimana
+              </Button>
+            </div>
+          </Card>
+        ) : daLeggere > 0 ? (
+          <Card tone="muted">
+            <p className="text-sm font-semibold">
+              Settimana {settimanaChiusa} chiusa: niente da cambiare
+            </p>
+            <p className="mt-1 text-sm leading-relaxed text-dim">
+              Note su {plural(daLeggere, 'esercizio', 'esercizi')}: gradini in attesa, numeri non
+              ancora sufficienti, leve che arrivano a fine seduta.
+            </p>
+            <div className="mt-3">
+              <Button
+                full
+                variant="secondary"
+                onClick={() => { navigate({ name: 'review', week: settimanaChiusa }); }}
+              >
                 Rivedi la settimana
               </Button>
             </div>

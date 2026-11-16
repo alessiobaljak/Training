@@ -1,14 +1,19 @@
 import { getExercise } from '../data/exercises.ts';
-import { getLoadThreshold } from '../data/method.ts';
+import { LOAD_UNLOCK_WEEK, getLoadThreshold } from '../data/method.ts';
 import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
 import { getAnySession } from '../data/sessions.ts';
 import { getTest, testBaseline } from '../data/tests.ts';
-import { addDays, formatDayLong } from './dates.ts';
+import { addDays, formatDayLong, formatNumber } from './dates.ts';
 import { effectiveBlock } from './draft.ts';
 import { assessLoadNeed, getLoadAvailability, stepLoad } from './loading.ts';
 import {
+  aumentoRecente,
+  effectiveTempo,
   initialExerciseState,
   isFixedRange,
+  isLevaManubrio,
+  leveDiTempo,
+  manubrioSuccessivo,
   isScarico,
   motivoBlocco,
   righeVere,
@@ -17,9 +22,11 @@ import {
   testoSalitaInAttesa,
   varianteEsaurita,
 } from './progression.ts';
+import { isTempoBreakdown } from './notation.ts';
 import { formatRange, resolveBlockRange } from './ranges.ts';
 import type { RangeUnit, WorkRange } from './ranges.ts';
 import type {
+  DecisioneRegistrata,
   ExerciseSlug,
   ExerciseState,
   LevelIndex,
@@ -93,20 +100,29 @@ export interface PocaProva {
   readonly level: LevelIndex | null;
   /** Il carico dello stato, quando l'esercizio ne ha uno. */
   readonly loadKg: number | null;
+  /** R12: le ultime due sedute sono dello stesso giorno, questo. */
+  readonly stessoGiorno: string | null;
 }
 
-/** Esercizio rifatto dopo la fine della settimana: lo giudica la revisione dopo. */
+/**
+ * Esercizio che questa revisione non giudica: rifatto dopo a un altro stato
+ * (R11a), con una leva di tempo accettata dopo le sedute lette (R10b), o con
+ * una seduta nuova che smentisce la coppia (R11c).
+ */
 export interface Rimandato {
   readonly exercise: ExerciseSlug;
   readonly exerciseName: string;
   readonly date: string;
+  readonly motivo: 'stato' | 'leva' | 'smentito';
+  /** Il testo per l'atleta, senza il nome dell'esercizio davanti. */
+  readonly testo: string;
 }
 
 /** Massimo chiuso, ma nessun aumento si applica (R5 E4, E5). */
 export interface Fermo {
   readonly exercise: ExerciseSlug;
   readonly exerciseName: string;
-  readonly motivo: 'scarico' | 'scarico-coppia' | 'rientro';
+  readonly motivo: 'scarico' | 'scarico-coppia' | 'rientro' | 'sette-giorni';
   readonly testo: string;
 }
 
@@ -120,7 +136,14 @@ export interface InAttesa {
   readonly testo: string;
 }
 
-export type MotivoAlMassimo = 'tempo' | 'settimana' | 'soglia' | 'nessun-test' | 'leve-finite';
+export type MotivoAlMassimo =
+  | 'tempo'
+  | 'pausa'
+  | 'variante'
+  | 'settimana'
+  | 'soglia'
+  | 'nessun-test'
+  | 'leve-finite';
 
 /** Massimo chiuso senza una leva che la revisione possa tirare (R6). */
 export interface AlMassimo {
@@ -163,6 +186,32 @@ export interface WeeklyReviewInput {
   readonly weekEnd: string;
   /** Oggi: decide lo stato della revisione e R7. */
   readonly today: string;
+  /** Il registro delle scelte accettate e rimandate (R10b, R13). */
+  readonly decisioni: readonly DecisioneRegistrata[];
+}
+
+/** L'esito di un esercizio, prima di finire in un elenco. */
+type Esito =
+  | { readonly tipo: 'verdetto'; readonly verdict: WeeklyVerdict }
+  | { readonly tipo: 'inRange' }
+  | { readonly tipo: 'fermo'; readonly fermo: Fermo }
+  | { readonly tipo: 'inAttesa'; readonly inAttesa: InAttesa }
+  | { readonly tipo: 'alMassimo'; readonly alMassimo: AlMassimo };
+
+/** Il tipo di un esito, per sapere se una seduta nuova lo conferma (R11). */
+function chiaveEsito(esito: Esito): string {
+  switch (esito.tipo) {
+    case 'verdetto':
+      return `verdetto:${esito.verdict.kind}`;
+    case 'inRange':
+      return 'inRange';
+    case 'fermo':
+      return `fermo:${esito.fermo.motivo}`;
+    case 'inAttesa':
+      return 'inAttesa';
+    case 'alMassimo':
+      return `alMassimo:${esito.alMassimo.motivo}`;
+  }
 }
 
 /** Serie vere minime, sommate sulle due sedute, perché un giudizio valga (S4). */
@@ -248,7 +297,7 @@ function caricoMassimo(voce: LoggedExercise): number {
  * ogni due settimane), R6 (prima la variante, poi il carico).
  */
 export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
-  const { week, sessions, states, tests, weekEnd, today } = input;
+  const { week, sessions, states, tests, weekEnd, today, decisioni } = input;
   const finestra = { dal: addDays(weekEnd, -(GIORNI_FINESTRA - 1)), al: weekEnd };
   const stato: StatoRevisione =
     today <= weekEnd ? 'in-corso' : today <= addDays(weekEnd, 7) ? 'aperta' : 'scaduta';
@@ -300,13 +349,11 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
     const exercise = getExercise(slug);
     const before = states.get(slug) ?? initialExerciseState(exercise, tests);
     const seduteE = chiuse.filter((session) => vociDi(session, slug).length > 0);
-
-    /* Rifatto dopo la fine di W: la coppia non è più l'ultima. */
-    const dopo = seduteE.find((session) => session.date > weekEnd && session.date <= today);
-    if (dopo !== undefined) {
-      rimandati.push({ exercise: slug, exerciseName: exercise.name, date: dopo.date });
-      continue;
-    }
+    const valoriDi = (session: LoggedSession, unit: RangeUnit): string =>
+      elenco(
+        vociDi(session, slug).flatMap(({ voce }) => righeVere(voce.sets).map((set) => set.value)),
+        unit,
+      );
 
     const alloStato = (session: LoggedSession): boolean =>
       vociDi(session, slug).every(
@@ -328,13 +375,42 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
       );
     };
 
-    /* Le ultime due, non le ultime due buone: una più vecchia non prende il posto. */
+    /*
+     * R11a: rifatto dopo la fine di W a un altro livello o carico. La coppia
+     * non dice più niente sullo stato di oggi.
+     */
+    const dopo = seduteE.filter((session) => session.date > weekEnd && session.date <= today);
+    const cambiato = dopo.find((session) => !alloStato(session));
+    if (cambiato !== undefined) {
+      rimandati.push({
+        exercise: slug,
+        exerciseName: exercise.name,
+        date: cambiato.date,
+        motivo: 'stato',
+        testo: `dopo le sedute lette hai cambiato livello o carico (${formatDayLong(cambiato.date)}). Si giudica quando avrai due sedute allo stato nuovo.`,
+      });
+      continue;
+    }
+
+    /*
+     * Le ultime due fino a fine(W), non le ultime due buone (R8), e in due
+     * giorni diversi (R12): due sedute nello stesso giorno sono un campione.
+     */
     const ultime = seduteE.filter((session) => session.date <= weekEnd).slice(-MIN_SESSIONS_FOR_VERDICT);
     const a = ultime.at(-1);
     const b = ultime.length === 2 ? ultime[0] : undefined;
+    const stessoGiorno = a !== undefined && b !== undefined && a.date === b.date;
     const utili: LoggedSession[] = [];
     if (a !== undefined && alloStato(a) && inFinestra(a)) {
-      if (b !== undefined && alloStato(b) && inFinestra(b) && stessoRange(a, b)) utili.push(b);
+      if (
+        b !== undefined &&
+        b.date < a.date &&
+        alloStato(b) &&
+        inFinestra(b) &&
+        stessoRange(a, b)
+      ) {
+        utili.push(b);
+      }
       utili.push(a);
     }
 
@@ -351,6 +427,38 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         serie: serieTotali,
         level: before.level,
         loadKg: caricoStato,
+        stessoGiorno: stessoGiorno ? (a?.date ?? null) : null,
+      });
+      continue;
+    }
+
+    /*
+     * R10b: dopo la più vecchia delle due è stata accettata una leva di
+     * tempo o pausa. I numeri letti sono di prima: proporre il carico su
+     * quelli era il doppio aumento di A17 (curl da 12 a 14,5 kg quattro giorni
+     * dopo un secondo in più di eccentrica).
+     */
+    const primaDellaCoppia = utili[0];
+    const levaDiTempo = decisioni.find(
+      (record) =>
+        record.exercise === slug &&
+        record.decision === 'accepted' &&
+        primaDellaCoppia !== undefined &&
+        record.date >= primaDellaCoppia.date &&
+        (record.stateAfter.eccentricBonusSeconds > record.stateBefore.eccentricBonusSeconds ||
+          record.stateAfter.bottomPauseBonusSeconds > record.stateBefore.bottomPauseBonusSeconds),
+    );
+    if (levaDiTempo !== undefined) {
+      const quale =
+        levaDiTempo.stateAfter.eccentricBonusSeconds > levaDiTempo.stateBefore.eccentricBonusSeconds
+          ? 'eccentrica'
+          : 'pausa in allungamento';
+      rimandati.push({
+        exercise: slug,
+        exerciseName: exercise.name,
+        date: levaDiTempo.date,
+        motivo: 'leva',
+        testo: `${formatDayLong(levaDiTempo.date)} hai accettato un secondo in più di ${quale}. Le sedute lette sono di prima: si giudica quando avrai due sedute al tempo nuovo.`,
       });
       continue;
     }
@@ -360,25 +468,15 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
     if (riferimento === undefined) continue;
     const { range, unit } = riferimento;
     const rangeFisso = isFixedRange(riferimento.block);
-    const values = vociUtili.flatMap(({ voce }) => righeVere(voce.sets).map((set) => set.value));
 
-    const valoriDi = (session: LoggedSession): string =>
-      elenco(
-        vociDi(session, slug).flatMap(({ voce }) => righeVere(voce.sets).map((set) => set.value)),
-        unit,
-      );
     const livelloTesto =
       exercise.pattern === null || before.level === null
         ? ''
         : ` al livello ${String(before.level)}`;
-    const kg = caricoStato !== null && caricoStato > 0 ? `, ${String(caricoStato)} kg` : '';
+    const kg = caricoStato !== null && caricoStato > 0 ? `, ${formatNumber(caricoStato)} kg` : '';
     const numeri = `Ultime due sedute${livelloTesto}${kg}: ${utili
-      .map((session) => `${formatDayLong(session.date)} ${valoriDi(session)}`)
+      .map((session) => `${formatDayLong(session.date)} ${valoriDi(session, unit)}`)
       .join(' · ')}, su un range di ${formatRange(range, unit)}.`;
-
-    const sopra = values.filter((value) => value > range.max).length;
-    const almeno = values.filter((value) => value >= range.max).length;
-    const sotto = values.filter((value) => value < range.min).length;
 
     const giu =
       exercise.pattern === null || before.level === null
@@ -388,204 +486,350 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
       exercise.pattern === null || before.level === null
         ? null
         : adjacentLevel(exercise.pattern, before.level, 1, rangeFisso);
-
-    /* 1. Troppo difficile. La discesa non passa dal cancello di R5. */
-    if (sotto === values.length) {
-      if (exercise.pattern !== null && before.level !== null && giu !== null) {
-        const step = getProgressionStep(exercise.pattern, giu);
-        verdicts.push({
-          exercise: slug,
-          exerciseName: exercise.name,
-          kind: 'scendi-di-livello',
-          lever: 'variant',
-          title: `Scendi al livello ${String(giu)}: ${step.name}`,
-          evidence: `${numeri} Sotto il minimo su ${serie(sotto)} su ${String(values.length)}: il gradino è più alto di quello che regge.`,
-          change: `Livello ${String(before.level)} → ${String(giu)}. Tempo e pause tornano a quelli della scheda.`,
-          caution:
-            'Scendere di gradino non è un passo indietro: è l’unico modo di fare le ripetizioni che il programma chiede, invece di tre mezze ripetizioni a serie.',
-          stateBefore: before,
-          stateAfter: { ...before, level: giu, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
-        });
-        continue;
-      }
-      verdicts.push({
+    const recente = aumentoRecente(slug, decisioni, sessions, today);
+    const fermoSetteGiorni = (): Esito => ({
+      tipo: 'fermo',
+      fermo: {
         exercise: slug,
         exerciseName: exercise.name,
-        kind: 'range-da-rifare',
-        lever: 'reps',
-        title: `${exercise.name}: il range è più alto di te`,
-        evidence: `${numeri} Sotto il minimo su tutte le serie, e sei già al gradino più basso della scala.`,
-        change: 'Niente da cambiare in automatico: il range viene dal test, e va rifatto quello.',
-        caution: 'Un test gonfiato sbaglia il range per sei settimane. Rifallo a riposo, con il tempo prescritto.',
-        stateBefore: before,
-        stateAfter: before,
-      });
-      continue;
-    }
-
-    if (almeno !== values.length) {
-      inRange.push(exercise.name);
-      continue;
-    }
-
-    /* 2. Massimo chiuso su ogni serie (E1): il cancello di R5. */
-    const seduteScarico = utili.filter((session) => isScarico(session.week));
-    const motivo = motivoBlocco({
-      tempo: vociUtili.map(({ voce }) => voce.tempoRespected),
-      serieVere: serieTotali,
-      scarico: isScarico(week + 1) || seduteScarico.length > 0,
-      rientro: false,
+        motivo: 'sette-giorni',
+        testo:
+          recente === null
+            ? ''
+            : `massimo chiuso, ma un aumento per esercizio ogni 7 giorni. L’ultimo è del ${formatDayLong(recente.date)} (${recente.cosa}): il prossimo si può proporre dal ${formatDayLong(recente.dal)}.`,
+      },
     });
 
-    if (motivo === 'scarico') {
-      const tutta = isScarico(week + 1) || seduteScarico.length === utili.length;
-      fermi.push({
-        exercise: slug,
-        exerciseName: exercise.name,
-        motivo: tutta ? 'scarico' : 'scarico-coppia',
-        testo: tutta
-          ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Si riprende dopo lo scarico.'
-          : `Una delle due sedute lette è di scarico (${formatDayLong(seduteScarico[0]?.date ?? weekEnd)}): niente aumenti da quei numeri. Si riprende con due sedute piene.`,
-      });
-      continue;
-    }
-    if (motivo === 'rientro') {
-      fermi.push({
-        exercise: slug,
-        exerciseName: exercise.name,
-        motivo: 'rientro',
-        testo: 'Sedute di rientro dopo la pausa: niente aumenti finché non torni al volume pieno.',
-      });
-      continue;
-    }
-    if (motivo === 'tempo-no' || motivo === 'tempo-null') {
-      const giorni = utili
-        .filter((session) =>
-          vociDi(session, slug).some(({ voce }) =>
-            motivo === 'tempo-no' ? voce.tempoRespected === false : voce.tempoRespected === null,
-          ),
-        )
-        .map((session) => formatDayLong(session.date))
-        .join(' e ');
-      verdicts.push(
-        motivo === 'tempo-no'
-          ? {
-              exercise: slug,
-              exerciseName: exercise.name,
-              kind: 'rifai-al-tempo-giusto',
-              lever: 'reps',
-              title: `${exercise.name}: rifai al tempo giusto`,
-              evidence: `${numeri} Tempo non rispettato ${giorni}.`,
-              change:
-                'Niente cambia: stesso gradino, stesso peso. Si sale quando chiudi il massimo al tempo della scheda, con un sì sul tempo nelle ultime due sedute.',
-              caution: null,
-              stateBefore: before,
-              stateAfter: before,
-            }
-          : {
-              exercise: slug,
-              exerciseName: exercise.name,
-              kind: 'rispondi-sul-tempo',
-              lever: 'reps',
-              title: `${exercise.name}: manca la risposta sul tempo`,
-              evidence: `${numeri} Nessuna risposta sul tempo ${giorni}.`,
-              change:
-                'Niente cambia. Senza un sì sul tempo in tutte e due le sedute la salita non si propone: a fine seduta rispondi alla domanda sul tempo prescritto.',
-              caution: null,
-              stateBefore: before,
-              stateAfter: before,
-            },
-      );
-      continue;
-    }
-
-    /* 3. Troppo facile: si sale, ma un gradino ogni due settimane (R7). */
-    if (sopra === values.length && exercise.pattern !== null && before.level !== null && su !== null) {
-      const salita = salitaConsentita(slug, before.level, sessions, today);
-      if (!salita.consentita) {
-        inAttesa.push({
-          exercise: slug,
-          exerciseName: exercise.name,
-          level: before.level,
-          inizio: salita.inizio,
-          dal: salita.dal,
-          testo: `${exercise.name}: sopra il massimo su tutte le serie. ${testoSalitaInAttesa(before.level, salita)}`,
-        });
-        continue;
-      }
-      const step = getProgressionStep(exercise.pattern, su);
-      verdicts.push({
-        exercise: slug,
-        exerciseName: exercise.name,
-        kind: 'sali-di-livello',
-        lever: 'variant',
-        title: `Sali al livello ${String(su)}: ${step.name}`,
-        evidence: `${numeri} Sopra il massimo su tutte e ${String(values.length)} le serie.`,
-        change: `Livello ${String(before.level)} → ${String(su)}. Si riparte dal minimo del range, al tempo della scheda.`,
-        caution:
-          'Aspettati di perdere il 30-40% delle ripetizioni. È normale e corretto: è il segno che il carico è aumentato davvero.',
-        stateBefore: before,
-        stateAfter: { ...before, level: su, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
-      });
-      continue;
-    }
-
-    /* 4. Il carico: solo con la variante finita (R6). */
-    const fuoriLeva = (motivoAl: MotivoAlMassimo, testo: string): void => {
-      alMassimo.push({ exercise: slug, exerciseName: exercise.name, motivo: motivoAl, testo });
-    };
-    if (!varianteEsaurita(exercise, before, riferimento.block)) {
-      fuoriLeva('tempo', 'Massimo chiuso ma non superato: la prossima leva è il tempo, e si decide a fine seduta.');
-      continue;
-    }
-    if (exercise.loadPolicy === 'forbidden') {
-      fuoriLeva(
-        'leve-finite',
-        'Hai esaurito le leve su questo esercizio: serve un cambio di programmazione, non un altro giro.',
-      );
-      continue;
-    }
-    /*
-     * La settimana che conta è quella in cui si applicherà: la revisione
-     * della settimana 2 vale per la 3, ed è la 3 che sblocca la zavorra.
+    /**
+     * L'esito su un gruppo di sedute: la coppia (R8), oppure la coppia più le
+     * sedute rifatte dopo fine(W) per la conferma di R11.
      */
-    const disponibile = getLoadAvailability(exercise, week + 1);
-    if (!disponibile.allowed) {
-      fuoriLeva('settimana', disponibile.explanation ?? 'Il carico non si aumenta ancora.');
-      continue;
-    }
-    if (getLoadThreshold(exercise.pattern) !== null) {
-      const baseline = exercise.pattern === null ? null : testBaseline(exercise.pattern);
-      const massimale = baseline === null ? undefined : tests.get(baseline.testId)?.value;
-      if (massimale === undefined || baseline === null) {
-        fuoriLeva(
-          'nessun-test',
-          `Per proporre la zavorra serve un test di ${baseline === null ? 'massimale' : getTest(baseline.testId).label} registrato.`,
+    const valuta = (sedute: readonly LoggedSession[]): Esito => {
+      const voci = sedute.flatMap((session) => vociDi(session, slug));
+      const values = voci.flatMap(({ voce }) => righeVere(voce.sets).map((set) => set.value));
+      const serieVereQui = voci.reduce((somma, { voce }) => somma + serieVere(voce.sets).length, 0);
+      const sopra = values.filter((value) => value > range.max).length;
+      const almeno = values.filter((value) => value >= range.max).length;
+      const sotto = values.filter((value) => value < range.min).length;
+
+      /* 1. Troppo difficile. La discesa non passa dai cancelli. */
+      if (sotto === values.length) {
+        if (exercise.pattern !== null && before.level !== null && giu !== null) {
+          const step = getProgressionStep(exercise.pattern, giu);
+          return {
+            tipo: 'verdetto',
+            verdict: {
+              exercise: slug,
+              exerciseName: exercise.name,
+              kind: 'scendi-di-livello',
+              lever: 'variant',
+              title: `Scendi al livello ${String(giu)}: ${step.name}`,
+              evidence: `${numeri} Sotto il minimo su ${serie(sotto)} su ${String(values.length)}: il gradino è più alto di quello che regge.`,
+              change: `Livello ${String(before.level)} → ${String(giu)}. Tempo e pause tornano a quelli della scheda.`,
+              caution:
+                'Scendere di gradino non è un passo indietro: è l’unico modo di fare le ripetizioni che il programma chiede, invece di tre mezze ripetizioni a serie.',
+              stateBefore: before,
+              stateAfter: { ...before, level: giu, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
+            },
+          };
+        }
+        return {
+          tipo: 'verdetto',
+          verdict: {
+            exercise: slug,
+            exerciseName: exercise.name,
+            kind: 'range-da-rifare',
+            lever: 'reps',
+            title: `${exercise.name}: il range è più alto di te`,
+            evidence: `${numeri} Sotto il minimo su tutte le serie, e sei già al gradino più basso della scala.`,
+            change: 'Niente da cambiare in automatico: il range viene dal test, e va rifatto quello.',
+            caution: 'Un test gonfiato sbaglia il range per sei settimane. Rifallo a riposo, con il tempo prescritto.',
+            stateBefore: before,
+            stateAfter: before,
+          },
+        };
+      }
+
+      if (almeno !== values.length) return { tipo: 'inRange' };
+
+      /* 2. Massimo chiuso su ogni serie (E1): il cancello di R5. */
+      const seduteScarico = sedute.filter((session) => isScarico(session.week));
+      const motivo = motivoBlocco({
+        tempo: voci.map(({ voce }) => voce.tempoRespected),
+        serieVere: serieVereQui,
+        scarico: isScarico(week + 1) || seduteScarico.length > 0,
+        rientro: false,
+      });
+      if (motivo === 'scarico') {
+        const tutta = isScarico(week + 1) || seduteScarico.length === sedute.length;
+        return {
+          tipo: 'fermo',
+          fermo: {
+            exercise: slug,
+            exerciseName: exercise.name,
+            motivo: tutta ? 'scarico' : 'scarico-coppia',
+            testo: tutta
+              ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Si riprende dopo lo scarico.'
+              : `Una delle due sedute lette è di scarico (${formatDayLong(seduteScarico[0]?.date ?? weekEnd)}): niente aumenti da quei numeri. Si riprende con due sedute piene.`,
+          },
+        };
+      }
+      if (motivo === 'rientro') {
+        return {
+          tipo: 'fermo',
+          fermo: {
+            exercise: slug,
+            exerciseName: exercise.name,
+            motivo: 'rientro',
+            testo: 'Sedute di rientro dopo la pausa: niente aumenti finché non torni al volume pieno.',
+          },
+        };
+      }
+      if (motivo === 'tempo-no' || motivo === 'tempo-null') {
+        const giorni = sedute
+          .filter((session) =>
+            vociDi(session, slug).some(({ voce }) =>
+              motivo === 'tempo-no' ? voce.tempoRespected === false : voce.tempoRespected === null,
+            ),
+          )
+          .map((session) => formatDayLong(session.date))
+          .join(' e ');
+        return {
+          tipo: 'verdetto',
+          verdict:
+            motivo === 'tempo-no'
+              ? {
+                  exercise: slug,
+                  exerciseName: exercise.name,
+                  kind: 'rifai-al-tempo-giusto',
+                  lever: 'reps',
+                  title: `${exercise.name}: rifai al tempo giusto`,
+                  evidence: `${numeri} Tempo non rispettato ${giorni}.`,
+                  change:
+                    'Niente cambia: stesso gradino, stesso peso. Si sale quando chiudi il massimo al tempo della scheda, con un sì sul tempo nelle ultime due sedute.',
+                  caution: null,
+                  stateBefore: before,
+                  stateAfter: before,
+                }
+              : {
+                  exercise: slug,
+                  exerciseName: exercise.name,
+                  kind: 'rispondi-sul-tempo',
+                  lever: 'reps',
+                  title: `${exercise.name}: manca la risposta sul tempo`,
+                  evidence: `${numeri} Nessuna risposta sul tempo ${giorni}.`,
+                  change:
+                    'Niente cambia. Senza un sì sul tempo in tutte e due le sedute la salita non si propone: a fine seduta rispondi alla domanda sul tempo prescritto.',
+                  caution: null,
+                  stateBefore: before,
+                  stateAfter: before,
+                },
+        };
+      }
+
+      /* R10a, 1. Sopra il massimo con un gradino sopra: lo scavalco, con R7 e R13. */
+      if (sopra === values.length && exercise.pattern !== null && before.level !== null && su !== null) {
+        const salita = salitaConsentita(slug, before.level, sessions, today);
+        if (!salita.consentita) {
+          return {
+            tipo: 'inAttesa',
+            inAttesa: {
+              exercise: slug,
+              exerciseName: exercise.name,
+              level: before.level,
+              inizio: salita.inizio,
+              dal: salita.dal,
+              testo: `${exercise.name}: sopra il massimo su tutte le serie. ${testoSalitaInAttesa(before.level, salita)}`,
+            },
+          };
+        }
+        if (recente !== null) return fermoSetteGiorni();
+        const step = getProgressionStep(exercise.pattern, su);
+        return {
+          tipo: 'verdetto',
+          verdict: {
+            exercise: slug,
+            exerciseName: exercise.name,
+            kind: 'sali-di-livello',
+            lever: 'variant',
+            title: `Sali al livello ${String(su)}: ${step.name}`,
+            evidence: `${numeri} Sopra il massimo su tutte e ${String(values.length)} le serie.`,
+            change: `Livello ${String(before.level)} → ${String(su)}. Si riparte dal minimo del range, al tempo della scheda.`,
+            caution:
+              'Aspettati di perdere il 30-40% delle ripetizioni. È normale e corretto: è il segno che il carico è aumentato davvero.',
+            stateBefore: before,
+            stateAfter: { ...before, level: su, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
+          },
+        };
+      }
+
+      const alMassimoCon = (motivoAl: MotivoAlMassimo, testo: string): Esito => ({
+        tipo: 'alMassimo',
+        alMassimo: { exercise: slug, exerciseName: exercise.name, motivo: motivoAl, testo },
+      });
+      const dopoChiusura =
+        'te la propone il riepilogo di fine seduta, la prossima volta che chiudi il massimo con il tempo rispettato.';
+
+      /* R10a, 2-3. Tempo e pausa vengono prima di tutto il resto. */
+      const tp = leveDiTempo(riferimento.block, before);
+      const tut = effectiveTempo(riferimento.block.tut, before);
+      if (tp.tempo.available && isTempoBreakdown(tut) && tut.eccentric !== 'X') {
+        return alMassimoCon(
+          'tempo',
+          `massimo chiuso su tutte le serie. La prossima leva è il tempo, eccentrica da ${String(tut.eccentric)}" a ${String(tut.eccentric + 1)}": ${dopoChiusura}`,
         );
+      }
+      if (tp.pausa.available && isTempoBreakdown(tut) && tut.bottomPause !== 'X') {
+        return alMassimoCon(
+          'pausa',
+          `massimo chiuso su tutte le serie. La prossima leva è la pausa in allungamento, da ${String(tut.bottomPause)}" a ${String(tut.bottomPause + 1)}": ${dopoChiusura}`,
+        );
+      }
+
+      /* R10a, 4. La variante, se c'è: la propone la fine seduta. */
+      if (!varianteEsaurita(exercise, before, riferimento.block) && exercise.pattern !== null && su !== null && before.level !== null) {
+        const salita = salitaConsentita(slug, before.level, sessions, today);
+        const quando =
+          salita.consentita || salita.dal === null
+            ? ''
+            : ` Un gradino ogni due settimane: si può proporre dal ${formatDayLong(salita.dal)}.`;
+        return alMassimoCon(
+          'variante',
+          `massimo chiuso su tutte le serie. Tempo e pausa sono al massimo: la prossima leva è il livello ${String(su)} (${getProgressionStep(exercise.pattern, su).name}). Te lo propone il riepilogo di fine seduta, la prossima volta che chiudi il massimo con il tempo rispettato.${quando}`,
+        );
+      }
+
+      const leveFinite = (): Esito =>
+        alMassimoCon(
+          'leve-finite',
+          'Hai esaurito le leve su questo esercizio: serve un cambio di programmazione, non un altro giro.',
+        );
+
+      /* R10a, 5. Senza carico, le leve sono finite. */
+      if (exercise.loadPolicy === 'forbidden') return leveFinite();
+
+      /*
+       * R10a, 6. Manubri: il manubrio successivo è la leva 5 solo sugli
+       * esercizi dell'elenco (R10c-1, D-19); altrove il peso è l'esercizio.
+       */
+      if (exercise.loadPolicy === 'inherent') {
+        if (!isLevaManubrio(exercise)) return leveFinite();
+        if (week + 1 < LOAD_UNLOCK_WEEK) {
+          return alMassimoCon(
+            'settimana',
+            `Fino alla settimana ${String(LOAD_UNLOCK_WEEK)} il manubrio non si cambia: le prime due settimane servono a ricostruire lo schema motorio.`,
+          );
+        }
+        if (recente !== null) return fermoSetteGiorni();
+        const manubrio = manubrioSuccessivo(exercise, before, range.min);
+        return {
+          tipo: 'verdetto',
+          verdict: {
+            exercise: slug,
+            exerciseName: exercise.name,
+            kind: 'aggiungi-peso',
+            lever: 'load',
+            title: manubrio.title,
+            evidence: `${numeri} Massimo del range chiuso su tutte le serie, con tempo e pausa al massimo.`,
+            change: manubrio.change,
+            caution: manubrio.caution,
+            stateBefore: before,
+            stateAfter: manubrio.nextState,
+          },
+        };
+      }
+
+      /* R10a, 7. Zavorra: settimana (Z3), soglia del test (Z4), sette giorni (R13). */
+      const disponibile = getLoadAvailability(exercise, week + 1);
+      if (!disponibile.allowed) {
+        return alMassimoCon('settimana', disponibile.explanation ?? 'Il carico non si aumenta ancora.');
+      }
+      if (getLoadThreshold(exercise.pattern) !== null) {
+        const baseline = exercise.pattern === null ? null : testBaseline(exercise.pattern);
+        const massimale = baseline === null ? undefined : tests.get(baseline.testId)?.value;
+        if (massimale === undefined || baseline === null) {
+          return alMassimoCon(
+            'nessun-test',
+            `Per proporre la zavorra serve un test di ${baseline === null ? 'massimale' : getTest(baseline.testId).label} registrato.`,
+          );
+        }
+        const need = assessLoadNeed(exercise, massimale);
+        if (need.need === 'discouraged') {
+          return alMassimoCon('soglia', `${need.message ?? ''} Ultimo test: ${String(massimale)}.`.trim());
+        }
+      }
+      if (recente !== null) return fermoSetteGiorni();
+      const next = stepLoad(before.loadKg, 1);
+      return {
+        tipo: 'verdetto',
+        verdict: {
+          exercise: slug,
+          exerciseName: exercise.name,
+          kind: 'aggiungi-peso',
+          lever: 'load',
+          title: `${exercise.name}: aggiungi zavorra`,
+          evidence: `${numeri} Massimo del range chiuso su tutte le serie.`,
+          change: `Da ${formatNumber(before.loadKg)} kg a ${formatNumber(next)} kg. Se il salto in palestra è diverso, scrivi i kg veri nel player: da lì in poi comanda quello che scrivi.`,
+          caution: null,
+          stateBefore: before,
+          stateAfter: { ...before, loadKg: next },
+        },
+      };
+    };
+
+    let esito = valuta(utili);
+
+    /*
+     * R11: rifatto dopo fine(W) allo stesso stato. Si giudica lo stesso, se
+     * la seduta nuova conferma l'esito della coppia; se lo smentisce, niente
+     * cambia e conta la coppia dopo. Prima l'esercizio finiva sempre fra i
+     * «rimandati», e chi apriva la revisione dopo la seduta del lunedì non
+     * riceveva mai la discesa sugli esercizi di quel circuito.
+     */
+    if (dopo.length > 0) {
+      const confrontabile = dopo.every((session) => a !== undefined && stessoRange(a, session));
+      const conferma = confrontabile ? valuta([...utili, ...dopo]) : null;
+      if (conferma === null || chiaveEsito(conferma) !== chiaveEsito(esito)) {
+        const ultimaDopo = dopo[dopo.length - 1];
+        const senzaTempo = dopo.some((session) =>
+          vociDi(session, slug).some(({ voce }) => voce.tempoRespected !== true),
+        );
+        rimandati.push({
+          exercise: slug,
+          exerciseName: exercise.name,
+          date: ultimaDopo?.date ?? today,
+          motivo: 'smentito',
+          testo: `rifatto ${dopo
+            .map((session) => `${formatDayLong(session.date)} (${valoriDi(session, unit)})`)
+            .join(', ')}${senzaTempo ? ', tempo non confermato' : ''}. L’ultima seduta non conferma le due lette: niente cambia, conta la prossima coppia di sedute.`,
+        });
         continue;
       }
-      const need = assessLoadNeed(exercise, massimale);
-      if (need.need === 'discouraged') {
-        fuoriLeva('soglia', `${need.message ?? ''} Ultimo test: ${String(massimale)}.`.trim());
-        continue;
+      if (esito.tipo === 'verdetto') {
+        const rifatto = ` Rifatto ${dopo
+          .map((session) => `${formatDayLong(session.date)}: ${valoriDi(session, unit)}`)
+          .join(' · ')}.`;
+        esito = { tipo: 'verdetto', verdict: { ...esito.verdict, evidence: `${esito.verdict.evidence}${rifatto}` } };
       }
     }
-    const next = stepLoad(before.loadKg, 1);
-    const inerente = exercise.loadPolicy === 'inherent';
-    verdicts.push({
-      exercise: slug,
-      exerciseName: exercise.name,
-      kind: 'aggiungi-peso',
-      lever: 'load',
-      title: inerente
-        ? `${exercise.name}: passa al manubrio successivo`
-        : `${exercise.name}: aggiungi zavorra`,
-      evidence: `${numeri} Massimo del range chiuso su tutte le serie.`,
-      change: `Da ${String(before.loadKg)} kg a ${String(next)} kg. Se il salto in palestra è diverso, scrivi i kg veri nel player: da lì in poi comanda quello che scrivi.`,
-      caution: null,
-      stateBefore: before,
-      stateAfter: { ...before, loadKg: next },
-    });
+
+    switch (esito.tipo) {
+      case 'verdetto':
+        verdicts.push(esito.verdict);
+        break;
+      case 'inRange':
+        inRange.push(exercise.name);
+        break;
+      case 'fermo':
+        fermi.push(esito.fermo);
+        break;
+      case 'inAttesa':
+        inAttesa.push(esito.inAttesa);
+        break;
+      case 'alMassimo':
+        alMassimo.push(esito.alMassimo);
+        break;
+    }
   }
 
   return {

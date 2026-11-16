@@ -400,6 +400,21 @@ export class ShadowRepository {
     return record;
   }
 
+  /**
+   * Una scelta su una leva: la traccia e, se accettata, lo stato nuovo,
+   * scritti insieme. Prima erano due scritture separate: se la seconda si
+   * perdeva, lo stato cambiava senza traccia, e R10b e R13 — che leggono il
+   * registro — lasciavano passare un secondo aumento.
+   */
+  async recordDecision(record: SuggestionRecord, state: ExerciseState | null): Promise<void> {
+    requireIsoDate(record.date, 'suggestion.date');
+    if (state !== null) getExercise(state.exercise);
+    await this.store.putTogether([
+      ...(state === null ? [] : [{ table: 'exerciseStates' as const, doc: state }]),
+      { table: 'suggestions' as const, doc: record },
+    ]);
+  }
+
   async listSuggestions(slug?: ExerciseSlug): Promise<SuggestionRecord[]> {
     const all = await this.store.all<SuggestionRecord>('suggestions');
     return all

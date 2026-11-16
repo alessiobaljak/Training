@@ -1,5 +1,5 @@
 import { TABLE_NAMES, ShadowDatabase, db, type TableName } from './db.ts';
-import { keyOf, type DocumentStore } from './store.ts';
+import { keyOf, type DocumentStore, type StoreEntry } from './store.ts';
 
 /**
  * Il vecchio magazzino locale su IndexedDB.
@@ -45,6 +45,15 @@ export class DexieStore implements DocumentStore {
   async putMany<T>(table: TableName, documents: readonly T[]): Promise<void> {
     for (const document of documents) keyOf(table, document);
     await this.table(table).bulkPut([...documents]);
+    this.notify();
+  }
+
+  async putTogether(entries: readonly StoreEntry[]): Promise<void> {
+    for (const entry of entries) keyOf(entry.table, entry.doc);
+    const tables = [...new Set(entries.map((entry) => entry.table))].map((name) => this.table(name));
+    await this.database.transaction('rw', tables, async () => {
+      for (const entry of entries) await this.table(entry.table).put(entry.doc);
+    });
     this.notify();
   }
 

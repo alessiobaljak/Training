@@ -44,7 +44,11 @@ export interface SessionDraft {
   readonly previous: ReadonlyMap<string, LoggedExercise>;
   readonly tests: ReadonlyMap<TestId, TestResult>;
   readonly update: (change: (session: LoggedSession) => LoggedSession) => void;
-  readonly confirmExercise: (state: ExerciseState) => void;
+  /**
+   * Aggiorna lo stato di un esercizio. `salva: false` quando lo scrive
+   * qualcun altro insieme alla traccia della scelta (`recordDecision`).
+   */
+  readonly confirmExercise: (state: ExerciseState, salva?: boolean) => void;
   /**
    * Butta via la seduta di oggi e riparte da vuoto.
    *
@@ -172,11 +176,11 @@ export function useSessionDraft(sessionId: SessionId): SessionDraft {
     });
   }, []);
 
-  const confirmExercise = useCallback((state: ExerciseState) => {
+  const confirmExercise = useCallback((state: ExerciseState, salva = true) => {
     getExercise(state.exercise);
     setStates((current) => new Map(current).set(state.exercise, state));
     setConfirmed((current) => new Set(current).add(state.exercise));
-    void repository.saveExerciseState(state);
+    if (salva) void repository.saveExerciseState(state);
   }, []);
 
   const discard = useCallback(async (): Promise<void> => {

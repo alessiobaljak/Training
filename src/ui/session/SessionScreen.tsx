@@ -140,7 +140,8 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     if (before === undefined) return;
     if (scelte.decided.has(`${draft.id}:${blockCode}`)) return;
 
-    if (accepted) confirmExercise(suggestion.nextState);
+    /* Lo stato si scrive insieme alla traccia, qui sotto: tutti e due o nessuno. */
+    if (accepted) confirmExercise(suggestion.nextState, false);
 
     const record: RecordedDecision = {
       sessionLogId: draft.id,
@@ -151,12 +152,15 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
       stateAfter: accepted ? suggestion.nextState : before,
     };
     setLocali((current) => [...current, record]);
-    void repository.recordSuggestion({
-      ...record,
-      id: `${draft.id}:${blockCode}:${lever}`,
-      date: draft.date,
-      lever,
-    });
+    void repository.recordDecision(
+      {
+        ...record,
+        id: `${draft.id}:${blockCode}:${lever}`,
+        date: draft.date,
+        lever,
+      },
+      accepted ? suggestion.nextState : null,
+    );
   };
 
   if (program.kind === 'cardio') {

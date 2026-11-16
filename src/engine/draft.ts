@@ -420,7 +420,18 @@ export function syncStatesFromLog(
     const level = logged.level ?? before.level;
 
     if (level === before.level && loadKg === before.loadKg) continue;
-    changed.push({ ...before, level, loadKg });
+    /*
+     * Un manubrio cambiato di propria iniziativa riporta tempo e pausa a
+     * quelli della scheda, come un cambio di gradino (decisione di Alessio,
+     * 2026-11-16): 14 kg con l'eccentrica a 5" accumulata sui 12 non è il
+     * passo che il metodo chiede.
+     */
+    const manubrioCambiato = exercise.loadPolicy === 'inherent' && loadKg !== before.loadKg;
+    changed.push(
+      manubrioCambiato
+        ? { ...before, level, loadKg, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }
+        : { ...before, level, loadKg },
+    );
   }
 
   return changed;

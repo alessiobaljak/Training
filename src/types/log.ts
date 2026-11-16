@@ -124,6 +124,22 @@ export interface ExerciseState {
   readonly loadKg: number;
 }
 
+/**
+ * Una scelta registrata su una leva, a fine seduta o nella revisione.
+ *
+ * È il registro che R10b e R13 leggono: chi ha accettato cosa e quando. Una
+ * `SuggestionRecord` del database lo soddisfa così com'è.
+ */
+export interface DecisioneRegistrata {
+  readonly date: string;
+  readonly exercise: ExerciseSlug;
+  readonly decision: 'accepted' | 'postponed';
+  readonly stateBefore: ExerciseState;
+  readonly stateAfter: ExerciseState;
+  /** La seduta in cui è nata, o la chiave della revisione. */
+  readonly sessionLogId?: string;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Misure                                                                      */
 /* -------------------------------------------------------------------------- */

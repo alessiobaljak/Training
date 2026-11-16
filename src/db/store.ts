@@ -8,12 +8,26 @@ import { SNAPSHOTS_TABLE, TABLE_NAMES, type TableName } from './db.ts';
  * di cambiare dove stanno i dati, da IndexedDB a Firestore, senza toccare né
  * il repository né una riga di interfaccia.
  */
+/** Un documento e la sua tabella, per `putTogether`. */
+export interface StoreEntry {
+  readonly table: TableName;
+  readonly doc: unknown;
+}
+
 export interface DocumentStore {
   get<T>(table: TableName, id: string): Promise<T | undefined>;
   getMany<T>(table: TableName, ids: readonly string[]): Promise<(T | undefined)[]>;
   all<T>(table: TableName): Promise<T[]>;
   put<T>(table: TableName, doc: T): Promise<void>;
   putMany<T>(table: TableName, docs: readonly T[]): Promise<void>;
+  /**
+   * Più documenti di tabelle diverse, tutti o nessuno.
+   *
+   * Lo usa la scelta su una leva: lo stato dell'esercizio e la traccia della
+   * scelta devono esistere insieme. Uno stato cambiato senza traccia fa
+   * passare R10b e R13, che leggono il registro.
+   */
+  putTogether(entries: readonly StoreEntry[]): Promise<void>;
   remove(table: TableName, id: string): Promise<void>;
   clear(table: TableName): Promise<void>;
   /** Svuota tutto. La usa l'import in modalità sostituzione. */
@@ -97,6 +111,14 @@ export class MemoryStore implements DocumentStore {
   putMany<T>(table: TableName, docs: readonly T[]): Promise<void> {
     const rows = this.table(table);
     for (const doc of docs) rows.set(keyOf(table, doc), doc);
+    this.notify();
+    return Promise.resolve();
+  }
+
+  putTogether(entries: readonly StoreEntry[]): Promise<void> {
+    /* Prima tutte le chiavi: se una manca, non si scrive niente. */
+    const keyed = entries.map((entry) => ({ ...entry, id: keyOf(entry.table, entry.doc) }));
+    for (const entry of keyed) this.table(entry.table).set(entry.id, entry.doc);
     this.notify();
     return Promise.resolve();
   }

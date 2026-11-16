@@ -1,7 +1,7 @@
 import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
 import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import { getExercise as getExerciseBySlug } from '../data/exercises.ts';
-import { ENDURANCE_REP_THRESHOLD, getLoadThreshold } from '../data/method.ts';
+import { ENDURANCE_REP_THRESHOLD, LEVA_MANUBRIO, LOAD_UNLOCK_WEEK, getLoadThreshold } from '../data/method.ts';
 import { DELOAD_WEEKS } from '../data/program.ts';
 import { getTest, testBaseline } from '../data/tests.ts';
 import {
@@ -12,6 +12,7 @@ import {
   VARIANT_JUMP_REP_LOSS,
 } from '../types/index.ts';
 import type {
+  DecisioneRegistrata,
   Exercise,
   ExerciseSlug,
   ExerciseState,
@@ -32,7 +33,7 @@ import { isTempoBreakdown, parseRir, parseTut } from './notation.ts';
 import { getLoadAvailability, assessLoadNeed, stepLoad } from './loading.ts';
 import type { RangeResolution } from './ranges.ts';
 import { formatRange } from './ranges.ts';
-import { addDays, daysBetween, formatDayLong } from './dates.ts';
+import { addDays, daysBetween, formatDayLong, formatNumber } from './dates.ts';
 
 /**
  * Regola di avanzamento e scelta della leva.
@@ -362,6 +363,200 @@ export function varianteEsaurita(exercise: Exercise, state: ExerciseState, block
 }
 
 /* -------------------------------------------------------------------------- */
+/* R13: un aumento per esercizio ogni 7 giorni                                 */
+/* -------------------------------------------------------------------------- */
+
+/** Giorni minimi fra due aumenti dello stesso esercizio (S2, D-4 a). */
+export const GIORNI_PER_AUMENTO = 7;
+
+export type TipoAumento = 'livello' | 'tempo' | 'pausa' | 'carico';
+
+/** Un aumento già avvenuto su un esercizio, con la data e cosa è cambiato. */
+export interface Aumento {
+  readonly date: string;
+  readonly tipi: readonly TipoAumento[];
+  /** «livello 2 → 3», «eccentrica +1"», «peso scritto da te, 12 → 14 kg». */
+  readonly cosa: string;
+}
+
+/** L'ultimo aumento entro 7 giorni, che ferma il prossimo. */
+export interface AumentoRecente {
+  readonly date: string;
+  readonly cosa: string;
+  /** Da quando si può proporre il prossimo. */
+  readonly dal: string;
+}
+
+function kg(value: number): string {
+  return `${formatNumber(value)} kg`;
+}
+
+function aumentiDiStato(prima: ExerciseState, dopo: ExerciseState): { tipi: TipoAumento[]; cosa: string[] } {
+  const tipi: TipoAumento[] = [];
+  const cosa: string[] = [];
+  if (prima.level !== null && dopo.level !== null && dopo.level > prima.level) {
+    tipi.push('livello');
+    cosa.push(`livello ${String(prima.level)} → ${String(dopo.level)}`);
+  }
+  if (dopo.eccentricBonusSeconds > prima.eccentricBonusSeconds) {
+    tipi.push('tempo');
+    cosa.push('eccentrica +1"');
+  }
+  if (dopo.bottomPauseBonusSeconds > prima.bottomPauseBonusSeconds) {
+    tipi.push('pausa');
+    cosa.push('pausa +1"');
+  }
+  if (dopo.loadKg > prima.loadKg) {
+    tipi.push('carico');
+    cosa.push(`carico ${kg(prima.loadKg)} → ${kg(dopo.loadKg)}`);
+  }
+  return { tipi, cosa };
+}
+
+function voceDi(session: LoggedSession, slug: ExerciseSlug): readonly LoggedExercise[] {
+  return session.exercises.filter((voce) => voce.exercise === slug && voce.sets.length > 0);
+}
+
+function caricoMassimoVoci(voci: readonly LoggedExercise[]): number {
+  return voci.reduce((max, voce) => voce.sets.reduce((m, set) => Math.max(m, set.loadKg), max), 0);
+}
+
+function livelloVoci(voci: readonly LoggedExercise[]): LevelIndex | null {
+  return voci.find((voce) => voce.level !== null)?.level ?? null;
+}
+
+/**
+ * Gli aumenti di un esercizio, da due fonti (R13).
+ *
+ * Le scelte accettate, con la loro data; e il diario: una seduta chiusa con
+ * un carico o un livello più alto della precedente è un aumento scritto
+ * dall'atleta, salvo quando è proprio l'esecuzione di una scelta accettata
+ * nel frattempo, che è già contata. A fine seduta conta anche la seduta in
+ * corso. Nessun campo di testo viene letto.
+ */
+export function aumenti(
+  slug: ExerciseSlug,
+  decisioni: readonly DecisioneRegistrata[],
+  sessions: readonly LoggedSession[],
+  inCorso: LoggedSession | null = null,
+): Aumento[] {
+  const exercise = getExerciseBySlug(slug);
+  const out: Aumento[] = [];
+  const accettate = decisioni.filter((record) => record.exercise === slug && record.decision === 'accepted');
+
+  for (const record of accettate) {
+    const { tipi, cosa } = aumentiDiStato(record.stateBefore, record.stateAfter);
+    if (tipi.length > 0) out.push({ date: record.date, tipi, cosa: cosa.join(', ') });
+  }
+
+  const diario = [
+    ...sessions.filter((session) => session.status === 'completed' && session.id !== inCorso?.id),
+    ...(inCorso === null ? [] : [inCorso]),
+  ]
+    .filter((session) => voceDi(session, slug).length > 0)
+    .sort((a, b) => (a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date < b.date ? -1 : 1));
+
+  for (let i = 1; i < diario.length; i += 1) {
+    const prima = diario[i - 1];
+    const dopo = diario[i];
+    if (prima === undefined || dopo === undefined) continue;
+    const vociPrima = voceDi(prima, slug);
+    const vociDopo = voceDi(dopo, slug);
+    const spiegata = (vale: (record: DecisioneRegistrata) => boolean): boolean =>
+      accettate.some((record) => record.date >= prima.date && record.date <= dopo.date && vale(record));
+
+    const caricoPrima = caricoMassimoVoci(vociPrima);
+    const caricoDopo = caricoMassimoVoci(vociDopo);
+    if (
+      exercise.loadPolicy !== 'forbidden' &&
+      caricoDopo > caricoPrima &&
+      !spiegata((record) => record.stateAfter.loadKg === caricoDopo)
+    ) {
+      out.push({
+        date: dopo.date,
+        tipi: ['carico'],
+        cosa: `peso scritto da te, ${formatNumber(caricoPrima)} → ${kg(caricoDopo)}`,
+      });
+    }
+
+    const livelloPrima = livelloVoci(vociPrima);
+    const livelloDopo = livelloVoci(vociDopo);
+    if (
+      livelloPrima !== null &&
+      livelloDopo !== null &&
+      livelloDopo > livelloPrima &&
+      !spiegata((record) => record.stateAfter.level === livelloDopo)
+    ) {
+      out.push({
+        date: dopo.date,
+        tipi: ['livello'],
+        cosa: `livello scritto da te, ${String(livelloPrima)} → ${String(livelloDopo)}`,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * R13b, nella forma decisa da Alessio (D-4 a): un aumento per esercizio ogni
+ * 7 giorni, di qualunque tipo, gradino compreso. `null` se niente lo ferma.
+ * Le discese non passano di qui.
+ */
+export function aumentoRecente(
+  slug: ExerciseSlug,
+  decisioni: readonly DecisioneRegistrata[],
+  sessions: readonly LoggedSession[],
+  oggi: string,
+  inCorso: LoggedSession | null = null,
+): AumentoRecente | null {
+  const recenti = aumenti(slug, decisioni, sessions, inCorso)
+    .filter((aumento) => {
+      const giorni = daysBetween(aumento.date, oggi);
+      return giorni >= 0 && giorni < GIORNI_PER_AUMENTO;
+    })
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+  const ultimo = recenti.at(-1);
+  return ultimo === undefined
+    ? null
+    : { date: ultimo.date, cosa: ultimo.cosa, dal: addDays(ultimo.date, GIORNI_PER_AUMENTO) };
+}
+
+/** Il testo di R13 a fine seduta (ADVICE §7). */
+export function testoSetteGiorni(recente: AumentoRecente): string {
+  return `Un aumento per esercizio ogni 7 giorni: l’ultimo è del ${formatDayLong(recente.date)} (${recente.cosa}). Il prossimo si può proporre dal ${formatDayLong(recente.dal)}: oggi resta tutto com’è.`;
+}
+
+/** Il manubrio successivo è una leva su questo esercizio (R10c-1, D-19). */
+export function isLevaManubrio(exercise: Exercise): boolean {
+  return (
+    exercise.loadPolicy === 'inherent' &&
+    exercise.measurement === 'reps' &&
+    LEVA_MANUBRIO.has(exercise.slug)
+  );
+}
+
+/**
+ * R10c-1: il manubrio successivo, uguale a fine seduta e nella revisione.
+ *
+ * I 2,5 kg sono un tetto, non un bersaglio: il salto vero dipende dai
+ * manubri che si hanno. Tempo e pausa tornano a quelli della scheda, come
+ * dopo un cambio di gradino.
+ */
+export function manubrioSuccessivo(
+  exercise: Exercise,
+  state: ExerciseState,
+  rangeMin: number,
+): { readonly title: string; readonly change: string; readonly caution: string; readonly nextState: ExerciseState } {
+  const tetto = stepLoad(state.loadKg, 1);
+  return {
+    title: `${exercise.name}: passa al manubrio successivo`,
+    change: `Manubrio successivo, al massimo ${kg(tetto)}: oggi usi ${kg(state.loadKg)}. Tempo e pausa tornano a quelli della scheda. Nel player scrivi il peso vero: da lì in poi comanda quello che scrivi. Se il tuo manubrio successivo pesa più di ${kg(tetto)}, resta a ${kg(state.loadKg)}.`,
+    caution: `Aspettati di scendere verso ${String(rangeMin)} ripetizioni: è il segno che il carico è aumentato davvero.`,
+    nextState: { ...state, loadKg: tetto, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
+  };
+}
+
+/* -------------------------------------------------------------------------- */
 /* Disponibilità delle leve                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -390,11 +585,13 @@ export interface ProgressionInput {
   readonly salita: SalitaConsentita;
   /** R9: la seduta è di rientro. `null` fuori dal rientro. */
   readonly rientro: Rientro | null;
+  /** R13: l'ultimo aumento entro 7 giorni, che ferma il prossimo. */
+  readonly aumentoRecente: AumentoRecente | null;
 }
 
-function tempoLever(input: ProgressionInput): LeverAvailability {
+function tempoLever(block: ProgramBlock, state: ExerciseState): LeverAvailability {
   const label = OVERLOAD_LEVER_LABELS.tempo;
-  const tut = effectiveTempo(input.block.tut, input.state);
+  const tut = effectiveTempo(block.tut, state);
   if (!isTempoBreakdown(tut)) {
     return { lever: 'tempo', label, available: false, reason: 'Questo esercizio non ha un tempo a quattro fasi su cui agire.' };
   }
@@ -412,9 +609,9 @@ function tempoLever(input: ProgressionInput): LeverAvailability {
   return { lever: 'tempo', label, available: true, reason: null };
 }
 
-function isoPauseLever(input: ProgressionInput): LeverAvailability {
+function isoPauseLever(block: ProgramBlock, state: ExerciseState): LeverAvailability {
   const label = OVERLOAD_LEVER_LABELS['iso-pause'];
-  const tut = effectiveTempo(input.block.tut, input.state);
+  const tut = effectiveTempo(block.tut, state);
   if (!isTempoBreakdown(tut)) {
     return { lever: 'iso-pause', label, available: false, reason: 'Questo esercizio non ha un tempo a quattro fasi su cui agire.' };
   }
@@ -430,6 +627,18 @@ function isoPauseLever(input: ProgressionInput): LeverAvailability {
     };
   }
   return { lever: 'iso-pause', label, available: true, reason: null };
+}
+
+/**
+ * Tempo e pausa allo stato dato, con le stesse regole della fine seduta.
+ * La revisione le legge per rispettare l'ordine delle leve (R10a): prima di
+ * loro non arriva né il carico né il manubrio.
+ */
+export function leveDiTempo(
+  block: ProgramBlock,
+  state: ExerciseState,
+): { readonly tempo: LeverAvailability; readonly pausa: LeverAvailability } {
+  return { tempo: tempoLever(block, state), pausa: isoPauseLever(block, state) };
 }
 
 function variantLever(input: ProgressionInput): LeverAvailability {
@@ -469,12 +678,29 @@ function loadLever(input: ProgressionInput): LeverAvailability {
    * laterale, dove la scheda non prevede nessuna progressione di carico.
    */
   if (input.exercise.loadPolicy === 'inherent') {
-    return {
-      lever: 'load',
-      label,
-      available: false,
-      reason: 'Qui il peso è l’esercizio, non una leva: si registra, ma non è zavorra.',
-    };
+    /*
+     * R10c-1: sui manubri dell'elenco il manubrio successivo è la leva 5,
+     * dopo tempo e pausa (l'ordine lo tiene `evaluateProgression`) e dalla
+     * settimana in cui si sblocca il carico. Altrove il peso resta
+     * l'esercizio: si registra, ma non è una leva.
+     */
+    if (!isLevaManubrio(input.exercise)) {
+      return {
+        lever: 'load',
+        label,
+        available: false,
+        reason: 'Qui il peso è l’esercizio, non una leva: si registra, ma non è zavorra.',
+      };
+    }
+    if (input.week < LOAD_UNLOCK_WEEK) {
+      return {
+        lever: 'load',
+        label,
+        available: false,
+        reason: `Fino alla settimana ${String(LOAD_UNLOCK_WEEK)} il manubrio non si cambia: le prime due settimane servono a ricostruire lo schema motorio.`,
+      };
+    }
+    return { lever: 'load', label, available: true, reason: null };
   }
 
   /*
@@ -634,6 +860,17 @@ function buildSuggestion(
       };
     }
     case 'load': {
+      if (input.exercise.loadPolicy === 'inherent') {
+        const range = input.range.kind === 'range' ? input.range.range.min : 0;
+        const manubrio = manubrioSuccessivo(input.exercise, state, range);
+        return {
+          lever,
+          title: 'Manubrio successivo',
+          change: manubrio.change,
+          warning: manubrio.caution,
+          nextState: manubrio.nextState,
+        };
+      }
       const next = stepLoad(state.loadKg, 1);
       return {
         lever,
@@ -652,8 +889,8 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
   const repsLever: LeverAvailability = { lever: 'reps', label: OVERLOAD_LEVER_LABELS.reps, available: true, reason: null };
   const levers: LeverAvailability[] = [
     repsLever,
-    tempoLever(input),
-    isoPauseLever(input),
+    tempoLever(input.block, input.state),
+    isoPauseLever(input.block, input.state),
     variantLever(input),
     loadLever(input),
   ];
@@ -750,6 +987,30 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     available: false,
     reason: `Hai chiuso ${String(range.range.max)} su tutte le serie: la leva delle ripetizioni è esaurita.`,
   };
+
+  /*
+   * R13 (D-4 a): un aumento per esercizio ogni 7 giorni, di qualunque tipo.
+   * Prima la revisione del lunedì e il riepilogo del giovedì potevano
+   * sommare +5 kg in tre giorni sullo stesso esercizio.
+   */
+  if (input.aumentoRecente !== null) {
+    const motivo = testoSetteGiorni(input.aumentoRecente);
+    for (const [indice, entry] of levers.entries()) {
+      if (entry.lever !== 'reps' && entry.available) {
+        levers[indice] = { ...entry, available: false, reason: motivo };
+      }
+    }
+    return {
+      closedRange,
+      tempoRespected: true,
+      triggered: true,
+      levers,
+      suggestion: null,
+      blockedReason: motivo,
+      enduranceWarning,
+      motivoBlocco: null,
+    };
+  }
 
   // La leva più bassa ancora disponibile, nell'ordine obbligato del metodo.
   // Le ripetizioni sono già marcate esaurite qui sopra, quindi non vengono

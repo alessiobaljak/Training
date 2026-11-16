@@ -7,9 +7,9 @@ import {
   setTempoRespected,
 } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
-import { evaluateProgression, salitaConsentita } from '../../engine/progression.ts';
+import { aumentoRecente, evaluateProgression, salitaConsentita } from '../../engine/progression.ts';
 import { testBaseline } from '../../data/tests.ts';
-import { useSessions } from '../hooks/useData.ts';
+import { useSessions, useSuggestions } from '../hooks/useData.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
 import { resolveBlockRange } from '../../engine/ranges.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
@@ -73,6 +73,12 @@ export function SessionSummary({
   /* Le sedute chiuse servono a R7: da quando sei al gradino di oggi. */
   const sessions = useSessions();
   /*
+   * Il registro delle scelte serve a R13. Quelle di questa seduta no: sono
+   * le scelte che si stanno facendo adesso, e il riepilogo le mostra come
+   * «Scelta registrata», non come un aumento che ferma sé stesso.
+   */
+  const registro = useSuggestions();
+  /*
    * Nel player guidato il cronometro può dire soltanto «no»: una serie chiusa
    * prima del minimo. Il «sì» lo dà l'atleta, qui (PROGRESSION_RULES §1).
    */
@@ -121,6 +127,13 @@ export function SessionSummary({
           currentMaxReps: latest?.value ?? null,
           salita: salitaConsentita(block.exercise, state.level, sessions ?? [], draft.date, draft),
           rientro: null,
+          aumentoRecente: aumentoRecente(
+            block.exercise,
+            (registro ?? []).filter((record) => record.sessionLogId !== draft.id),
+            sessions ?? [],
+            draft.date,
+            draft,
+          ),
         });
 
         const calibration =
@@ -128,7 +141,7 @@ export function SessionSummary({
 
         return [{ block, exercise, logged, summary, evaluation, calibration }];
       }),
-    [program, draft, states, tests, week, sessions],
+    [program, draft, states, tests, week, sessions, registro],
   );
 
   /*
@@ -339,7 +352,7 @@ export function SessionSummary({
                 aspetta, invece di mostrare per un istante una leva che
                 sparirebbe e che si potrebbe accettare per sbaglio.
               */}
-              {sessions === undefined ? null : evaluation.suggestion !== null ? (
+              {sessions === undefined || registro === undefined ? null : evaluation.suggestion !== null ? (
                 <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 p-4">
                   <div className="flex items-center gap-2">
                     <Badge tone="accent">Leva successiva</Badge>

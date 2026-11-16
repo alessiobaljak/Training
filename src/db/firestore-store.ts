@@ -10,7 +10,7 @@ import {
   type Firestore,
 } from 'firebase/firestore';
 import { TABLE_NAMES, type TableName } from './db.ts';
-import { keyOf, type DocumentStore } from './store.ts';
+import { keyOf, type DocumentStore, type StoreEntry } from './store.ts';
 import { reportWriteError } from './write-errors.ts';
 
 /**
@@ -174,6 +174,16 @@ export class FirestoreStore implements DocumentStore {
       }
       this.track(batch.commit());
     }
+    return Promise.resolve();
+  }
+
+  putTogether(entries: readonly StoreEntry[]): Promise<void> {
+    /* Una sola scrittura in blocco: Firestore la applica tutta o niente. */
+    const keyed = entries.map((entry) => ({ ...entry, id: keyOf(entry.table, entry.doc) }));
+    for (const entry of keyed) this.touch(entry.table, (rows) => rows.set(entry.id, entry.doc));
+    const batch = writeBatch(this.firestore);
+    for (const entry of keyed) batch.set(doc(this.ref(entry.table), entry.id), entry.doc as object);
+    this.track(batch.commit());
     return Promise.resolve();
   }
 

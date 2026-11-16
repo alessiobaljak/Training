@@ -54,7 +54,7 @@ const dueSettimane = (log: LoggedSession): LoggedSession[] => [
   log,
   { ...log, id: `${log.id}-bis`, date: '2026-01-12', week: 2 },
 ];
-const FINESTRA = { week: 2, weekEnd: '2026-01-18', today: '2026-01-19' } as const;
+const FINESTRA = { week: 2, weekEnd: '2026-01-18', today: '2026-01-19', decisioni: [] } as const;
 
 describe('la finitura metabolica non riceve verdetti', () => {
   const circuito1 = CIRCUIT_SESSIONS[0];

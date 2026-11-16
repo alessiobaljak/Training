@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { repository } from '../../db/repository.ts';
-import { addDays, formatDayLong, plural, todayIso } from '../../engine/dates.ts';
+import { addDays, formatDayLong, formatNumber, plural, todayIso } from '../../engine/dates.ts';
 import { pendingVerdicts, reviewDecisionId, reviewWeek } from '../../engine/review.ts';
 import { programWeek, weekEndDate } from '../../engine/schedule.ts';
 import { navigate } from '../router.ts';
@@ -64,7 +64,15 @@ export function ReviewScreen({ week }: { readonly week: number }) {
   const stateMap = new Map<ExerciseSlug, ExerciseState>(
     states.map((state) => [state.exercise, state]),
   );
-  const calcolata = reviewWeek({ week, sessions, states: stateMap, tests, weekEnd: fine, today: oggi });
+  const calcolata = reviewWeek({
+    week,
+    sessions,
+    states: stateMap,
+    tests,
+    weekEnd: fine,
+    today: oggi,
+    decisioni: suggestions,
+  });
 
   const giaDeciso = new Set([
     ...suggestions.map((record) => record.id),
@@ -91,18 +99,21 @@ export function ReviewScreen({ week }: { readonly week: number }) {
 
   const decidi = (verdict: WeeklyVerdict, accettato: boolean): void => {
     const id = reviewDecisionId(week, verdict.exercise);
-    if (accettato) void repository.saveExerciseState(verdict.stateAfter);
-    void repository.recordSuggestion({
-      id,
-      date: oggi,
-      sessionLogId: id,
-      exercise: verdict.exercise,
-      blockCode: 'revisione',
-      lever: verdict.lever,
-      decision: accettato ? 'accepted' : 'postponed',
-      stateBefore: verdict.stateBefore,
-      stateAfter: accettato ? verdict.stateAfter : verdict.stateBefore,
-    });
+    /* Stato e traccia insieme: R10b e R13 leggono la traccia. */
+    void repository.recordDecision(
+      {
+        id,
+        date: oggi,
+        sessionLogId: id,
+        exercise: verdict.exercise,
+        blockCode: 'revisione',
+        lever: verdict.lever,
+        decision: accettato ? 'accepted' : 'postponed',
+        stateBefore: verdict.stateBefore,
+        stateAfter: accettato ? verdict.stateAfter : verdict.stateBefore,
+      },
+      accettato ? verdict.stateAfter : null,
+    );
     setAppenaDeciso((current) => new Set(current).add(id));
   };
 
@@ -273,13 +284,12 @@ export function ReviewScreen({ week }: { readonly week: number }) {
 
         {review.rimandati.length === 0 ? null : (
           <>
-            <SectionTitle>Già rifatti</SectionTitle>
+            <SectionTitle>Non giudicati questa volta</SectionTitle>
             <Card tone="muted">
               <ul className="space-y-2 text-sm leading-relaxed text-dim">
                 {review.rimandati.map((voce) => (
                   <li key={voce.exercise}>
-                    {voce.exerciseName}: l’hai già rifatto {formatDayLong(voce.date)}. Lo giudica
-                    la revisione della settimana prossima, con le ultime due sedute.
+                    <span className="font-semibold text-ink">{voce.exerciseName}</span>: {voce.testo}
                   </li>
                 ))}
               </ul>
@@ -293,9 +303,10 @@ export function ReviewScreen({ week }: { readonly week: number }) {
             <Card tone="muted">
               <p className="text-sm leading-relaxed text-dim">
                 {review.pocheProve
-                  .map(
-                    (voce) =>
-                      `${voce.exerciseName} (${plural(voce.sedute, 'seduta', 'sedute')}, ${plural(voce.serie, 'serie', 'serie')}${voce.level === null ? '' : ` al livello ${String(voce.level)}`}${voce.loadKg === null || voce.loadKg === 0 ? '' : ` con ${String(voce.loadKg)} kg`})`,
+                  .map((voce) =>
+                    voce.stessoGiorno !== null
+                      ? `${voce.exerciseName} (1 seduta: le ultime due sono del ${formatDayLong(voce.stessoGiorno)}, e lo stesso giorno conta una volta)`
+                      : `${voce.exerciseName} (${plural(voce.sedute, 'seduta', 'sedute')}, ${plural(voce.serie, 'serie', 'serie')}${voce.level === null ? '' : ` al livello ${String(voce.level)}`}${voce.loadKg === null || voce.loadKg === 0 ? '' : ` con ${formatNumber(voce.loadKg)} kg`})`,
                   )
                   .join(', ')}
                 . La revisione giudica le ultime due sedute di un esercizio se sono allo stesso
@@ -320,7 +331,8 @@ export function ReviewScreen({ week }: { readonly week: number }) {
             Questa pagina legge solo quello che hai scritto nel player: le serie, i kg e le risposte
             sul tempo. Ogni esercizio si giudica sulle sue ultime due sedute chiuse, se sono allo
             stesso livello e carico, cadono fra {dal} e {al} e hanno almeno 3 serie complete in
-            tutto. Una serie storta in mezzo a due buone non fa scendere di livello.
+            tutto. Due sedute nello stesso giorno contano come una. Una serie storta in mezzo a due
+            buone non fa scendere di livello.
           </p>
         </Card>
       </div>

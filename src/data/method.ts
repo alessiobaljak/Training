@@ -89,6 +89,23 @@ export const MORNING_DELAY_MINUTES = 40;
 /** Settimane 1-2: nessuna zavorra, l'app la blocca. Sbloccata dalla settimana 3. */
 export const LOAD_UNLOCK_WEEK = 3;
 
+/**
+ * Gli esercizi a manubri su cui il manubrio successivo è la leva 5 (R10c-1,
+ * D-19 deciso da Alessio il 2026-11-16).
+ *
+ * Solo i manubri del circuito: le kettlebell salgono di 4 kg, oltre il tetto
+ * di +2,5 kg a settimana (S2). Goblet squat, stacco rumeno ed estensione dei
+ * tricipiti restano fuori finché Alessio non dice se li fa con i manubri o
+ * con la kettlebell.
+ */
+export const LEVA_MANUBRIO: ReadonlySet<string> = new Set([
+  'curl-martello-manubri',
+  'curl-manubri-supino',
+  'curl-panca-inclinata',
+  'military-press-manubri',
+  'rematore-manubrio-un-braccio',
+]);
+
 export { LOAD_STEP_KG } from '../types/core.ts';
 
 export interface LoadThreshold {
