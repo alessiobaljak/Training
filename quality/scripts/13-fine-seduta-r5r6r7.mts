@@ -11,6 +11,10 @@
  * doppio aumento» perché uno stato cambiato fa uscire le voci: si misura se
  * vale anche quando lo stato cambia solo nel tempo (gradino e carico uguali).
  *
+ * v2, 2026-11-16 (commit cf7588a): API nuova (`aumentoRecente`, `decisioni`).
+ * La parte X passa alla revisione il registro con la leva accettata (R10b) e,
+ * a parte, senza registro (fail-open, R-2: deve reggere R10a da sola).
+ *
  * Esecuzione: node --experimental-strip-types quality/scripts/13-fine-seduta-r5r6r7.mts
  */
 import { findCircuitSession } from '../../src/data/circuit.ts';
@@ -50,6 +54,7 @@ function fine(sid: Sid, code: string, o: { valori: number[]; livello: LevelIndex
     block, exercise: ex, state, logged, range: resolveBlockRange(block, ex, tests), week: o.week, currentMaxReps: baseline,
     salita: salitaConsentita(ex.slug, o.livello, storia, o.data, draft),
     rientro: o.rientro === true ? { seduta: 1, di: 4 } : null,
+    aumentoRecente: null,
   });
   return { ev, state, logged, draft, block, ex };
 }
@@ -95,13 +100,17 @@ function incrocio(titolo: string, sid: Sid, code: string, valori: number[], live
   const bozza: LoggedSession = { id: 'x2', date: '2026-03-26', week: 4, sessionId: sid, status: 'in-progress', exercises: [voceDi(true)], note: null };
   const prima: ExerciseState = { exercise: ex.slug, level: livello, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: kg };
   const storia = [s1, { ...s1, id: 'x0', date: '2026-03-05', week: 1 }];
-  const ev = evaluateProgression({ block, exercise: ex, state: prima, logged: bozza.exercises[0]!, range: resolveBlockRange(block, ex, tests), week: 4, currentMaxReps: [...tests.values()][0]?.value ?? null, salita: salitaConsentita(ex.slug, livello, storia, bozza.date, bozza), rientro: null });
+  const ev = evaluateProgression({ block, exercise: ex, state: prima, logged: bozza.exercises[0]!, range: resolveBlockRange(block, ex, tests), week: 4, currentMaxReps: [...tests.values()][0]?.value ?? null, salita: salitaConsentita(ex.slug, livello, storia, bozza.date, bozza), rientro: null, aumentoRecente: null });
   const accettato = ev.suggestion?.nextState ?? prima;
   const chiuse = [...storia, { ...bozza, status: 'completed' as const }];
-  const r = reviewWeek({ week: 4, sessions: chiuse, states: new Map([[ex.slug, accettato]]), tests, weekEnd: '2026-03-29', today: '2026-03-30' });
-  const v = r.verdicts.find((x) => x.exercise === ex.slug);
-  const doppio = ev.suggestion !== null && v !== undefined && (v.kind === 'aggiungi-peso' || v.kind === 'sali-di-livello') && v.stateAfter.eccentricBonusSeconds + v.stateAfter.bottomPauseBonusSeconds > 0;
-  riga(!doppio, 'X   ', `${titolo}: fine seduta 03-26 leva «${leva(ev)}» accettata (ecc+${String(accettato.eccentricBonusSeconds)}"), revisione W4 il 03-30 → ${v === undefined ? 'nessun verdetto' : `«${v.title}» con stato dopo ecc+${String(v.stateAfter.eccentricBonusSeconds)}" e ${String(v.stateAfter.loadKg)} kg`}${doppio ? ' — DUE AUMENTI DALLE STESSE DUE SEDUTE IN 4 GIORNI' : ''}`);
+  const registro = ev.suggestion === null ? [] : [{ date: bozza.date, exercise: ex.slug, decision: 'accepted' as const, stateBefore: prima, stateAfter: accettato, sessionLogId: bozza.id }];
+  for (const [nome, decisioni] of [['con registro', registro], ['registro perso', []]] as const) {
+    const r = reviewWeek({ week: 4, sessions: chiuse, states: new Map([[ex.slug, accettato]]), tests, weekEnd: '2026-03-29', today: '2026-03-30', decisioni });
+    const v = r.verdicts.find((x) => x.exercise === ex.slug);
+    const altro = [...r.rimandati, ...r.alMassimo, ...r.fermi].find((x) => x.exercise === ex.slug);
+    const doppio = ev.suggestion !== null && v !== undefined && (v.kind === 'aggiungi-peso' || v.kind === 'sali-di-livello');
+    riga(!doppio, 'X   ', `${titolo} [${nome}]: fine seduta 03-26 leva «${leva(ev)}» accettata (ecc+${String(accettato.eccentricBonusSeconds)}"), revisione W4 il 03-30 → ${v === undefined ? `nessun verdetto${altro === undefined ? '' : ` · «${altro.testo}»`}` : `«${v.title}» con stato dopo ecc+${String(v.stateAfter.eccentricBonusSeconds)}" e ${String(v.stateAfter.loadKg)} kg`}${doppio ? ' — DUE AUMENTI DALLE STESSE DUE SEDUTE IN 4 GIORNI' : ''}`);
+  }
 }
 incrocio('curl a martello, 10-10-10 a 12 kg su 8-10', 'circuito-1', 'B1', [10, 10, 10], null, 12, VUOTO);
 incrocio('trazioni gradino 6, 8-8-8 a 5 kg su 6-8, M=12', 'circuito-1', 'A1', [8, 8, 8], 6, 5, test('pull-up', 12));
@@ -119,7 +128,7 @@ console.log('\n=== M17 · revisione aperta dopo la seduta del lunedì, ogni sett
       const seduta: LoggedSession = { id: `m17-${String(w)}`, date: lunedi, week: w, sessionId: 'circuito-3', status: 'completed', note: null, exercises: [{ blockCode: 'A2', exercise: 'push-up' as ExerciseSlug, variantLabel: 'x', level: 3, tempoRespected: true, sets: serie([9, 9, 9]), note: null }] };
       if (!prima) sedute.push(seduta);
       if (w >= 2) {
-        const r = reviewWeek({ week: w - 1, sessions: sedute, states: st, tests: VUOTO, weekEnd: piu('2026-03-02', 7 * (w - 1) - 1), today: lunedi });
+        const r = reviewWeek({ week: w - 1, sessions: sedute, states: st, tests: VUOTO, weekEnd: piu('2026-03-02', 7 * (w - 1) - 1), today: lunedi, decisioni: [] });
         out.push(r.verdicts.find((v) => v.exercise === 'push-up')?.kind ?? (r.rimandati.length > 0 ? 'rimandati' : r.pocheProve.length > 0 ? 'pocheProve' : '—'));
       }
       if (prima) sedute.push(seduta);

@@ -31,16 +31,22 @@
  *      (il riepilogo si ricalcola con lo stato già confermato).
  *  D — accettata, poi gradino abbassato a mano tornando alla seduta: chi vince.
  *
+ * v4, 2026-11-16 (commit cf7588a). R13 entra nel riepilogo: `aumentoRecente`
+ * con il registro meno le scelte della seduta stessa (`sessionLogId !== draft.id`,
+ * scostamento dichiarato dalla sessione principale) e il diario con la bozza.
+ * V e Q2 si rileggono con la scelta appena registrata nel registro; in più il
+ * controllo «senza filtro» dice se lo scostamento serve davvero.
+ *
  * Esecuzione: node --experimental-strip-types quality/scripts/08-leva-accettata.mts
  */
 import { findCircuitSession } from '../../src/data/circuit.ts';
 import { getExercise } from '../../src/data/exercises.ts';
-import { evaluateProgression } from '../../src/engine/progression.ts';
+import { aumentoRecente, evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
 import { sessionDecisions, statesToSave, syncStatesFromLog } from '../../src/engine/draft.ts';
 import type { RecordedDecision } from '../../src/engine/draft.ts';
 import { salitaConsentita } from '../../src/engine/progression.ts';
-import type { ExerciseSlug, ExerciseState, LevelIndex, LoggedExercise, LoggedSession, TestId, TestResult } from '../../src/types/index.ts';
+import type { DecisioneRegistrata, ExerciseSlug, ExerciseState, LevelIndex, LoggedExercise, LoggedSession, TestId, TestResult } from '../../src/types/index.ts';
 
 const VUOTO = new Map<TestId, TestResult>();
 type Sid = 'circuito-1' | 'circuito-2' | 'circuito-3' | 'circuito-4';
@@ -61,9 +67,10 @@ function preparazione(sessionId: Sid, code: string, valori: number[], livello: L
   const draft: LoggedSession = { id: 'q08', date: '2026-11-12', week: settimana, sessionId, status: 'in-progress', exercises: [logged], note: null };
   /* storia: una seduta chiusa allo stesso gradino 15 giorni prima (R7 aperta) */
   const storia: LoggedSession[] = [{ ...draft, id: 'q08-prima', date: '2026-10-28', status: 'completed' }];
-  const valuta = (state: ExerciseState) =>
+  const valuta = (state: ExerciseState, registro: readonly DecisioneRegistrata[] = [], filtra = true) =>
     evaluateProgression({ block, exercise: ex, state, logged, range: resolveBlockRange(block, ex, VUOTO), week: settimana, currentMaxReps: massimale,
-      salita: salitaConsentita(ex.slug, state.level, storia, draft.date, draft), rientro: null });
+      salita: salitaConsentita(ex.slug, state.level, storia, draft.date, draft), rientro: null,
+      aumentoRecente: aumentoRecente(ex.slug, filtra ? registro.filter((r) => r.sessionLogId !== draft.id) : registro, storia, draft.date, draft) });
   return { ex, prima, logged, draft, valuta };
 }
 
@@ -85,11 +92,14 @@ function accetta(titolo: string, sessionId: Sid, code: string, valori: number[],
   /* V — v3: il riepilogo valuta su `sessionDecisions(...).toEvaluate`, con il suggerimento registrato */
   const rec: RecordedDecision = { sessionLogId: draft.id, exercise: ex.slug, blockCode: code, decision: 'accepted', stateBefore: prima, stateAfter: sug.nextState };
   const scelte = sessionDecisions(draft.id, [], [rec], new Map([[ex.slug, sug.nextState]]));
-  const dopo = valuta(scelte.toEvaluate.get(ex.slug)!).suggestion;
+  const registro: DecisioneRegistrata[] = [{ ...rec, date: draft.date }];
+  const dopo = valuta(scelte.toEvaluate.get(ex.slug)!, registro).suggestion;
+  const senzaFiltro = valuta(scelte.toEvaluate.get(ex.slug)!, registro, false);
   const mostrata = dopo === null ? 'nessuna leva (il riquadro sparisce, e con lui «Scelta registrata»)' : `«${dopo.title}» (${dopo.lever})`;
   const coerente = dopo !== null && dopo.lever === sug.lever && JSON.stringify(dopo.nextState) === JSON.stringify(sug.nextState);
   console.log(`${tenuto ? 'TENUTA   ' : 'ANNULLATA'} ${titolo}: leva «${sug.lever}» · prima ${fmt(prima)} → accettato ${fmt(sug.nextState)} → salvato ${fmt(finale)}`);
-  console.log(`          V: dopo «Accetto» il riquadro mostra ${mostrata}${coerente ? '' : ' ≠ leva accettata'}`);
+  if (!coerente) difetti += 1;
+  console.log(`          V: dopo «Accetto» il riquadro mostra ${mostrata}${coerente ? '' : ' ≠ leva accettata'} · senza il filtro della seduta: ${senzaFiltro.suggestion === null ? `nessuna leva, «${String(senzaFiltro.blockedReason).slice(0, 60)}…» (lo scostamento serve)` : 'la stessa (il filtro non serve)'}`);
 }
 
 /* R — «Rimando»: si salva il diario, nessuna leva. */
@@ -141,7 +151,7 @@ function ricarica(titolo: string, sessionId: Sid, code: string, valori: number[]
   const q1 = new Map(daDisco);
   for (const next of statesToSave(syncStatesFromLog(draft, q1), scelte.accepted)) q1.set(next.exercise, next);
   /* Q2 — il riepilogo riaperto valuta su toEvaluate; il blocco è già deciso? */
-  const seconda = valuta(scelte.toEvaluate.get(ex.slug)!).suggestion;
+  const seconda = valuta(scelte.toEvaluate.get(ex.slug)!, [{ ...rec, date: draft.date }]).suggestion;
   const deciso = scelte.decided.has(`${draft.id}:${code}`);
   const stessa = seconda !== null && JSON.stringify(seconda.nextState) === JSON.stringify(sug.nextState);
   /* seconda difesa di R7: anche valutando sullo stato accettato la variante non si propone */

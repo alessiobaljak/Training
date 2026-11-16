@@ -33,3 +33,39 @@ decidibile. `*` C6 non rimisurato per intero.
 | Volume R3 (previsto e fatto) | coincide; settimana di scarico non applicata (M14) | `10-volume-r3.mts` |
 | Etichetta del gradino nel diario | **non coincide** dalla seconda settimana (A11) | `11-etichetta-diario.mts` |
 | Durata delle 4 sedute, commit `47c7f6d` | coincide al secondo con R2 modellata: 38:25 · 36:40 · 36:03 · 39:28 | `06-circuito-trascrizione.mts` |
+
+## Note delle misure spostate il 2026-11-16
+
+Misura del 2026-11-12b (commit `90b8b81`, incrementale): **NO-GO contro soglie
+approvate**. Il NO-GO non dipende dalla riclassificazione: B6, B8, B9 (non
+decisi) bastano. Chiusi **A11, A12, A13, A14**, verificati eseguendo (`08` v2,
+`11` v2, 4i). Bloccanti: erano 7 (B1-B4, B6, B8, B9), oggi **10 attivi** + 4 al rilascio
+pubblico, **nessuna regressione**. B1-B4 passano a «rilascio pubblico»; A2, A3, A4, M1, M4
+diventano Bloccanti perché la soglia che violano (S3, S5, S1, S4, S6) adesso è
+approvata; nuovi **B10** (S9: giro della finitura di `circuito-4`, 0" fra
+plank e slam: c'era già, il controllo 4h no) e **B11** (ricarica fra «Accetto» e
+«Salva e chiudi»: leva annullata o doppia). Nuovi A15 (dopo «Accetto» il
+riepilogo mostra la leva *successiva* sopra «Scelta registrata»), A16 (C4, C5,
+C6 sotto soglia insieme = un Alto, regola approvata), L11-L13. C4 e C7 si
+leggono sul righello v3: V-GIUNZIONE fallisce per B10 (il 2026-11-12 l'avevo
+data superata guardando solo B → F), M-RIEP-SEDUTA per M14. Il nucleo passa a
+4 FALLITI perché il caso 6 è eseguibile su `media/LIBRARY.md`, che esisteva dal
+2026-11-08: la mia lettura era ferma. Caso 7: la nota della seduta non era
+iniettata, ora sì (PASS invariato).
+
+## Voci chiuse spostate il 2026-11-16
+
+| ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
+|---|---|---|---|---|
+| A13 | Alto | Leva accettata annullata al salvataggio | 2026-11-12b | `08` v2 (con `statesToSave`, l'ordine dei due player): 6/6 leve tenute (variante, tempo, zavorra), 2/2 «Rimando» lasciano il diario. Resto sul percorso con ricarica → **B11**; display → **A15** |
+| A12 | Alto | `tempoRespected` «sì» dal cronometro | 2026-11-12b | nucleo 4i: il player scrive solo `false` (1 scrittura, controllo statico), e senza «sì» l'engine non propone leve (eseguito). Il «sì» lo dà l'atleta nel riepilogo. Ma la revisione settimanale sale lo stesso con `null`: **A2** |
+| A11 | Alto | Etichetta del gradino ferma alla prima seduta | 2026-11-12b | `11` v2: 4 settimane 1-3-3-4 coincidono; etichetta a mano tenuta allo stesso gradino, sostituita al gradino nuovo. Resto sui dati vecchi → **L12** |
+| A14 | Alto | «Alzali la prossima volta» dall'orologio | 2026-11-12b | nessun testo di carico nel riepilogo (ricerca su `src/ui`: «alzali» solo nei commenti). Resto testuale → **L13** |
+
+## Ricalcoli spostati il 2026-11-16
+
+| Metrica | Esito | Script |
+|---|---|---|
+| Tempo «misurato» dal player, commit `47c7f6d` | 22/22 blocchi giudicati a ripetizioni passano un ritmo più veloce del TUT all'innesco della salita (56-91% senza latenza); 0/22 bocciano il TUT esatto al massimo | `07-player-tempo.mts` |
+| Leva accettata, poi salvataggio | variante e zavorra **annullate**, tempo e pause tenute | `08-leva-accettata.mts` |
+| Immagini nel bundle contro il registro | 265 file, 0 approvati, 0 non registrati (B8) | `safety-core.mts` caso 6 |

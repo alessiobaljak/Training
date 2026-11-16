@@ -210,7 +210,7 @@ function rev(sessionId: LoggedSession['sessionId'], code: string, valori: number
     exercises: [{ blockCode: code, exercise: slug, variantLabel: 'fixture', level: livello, tempoRespected: true, note: null,
       sets: valori.map((v, k) => ({ setIndex: k + 1, side: null, value: v, rir: null, loadKg: 0, heartRate: null, note: null })) }],
   }));
-  const r = reviewWeek({ week: 3, sessions: sedute, states: new Map([[slug, { exercise: slug, level: livello, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 }]]), tests: new Map(), weekEnd: '2026-03-22', today: '2026-03-23' });
+  const r = reviewWeek({ week: 3, sessions: sedute, states: new Map([[slug, { exercise: slug, level: livello, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 }]]), tests: new Map(), weekEnd: '2026-03-22', today: '2026-03-23', decisioni: [] });
   const v = r.verdicts.find((x) => x.exercise === slug);
   return v === undefined ? 'nessun verdetto' : `${v.kind} → ${String(v.stateAfter.level)}`;
 }

@@ -96,7 +96,9 @@ export const LOAD_UNLOCK_WEEK = 3;
  * Solo i manubri del circuito: le kettlebell salgono di 4 kg, oltre il tetto
  * di +2,5 kg a settimana (S2). Goblet squat, stacco rumeno ed estensione dei
  * tricipiti restano fuori finché Alessio non dice se li fa con i manubri o
- * con la kettlebell.
+ * con la kettlebell. Croci, alzate laterali e curl a presa neutra sono a
+ * manubri ma stanno solo nel programma archiviato: se tornasse in uso, la
+ * domanda va fatta per loro.
  */
 export const LEVA_MANUBRIO: ReadonlySet<string> = new Set([
   'curl-martello-manubri',

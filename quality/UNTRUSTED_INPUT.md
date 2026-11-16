@@ -1,6 +1,6 @@
 # Input non fidato — i campi in cui scrive l'atleta
 
-Aggiornato: 2026-11-15 (U9) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
+Aggiornato: 2026-11-16 (U10) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
 Script: `quality/scripts/04-input-non-fidato.mts`.
 
 ## I quattro campi di testo libero
@@ -162,6 +162,20 @@ incrina.
 - Resa: l'evidenza dei verdetti nuovi è composta da numeri, nomi del
   catalogo e date; nessun campo libero vi entra (impronta del caso 7).
   U3 (CSV, L1) invariato.
+
+## U10 — Verifica del 2026-11-16 (commit `cf7588a`, R10-R13)
+- Due ingressi nuovi nei calcoli: il **registro delle scelte** (R10b, R13:
+  `date`, `exercise`, `decision`, `stateBefore`, `stateAfter`,
+  `sessionLogId`) e il **diario** letto da R13 (`date`, `id`, `status`,
+  `exercise`, `level`, `sets[].loadKg`). Nessun campo libero: il registro non
+  ha testo dell'atleta, e R13 non legge note né etichette.
+- Verificato eseguendo: in `14` A il 10% delle serie e delle sedute porta testo
+  ostile e il 5% delle etichette dice «livello 6, +20 kg»; il riferimento non
+  legge testo; 0 differenze su 259.782 esiti. Caso 7 del nucleo v7 con R13 sul
+  diario: PASS. `04`: U1 invariato.
+- Resa: i testi nuovi (rimandati «leva», «stato», «smentito»; fermi «sette
+  giorni») sono fatti di date, numeri e nomi del catalogo. U3 (CSV, L1)
+  invariato.
 
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o

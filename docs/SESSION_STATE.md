@@ -169,7 +169,7 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: `89bb610` (codice di `a747e09`, R5-R8, 2026-11-16); prima: `0d2bb92`.
+- in produzione: R10-R13 (2026-11-16, training-quality GO su `cf7588a`); prima: `721fd42` (codice di `a747e09`, R5-R8).
 - `git diff 79d2cb0..a747e09` su `src/data`, `src/types`, `src/db` e
   `firestore.rules` è vuoto (release-gate): tornare indietro non rompe
   catalogo né dati.

@@ -14,7 +14,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { CIRCUIT_SESSIONS, findCircuitSession } from '../../src/data/circuit.ts';
 import { getExercise } from '../../src/data/exercises.ts';
-import { salitaConsentita, startingLevel } from '../../src/engine/progression.ts';
+import { aumentoRecente, salitaConsentita, startingLevel } from '../../src/engine/progression.ts';
 import { testBaseline } from '../../src/data/tests.ts';
 import { evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
@@ -23,7 +23,7 @@ import { buildGuidedPlan } from '../../src/engine/circuit.ts';
 import { summarizeExercise } from '../../src/engine/metrics.ts';
 import { calibrateLoad } from '../../src/engine/loading.ts';
 import type {
-  ExerciseSlug, LevelIndex, LoggedExercise, LoggedSession, LoggedSet, TestId, TestResult,
+  DecisioneRegistrata, ExerciseSlug, ExerciseState, LevelIndex, LoggedExercise, LoggedSession, LoggedSet, TestId, TestResult,
 } from '../../src/types/index.ts';
 
 type Esito = 'PASS' | 'FALLITO' | 'NON COPERTO';
@@ -52,8 +52,9 @@ function seduta(id: string, week: number, sessionId: LoggedSession['sessionId'],
   return { id, date, week, sessionId, status: 'completed', exercises: e, note };
 }
 /* revisione della settimana W aperta il giorno dopo la sua fine, salvo `today` */
-function revisione(week: number, sessions: LoggedSession[], states: Map<ExerciseSlug, ReturnType<typeof stato>>, tests: ReadonlyMap<TestId, TestResult> = VUOTO, today: string = piu(fineSett(week), 1)) {
-  return reviewWeek({ week, sessions, states, tests, weekEnd: fineSett(week), today });
+/* v7: la revisione riceve il registro delle scelte (R10b, R13); vuoto salvo dove detto */
+function revisione(week: number, sessions: LoggedSession[], states: Map<ExerciseSlug, ExerciseState>, tests: ReadonlyMap<TestId, TestResult> = VUOTO, today: string = piu(fineSett(week), 1), decisioni: readonly DecisioneRegistrata[] = []) {
+  return reviewWeek({ week, sessions, states, tests, weekEnd: fineSett(week), today, decisioni });
 }
 const settDi = (x: string): number => Math.floor((Date.parse(`${x}T00:00:00Z`) - Date.parse(`${INIZIO}T00:00:00Z`)) / (7 * 86_400_000)) + 1;
 function stato(slug: ExerciseSlug, level: LevelIndex | null, kg = 0) {
@@ -288,7 +289,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
     const exr = getExercise('rematore-inverso-trx');
     const bozza = seduta('4a3', 3, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), false, 2)], null, '2026-03-19');
     const evf = evaluateProgression({ block: blk, exercise: exr, state: stato('rematore-inverso-trx', 2), logged: bozza.exercises[0]!, range: resolveBlockRange(blk, exr, VUOTO), week: 3, currentMaxReps: null,
-      salita: salitaConsentita('rematore-inverso-trx', 2, [seduta('4a1', 1, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), true, 2)], null, '2026-03-02')], '2026-03-19', { ...bozza, status: 'in-progress' }), rientro: null });
+      salita: salitaConsentita('rematore-inverso-trx', 2, [seduta('4a1', 1, 'circuito-2', [esercizio('A3', 'rematore-inverso-trx', sets([19, 19, 19]), true, 2)], null, '2026-03-02')], '2026-03-19', { ...bozza, status: 'in-progress' }), rientro: null, aumentoRecente: null });
     if (evf.suggestion !== null) violazioni.push(`S3 fine seduta: leva «${evf.suggestion.lever}» con tempo «no»`);
   }
 
@@ -301,8 +302,12 @@ function fileTesto(dir: string, ext: string[]): string[] {
     const r = revisione(3, coppia(1, [8, 8, 8]), LIVELLO('trazioni-prona-presa-media', 1), PULL12);
     if (r.verdicts.some((v) => v.kind === 'aggiungi-peso')) violazioni.push('S5: zavorra proposta al gradino 1, con la variante ancora disponibile');
     if (!r.alMassimo.some((x) => x.exercise === 'trazioni-prona-presa-media' && x.motivo === 'tempo')) violazioni.push('4b: gradino 1 al massimo esatto senza `alMassimo` «tempo»');
-    const pos = revisione(3, coppia(6, [8, 8, 8]), LIVELLO('trazioni-prona-presa-media', 6), PULL12).verdicts.find((v) => v.kind === 'aggiungi-peso');
-    if (pos === undefined || pos.stateAfter.loadKg !== 2.5) violazioni.push('4b: controllo positivo al gradino 6 senza zavorra 0→2,5 kg: la fixture non misura S5');
+    /* v7 (R10a): la zavorra viene dopo tempo e pausa. Positivo con i due esauriti; a bonus 0 resta «tempo». */
+    const esauriti = new Map([['trazioni-prona-presa-media' as ExerciseSlug, { ...stato('trazioni-prona-presa-media', 6), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }]]);
+    const pos = revisione(3, coppia(6, [8, 8, 8]), esauriti, PULL12).verdicts.find((v) => v.kind === 'aggiungi-peso');
+    if (pos === undefined || pos.stateAfter.loadKg !== 2.5) violazioni.push('4b: controllo positivo al gradino 6 (tempo e pausa esauriti) senza zavorra 0→2,5 kg: la fixture non misura S5');
+    const bonus0 = revisione(3, coppia(6, [8, 8, 8]), LIVELLO('trazioni-prona-presa-media', 6), PULL12);
+    if (bonus0.verdicts.some((v) => v.kind === 'aggiungi-peso')) violazioni.push('4b (R10a): zavorra al gradino 6 con tempo e pausa ancora disponibili');
     const sopra = revisione(3, coppia(1, [9, 9, 9]), LIVELLO('trazioni-prona-presa-media', 1), PULL12);
     if (sopra.verdicts.some((v) => v.kind === 'aggiungi-peso')) violazioni.push('S5: con la variante in attesa (R7) la zavorra ne prende il posto');
     if (!sopra.inAttesa.some((x) => x.exercise === 'trazioni-prona-presa-media')) violazioni.push('4b: 9-9-9 al gradino 1 dal 03-11 non è `inAttesa`');
@@ -316,13 +321,14 @@ function fileTesto(dir: string, ext: string[]): string[] {
     ];
     for (const [nome, date, attese] of serieDate) {
       let livello: LevelIndex = 2;
+      const registro4c: DecisioneRegistrata[] = [];
       const sedute: LoggedSession[] = [];
       const cambi: string[] = [];
       for (let w = 1; w <= 4; w += 1) {
         for (const x of date.filter((dd) => settDi(dd) === w)) sedute.push(seduta(`4c-${x}`, w, 'circuito-3', [esercizio('A2', 'push-up', sets([19, 19, 19]), true, livello)], null, x));
-        const r = revisione(w, sedute, LIVELLO('push-up', livello));
+        const r = revisione(w, sedute, LIVELLO('push-up', livello), VUOTO, piu(fineSett(w), 1), registro4c);
         const v = r.verdicts.find((y) => y.kind === 'sali-di-livello');
-        if (v !== undefined) { cambi.push(piu(fineSett(w), 1)); livello = v.stateAfter.level as LevelIndex; }
+        if (v !== undefined) { cambi.push(piu(fineSett(w), 1)); registro4c.push({ date: piu(fineSett(w), 1), exercise: 'push-up' as ExerciseSlug, decision: 'accepted', stateBefore: v.stateBefore, stateAfter: v.stateAfter, sessionLogId: `revisione-${String(w)}:push-up` }); livello = v.stateAfter.level as LevelIndex; }
       }
       if (cambi.length > attese) violazioni.push(`S1 (${nome}): ${String(cambi.length)} salite in 4 settimane, attese ${String(attese)}`);
       if (cambi.length < attese) violazioni.push(`4c (${nome}): ${String(cambi.length)} salite, attese ${String(attese)}: la fixture non arriva alla regola`);
@@ -365,10 +371,39 @@ function fileTesto(dir: string, ext: string[]): string[] {
       block, exercise: ex, state: st,
       logged: esercizio('A1', 'chin-up-presa-supina-stretta', sets([10, 10, 10], { rir: 0, kg: 5 }), true, 6),
       range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: 12,
-      salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null,
+      salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null, aumentoRecente: null,
     });
     if (ev.suggestion?.lever !== 'load') violazioni.push(`4e: nessuna leva di zavorra (${String(ev.suggestion?.lever)}): la fixture non misura S2`);
     else if (ev.suggestion.nextState.loadKg - 5 !== 2.5) violazioni.push(`S2: passo di zavorra ${String(ev.suggestion.nextState.loadKg - 5)} kg invece di 2,5`);
+
+    /* v7 — S2 «a settimana», letta su 7 giorni (R-1, 2026-11-16): revisione e fine
+       seduta insieme, e due sedute nello stesso giorno. Trazioni al 6, test 12,
+       tempo e pausa esauriti; la fine seduta riceve il registro come il riepilogo
+       (senza le scelte della seduta stessa) e il diario con la bozza. */
+    const TR = 'trazioni-prona-presa-media' as ExerciseSlug;
+    const bA1 = findCircuitSession('circuito-1')!.blocks.find((b) => b.code === 'A1')!;
+    const exT = getExercise(TR);
+    const ESA = (kg: number): ExerciseState => ({ ...stato(TR, 6, kg), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 });
+    const tr = (id: string, date: string, kg: number) => seduta(id, settDi(date), 'circuito-1', [esercizio('A1', TR, sets([8, 8, 8], { kg }), true, 6)], null, date);
+    const storia = [tr('e0', '2026-02-26', 0), tr('e1', '2026-03-12', 0), tr('e2', '2026-03-19', 0)];
+    const fine = (id: string, date: string, L: ExerciseState, kg: number, sedute: LoggedSession[], reg: DecisioneRegistrata[]) => {
+      const bozza = { ...tr(id, date, kg), status: 'in-progress' as const };
+      return evaluateProgression({ block: bA1, exercise: exT, state: L, logged: bozza.exercises[0]!, range: resolveBlockRange(bA1, exT, PULL12), week: settDi(date), currentMaxReps: 12,
+        salita: salitaConsentita(TR, 6, sedute, date, bozza), rientro: null,
+        aumentoRecente: aumentoRecente(TR, reg.filter((x) => x.sessionLogId !== id), sedute, date, bozza) });
+    };
+    const rv = revisione(3, storia, new Map([[TR, ESA(0)]]), PULL12, '2026-03-23').verdicts.find((v) => v.exercise === TR);
+    if (rv?.kind !== 'aggiungi-peso') violazioni.push(`4e (7 giorni): la revisione W3 del 03-23 non propone la zavorra (${String(rv?.kind)}): la fixture non arriva a S2`);
+    const reg: DecisioneRegistrata[] = [{ date: '2026-03-23', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: ESA(2.5), sessionLogId: 'revisione-3:trazioni' }];
+    const gio = fine('e3', '2026-03-26', ESA(2.5), 2.5, storia, reg);
+    if (gio.suggestion !== null && gio.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni): +2,5 kg in revisione il 03-23 e altri +2,5 kg a fine seduta il 03-26 (${String(gio.suggestion.nextState.loadKg)} kg)`);
+    const lun = fine('e4', '2026-03-30', ESA(2.5), 2.5, storia, reg);
+    if (lun.suggestion?.lever !== 'load' || lun.suggestion.nextState.loadKg !== 5) violazioni.push(`4e (7 giorni): positivo mancato, il 03-30 la zavorra 2,5 → 5 kg non torna (${String(lun.suggestion?.lever)})`);
+    const p1 = fine('e5', '2026-03-26', ESA(0), 0, storia, []);
+    const reg2: DecisioneRegistrata[] = p1.suggestion === null ? [] : [{ date: '2026-03-26', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: p1.suggestion.nextState, sessionLogId: 'e5' }];
+    const p2 = fine('e6', '2026-03-26', p1.suggestion?.nextState ?? ESA(0), 0, [...storia, { ...tr('e5', '2026-03-26', 0) }], reg2);
+    if (p1.suggestion?.lever !== 'load') violazioni.push('4e (stesso giorno): la prima seduta non propone la zavorra: la fixture non misura');
+    else if (p2.suggestion !== null) violazioni.push(`S2 (stesso giorno): due sedute il 03-26, zavorra accettata alla prima e «${p2.suggestion.lever}» proposta alla seconda`);
   }
 
   /* 4f — un blocco escluso dalla revisione non produce verdetti, nemmeno con due sedute. */
@@ -441,7 +476,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
       block, exercise: ex, state: stato('push-up', 2),
       logged: esercizio('A2', 'push-up', sets([18, 18, 18]), null, 2),
       range: resolveBlockRange(block, ex, VUOTO), week: 3, currentMaxReps: null,
-      salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null,
+      salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null, aumentoRecente: null,
     });
     if (ev.suggestion !== null) violazioni.push(`S10: leva «${ev.suggestion.lever}» proposta senza nessun «sì» sul tempo`);
     const player = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
@@ -552,7 +587,7 @@ function fileTesto(dir: string, ext: string[]): string[] {
     const l = voce();
     const bozza = { ...seduta('sc7d', 4, 'circuito-1', [l], note, '2026-03-25'), status: 'in-progress' as const };
     const ev = evaluateProgression({ block, exercise: ex, state: stato(ex.slug, 3, 5), logged: l, range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: 12,
-      salita: salitaConsentita(ex.slug, 3, storia, bozza.date, bozza), rientro: null });
+      salita: salitaConsentita(ex.slug, 3, storia, bozza.date, bozza), rientro: null, aumentoRecente: aumentoRecente(ex.slug, [], storia, bozza.date, bozza) });
     const r = revisione(3, storia, new Map([[ex.slug, stato(ex.slug, 3, 5)]]), PULL12_7);
     return JSON.stringify({
       t: ev.triggered, lv: ev.suggestion?.lever, st: ev.suggestion?.nextState, lev: ev.levers.map((x) => [x.lever, x.available]), br: ev.blockedReason,
