@@ -183,6 +183,8 @@ Punto di ritorno, aggiornato a ogni push:
 - Trovato dalla sessione principale: il minimo di durata della stazione
   («Deve durare almeno 30″») non cresce con i secondi di tempo accettati.
 - L17 (punto decimale nei kg) chiuso solo in revisione: restano 4 posti.
+- release-gate su `274d12f`: GO per regressioni. Lo smoke controlla la metà
+  «tempo» di A18, non la metà «peso dallo stato»: da aggiungere insieme a M18.
 
 ## Prossimi passi
 0. Fatto dopo il gate su `79d2cb0`: `npm run smoke` prova in browser
