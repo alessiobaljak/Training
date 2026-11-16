@@ -169,10 +169,20 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: R10-R13 (2026-11-16, training-quality GO su `cf7588a`); prima: `721fd42` (codice di `a747e09`, R5-R8).
+- in produzione: `fe85203` (R10-R13 + A18, 2026-11-16, training-quality GO su `cf7588a`); prima: `721fd42` (codice di `a747e09`, R5-R8).
 - `git diff 79d2cb0..a747e09` su `src/data`, `src/types`, `src/db` e
   `firestore.rules` è vuoto (release-gate): tornare indietro non rompe
   catalogo né dati.
+
+## Aperti dopo R10-R13 (quality, `quality/reports/2026-11-16-quality.md`)
+- Per training-designer: M18 (manubrio accettato e non eseguito: cosa resta
+  nello stato), L18/L19 (quando il diario «spiega» un aumento), L20, L21.
+- Per Alessio: D-19 (b) quali manubri ha e se il salto supera 2,5 kg; goblet
+  squat, stacco rumeno, estensione dei tricipiti con manubri o kettlebell;
+  V-LEVE nella griglia v4.
+- Trovato dalla sessione principale: il minimo di durata della stazione
+  («Deve durare almeno 30″») non cresce con i secondi di tempo accettati.
+- L17 (punto decimale nei kg) chiuso solo in revisione: restano 4 posti.
 
 ## Prossimi passi
 0. Fatto dopo il gate su `79d2cb0`: `npm run smoke` prova in browser
