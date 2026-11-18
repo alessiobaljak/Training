@@ -72,12 +72,15 @@ scritto in un prompt è già un riferimento.
    livello acquistato, numero d'ordine, versione accettata né intestatario.
    **Domanda per Alessio, prima del pubblico.**
 
-## 2. Figure schematiche — 158 file `.svg` (56 esercizi + 102 gradini)
+## 2. Figure schematiche — 174 file `.svg` (72 esercizi + 102 gradini)
 
 Prodotte da `scripts/generate-exercise-svg.mjs`, codice di questo repo. Nessun
 modello generativo, nessuna immagine di terzi in ingresso, nessun costo,
 nessun vincolo. Deterministiche: stesso codice, stesso file. Licenza: quella
 del repo. Si rigenerano con `npm run svg`.
+**Prove di stile del 2026-11-18** (`STYLE_TRIALS.md`): stesso generatore,
+stesse pose, colori da gettoni CSS scritti qui. Nessuna fonte nuova, nessuna
+foto RepDB come riferimento (termine 5), nessun file in `src/assets/`.
 
 ## 3. Fonti escluse
 Nessun'altra fonte è in uso. Qualunque proposta nuova entra qui con testo,

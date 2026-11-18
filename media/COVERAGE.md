@@ -1,7 +1,7 @@
 # COVERAGE.md — copertura della libreria
 
-Aggiornato al **2026-11-12** (commit `47c7f6d`). Numeri contati sul repo, non
-stimati.
+Aggiornato al **2026-11-18** (conti di LIBRARY.md; figure invariate da `47c7f6d`).
+Numeri contati sul repo, non stimati.
 
 ## 1. Conti
 | | quante | note |
@@ -14,7 +14,7 @@ stimati.
 | file RepDB nel repo | 91 | tutti usati (lo verifica un test) |
 | file SVG nel repo | **174** | 72 esercizi + 102 gradini |
 | registrate in LIBRARY.md | 307 | 174 figure + 133 righe RepDB (il 308 dei giorni scorsi era un errore di conto) |
-| stato in LIBRARY.md | 25 verificate · 39 da rifare · 243 da verificare | zero approvate |
+| stato in LIBRARY.md | 25 verificate · 46 da rifare · 236 da verificare | zero approvate; +7 da rifare il 2026-11-18 |
 | con freccia dentro l'immagine | **0** | erano 10 (non 11: `curl-panca-inclinata` era un falso positivo), §4.1 chiusa |
 | con difetto anatomico **misurato** (GENERATOR_SPEC §4.2, E1–E3) | **14** | 7 esercizi + 7 gradini; più 3 figure giuste a cui manca solo `sh` |
 | con un segmento sotto l'80% del suo omologo | 120 su 174 | segnale da guardare, non scarto (§4.25) |
@@ -27,22 +27,25 @@ cose sono tenute ferme da `src/data/art.test.ts`, non dalla buona volontà.
 16 arrivati con `f63c9f1`, il 2026-11-12 ne sono passati dalla checklist 5:
 `hip-thrust-panca-bilaterale` e `curl-panca-inclinata` verificate; `burpee`,
 `curl-trx` ed `estensione-tricipiti-trx` **da rifare**, tutte e tre in sedute
-attive e senza foto. **Mai verificate: 11** — `affondi-rapidi-alternati`,
-`apertura-anche`, `corda-battaglia-cerchi`, `corda-battaglia-onde-doppie`,
-`corda-battaglia-slam`, `corda-per-saltare`, `curl-manubri-supino`,
-`military-press-manubri`, `plank-tocco-spalla`, `plank-trascinamento-kb`,
-`respirazione-360`. Da guardare per primi: `corda-per-saltare` (braccia alte
-come in un jumping jack), `military-press-manubri` (due manubri che leggono
-come una barra: R4), `corda-battaglia-slam` (pannello 1 frontale, pannello 2
-laterale). `corda-battaglia-cerchi` disegna la traiettoria come cerchio
-tratteggiato: segno d'annotazione dentro l'immagine, decisione di Alessio.
+attive e senza foto. Il 2026-11-18 altre 3 **da rifare**: `military-press-manubri`
+(R3, R4: §4.26), `plank-tocco-spalla` (manca il braccio d'appoggio, R3: §4.28),
+`respirazione-360` (R10: §4.27); e `hollow-hold`, `core-l1…l3` (R10, R1:
+§4.27), dei quali solo `core-l2` si vede in app.
+**Mai verificate: 8** — `affondi-rapidi-alternati`, `apertura-anche`,
+`corda-battaglia-cerchi`, `corda-battaglia-onde-doppie`, `corda-battaglia-slam`,
+`corda-per-saltare`, `curl-manubri-supino`, `plank-trascinamento-kb`. Da
+guardare per primi: `corda-per-saltare` (braccia alte come in un jumping
+jack), `corda-battaglia-slam` (pannello 1 frontale, pannello 2 laterale),
+`plank-trascinamento-kb` (anche qui un braccio solo nel pannello 2?).
+`corda-battaglia-cerchi` disegna la traiettoria come cerchio tratteggiato: segno d'annotazione dentro l'immagine, decisione di Alessio.
 
 **Figure difettose che l'app mostra oggi** (sedute attive, nessuna foto):
 `pull-over-trx`, `curl-trx`, `estensione-tricipiti-trx`, `burpee`,
-`step-rapidi-box`, `estensione-tricipiti-sopra-testa` (più
+`step-rapidi-box`, `estensione-tricipiti-sopra-testa`, e dal 2026-11-18
+`military-press-manubri`, `plank-tocco-spalla`, `respirazione-360` (più
 `mobilita-anche-torace-spalle`, fuori dalle quattro sedute); nei gradini senza foto
 `vertical-push-l2` `l3` `l4` `l6` e `handstand-l1` (testa fuori asse o gomito
-dentro la testa). `pike-pushup-piedi-rialzati` e `negative-hspu` hanno la
+dentro la testa), `core-l2` (R1, R10). `pike-pushup-piedi-rialzati` e `negative-hspu` hanno la
 stessa posa sbagliata, ma in app vince la foto RepDB.
 
 ## 3. Figure che riusano un archetipo non loro
@@ -57,6 +60,7 @@ specifiche §4.3, §4.4, §4.5, §4.17 e §4.19 hanno il testo in `ARCHIVE.md`.
 | `dip-panche-o-diamond-pushup` = `push-up` | **non suo**, ma coperto: il diamond ha le mani a rombo sotto lo sterno. Vince la foto RepDB, che è giusta. Figura di ripiego da parametrizzare |
 | 4 trazioni identiche (media, larga, supina, supina stretta) | **tollerato oggi**: la forma del corpo è la stessa, cambia la presa. Tutte e quattro hanno la foto giusta → §4.19 |
 | `corsa-continua-piano` = `zona-2-conclusiva` | **legittimo**: stesso gesto. La zona 2 ammette anche bici e camminata, ma la corsa è il caso principale |
+| `hollow-hold` = `core-l1` = `core-l2` = `core-l3` (2026-11-18) | **non suo** per `core-l1` (plank sugli avambracci) e `core-l2` (ginocchia piegate; senza foto, si vede in app); legittimo per `core-l3`. Tutti e quattro sospesi sopra il pavimento (R10) → §4.27 |
 
 **Censimento del 2026-11-12**: i gruppi identici in `src/assets/exercises/`
 sono **quattro** (erano sei): rollout, diamond, trazioni, corsa. Nella famiglia

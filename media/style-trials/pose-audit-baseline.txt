@@ -1,0 +1,15 @@
+exercises/goblet-squat
+  L coscia 14 (#2) contro 20 (#1)
+exercises/hip-thrust-panca-bilaterale
+  L braccio 12 (#1) contro 18 (#2)
+  L avambraccio 9 (#1) contro 14 (#2)
+exercises/hollow-hold
+  #1 E3 braccio a 4.8 dalla testa, sopra la testa (22°), parte dal collo
+exercises/military-press-manubri
+  L avambraccio 8 (#1) contro 14 (#2)
+exercises/pull-over-trx
+  #1 E1 testa fuori asse 66°
+  L braccio 10 (#2) contro 17 (#1)
+  L avambraccio 8 (#2) contro 10 (#1)
+exercises/scapular-pull-up
+  L braccio 14 (#2) contro 18 (#1)

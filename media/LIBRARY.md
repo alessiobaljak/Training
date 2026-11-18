@@ -38,7 +38,7 @@ fatto sui `cues`.
 | single-leg-rdl | inizio+fine | generata | `rdl` | da verificare | src/assets/exercises/single-leg-rdl.svg | 2026-11-08 |  |
 | calf-monopodalico-rialzo | inizio+fine | generata | `calf` | da verificare | src/assets/exercises/calf-monopodalico-rialzo.svg | 2026-11-08 |  |
 | calf-monopodalico-seduto | inizio+fine | generata | `calf` | da verificare | src/assets/exercises/calf-monopodalico-seduto.svg | 2026-11-08 |  |
-| hollow-hold | unica | generata | `hollow` | da verificare | src/assets/exercises/hollow-hold.svg | 2026-11-08 |  |
+| hollow-hold | unica | generata | `hollow` | da rifare | src/assets/exercises/hollow-hold.svg | 2026-11-18 | tecnica (R10/R5): anca 14 u sopra il pavimento, nessun punto del corpo a terra: disegna la lombare staccata che i cue 1 e 4 vietano. Braccio sul mento: E3 sopra la testa, accettato — spec 4.27 (verifica provvisoria) |
 | hanging-leg-raise | inizio+fine | generata | `leg-raise` | da verificare | src/assets/exercises/hanging-leg-raise.svg | 2026-11-08 |  |
 | ab-wheel-o-rollout-trx | inizio+fine | generata | `ab-wheel` | da verificare | src/assets/exercises/ab-wheel-o-rollout-trx.svg | 2026-11-08 | 2026-11-12, solo misura: braccio sulla testa nel pannello 2 (5,8) con braccia sopra la testa, posa giusta; manca solo `sh` dichiarata — spec 4.2 |
 | rollout-trx | inizio+fine | generata | `ab-wheel` | da rifare | src/assets/exercises/rollout-trx.svg | 2026-11-08 | archetipo non suo: ruota ab e appoggio in ginocchio invece di maniglie TRX in piedi — spec 4.5 |
@@ -109,9 +109,9 @@ fatto sui `cues`.
 | posterior-chain-l4 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l4.svg | 2026-11-08 |  |
 | posterior-chain-l5 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l5.svg | 2026-11-08 |  |
 | posterior-chain-l6 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l6.svg | 2026-11-08 |  |
-| core-l1 | unica | generata | `hollow` | da verificare | src/assets/steps/core-l1.svg | 2026-11-08 |  |
-| core-l2 | unica | generata | `hollow` | da verificare | src/assets/steps/core-l2.svg | 2026-11-08 |  |
-| core-l3 | unica | generata | `hollow` | da verificare | src/assets/steps/core-l3.svg | 2026-11-08 |  |
+| core-l1 | unica | generata | `hollow` | da rifare | src/assets/steps/core-l1.svg | 2026-11-18 | archetipo (R1): «plank sugli avambracci» disegnato come hollow hold (stesso SVG di hollow-hold, md5 a etichetta tolta); più R10. In app vince la foto RepDB — spec 4.27 |
+| core-l2 | unica | generata | `hollow` | da rifare | src/assets/steps/core-l2.svg | 2026-11-18 | corrispondenza (R1): «ginocchia piegate», gambe distese; tecnica (R10): corpo sospeso. Senza foto: in app si vede questa — spec 4.27 |
+| core-l3 | unica | generata | `hollow` | da rifare | src/assets/steps/core-l3.svg | 2026-11-18 | tecnica (R10): stesso SVG di hollow-hold, corpo sospeso sopra il pavimento. In app vince la foto RepDB — spec 4.27 |
 | core-l4 | inizio+fine | generata | `leg-raise` | da verificare | src/assets/steps/core-l4.svg | 2026-11-08 |  |
 | core-l5 | inizio+fine | generata | `leg-raise` | da verificare | src/assets/steps/core-l5.svg | 2026-11-08 |  |
 | core-l6 | inizio+fine | generata | `ab-wheel` | da verificare | src/assets/steps/core-l6.svg | 2026-11-08 |  |
@@ -313,7 +313,7 @@ fatto sui `cues`.
 | curl-panca-inclinata | inizio+fine | generata | `incline-curl` | verificata | src/assets/exercises/curl-panca-inclinata.svg | 2026-11-12 | verifica provvisoria (scheda senza equipment/frames). Prima verifica. Panca a 45 gradi, braccia che pendono dietro la linea del busto, gomito fermo nei due pannelli, braccio disteso in basso. La freccia segnata il 2026-11-09 non c-e mai stata: era il tracciato della panca. Note: tronco 7 gradi piu ripido dello schienale (spalle 2 unita sopra la panca), quattro segmenti affollati alla spalla nel pannello 2 |
 | curl-trx | inizio+fine | generata | `trx-curl` | da rifare | src/assets/exercises/curl-trx.svg | 2026-11-12 | Misurata con pose-audit e guardata a 230 px (2026-11-12). Anatomia: pannello 1 braccio collassato (1 + 6 unita contro 11 + 13), mano al mento; l-etichetta dice braccia distese. Seduta attiva, nessuna foto — spec 4.2 |
 | estensione-tricipiti-trx | inizio+fine | generata | `trx-ext` | da rifare | src/assets/exercises/estensione-tricipiti-trx.svg | 2026-11-12 | Misurata con pose-audit e guardata a 230 px (2026-11-12). Anatomia: testa piegata all-indietro di 79 e 84 gradi nei due pannelli; braccio da 8 a 21 tra i pannelli. Seduta attiva, nessuna foto — spec 4.2 |
-| military-press-manubri | inizio+fine | generata | `press` | da verificare | src/assets/exercises/military-press-manubri.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
-| plank-tocco-spalla | inizio+fine | generata | `plank-tap` | da verificare | src/assets/exercises/plank-tocco-spalla.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| military-press-manubri | inizio+fine | generata | `press` | da rifare | src/assets/exercises/military-press-manubri.svg | 2026-11-18 | tecnica (R3): frontale, i cue 2-4 (sopra le orecchie, lombare) si giudicano di lato; attrezzo (R4): i due manubri leggono come una barra, nel pannello 1 la testa riempie lo stacco. Avambraccio 8 contro 14: scorcio plausibile (gomito davanti, cue 1) — spec 4.26 (verifica provvisoria) |
+| plank-tocco-spalla | inizio+fine | generata | `plank-tap` | da rifare | src/assets/exercises/plank-tocco-spalla.svg | 2026-11-18 | anatomia: nel pannello 2 manca il braccio d'appoggio, il plank non ha appoggio; tecnica (R3): di lato la rotazione del bacino (cue 3) non esiste — spec 4.28 (verifica provvisoria) |
 | plank-trascinamento-kb | inizio+fine | generata | `plank-drag` | da verificare | src/assets/exercises/plank-trascinamento-kb.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
-| respirazione-360 | inizio+fine | generata | `breathing` | da verificare | src/assets/exercises/respirazione-360.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| respirazione-360 | unica | generata | `breathing` | da rifare | src/assets/exercises/respirazione-360.svg | 2026-11-18 | tecnica (R10): «supino» ma testa e tronco 12-14 u sopra il pavimento; ginocchia piegate, piedi a terra e mani su petto e costole giusti. Fotogramma corretto: è una posa sola, non inizio+fine — spec 4.27 (verifica provvisoria) |

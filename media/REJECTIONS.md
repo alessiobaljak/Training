@@ -5,7 +5,7 @@ frequente e il più pericoloso: **non è un errore di disegno, è una figura
 corretta messa sull'esercizio sbagliato**, e si vede solo confrontandola con
 la scheda.
 
-## R1 — Archetipo di un esercizio simile (11 casi)
+## R1 — Archetipo di un esercizio simile (13 casi)
 **Sintomo**: la figura è pulita, l'anatomia è giusta, l'esercizio è un altro.
 **Casi**: affondo con rotazione → box del bulgaro · rematore con manubrio →
 maniglie TRX · curl a martello → elastici (tutti e tre corretti il 2026-11-08)
@@ -13,6 +13,8 @@ maniglie TRX · curl a martello → elastici (tutti e tre corretti il 2026-11-08
 alto (questi due corretti il 2026-11-12) · rollout TRX → ruota ab in ginocchio · diamond push-up → push-up normale
 · curl e alzate «con manubri» → elastici · hip thrust «spalle su panca» → foto
 di un glute bridge a terra · dip piedi rialzati → foto con i piedi a terra.
+· plank sugli avambracci (`core-l1`) e hollow a ginocchia piegate (`core-l2`)
+→ hollow hold a gambe distese (2026-11-18).
 **Correzione**: la regola di GENERATOR_SPEC §2 — archetipo nuovo quando cambia
 il gesto o l'attrezzo, parametro quando cambia solo un appoggio o un'ampiezza.
 **Come si trova prima**: confronto md5 a etichetta rimossa (GENERATOR_SPEC §2)
@@ -29,11 +31,13 @@ al mento), pike push-up (gomito dentro la testa).
 fra le braccia in verticale, hollow, rollout e slam **non** è questo errore:
 è anatomia. Il criterio che distingue i due casi è GENERATOR_SPEC §4.2 (E1–E3).
 
-## R3 — L'inquadratura non può mostrare il criterio (3 casi)
+## R3 — L'inquadratura non può mostrare il criterio (5 casi)
 **Sintomo**: la figura è corretta ma il piano in cui l'esercizio si giudica è
 perpendicolare a quello del disegno. Anti-rotazione e anti-inclinazione
 disegnate di lato **non esistono**.
-**Casi**: pallof press, suitcase carry, affondo con rotazione.
+**Casi**: pallof press, suitcase carry, affondo con rotazione; dal 2026-11-18
+military press (frontale, ma lombare e «sopra le orecchie» sono di lato) e
+plank con tocco (di lato la rotazione del bacino non esiste).
 **Correzione**: l'inquadratura la sceglie il criterio (STYLE_GUIDE §2):
 laterale per profondità e cerniera, frontale per simmetria e allineamento,
 tre quarti o dall'alto per rotazione e carico asimmetrico.
@@ -103,3 +107,14 @@ panca dell'hip thrust (§4.21 chiusa). Lo scorcio voluto si scrive nel
 commento dell'archetipo.
 **Come si trova prima**: `pose-audit`, righe `L` (soglia 80%): sono un
 segnale da guardare, non uno scarto automatico (GENERATOR_SPEC §4.25).
+
+## R10 — Il corpo sospeso sopra l'appoggio (2 pose, 5 file; nuovo 2026-11-18)
+**Sintomo**: una posa sdraiata in cui nessun punto del tronco tocca il
+pavimento. Nell'hollow hold è peggio di un difetto di disegno: la lombare
+staccata è l'errore che il cue chiede di evitare (R5).
+**Casi**: `hollow-hold` e `core-l1…l3`, stesso SVG (anca 14 u sopra il
+pavimento); `respirazione-360` (tronco 12–14 u sopra).
+**Correzione**: il contatto si misura fra i bordi, non fra gli assi: bordo del
+tratto sul bordo del pavimento (GENERATOR_SPEC §4.27). Con uno stile più
+spesso il contatto si ricalcola dallo spessore (STYLE_TRIALS §1.7, B2).
+**Come si trova prima**: y del punto più basso del tronco contro `FLOOR`.

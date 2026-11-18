@@ -4,7 +4,7 @@
  *   node media/scripts/contact-sheet.mjs out.png <colonne> <px> file.svg::didascalia ...
  */
 import pw from '/home/user/Training/node_modules/playwright/index.js';
-import { writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { writeFileSync, readFileSync, readdirSync, existsSync } from 'node:fs';
 const { chromium } = pw;
 /* La versione di Chromium cambia con Playwright: si cerca, non si scrive a mano. */
 const findChrome = () => {
@@ -18,9 +18,19 @@ const findChrome = () => {
   return '/usr/bin/google-chrome';
 };
 const [out, cols, tile, ...files] = process.argv.slice(2);
+/*
+ * Prove di stile (STYLE_TRIALS.md): con SHEET_CSS=<file dei gettoni> gli SVG
+ * entrano inline, cosi' le classi `fig-*` prendono i colori del tema;
+ * SHEET_THEME=dark rende il tema scuro. Senza, il foglio e' quello di sempre.
+ */
+const css = process.env.SHEET_CSS ? readFileSync(process.env.SHEET_CSS, 'utf8') : '';
+const dark = process.env.SHEET_THEME === 'dark';
 const cells = files.map((f) => {
   const [path, caption] = f.split('::');
-  return `<figure><img src="file://${path}"><figcaption>${caption}</figcaption></figure>`;
+  const art = css
+    ? `<div class="ex-art">${readFileSync(path, 'utf8')}</div>`
+    : `<img src="file://${path}">`;
+  return `<figure>${art}<figcaption>${caption}</figcaption></figure>`;
 }).join('');
 const html = `<!doctype html><meta charset="utf-8"><style>
 body{margin:0;background:#fff;font:11px/1.3 system-ui,sans-serif;color:#000}
@@ -28,7 +38,9 @@ body{margin:0;background:#fff;font:11px/1.3 system-ui,sans-serif;color:#000}
 figure{margin:0;border:1px solid #ccc}
 img{width:${tile}px;display:block;background:#fff}
 figcaption{padding:2px 3px;background:#f2f2f2;word-break:break-all}
-</style><div class="grid">${cells}</div>`;
+.ex-art{width:${tile}px;color:var(--color-ink)}.ex-art>svg{display:block;width:100%;height:auto}
+${css}
+</style><div class="grid" ${dark ? 'data-theme="dark"' : ''}>${cells}</div>`;
 const page_html = out.replace(/\.png$/, '.html');
 writeFileSync(page_html, html);
 const browser = await chromium.launch({ executablePath: findChrome(), args: ['--no-sandbox'] });

@@ -36,24 +36,57 @@ const segDist = (p, a, b) => {
 };
 const ang = (u, v) => (Math.acos(Math.max(-1, Math.min(1, (u[0] * v[0] + u[1] * v[1]) / (len(u) * len(v))))) * 180) / Math.PI;
 
+/*
+ * Le pose di ogni pannello. Due fonti, in quest'ordine:
+ * 1. `data-pose="he:50,22 ne:50,30 hi:50,62 sh:45,36 el:.. ha:.. kn:.. fo:.."`
+ *    sul gruppo del pannello (STYLE_TRIALS.md §1.4): vale per qualunque stile,
+ *    anche a sagoma piena, dove la geometria non è più una polilinea.
+ * 2. Altrimenti la geometria dello stile a linea di oggi: cerchio r=6 e
+ *    polilinee fuori dai gruppi `opacity` degli attrezzi.
+ */
+function panelsOf(markup) {
+  const tagged = [...markup.matchAll(/data-pose="([^"]+)"/g)];
+  if (tagged.length) {
+    return tagged.map((m) => {
+      const k = Object.fromEntries(m[1].trim().split(/\s+/).map((kv) => {
+        const [key, xy] = kv.split(':');
+        return [key, xy.split(',').map(Number)];
+      }));
+      const arms = [];
+      if (k.ha) arms.push([k.sh ?? k.ne, k.el, k.ha]);
+      if (k.ha2) arms.push([k.sh2 ?? k.sh ?? k.ne, k.el2, k.ha2]);
+      const legs = [];
+      if (k.fo) legs.push([k.hi, k.kn, k.fo]);
+      if (k.fo2) legs.push([k.hi, k.kn2, k.fo2]);
+      return { he: k.he, ne: k.ne, hi: k.hi, arms, legs };
+    });
+  }
+  return markup.split('<g transform="translate(').slice(1).map((raw) => {
+    const body = raw.replace(/<g opacity="[^"]*">[\s\S]*?<\/g>/g, '');
+    const c = body.match(/<circle cx="([\d.]+)" cy="([\d.]+)" r="6"/);
+    if (!c) return null;
+    const polys = [...body.matchAll(/<polyline points="([^"]+)"/g)].map((m) => pts(m[1]));
+    const [ne, hi] = polys[0];
+    const isLeg = (q) => q[0][0] === hi[0] && q[0][1] === hi[1];
+    return {
+      he: [Number(c[1]), Number(c[2])], ne, hi,
+      arms: polys.slice(1).filter((q) => !isLeg(q)),
+      legs: polys.slice(1).filter(isLeg),
+    };
+  });
+}
+
 for (const dir of dirs) {
   for (const f of readdirSync(dir).filter((n) => n.endsWith('.svg')).sort()) {
     const slug = basename(f, '.svg');
     if (only && !only.has(slug)) continue;
     const notes = [];
     const seg = { braccio: [], avambraccio: [], coscia: [], tibia: [] };
-    readFileSync(join(dir, f), 'utf8').split('<g transform="translate(').slice(1).forEach((raw, i) => {
-      const body = raw.replace(/<g opacity="[^"]*">[\s\S]*?<\/g>/g, '');
-      const c = body.match(/<circle cx="([\d.]+)" cy="([\d.]+)" r="6"/);
-      if (!c) return;
+    panelsOf(readFileSync(join(dir, f), 'utf8')).forEach((panel, i) => {
+      if (!panel) return;
+      const { he, ne, hi, arms, legs } = panel;
       const p = `#${i + 1}`;
-      const he = [Number(c[1]), Number(c[2])];
-      const polys = [...body.matchAll(/<polyline points="([^"]+)"/g)].map((m) => pts(m[1]));
-      const [ne, hi] = polys[0];
       const axis = sub(ne, hi);
-      const isLeg = (q) => q[0][0] === hi[0] && q[0][1] === hi[1];
-      const arms = polys.slice(1).filter((q) => !isLeg(q));
-      const legs = polys.slice(1).filter(isLeg);
       const dev = ang(sub(he, ne), axis);
       if (dev > 40) notes.push(`${p} E1 testa fuori asse ${dev.toFixed(0)}°`);
       for (const a of arms) {

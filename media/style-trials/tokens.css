@@ -1,0 +1,42 @@
+/*
+ * Gettoni colore delle figure — prove di stile del 2026-11-18 (STYLE_TRIALS.md §1.2).
+ *
+ * Gli SVG non contengono colori: ogni gruppo ha una classe `fig-*` e i suoi
+ * elementi disegnano in `currentColor`. Qui si assegna `color` al gruppo, per
+ * tema. Se una direzione viene scelta, questi valori passano in src/index.css
+ * (un solo posto per tema) e le coppie in src/ui/theme.test.ts.
+ *
+ * Contrasti misurati il 2026-11-18 (WCAG 2.x, luminanza relativa) contro il
+ * vetro: superficie al 60% sopra il canvas = #fafbfd (chiaro), #11161d (scuro).
+ *   soglie: vicino >= 7:1 · attrezzo >= 4.5:1 · lontano e appoggi >= 3:1 ·
+ *           fantasma tra 1.4:1 e 2:1 (supplementare, non serve a capire).
+ *   oggi:   attrezzi a opacity 0.32 = 2.06:1 (chiaro), 2.73:1 (scuro).
+ */
+:root,
+[data-theme='light'] {
+  --color-fig-near: #0f1720;   /* = --color-ink        17.43:1 */
+  --color-fig-far: #78879a;    /* lato lontano          3.54:1 */
+  --color-fig-gear: #56657a;   /* attrezzi (A, B)       5.73:1 */
+  --color-fig-ground: #78879a; /* pavimento, panca, box 3.54:1 */
+  --color-fig-gear-c: #6a3fc8; /* attrezzi (C), viola   6.42:1 · 2.71:1 contro il corpo */
+  --color-fig-ghost: #c9d1da;  /* fantasma (C)          1.49:1 */
+  --sheet-bg: #fafbfd;         /* solo per il foglio di contatto: il vetro simulato */
+}
+
+[data-theme='dark'] {
+  --color-fig-near: #eef3f8;   /* = --color-ink        16.27:1 */
+  --color-fig-far: #6b7b8e;    /*                       4.19:1 */
+  --color-fig-gear: #98a6b8;   /*                       7.33:1 */
+  --color-fig-ground: #617286; /*                       3.68:1 */
+  --color-fig-gear-c: #a48bff; /*                       6.67:1 */
+  --color-fig-ghost: #344050;  /*                       1.73:1 */
+  --sheet-bg: #11161d;
+}
+
+.ex-art { background: var(--sheet-bg); color: var(--color-fig-near); }
+.ex-art .fig-near { color: var(--color-fig-near); }
+.ex-art .fig-far { color: var(--color-fig-far); }
+.ex-art .fig-gear { color: var(--color-fig-gear); }
+.ex-art .fig-ground { color: var(--color-fig-ground); }
+.ex-art .fig-gear-c { color: var(--color-fig-gear-c); }
+.ex-art .fig-ghost { color: var(--color-fig-ghost); }

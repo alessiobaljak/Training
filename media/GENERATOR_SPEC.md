@@ -2,6 +2,8 @@
 
 Il file è `scripts/generate-exercise-svg.mjs` (1.098 righe al `47c7f6d`, `npm run svg`).
 **Lo modifica la sessione principale. Qui si scrive cosa deve fare.**
+**Stile in revisione (B8)**: tre direzioni da provare in `STYLE_TRIALS.md`;
+finché Alessio non sceglie, qui si specificano solo pose e archetipi.
 
 ## 1. Come è fatto
 
@@ -136,10 +138,12 @@ indipendente dagli SVG: `node media/scripts/pose-audit.mjs`.
 | `ab-wheel` | posa giusta, spalla non dichiarata | `sh: [42, 78]` |
 | `pull-over-trx` | vedi §4.24 | |
 
-### 4.5, 4.12–4.17, 4.19 — testo integrale in `ARCHIVE.md`
+### 4.5–4.7, 4.12–4.17, 4.19, «da rifinire» — testo integrale in `ARCHIVE.md`
 Specifiche **aperte**, scritte per intero il 2026-11-08 e non ancora
 implementate; spostate per tenere questo file sotto le 300 righe.
 - 4.5 `rollout-trx` → archetipo nuovo `trx-rollout`, in piedi e sospeso.
+- 4.6 `pallof-press-elastico`: dall'alto o tre quarti, elastico fuori dal tronco.
+- 4.7 `suitcase-carry`: frontale, peso staccato dalla gamba, spalle in bolla.
 - 4.12 `corda-battaglia-onde-alternate`: ancoraggio, due onde a S, mezzo squat.
 - 4.13 `curl-martello-manubri`: manubrio verticale per la presa neutra.
 - 4.14 `stacco-rumeno-manubri`: due manubri che si contano come due.
@@ -147,29 +151,7 @@ implementate; spostate per tenere questo file sotto le 300 righe.
 - 4.16 `mountain-climber`: polsi sotto le spalle, ginocchio al petto.
 - 4.17 tre figure di ripiego con l'elastico al posto dei manubri.
 - 4.19 prese delle trazioni: `grip` su `hang-pull`.
-
-### 4.6 `pallof-press-elastico` — rifare l'inquadratura
-**Oggi**: vista laterale, l'elastico arriva da destra e le mani si spingono a
-sinistra **attraversando il tronco**. Nel piano del disegno l'anti-rotazione
-non esiste: quello che si vede è una spinta orizzontale con l'elastico.
-**Deve**: vista **dall'alto** o **tre quarti**. L'elastico parte da un
-ancoraggio laterale e resta sempre fuori dal tronco. Pannello 1: mani allo
-sterno. Pannello 2: braccia distese **in avanti**, perpendicolari all'asse
-dell'elastico; spalle e bacino **identici** nei due pannelli — la figura non
-ruota di un grado, ed è l'unica cosa che l'esercizio chiede.
-**Accettazione**: il tratteggio non interseca mai la figura; tronco e piedi
-hanno le stesse coordinate nei due pannelli.
-
-### 4.7 `suitcase-carry` — rifare l'inquadratura
-**Oggi**: vista laterale, posa singola; il kettlebell si sovrappone alla
-coscia e legge come un oggetto attaccato alla gamba. Di lato non si vede né
-che le spalle sono alla stessa altezza né che il busto non si inclina.
-**Deve**: vista **frontale**, posa singola. Peso in una mano sola, lungo il
-fianco, staccato dalla gamba. Linea delle spalle **orizzontale**, asse del
-tronco **verticale**, braccio libero rilassato. Lo squilibrio si legge dal
-peso, non dalla posa.
-**Accettazione**: a 230 px si vede che un lato ha il peso e l'altro no, e che
-le due spalle sono alla stessa altezza.
+- Da rifinire: gamba libera dell'hip thrust monopodalico; tronco del curl su panca inclinata.
 
 ### 4.8 `goblet-squat` — profondità e attrezzo
 **Oggi**: vista frontale; l'anca resta **sopra** il ginocchio (y 76 contro
@@ -278,15 +260,41 @@ passano dalla checklist.
 **Accettazione**: l'elenco esiste e non cresce; nessun archetipo nuovo entra
 con segmenti fuori soglia senza commento.
 
-### Da rifinire (bassa priorità, nessuno scarto)
-- **Hip thrust monopodalico** (`hip-thrust-monopodalico`, `l3`–`l6`,
-  `posterior-chain-l1`): la gamba libera distesa è 18% più corta (tibia 19
-  contro 27) perché a lunghezza piena esce dal pannello; nel pannello basso la
-  coscia libera incrocia la tibia vicina sotto il ginocchio. Gamba libera
-  **flessa** (ginocchio verso il petto) sta nel pannello a lunghezza piena e
-  non incrocia nulla. Nel bilaterale e in `l6` il braccio del pannello basso è
-  un terzo più corto: scorcio plausibile (gomiti aperti), da scrivere nel
-  commento.
-- **`curl-panca-inclinata`**: tronco 7° più ripido dello schienale (spalle 2
-  unità sopra la panca, la zona dell'errore del cue 4); quattro segmenti
-  affollati alla spalla nel pannello 2. Tronco parallelo allo schienale.
+### 4.26 `military-press-manubri` — di lato, e due manubri (nuova, 2026-11-18)
+**Oggi**: vista frontale. I cue 2–4 (manubri sopra le orecchie e non davanti,
+lombare che non si inarca) si giudicano solo di lato (R3). I due manubri
+leggono come una barra: nel pannello 1 la testa riempie lo stacco fra i pesi
+(bilanciere dietro il collo), nel pannello 2 lo stacco è di 5 u (R4).
+**Deve**: vista **laterale**. Pannello 1: manubrio all'altezza della spalla,
+gomito sotto e un poco davanti al busto, avambraccio verticale. Pannello 2:
+braccio disteso verticale, manubrio sulla verticale dell'orecchio, testa fra
+le braccia (`sh` dichiarata). Tronco dritto e verticale nei due pannelli.
+Manubrio lontano sfalsato di 3–4 u dietro il vicino.
+**Accettazione**: `pose-audit` senza E1/E2; pannello 2 |`ha`.x − `he`.x| ≤ 3;
+tronco entro 5° dalla verticale in entrambi; a 230 px due pesi, non una barra.
+
+### 4.27 Corpi sdraiati sospesi sopra il pavimento (nuova, R10)
+**Oggi**: `hollow-hold` (e `core-l1…l3`: stesso SVG, md5 a etichetta tolta)
+ha l'anca a y 88, pavimento a 102: nessun punto a terra, cioè la lombare
+staccata che i cue 1 e 4 vietano. `respirazione-360`: tronco 12–14 u sopra.
+In più (R1): `core-l1` è un plank sugli avambracci disegnato come hollow;
+`core-l2` dice ginocchia piegate e mostra gambe distese (in app, senza foto).
+**Deve**: il segmento che appoggia tocca il pavimento, bordo su bordo (col
+tratto 3 `hi`.y = 99). Hollow: anca a terra, spalle staccate (`ne` 6–10 u
+sopra `hi`), gambe distese a 20–30°, braccia oltre la testa. `core-l2`:
+stessa posa a ginocchia piegate (parametro). `core-l1`: archetipo plank.
+Respirazione: tronco e testa a terra, ginocchia piegate, piedi a terra.
+**Accettazione**: tronco entro 1 u dal pavimento, bordi e non assi (stile nuovo:
+dallo spessore, STYLE_TRIALS §1.7); `core-l1` e `core-l2` con md5 propri.
+
+### 4.28 `plank-tocco-spalla` — il braccio d'appoggio, e la vista (nuova)
+**Oggi**: vista laterale; nel pannello 2 c'è un braccio solo, quello che
+tocca la spalla: il corpo in plank non ha appoggio. Di lato il cue 3 (bacino
+immobile, nessuna rotazione) non esiste (R3).
+**Deve**: vista **frontale dalla testa** o tre quarti dall'alto: si vedono la
+linea delle spalle e i due piedi alla larghezza delle anche. Pannello 1:
+plank alto, mani sotto le spalle. Pannello 2: una mano sulla spalla opposta,
+l'altro braccio verticale sotto la sua spalla.
+**Accettazione**: il braccio d'appoggio c'è in tutti e due i pannelli; linea
+delle spalle orizzontale (± 3°) in entrambi; mano entro 4 u dalla spalla
+opposta nel pannello 2.

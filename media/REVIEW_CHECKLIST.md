@@ -49,12 +49,16 @@ node media/scripts/contact-sheet.mjs <out.png> <colonne> <px per tile> \
 - Non si ringuarda una figura già approvata.
 - Lo script cerca da solo il Chromium di Playwright in `/opt/pw-browsers`
   (la versione cambia con gli aggiornamenti); `CHROMIUM_PATH` lo forza.
+- Figure con i gettoni colore (prove di stile, STYLE_TRIALS.md):
+  `SHEET_CSS=media/style-trials/tokens.css SHEET_THEME=light|dark` mette gli
+  SVG inline e li colora come l'app. Si guardano **tutti e due i temi**.
 
 ## 3b. Le misure prima dell'occhio
 ```
 node media/scripts/pose-audit.mjs src/assets/exercises src/assets/steps [--only slug,slug]
 ```
-Legge gli SVG, non tocca nulla. Per ogni pannello:
+Legge gli SVG, non tocca nulla; se il pannello porta `data-pose` legge da lì
+(vale per qualunque stile), altrimenti dalla geometria a linea. Per ogni pannello:
 - **E1** testa fuori dall'asse del tronco oltre 40° → PROBLEMA anatomia (R8).
 - **E2** gomito o mano dentro il cerchio della testa → PROBLEMA anatomia.
 - **E3** braccio a meno di r=6 dalla testa: «sopra la testa» (entro 40°

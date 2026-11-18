@@ -113,6 +113,42 @@ pannelli.
 **Accettazione**: `ha[0] ≈ sh[0]` entro 2 px; `hi` identica nei due pannelli.
 
 
+### 4.6 `pallof-press-elastico` — rifare l'inquadratura (aperta, spostata il 2026-11-18)
+**Oggi**: vista laterale, l'elastico arriva da destra e le mani si spingono a
+sinistra **attraversando il tronco**. Nel piano del disegno l'anti-rotazione
+non esiste: quello che si vede è una spinta orizzontale con l'elastico.
+**Deve**: vista **dall'alto** o **tre quarti**. L'elastico parte da un
+ancoraggio laterale e resta sempre fuori dal tronco. Pannello 1: mani allo
+sterno. Pannello 2: braccia distese **in avanti**, perpendicolari all'asse
+dell'elastico; spalle e bacino **identici** nei due pannelli — la figura non
+ruota di un grado, ed è l'unica cosa che l'esercizio chiede.
+**Accettazione**: il tratteggio non interseca mai la figura; tronco e piedi
+hanno le stesse coordinate nei due pannelli.
+
+### 4.7 `suitcase-carry` — rifare l'inquadratura (aperta, spostata il 2026-11-18)
+**Oggi**: vista laterale, posa singola; il kettlebell si sovrappone alla
+coscia e legge come un oggetto attaccato alla gamba. Di lato non si vede né
+che le spalle sono alla stessa altezza né che il busto non si inclina.
+**Deve**: vista **frontale**, posa singola. Peso in una mano sola, lungo il
+fianco, staccato dalla gamba. Linea delle spalle **orizzontale**, asse del
+tronco **verticale**, braccio libero rilassato. Lo squilibrio si legge dal
+peso, non dalla posa.
+**Accettazione**: a 230 px si vede che un lato ha il peso e l'altro no, e che
+le due spalle sono alla stessa altezza.
+
+### Da rifinire (bassa priorità, nessuno scarto) — spostata il 2026-11-18
+- **Hip thrust monopodalico** (`hip-thrust-monopodalico`, `l3`–`l6`,
+  `posterior-chain-l1`): la gamba libera distesa è 18% più corta (tibia 19
+  contro 27) perché a lunghezza piena esce dal pannello; nel pannello basso la
+  coscia libera incrocia la tibia vicina sotto il ginocchio. Gamba libera
+  **flessa** (ginocchio verso il petto) sta nel pannello a lunghezza piena e
+  non incrocia nulla. Nel bilaterale e in `l6` il braccio del pannello basso è
+  un terzo più corto: scorcio plausibile (gomiti aperti), da scrivere nel
+  commento.
+- **`curl-panca-inclinata`**: tronco 7° più ripido dello schienale (spalle 2
+  unità sopra la panca, la zona dell'errore del cue 4); quattro segmenti
+  affollati alla spalla nel pannello 2. Tronco parallelo allo schienale.
+
 ## Specifiche chiuse — esito
 
 Chiuse il **2026-11-12** con il commit `47c7f6d`, verificate sul foglio di

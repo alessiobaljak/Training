@@ -91,6 +91,10 @@ restano corrette, traducibili e aggiornabili senza rigenerare niente.
 (`arrowUp`) dentro 1 figura di esercizio e 7 di gradino.
 
 ## 7. Formato e dimensioni
+**In revisione (B8, 2026-11-18)**: tratto 3 e attrezzi a `opacity 0.32` sono
+lo stile di oggi, non quello da tenere (attrezzi a 2,1:1 in chiaro, sotto il
+3:1). Le tre direzioni in prova sono in `STYLE_TRIALS.md`; questa sezione si
+riscrive quando Alessio sceglie.
 - SVG: `viewBox="0 0 210 110"`, `currentColor` ovunque, nessun colore fisso,
   `<title>` e `aria-label` sempre presenti (lo verifica `art.test.ts`).
   Tratto 3 per il corpo, 2–2,5 per gli attrezzi, attrezzi a `opacity 0.32`.
