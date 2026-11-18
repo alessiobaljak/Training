@@ -439,7 +439,14 @@ export function syncStatesFromLog(
 
 /**
  * Gli stati da salvare alla chiusura della seduta: quelli ricavati dal diario,
- * con sopra le leve accettate a fine seduta (training-quality A13).
+ * tranne gli esercizi su cui è stata accettata una leva (training-quality A13,
+ * L22).
+ *
+ * Lo stato accettato si scrive una volta sola, insieme alla traccia della
+ * scelta (`recordDecision`). Riscriverlo qui, da solo, voleva dire che se la
+ * traccia si perdeva lo stato cambiava lo stesso: R10b e R13, che leggono la
+ * traccia, lasciavano passare un secondo aumento (L22). E il diario non deve
+ * sovrascriverlo:
  *
  * Prima si salvavano solo i primi. `syncStatesFromLog` riscrive gradino e
  * chili da quello che la seduta ha registrato, cioè dal gradino a cui hai
@@ -452,13 +459,7 @@ export function statesToSave(
   synced: readonly ExerciseState[],
   accepted: ReadonlyMap<ExerciseSlug, ExerciseState>,
 ): ExerciseState[] {
-  const fuoriDaiSync = [...accepted.values()].filter(
-    (state) => !synced.some((entry) => entry.exercise === state.exercise),
-  );
-  return [
-    ...synced.map((entry) => accepted.get(entry.exercise) ?? entry),
-    ...fuoriDaiSync,
-  ];
+  return synced.filter((entry) => !accepted.has(entry.exercise));
 }
 
 /** Quello che serve di un suggerimento registrato, senza dipendere dal database. */

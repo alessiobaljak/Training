@@ -322,7 +322,8 @@ describe('ordine delle leve', () => {
       }),
     );
     expect(evaluation.suggestion?.lever).toBe('load');
-    expect(evaluation.suggestion?.change).toContain('2.5 kg');
+    /* I kg con la virgola (L17). */
+    expect(evaluation.suggestion?.change).toContain('2,5 kg');
   });
 
   it('propone sempre la leva più bassa ancora disponibile', () => {

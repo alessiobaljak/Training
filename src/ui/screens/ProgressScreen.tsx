@@ -68,14 +68,14 @@ export function ProgressScreen() {
       points.map((point) => {
         const notes: string[] = [];
         if (point.levelChanged) notes.push(point.level === null ? 'variante' : `Liv. ${String(point.level)}`);
-        if (point.loadChanged) notes.push(`${String(point.loadKg)} kg`);
+        if (point.loadChanged) notes.push(`${formatNumber(point.loadKg)} kg`);
         return {
           key: `${point.sessionLogId}-${point.blockCode}`,
           label: shortDate(point.date),
           segments: point.setTotals,
           total: point.total,
           marker: notes.length === 0 ? null : notes.join(' · '),
-          detail: `${point.variantLabel} · ${point.setLabels.join(' · ')} · ${String(point.total)} totali${point.loadKg > 0 ? ` · ${String(point.loadKg)} kg` : ''}`,
+          detail: `${point.variantLabel} · ${point.setLabels.join(' · ')} · ${String(point.total)} totali${point.loadKg > 0 ? ` · ${formatNumber(point.loadKg)} kg` : ''}`,
         };
       }),
     [points],

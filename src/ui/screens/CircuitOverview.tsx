@@ -8,7 +8,7 @@ import {
   isAutoComplete,
   minWorkSeconds,
 } from '../../engine/circuit.ts';
-import { formatDaysAgo, todayIso } from '../../engine/dates.ts';
+import { formatDaysAgo, formatNumber, todayIso } from '../../engine/dates.ts';
 import { lastLoggedByBlock, titleAtLevel, variantNoteAt } from '../../engine/draft.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
 import { initialExerciseState } from '../../engine/progression.ts';
@@ -84,7 +84,7 @@ function Riga({ block, contesto }: { readonly block: ProgramBlock; readonly cont
               volta scorsa{' '}
               <span className="font-semibold text-ink">
                 {riepilogo.sets.map((entry) => entry.label).join(' · ')}
-                {riepilogo.maxLoadKg > 0 ? ` · ${String(riepilogo.maxLoadKg)} kg` : ''}
+                {riepilogo.maxLoadKg > 0 ? ` · ${formatNumber(riepilogo.maxLoadKg)} kg` : ''}
               </span>
             </span>
           )}

@@ -1919,6 +1919,56 @@ try {
                 new RegExp(`${eccentricaAccettata}″\\s*discesa`).test(annuncioA1),
                 `A18: accettata l'eccentrica a ${eccentricaAccettata}", la seduta dopo deve annunciarla. Legge: ${JSON.stringify(annuncioA1.slice(0, 240))}`,
               );
+
+              /*
+               * A18, il peso: il player parte da quello dello stato, non da
+               * quello della volta scorsa. Si porta lo stato dello stacco
+               * rumeno a 14 kg, come dopo un manubrio accettato, e si legge
+               * il peso precompilato all'A2.
+               */
+              const stacco = (await readFromEmulator('exerciseStates')).find(
+                (doc) => doc.fields?.exercise?.stringValue === 'stacco-rumeno-manubri',
+              );
+              check(stacco !== undefined, 'A18: lo stacco rumeno della Seduta 2 deve avere uno stato salvato.');
+              if (stacco !== undefined) {
+                await updateInEmulator(stacco.name, { loadKg: { integerValue: '14' } });
+                /*
+                 * Lo stato si legge all'apertura della seduta: si aspetta che
+                 * la modifica arrivi all'app, poi si esce e si rientra.
+                 */
+                await page.waitForTimeout(2500);
+                await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+                await page.waitForTimeout(1500);
+                await page.goto(`${BASE}/#/seduta/circuito-2`, { waitUntil: 'load' });
+                await page.waitForTimeout(2000);
+                let suA2 = false;
+                for (let passo = 0; passo < 12; passo += 1) {
+                  if (/^A2\b/.test((await page.locator('main').innerText()).trim())) {
+                    suA2 = true;
+                    break;
+                  }
+                  const indietro = page.getByRole('button', { name: 'Passo precedente' });
+                  if ((await indietro.count()) === 0 || (await indietro.isDisabled())) break;
+                  await indietro.click();
+                  await page.waitForTimeout(300);
+                }
+                /* La stazione riaperta non parte da sola: «Via» mostra i campi. */
+                const via = page.getByRole('button', { name: 'Via', exact: true });
+                if (suA2 && (await via.count()) > 0) {
+                  await via.click();
+                  await page.waitForTimeout(400);
+                }
+                const campoPeso = page.getByLabel('Peso', { exact: true });
+                const peso = !suA2
+                  ? '(A2 non raggiunto)'
+                  : (await campoPeso.count()) === 0
+                    ? '(nessun campo Peso)'
+                    : await campoPeso.inputValue();
+                check(
+                  /^14([.,]0)?$/.test(peso),
+                  `A18: il peso precompilato deve essere quello dello stato, 14 kg. Legge «${peso}».`,
+                );
+              }
             }
           }
         }

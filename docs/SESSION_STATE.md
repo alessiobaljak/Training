@@ -80,6 +80,10 @@ degli altri progetti. Questa sessione gira ancora sul Default.
   nucleo di sicurezza continua a eseguirli per intero a ogni rilascio e a
   riportarli per quello che sono (FALLITO o NON COPERTO, mai PASS). Diventano
   Bloccanti il giorno in cui l'app ha un secondo utente.
+- **2026-11-18, Alessio: V-LEVE approvata** (griglia v4: mai due aumenti
+  dalle stesse sedute; prova 10.P, R10b, 13.P). Prossimo giro avviato: M18,
+  L18-L21, tempo minimo con i bonus (training-designer); L17, L22 e la prova
+  sul peso precompilato (sessione principale).
 - **2026-11-16, Alessio: sì ai tre punti di training-quality.** (1) Il criterio
   «non peggiorati» vale anche per gli Alti preesistenti A10, A16, A17: GO al
   push di R5-R8. (2) A17 (due aumenti in 4 giorni: carico in revisione dopo la

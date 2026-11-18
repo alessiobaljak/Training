@@ -1,3 +1,4 @@
+import { formatNumber } from './dates.ts';
 import {
   LOAD_CALIBRATION,
   LOAD_START_BASELINE_REPS,
@@ -167,7 +168,7 @@ export function calibrateLoad(sets: readonly LoggedSet[], currentKg: number): Lo
       suggestedKg: stepLoad(currentKg, 1),
       meanReps,
       meanRir,
-      message: `Media di ${String(meanReps)} ripetizioni: il carico è troppo leggero. Aggiungi ${String(LOAD_STEP_KG)} kg per tornare dentro ${String(LOAD_CALIBRATION.targetReps.min)}-${String(LOAD_CALIBRATION.targetReps.max)}.`,
+      message: `Media di ${String(meanReps)} ripetizioni: il carico è troppo leggero. Aggiungi ${formatNumber(LOAD_STEP_KG)} kg per tornare dentro ${String(LOAD_CALIBRATION.targetReps.min)}-${String(LOAD_CALIBRATION.targetReps.max)}.`,
     };
   }
   if (meanReps <= LOAD_CALIBRATION.decreaseAtOrBelow) {
@@ -177,7 +178,7 @@ export function calibrateLoad(sets: readonly LoggedSet[], currentKg: number): Lo
       suggestedKg: stepLoad(currentKg, -1),
       meanReps,
       meanRir,
-      message: `Media di ${String(meanReps)} ripetizioni: il carico è troppo pesante. Togli ${String(LOAD_STEP_KG)} kg.`,
+      message: `Media di ${String(meanReps)} ripetizioni: il carico è troppo pesante. Togli ${formatNumber(LOAD_STEP_KG)} kg.`,
     };
   }
   return { adjustment: 'hold', currentKg, suggestedKg: currentKg, meanReps, meanRir, message: null };

@@ -1,3 +1,4 @@
+import { formatNumber } from '../../engine/dates.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getExercise } from '../../data/exercises.ts';
 import { repository } from '../../db/repository.ts';
@@ -679,7 +680,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                   >
                     <span className="w-6 shrink-0 font-mono text-dim">{index}</span>
                     <span className="tabular flex-1 font-semibold">{label}</span>
-                    {kg > 0 ? <Badge>{kg} kg</Badge> : null}
+                    {kg > 0 ? <Badge>{formatNumber(kg)} kg</Badge> : null}
                     {rir !== null && rir !== undefined ? <Badge tone="neutral">RIR {rir}</Badge> : null}
                     <button
                       type="button"

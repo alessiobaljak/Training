@@ -1,3 +1,4 @@
+import { formatNumber } from '../../engine/dates.ts';
 import { useMemo, useState } from 'react';
 import { getExercise } from '../../data/exercises.ts';
 import {
@@ -286,7 +287,7 @@ export function SessionSummary({
                     {summary.sets.map((entry) => entry.label).join(' · ')}
                   </p>
                   {summary.maxLoadKg > 0 ? (
-                    <p className="tabular text-xs text-dim">{summary.maxLoadKg} kg</p>
+                    <p className="tabular text-xs text-dim">{formatNumber(summary.maxLoadKg)} kg</p>
                   ) : null}
                 </div>
               </div>

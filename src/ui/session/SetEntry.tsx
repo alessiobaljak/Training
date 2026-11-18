@@ -1,3 +1,4 @@
+import { formatNumber } from '../../engine/dates.ts';
 import { classifyValue, formatRange } from '../../engine/ranges.ts';
 import { parseRir } from '../../engine/notation.ts';
 import { LOAD_STEP_KG } from '../../data/method.ts';
@@ -254,7 +255,7 @@ export function SetEntry({
               unit="kg"
               step={LOAD_STEP_KG}
               max={80}
-              hint={`Solo passi da ${String(LOAD_STEP_KG)} kg`}
+              hint={`Solo passi da ${formatNumber(LOAD_STEP_KG)} kg`}
             />
             {load.explanation !== null ? (
               <p className="mt-2 text-xs leading-relaxed text-dim">{load.explanation}</p>

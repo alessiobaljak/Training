@@ -611,21 +611,32 @@ describe('statesToSave — la leva accettata vince sul diario (training-quality 
     loadKg: 0,
   };
 
+  /*
+   * Lo stato accettato lo scrive `recordDecision`, insieme alla traccia (L22).
+   * Qui conta che il diario non lo sovrascriva e che non venga riscritto da
+   * solo, senza traccia.
+   */
   it('il gradino accettato non torna quello delle serie', () => {
     const daDiario = [{ ...base, level: 1 as LevelIndex }];
     const accettate = new Map([[base.exercise, { ...base, level: 3 as LevelIndex }]]);
-    expect(statesToSave(daDiario, accettate)).toEqual([{ ...base, level: 3 }]);
+    expect(statesToSave(daDiario, accettate)).toEqual([]);
   });
 
   it('la zavorra accettata non torna quella registrata', () => {
     const dip: ExerciseState = { ...base, exercise: 'dip-parallele-anelli', loadKg: 5 };
     const accettate = new Map([[dip.exercise, { ...dip, loadKg: 7.5 }]]);
-    expect(statesToSave([dip], accettate)).toEqual([{ ...dip, loadKg: 7.5 }]);
+    expect(statesToSave([dip], accettate)).toEqual([]);
   });
 
-  it('una leva accettata su un esercizio che il diario non tocca si salva lo stesso', () => {
+  it('una leva accettata non si riscrive alla chiusura senza la sua traccia', () => {
     const accettate = new Map([[base.exercise, { ...base, eccentricBonusSeconds: 1 }]]);
-    expect(statesToSave([], accettate)).toEqual([{ ...base, eccentricBonusSeconds: 1 }]);
+    expect(statesToSave([], accettate)).toEqual([]);
+  });
+
+  it('gli altri esercizi del diario si salvano', () => {
+    const dip: ExerciseState = { ...base, exercise: 'dip-parallele-anelli', loadKg: 5 };
+    const accettate = new Map([[base.exercise, { ...base, level: 3 as LevelIndex }]]);
+    expect(statesToSave([{ ...base, level: 1 as LevelIndex }, dip], accettate)).toEqual([dip]);
   });
 
   it('senza leve accettate restano gli stati del diario', () => {
@@ -709,7 +720,8 @@ describe('sessionDecisions — le scelte sopravvivono a una ricarica (training-q
   it('una scelta locale vale prima che il database la restituisca', () => {
     const scelte = sessionDecisions('s1', [], [accettata], new Map([[prima.exercise, dopo]]));
     expect(scelte.decided.has('s1:A1')).toBe(true);
-    expect(statesToSave([], scelte.accepted)).toEqual([dopo]);
+    /* Lo stato accettato lo scrive recordDecision con la traccia (L22): qui conta che sia fra le scelte. */
+    expect(scelte.accepted.get(dopo.exercise)).toEqual(dopo);
   });
 
   it('un rimando non lascia niente da salvare', () => {

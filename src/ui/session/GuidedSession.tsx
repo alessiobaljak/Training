@@ -29,6 +29,7 @@ import {
 import type { RecordedDecision } from '../../engine/draft.ts';
 import { useSuggestions } from '../hooks/useData.ts';
 import { effectiveTempo, initialExerciseState } from '../../engine/progression.ts';
+import { formatNumber } from '../../engine/dates.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
 import type { LoadAvailability } from '../../engine/loading.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
@@ -360,7 +361,7 @@ function leggiStazione(step: GuidedWorkStep, contesto: Contesto): Stazione | nul
     riepilogo === null || riepilogo.sets.length === 0
       ? null
       : `${riepilogo.sets.map((entry) => entry.label).join(' · ')}${
-          riepilogo.maxLoadKg > 0 ? ` · ${String(riepilogo.maxLoadKg)} kg` : ''
+          riepilogo.maxLoadKg > 0 ? ` · ${formatNumber(riepilogo.maxLoadKg)} kg` : ''
         }`;
 
   return {

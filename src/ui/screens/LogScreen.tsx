@@ -3,7 +3,7 @@ import { findExercise } from '../../data/exercises.ts';
 import { findAnySession } from '../../data/sessions.ts';
 import { csvFileName, sessionsToCsv } from '../../db/csv.ts';
 import { filterLogRows, logRows, loggedExerciseSlugs } from '../../engine/history.ts';
-import { addDays, formatDayShort, plural, todayIso } from '../../engine/dates.ts';
+import { addDays, formatDayShort, formatNumber, plural, todayIso } from '../../engine/dates.ts';
 import { downloadTextFile } from '../download.ts';
 import { useSessions } from '../hooks/useData.ts';
 import { Button, Card, Screen } from '../components/primitives.tsx';
@@ -84,7 +84,7 @@ function Riga({ row }: { readonly row: LogRow }) {
         <span className="block text-sm font-semibold">
           {row.setLabels.map((label) => `${label}${unita}`).join(' · ')}
         </span>
-        {row.loadKg > 0 ? <span className="block text-xs text-dim">{row.loadKg} kg</span> : null}
+        {row.loadKg > 0 ? <span className="block text-xs text-dim">{formatNumber(row.loadKg)} kg</span> : null}
       </span>
     </li>
   );

@@ -875,7 +875,7 @@ function buildSuggestion(
       return {
         lever,
         title,
-        change: `Passa da ${String(state.loadKg)} kg a ${String(next)} kg. Punta a 6-8 ripetizioni con RIR 1.`,
+        change: `Passa da ${kg(state.loadKg)} a ${kg(next)}. Punta a 6-8 ripetizioni con RIR 1.`,
         warning: null,
         nextState: { ...state, loadKg: next },
       };

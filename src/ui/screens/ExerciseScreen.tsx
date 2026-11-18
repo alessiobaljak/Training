@@ -1,3 +1,4 @@
+import { formatNumber } from '../../engine/dates.ts';
 import { useState } from 'react';
 import { findExercise } from '../../data/exercises.ts';
 import { getProgressionScale } from '../../data/progressions.ts';
@@ -233,7 +234,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
                 <li key={`${point.sessionLogId}-${point.blockCode}`} className="flex items-baseline gap-3 text-sm">
                   <span className="tabular w-14 shrink-0 text-dim">{point.date.slice(5)}</span>
                   <span className="tabular flex-1 font-semibold">{point.setLabels.join(' · ')}</span>
-                  {point.loadKg > 0 ? <Badge>{point.loadKg} kg</Badge> : null}
+                  {point.loadKg > 0 ? <Badge>{formatNumber(point.loadKg)} kg</Badge> : null}
                   {point.levelChanged ? <Badge tone="good">nuovo liv.</Badge> : null}
                 </li>
               ))}
