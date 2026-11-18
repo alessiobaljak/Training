@@ -24,7 +24,7 @@ export function StopwatchField({ label, seconds, onChange }: StopwatchFieldProps
     <div>
       <p className="mb-2 text-sm font-medium text-dim">{label}</p>
 
-      <div className="rounded-2xl border border-line bg-surface p-4 text-center">
+      <div className="glass rounded-3xl p-4 text-center">
         <p className="tabular text-6xl font-semibold">
           {formatClock(stopwatch.running || stopwatch.seconds > 0 ? stopwatch.seconds : seconds)}
         </p>

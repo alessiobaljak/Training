@@ -152,7 +152,7 @@ export function MeasuresScreen() {
                       setWeightDraft(null);
                     }}
                     aria-pressed={isSelected}
-                    className={`flex min-h-16 w-full flex-col items-center justify-center rounded-xl border text-xs ${
+                    className={`flex min-h-16 w-full flex-col items-center justify-center rounded-2xl border text-xs ${
                       isSelected
                         ? 'border-accent bg-accent/20 text-ink'
                         : value === undefined

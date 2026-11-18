@@ -224,7 +224,7 @@ export function SetEntry({
                   type="button"
                   onClick={() => { setRir(choice); }}
                   aria-pressed={active}
-                  className={`min-h-14 flex-1 rounded-2xl border text-base font-semibold ${
+                  className={`min-h-14 flex-1 rounded-full border text-base font-semibold ${
                     active
                       ? 'border-accent bg-accent/20 text-ink'
                       : onTarget

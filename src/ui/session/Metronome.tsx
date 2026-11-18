@@ -92,7 +92,7 @@ export function Metronome({ tut }: { readonly tut: Tut }) {
             setStartedAt((value) => (value === null ? Date.now() : null));
           }}
           aria-label={startedAt === null ? 'Avvia il metronomo' : 'Ferma il metronomo'}
-          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-xl font-semibold ${
+          className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-xl font-semibold ${
             startedAt === null ? 'bg-panel text-dim ring-1 ring-line' : 'bg-accent text-accent-ink'
           }`}
         >

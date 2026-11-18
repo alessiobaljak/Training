@@ -251,7 +251,7 @@ function Intestazione({
           onClick={onIndietro}
           disabled={!indietroAttivo}
           aria-label="Passo precedente"
-          className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-2xl text-dim disabled:opacity-30 active:bg-panel"
+          className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-2xl text-dim disabled:opacity-30 active:bg-panel"
         >
           ‹
         </button>
@@ -276,7 +276,7 @@ function Intestazione({
           type="button"
           onClick={onEsci}
           aria-label="Esci dalla seduta"
-          className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm text-dim active:bg-panel"
+          className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm text-dim active:bg-panel"
         >
           Esci
         </button>
@@ -398,7 +398,7 @@ function Tempo({ fasi }: { readonly fasi: readonly TempoStep[] }) {
       {fasi.map((fase) => (
         <span
           key={fase.label}
-          className="inline-flex items-baseline gap-1 rounded-lg bg-panel px-2 py-1 text-xs text-dim"
+          className="inline-flex items-baseline gap-1 rounded-full bg-panel/80 px-2.5 py-1 text-xs text-dim"
         >
           <span className="tabular font-semibold text-ink">{fase.value}</span>
           {fase.label}
@@ -430,7 +430,7 @@ function Prescrizione({ stazione }: { readonly stazione: Stazione }) {
 function NotaVariante({ testo }: { readonly testo: string | undefined }) {
   if (testo === undefined) return null;
   return (
-    <p className="mt-3 rounded-xl border-l-4 border-accent bg-accent/10 px-3 py-2 text-sm leading-relaxed">
+    <p className="mt-3 rounded-2xl border-l-4 border-accent bg-accent/10 px-3 py-2 text-sm leading-relaxed">
       {testo}
     </p>
   );

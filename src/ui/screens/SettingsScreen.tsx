@@ -589,7 +589,7 @@ export function SettingsScreen() {
                   aria-label={`Scrivi ${CONFERMA_AZZERAMENTO} per confermare`}
                   autoComplete="off"
                   autoCapitalize="characters"
-                  className="mt-3 min-h-14 w-full rounded-xl border border-line-strong bg-surface px-4 font-mono text-lg"
+                  className="mt-3 min-h-14 w-full rounded-full border border-line-strong bg-surface px-5 font-mono text-lg"
                 />
                 <div className="mt-3 flex gap-2">
                   <Button

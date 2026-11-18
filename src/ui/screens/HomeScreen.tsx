@@ -220,7 +220,7 @@ export function HomeScreen() {
           type="button"
           onClick={() => { navigate({ name: 'settings' }); }}
           aria-label="App e dati"
-          className="-mr-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-dim active:bg-panel"
+          className="-mr-2 flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-dim active:bg-panel"
         >
           <IconaImpostazioni />
         </button>
@@ -454,7 +454,7 @@ export function HomeScreen() {
                 const serie = contaSerie(entry);
                 const nome = findAnySession(entry.sessionId)?.name ?? entry.sessionId;
                 return (
-                  <li key={entry.id} className="rounded-xl border border-line bg-panel p-3">
+                  <li key={entry.id} className="rounded-2xl border border-line bg-panel/70 p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold">{nome}</p>

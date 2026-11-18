@@ -124,7 +124,7 @@ export function ExerciseArt({
               src={url}
               alt={index === 0 ? 'Posizione di partenza' : 'Posizione di arrivo'}
               loading="lazy"
-              className={`min-w-0 flex-1 rounded-xl bg-white ${compact ? 'max-h-36 object-contain' : ''}`}
+              className={`min-w-0 flex-1 rounded-2xl bg-white ${compact ? 'max-h-36 object-contain' : ''}`}
             />
           ))}
         </div>

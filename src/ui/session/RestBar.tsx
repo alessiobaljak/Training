@@ -48,7 +48,7 @@ export function RestBar({ rest, nextLabel, onDismiss }: RestBarProps) {
         type="button"
         onClick={onDismiss}
         aria-label="Chiudi il recupero"
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl text-dim active:bg-panel"
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-xl text-dim active:bg-panel"
       >
         ×
       </button>

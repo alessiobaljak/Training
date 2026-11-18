@@ -89,7 +89,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
                         type="button"
                         aria-pressed={aperto}
                         onClick={() => { setEspanso(aperto ? null : step.level); }}
-                        className={`flex min-h-12 w-full items-center gap-3 rounded-xl border px-3 text-left text-sm ${
+                        className={`flex min-h-12 w-full items-center gap-3 rounded-2xl border px-3 text-left text-sm ${
                           current
                             ? 'border-accent bg-accent/15 font-semibold'
                             : aperto
@@ -105,7 +105,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
                       </button>
 
                       {aperto ? (
-                        <div className="mt-1 rounded-xl border border-line bg-surface p-3">
+                        <div className="mt-1 rounded-2xl border border-line bg-surface/80 p-3">
                           <p className="text-sm leading-relaxed text-dim">
                             {current
                               ? 'È il gradino su cui stai lavorando adesso.'

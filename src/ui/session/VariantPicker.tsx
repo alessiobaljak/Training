@@ -65,7 +65,7 @@ export function VariantPicker({
       <button
         type="button"
         onClick={() => { setExpanded(true); }}
-        className="flex min-h-14 w-full items-center justify-between rounded-2xl border border-line-strong bg-panel px-4 text-left"
+        className="flex min-h-14 w-full items-center justify-between rounded-full border border-line-strong/60 glass px-5 text-left"
       >
         <span className="min-w-0">
           <span className="block text-xs text-dim">Variante / Livello</span>
@@ -113,7 +113,7 @@ export function VariantPicker({
                   type="button"
                   onClick={() => { pick(level); }}
                   aria-pressed={active}
-                  className={`flex min-h-14 w-full items-center gap-3 rounded-xl border px-3 text-left text-sm ${
+                  className={`flex min-h-14 w-full items-center gap-3 rounded-2xl border px-3 text-left text-sm ${
                     active ? 'border-accent bg-accent/15 font-semibold' : 'border-line-strong bg-panel text-dim'
                   }`}
                 >

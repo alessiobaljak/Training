@@ -438,7 +438,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                 type="button"
                 onClick={() => { goToStep(pending === -1 ? first : pending); }}
                 aria-pressed={active}
-                className={`min-h-12 min-w-14 shrink-0 rounded-xl border px-3 font-mono text-sm font-semibold ${
+                className={`min-h-12 min-w-14 shrink-0 rounded-full border px-3 font-mono text-sm font-semibold ${
                   active
                     ? 'border-accent bg-accent/20 text-ink'
                     : groupDone
@@ -500,7 +500,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             <button
               type="button"
               onClick={() => { navigate({ name: 'exercise', slug: exercise.slug }); }}
-              className="min-h-12 shrink-0 rounded-xl border border-line-strong px-3 text-xs text-dim"
+              className="min-h-12 shrink-0 rounded-full border border-line-strong px-3 text-xs text-dim"
             >
               Scheda
             </button>
@@ -676,7 +676,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                 return (
                   <li
                     key={index}
-                    className="flex items-center gap-3 rounded-xl border border-line bg-panel px-3 py-2 text-sm"
+                    className="flex items-center gap-3 rounded-2xl border border-line bg-panel/70 px-3 py-2 text-sm"
                   >
                     <span className="w-6 shrink-0 font-mono text-dim">{index}</span>
                     <span className="tabular flex-1 font-semibold">{label}</span>

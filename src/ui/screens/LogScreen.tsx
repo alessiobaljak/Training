@@ -154,7 +154,7 @@ export function LogScreen() {
               type="button"
               onClick={() => { setPeriod(entry.key); }}
               aria-pressed={period === entry.key}
-              className={`min-h-12 flex-1 rounded-xl border text-sm font-semibold ${
+              className={`min-h-12 flex-1 rounded-full border text-sm font-semibold ${
                 period === entry.key
                   ? 'border-accent bg-accent/20 text-ink'
                   : 'border-line-strong bg-panel text-dim'

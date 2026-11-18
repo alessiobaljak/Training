@@ -65,7 +65,7 @@ function Riga({ block, contesto }: { readonly block: ProgramBlock; readonly cont
         onClick={() => { navigate({ name: 'exercise', slug: exercise.slug }); }}
         className="flex w-full items-center gap-3 rounded-2xl border border-line bg-panel p-3 text-left active:bg-line"
       >
-        <span className="flex h-16 w-16 shrink-0 items-center overflow-hidden rounded-xl bg-canvas text-ink">
+        <span className="flex h-16 w-16 shrink-0 items-center overflow-hidden rounded-2xl bg-white text-ink">
           <ExerciseArt slug={exercise.slug} level={gradino} caption={false} frame="last" />
         </span>
         <span className="min-w-0 flex-1">
@@ -255,7 +255,7 @@ export function CircuitOverview({ sessionId }: { readonly sessionId: SessionId }
                 ))}
               </ul>
               {compito === undefined ? null : (
-                <p className="mt-2 rounded-xl border-l-4 border-accent bg-accent/10 px-3 py-2 text-sm leading-relaxed">
+                <p className="mt-2 rounded-2xl border-l-4 border-accent bg-accent/10 px-3 py-2 text-sm leading-relaxed">
                   <span className="font-semibold">Nella pausa alla fine:</span> {compito}
                 </p>
               )}

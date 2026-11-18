@@ -29,8 +29,12 @@ export function BottomNav({ current }: { current: Route }) {
     (tab.route.name === 'home' && current.name === 'scheda');
 
   return (
-    <nav className="safe-bottom shrink-0 border-t border-line bg-canvas">
-      <ul className="mx-auto flex w-full max-w-lg">
+    /*
+      Una capsula di vetro che galleggia sopra il fondo (liquid glass). La
+      scheda attiva ha la sua lente dentro la capsula.
+    */
+    <nav className="safe-bottom shrink-0 px-3 pt-2">
+      <ul className="glass mx-auto flex w-full max-w-lg rounded-full p-1.5">
         {TABS.map((tab) => (
           <li key={tab.label} className="flex-1">
             <button
@@ -39,8 +43,8 @@ export function BottomNav({ current }: { current: Route }) {
                 navigate(tab.route);
               }}
               aria-current={isActive(tab) ? 'page' : undefined}
-              className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 pt-2 pb-1 text-[11px] font-medium ${
-                isActive(tab) ? 'text-accent' : 'text-dim'
+              className={`flex min-h-14 w-full flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                isActive(tab) ? 'bg-accent/12 text-accent' : 'text-dim active:bg-panel/60'
               }`}
             >
               {tab.icon}
