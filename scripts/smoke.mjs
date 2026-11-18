@@ -1921,10 +1921,11 @@ try {
               );
 
               /*
-               * A18, il peso: il player parte da quello dello stato, non da
-               * quello della volta scorsa. Si porta lo stato dello stacco
-               * rumeno a 14 kg, come dopo un manubrio accettato, e si legge
-               * il peso precompilato all'A2.
+               * A18, il peso: senza una seduta precedente da cui ripartire, il
+               * player parte dal peso dello stato e non da zero. Si porta lo
+               * stato dello stacco rumeno a 14 kg e si legge il peso
+               * precompilato all'A2. Con una seduta precedente, sui manubri
+               * vale quella (R14d, `pesoIniziale` nei test unitari).
                */
               const stacco = (await readFromEmulator('exerciseStates')).find(
                 (doc) => doc.fields?.exercise?.stringValue === 'stacco-rumeno-manubri',

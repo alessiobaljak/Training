@@ -438,6 +438,21 @@ export function syncStatesFromLog(
 }
 
 /**
+ * Il peso da cui parte una serie nel player (A18, R14d).
+ *
+ * La zavorra si aggiunge a passi esatti: si parte dallo stato, che dopo una
+ * leva accettata è il peso nuovo. Sui manubri lo stato accettato è un tetto,
+ * «al massimo +2,5 kg», non il manubrio che si ha: si parte dal peso della
+ * volta scorsa, e quello vero lo scrive l'atleta. Precompilare il tetto
+ * faceva registrare 14,5 kg a chi era rimasto a 12, e la leva dopo
+ * proponeva 17 (R-7).
+ */
+export function pesoIniziale(inerente: boolean, dalloStato: number, dallaVoltaScorsa: number): number {
+  if (inerente && dallaVoltaScorsa > 0) return dallaVoltaScorsa;
+  return dalloStato > 0 ? dalloStato : dallaVoltaScorsa;
+}
+
+/**
  * Gli stati da salvare alla chiusura della seduta: quelli ricavati dal diario,
  * tranne gli esercizi su cui è stata accettata una leva (training-quality A13,
  * L22).

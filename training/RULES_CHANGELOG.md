@@ -5,15 +5,30 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## In produzione oggi
 
-**`a747e09` (2026-11-16): R5, R6, R7 (progressione 2.0) e R8 (progressi 2.0),
-senza R9.** GO di training-quality del 2026-11-15; Alessio ha esteso il 2026-11-16
-l'eccezione «non peggiorati» agli Alti preesistenti (A10, A16, A17). Il resto del
-comportamento è il codice trascritto con `[IN CODICE]` nei file di metodo.
+**`fe85203` (2026-11-16): progressione 3.0, progressi 3.0, consigli 3.0** (R5-R8,
+R10-R13 con D-4 a e R10c-1, più A18 nel player), GO di training-quality su
+`cf7588a`. Prima: `a747e09` (R5-R8). R9 non ancora. Il resto del comportamento è
+il codice trascritto con `[IN CODICE]` nei file di metodo.
 
 ## Voci aperte
 
+### progressione 4.0 · progressi 3.1 · consigli 4.0 · programmi 2.2 · limiti 1.4
+- **Data.** 2026-11-18. **Stato.** PROPOSTA; `src/` non toccato (codice a `374176b`).
+- **Cosa.** R14 (M18): scelta in salita non eseguita ⇒ stato a `stateBefore`,
+  record `lapsed`, non conta per R13; R14b leve a fine seduta solo allo stato;
+  R14c R10b legge i `lapsed`; R14d peso proposto per il manubrio; R14e peso non
+  scritto (L2). R15 (L18, L19): solo una scelta sulla stessa grandezza spiega il
+  diario, valore in `(B, T]`; data dell'esecuzione. R16 (L20): famiglia
+  `scarico` in R11. R17 (L21): R13 solo con una leva, data più lontana fra R7 e
+  R13. R18: minimo della stazione + Δrip × n × lati.
+- **Perché.** Quality 2026-11-16 (M18 Medio, L18-L21 Bassi); sessione principale
+  (minimo). Giro approvato da Alessio il 2026-11-18.
+- **Major.** Record e motivo nuovi (`lapsed`, `decaduta`); R15 sposta date (13.3,
+  13.4, B12). Nessuna soglia approvata allentata: R14b, R15 stringono.
+- **Esito training-quality.** Non ancora valutato.
+
 ### progressione 3.0 · progressi 3.0 · consigli 3.0 · limiti 1.3
-- **Data.** 2026-11-16. **Stato.** PROPOSTA; `src/` non toccato.
+- **Data.** 2026-11-16. **Stato.** In produzione `fe85203`.
 - **Cosa.** R10 (A17): revisione nell'ordine delle leve della fine seduta,
   stato completo dal registro (bonus di tempo e pausa), manubri: R10c-0 subito,
   R10c-1 se D-19. R11 (M17): `rimandati` solo con stato cambiato o seduta nuova
@@ -24,7 +39,8 @@ comportamento è il codice trascritto con `[IN CODICE]` nei file di metodo.
   per proposta) trovato leggendo il codice.
 - **Major.** Ingresso nuovo (registro), elenchi e motivi nuovi. Nessuna soglia
   approvata allentata. Cambiano atteso 6.4-6.7, 6.10, 6.11, 8.19, 8.27.
-- **Esito training-quality.** Non ancora valutato.
+- **Esito training-quality (2026-11-16).** GO al push di `cf7588a`: A17, M17,
+  L15 chiusi, B12 (S2 per proposta) aperto e chiuso; nuovi M18, L18-L22.
 
 ### progressione 2.0 · progressi 2.0 · consigli 2.0 · programmi 2.1 · limiti 1.2
 - **Data.** 2026-11-14

@@ -268,6 +268,23 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   ripetizioni: è il segno che il carico è aumentato davvero.» Kg con la virgola
   (L17). Con R10c-0 nessun testo nuovo: `leve-finite` com'è.
 
+**Consigli 4.0 — R14-R17 `[PROPOSTA, 2026-11-18]`** (rapporto 2026-11-18, varianti lì).
+- R14a: «Oggi hai usato <B> kg, il peso di prima: la scelta del <giorno> (<cosa>)
+  non è stata eseguita e si toglie.[ Tempo e pausa tornano a quelli che avevi su
+  <B> kg.] Il prossimo passo si valuta dalla prossima seduta.» (+ «meno di prima», livello).
+- R14b: «Oggi hai usato <v> kg e lo stato era <L> kg: da qui comanda quello che hai
+  scritto[, e tempo e pausa tornano a quelli della scheda]. Il prossimo passo si
+  valuta dalla prossima seduta a <v> kg.» (+ livello, «in questo blocco»).
+- R14c `rimandati` `decaduta` · R14d stazione «Manubrio successivo: al massimo <T>
+  kg. Scrivi il peso che usi davvero; se resti a <B> kg la scelta si toglie…» · R14e
+  «Peso non scritto: lo stato resta <L> kg…».
+- R15 `<cosa>`: «carico <B> → <v> kg, scelta del <giorno>», «livello <B> → <v>,
+  scelta del <giorno>»; manubrio in attesa «manubrio successivo scelto, al massimo <T> kg».
+- R16 T-S2: «Le due sedute lette sono di scarico (<g1> e <g2>): niente aumenti da
+  quei numeri. Si riprende con due sedute piene.» + « Rifatto <giorno>: <valori>.»
+- R17b code: «Un aumento per esercizio ogni 7 giorni: si può proporre dal <dal13>.»
+  (variante) · «… non prima del <dal13>.» (tempo, pausa). R17c: nessun testo nuovo.
+
 **Rientro (R9) — Home e player.**
 - Prima della seduta: «Sono passati <g> giorni dall'ultima seduta. Le prossime
   <4> sedute sono ridotte: stessi esercizi, stesso ordine, <2> giri invece di

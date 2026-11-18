@@ -25,6 +25,7 @@ import {
   upsertLoggedSet,
   variantLabelFor,
   variantNoteAt,
+  pesoIniziale,
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
 import { useSuggestions } from '../hooks/useData.ts';
@@ -1030,7 +1031,16 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
    * tornava indietro.
    */
   const kgDalloStato = contesto.states.get(stazione?.esercizio.slug ?? step.exercise)?.loadKg ?? 0;
-  const [kg, setKg] = useState(kgDalloStato > 0 ? kgDalloStato : (suggerito?.loadKg ?? 0));
+  /*
+   * Sui manubri lo stato accettato è un tetto, «al massimo +2,5 kg», non il
+   * peso che si ha in mano (R14d): precompilarlo faceva registrare 14,5 kg a
+   * chi era rimasto a 12, e la leva dopo proponeva 17 (R-7). Lì si parte dal
+   * peso della volta scorsa, e il peso vero lo scrive l'atleta. La zavorra
+   * invece si aggiunge a passi esatti: lì vale lo stato.
+   */
+  const [kg, setKg] = useState(
+    pesoIniziale(stazione?.esercizio.loadPolicy === 'inherent', kgDalloStato, suggerito?.loadKg ?? 0),
+  );
 
   /* La serie è cominciata: da qui in poi comanda la registrazione. */
   const partita = cronometro.running || cronometro.seconds > 0;

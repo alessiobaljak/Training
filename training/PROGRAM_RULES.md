@@ -157,6 +157,13 @@ inverted-row-trx, pike-push-up, bulgarian-split-squat, hollow-hold.
 - Durata minima di serie: `workSeconds`, oppure calcolata da TUT × minimo del
   range. Non è un tetto: è il monito che 8 ripetizioni a 3-0-1-0 durano 32
   secondi e chiuderle in 18 vuol dire che il tempo non c'era.
+  **R18** `[PROPOSTA, programmi 2.2 — 2026-11-18]`: con lo stato σ della
+  stazione, `minimo = minWorkSeconds(…) + Δrip × n × lati`, dove `Δrip =
+  repDurationSeconds(effectiveTempo(tut, σ)) − repDurationSeconds(parseTut(tut))`,
+  `n` è il minimo del range (myo-reps: attivazione; altrimenti niente aggiunta) e
+  `lati` = 2 se eseguita per lato. Per serie. A bonus 0 resta identico a oggi.
+  Stesso numero per countdown, «Deve durare almeno», anteprima, riepilogo del
+  circuito, stima (trazioni +2″/+2″: 30 → 54). Prove 18.x: rapporto 2026-11-18.
 - Recupero: quattro livelli, §2.
 
 ## 5. Durata massima della seduta

@@ -13,20 +13,21 @@ W-19…W-22 (R5-R8) chiusi in codice, in produzione `a747e09`: `ARCHIVE.md`.
 |---|---|---|---|
 | W-23 | R9 rientro, R9a ritest, R9b separabile (M4) | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts` (motore), `HomeScreen.tsx` | sessione principale |
 
-## Giro 2026-11-16 — A17, M17, L15, D-4 (spec: rapporto 2026-11-16, T-1…T-9)
+W-24…W-31 (giro 2026-11-16, R10-R13): in produzione `fe85203`, `ARCHIVE.md`.
 
-Ordine: W-24 → W-25 → W-26 → W-27 → W-28 → W-29, un rilascio. Poi W-30, W-31.
+## Giro 2026-11-18 — M18, L18-L21, minimo (spec: rapporto 2026-11-18, T-10…T-16)
 
-| id | cosa | dove | gravità |
+Rilascio A: W-32 → W-33 → W-34 → W-35 → W-36. Rilascio B: W-37. Gli attesi
+vengono dal rapporto (13.3, 13.4, B12, Q1, Q2 cambiano).
+
+| id | cosa | dove | gravità (quality) |
 |---|---|---|---|
-| W-24 | R12 due date diverse (L15) | `review.ts` | Basso |
-| W-25 | Registro in ingresso a revisione e fine seduta, scrittura atomica stato + record | `types`, `review.ts`, `progression.ts`, `GuidedSession`, `SessionScreen`, `ReviewScreen` | prerequisito |
-| W-26 | R10a ordine delle leve in revisione + R10c-0 niente carico su `inherent` (A17; assorbe W-10) | `progression.ts` (`leveDiTempo`), `review.ts` | Alto |
-| W-27 | R10b stato completo dal registro (A17) | `review.ts` | Alto |
-| W-28 | R11 rimandati solo con stato cambiato o smentita (M17) + scheda della Home | `review.ts`, `ReviewScreen`, `HomeScreen` | Medio |
-| W-29 | R13a S2 su 7 giorni (rischio R-1, da misurare da quality) | `progression.ts`, `review.ts` | da quality |
-| W-30 | R13b, dopo D-4 | come W-29 | — |
-| W-31 | R10c-1 manubrio = leva 5, dopo D-19 e W-29; `formatKg` con la virgola (L17) | `method.ts`, `progression.ts`, `review.ts` | — |
+| W-32 | R18 minimo della stazione con i bonus (T-10) | `circuit.ts`, `GuidedSession`, `CircuitOverview` | trovato dalla sessione principale |
+| W-33 | R16 «scarico» = «scarico-coppia» in R11, testo T-S2 (T-11) | `review.ts` | L20 Basso |
+| W-34 | R17 R13 solo con una leva, data più lontana fra R7 e R13 (T-12) | `progression.ts`, `review.ts` | L21 Basso |
+| W-35 | R15 esecuzione di una scelta, data dell'esecuzione (T-13) | `progression.ts` | L18, L19 Bassi |
+| W-36 | R14b fine seduta allo stato (T-14) | `progression.ts`, `SessionSummary` | M18 (parte) |
+| W-37 | R14a/c/e + record `lapsed` (T-15), poi R14d peso proposto (T-16, D-19 b) | `types`, `draft.ts`, `review.ts`, `backup.ts`, `GuidedSession` | M18 Medio, L2; dipende da L22 |
 
 ## Bloccanti per l'uso pubblico
 
@@ -67,4 +68,5 @@ Ordine: W-24 → W-25 → W-26 → W-27 → W-28 → W-29, un rilascio. Poi W-30
 | W-10 | Il titolo di `aggiungi-peso` dice «passa al manubrio successivo» anche sulla kettlebell (salti di 4 kg). **Assorbito da W-26** (R10c-0); con R10c-1 kettlebell fuori dall'elenco |
 | W-11 | `SESSIONS_PER_WEEK` in `ProgressScreen.tsx` è corretto (4) ma il commento sopra dice «sei»: denominatore dell'aderenza, vale la pena che il commento non menta |
 | W-12 | Tetto di durata della seduta (PROGRAM_RULES §5): oggi `estimatedMinutes` è un dato scritto a mano, 40 su tutti e quattro i circuiti |
+| W-38 | Scarico: una leva accettata nell'ultima seduta prima dello scarico si esegue nello scarico (E4 guarda la seduta che propone). In attesa della misura di quality (domanda 5 del 2026-11-18) |
 | W-13 | Il riscaldamento non è saltabile dall'app quando la seduta ha un blocco a RIR 0-1 o una stazione balistica (METHOD §7) |

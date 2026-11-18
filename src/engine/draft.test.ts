@@ -10,6 +10,7 @@ import {
   sessionDurationSeconds,
   sessionDecisions,
   statesToSave,
+  pesoIniziale,
   plannedSets,
   removeLoggedSet,
   sessionProgress,
@@ -729,5 +730,21 @@ describe('sessionDecisions — le scelte sopravvivono a una ricarica (training-q
     const scelte = sessionDecisions('s1', [rimandata], [], new Map([[prima.exercise, prima]]));
     expect(scelte.decided.has('s1:A1')).toBe(true);
     expect(scelte.accepted.size).toBe(0);
+  });
+});
+
+describe('pesoIniziale — da che peso parte la serie (A18, R14d)', () => {
+  it('zavorra: dallo stato, che dopo una leva accettata è il peso nuovo', () => {
+    expect(pesoIniziale(false, 2.5, 0)).toBe(2.5);
+    expect(pesoIniziale(false, 5, 2.5)).toBe(5);
+  });
+
+  it('manubri: dalla volta scorsa, perché lo stato accettato è solo un tetto (R-7)', () => {
+    expect(pesoIniziale(true, 14.5, 12)).toBe(12);
+  });
+
+  it('senza volta scorsa, dallo stato; senza niente, zero', () => {
+    expect(pesoIniziale(true, 14, 0)).toBe(14);
+    expect(pesoIniziale(false, 0, 0)).toBe(0);
   });
 });

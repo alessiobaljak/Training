@@ -173,7 +173,7 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: `fe85203` (R10-R13 + A18, 2026-11-16, training-quality GO su `cf7588a`); prima: `721fd42` (codice di `a747e09`, R5-R8).
+- in produzione: R-7 corretto (2026-11-18, manubri precompilati dalla volta scorsa), sopra `de3956f` (L17, L22) e `fe85203` (R10-R13, A18); prima: `721fd42` (R5-R8).
 - `git diff 79d2cb0..a747e09` su `src/data`, `src/types`, `src/db` e
   `firestore.rules` è vuoto (release-gate): tornare indietro non rompe
   catalogo né dati.
@@ -189,6 +189,17 @@ Punto di ritorno, aggiornato a ogni push:
 - L17 (punto decimale nei kg) chiuso solo in revisione: restano 4 posti.
 - release-gate su `274d12f`: GO per regressioni. Lo smoke controlla la metà
   «tempo» di A18, non la metà «peso dallo stato»: da aggiungere insieme a M18.
+
+## Giro R14-R18 (`training/reports/2026-11-18-training.md`)
+- Rilascio A: R18 (minimo di durata con i bonus) → R16 (scarico e
+  scarico-coppia stessa famiglia in R11) → R17 (R13 tace se non resta una
+  leva) → R15 (cosa spiega un aumento del diario; data = seduta che lo
+  esegue, D-20 a) → R14b. Rilascio B: R14a, c, e (record `lapsed`) → R14d
+  (già anticipata il 2026-11-18 come correzione di R-7: `pesoIniziale`).
+- Per Alessio: D-20 (a) conferma, (b) anche tempo e pausa; D-19 (b) manubri.
+- Risposte della sessione principale al designer: nel player guidato il peso
+  si scrive durante la serie (i campi compaiono a stazione partita, si
+  registra a «Fatto»); una seduta chiusa non si modifica da nessuna schermata.
 
 ## Prossimi passi
 0. Fatto dopo il gate su `79d2cb0`: `npm run smoke` prova in browser

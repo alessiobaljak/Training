@@ -2,7 +2,8 @@
 
 Riepilogo: al 2026-11-14 quattro voci del BACKLOG escono dal file principale
 (una chiusa in codice, tre assorbite da R5 e R7). Al 2026-11-16 escono W-19…W-22
-(R5-R8 in produzione, `a747e09`) e le tabelle di prova di R5-R7.
+(R5-R8 in produzione, `a747e09`) e le tabelle di prova di R5-R7. Al 2026-11-18
+escono i casi limite di R5-R7 e W-24…W-31 (R10-R13 in produzione, `fe85203`).
 
 | id | cosa era | esito | data |
 |---|---|---|---|
@@ -14,6 +15,27 @@ Riepilogo: al 2026-11-14 quattro voci del BACKLOG escono dal file principale
 | W-20 | R5 cancello unico (A2) | **chiuso in codice** (`2c9d822`, `ff42dfb`); A2 CHIUSO | 2026-11-16 |
 | W-21 | R6 variante prima del carico (A3) | **chiuso in codice**; A3 CHIUSO. Ordine tempo/pausa in revisione: R10 (W-26) | 2026-11-16 |
 | W-22 | R7 un gradino ogni 14 giorni (A4) | **chiuso in codice**; A4 CHIUSO | 2026-11-16 |
+| W-24…W-31 | Giro 2026-11-16: R12, registro + scrittura atomica, R10a/R10c-0, R10b, R11, R13 (D-4 a), R10c-1 (D-19 sì) | **in codice** (`cf7588a`), GO quality 2026-11-16 (A17, M17, L15, B12 chiusi), in produzione `fe85203`. Resti: M18, L18-L22, L17 → giro 2026-11-18 (W-32…W-37) | 2026-11-18 |
+
+## Casi limite di R5, R6, R7 (spostati da PROGRESSION_RULES §9 il 2026-11-18)
+
+- **R5.** Tempo null: mai un sì. perSide: il tempo è per voce, le serie vere per
+  coppia di lati (R8). Blocchi esclusi: non si valutano, niente domanda sul tempo.
+  Solo eccentrici: nessun effetto. Scarico: E4. Ritest appena fatto: nessun
+  effetto. Decisione registrata: fine seduta, una leva per blocco
+  (`sessionDecisions`); revisione, una per `(W, e)`, anche per
+  `rifai-al-tempo-giusto` e `rispondi-sul-tempo` («Ho capito» registra `postponed`).
+- **R6.** Tempo null: R5 prima. perSide: nessun effetto. Blocchi esclusi: mai (lo
+  swing non riceve +2,5 kg). Solo eccentrici: Z2 salta come `adjacentLevel`
+  (trazioni al 1: non esaurita, la prossima è il 3). Scarico: E4. Ritest: `M` è
+  l'ultimo test, un ritest sotto soglia toglie subito la zavorra.
+- **R7.** Tempo null: R5 prima. perSide: nessun effetto. Blocchi esclusi: le loro
+  voci contano per `inizio`, l'esercizio non si valuta. Solo eccentrici: sul
+  programma archiviato 1→2 è una salita. Scarico: i giorni contano nei 14,
+  l'aumento lo blocca R5. Ritest: il gradino non cambia, salvo R9b, che fa
+  ripartire il conto. Decisione registrata: a fine seduta `L` è lo stato di
+  prima, quindi dopo una ricarica il riepilogo mostra la stessa proposta con
+  «Scelta registrata», non quella successiva.
 
 ## Tabelle di prova di R5, R6, R7 (spostate da PROGRESSION_RULES §9 il 2026-11-16)
 

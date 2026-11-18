@@ -149,7 +149,8 @@ esattamente le settimane W−1 e W del programma.
   nella seduta ha `level === L.level` se `pattern ≠ null`, e `max(loadKg) ===
   L.loadKg` se `loadPolicy ≠ 'forbidden'`. **R10b**: la coppia vale solo se
   nel registro non c'è un `accepted` su `e` che alza un bonus di tempo o pausa
-  con `date ≥ b.date`; altrimenti `rimandati` motivo `leva`.
+  con `date ≥ b.date`; altrimenti `rimandati` motivo `leva`. **R14c** (proposta
+  2026-11-18): lo stesso per un `lapsed` (scelta decaduta, R14) ⇒ `decaduta`.
 - **`serieVere(voce)`**: `setIndex` distinti con una riga `side === null`,
   oppure con `left` e `right` (in codice: `serieVere`, `righeVere`). Le righe
   orfane non entrano nei valori.
@@ -176,6 +177,10 @@ esattamente le settimane W−1 e W del programma.
    `a`, tempo e scarico di ogni seduta, stessi `L`, `today`): `tipo(E⁺) =
    tipo(E)` ⇒ `E` con «Rifatto <giorno>: <valori>» nell'evidenza, altrimenti
    `rimandati` `smentito`. R11 può solo togliere un verdetto, mai crearne uno.
+   **R16** `[PROPOSTA, progressi 3.1 — 2026-11-18, L20]`: per un `fermo` `tipo` =
+   famiglia del motivo (`scarico` = `scarico-coppia`); verdetti a tipo esatto. La
+   coda «Rifatto…» vale per ogni esito confermato con un testo. Testo nuovo T-S2
+   (tutte e due le sedute di scarico, W+1 no): ADVICE §7, rapporto 2026-11-18.
 4. **Verdetto possibile ⇔ due utili e `Σ serieVere(utili) ≥ 3`**, per ogni
    verdetto, discesa compresa. `MIN_SESSIONS_FOR_VERDICT = 2` (nuovo),
    `MIN_SETS_FOR_VERDICT = 3` su serie vere. Altrimenti `pocheProve`.
