@@ -1821,9 +1821,18 @@ try {
 
     if (allaSerie) {
       let serieFatte = 0;
+      let stazioneStacco = null;
       for (let passo = 0; passo < 60 && serieFatte < 9; passo += 1) {
         const fatto = page.getByRole('button', { name: 'Fatto', exact: true });
         if ((await fatto.count()) > 0) {
+          /* R14d: alla prima serie dello stacco, prima di scrivere niente. */
+          if (conR14 && stazioneStacco === null) {
+            const testo = await page.locator('main').innerText();
+            if (testo.includes('Stacco rumeno')) {
+              const peso = page.getByLabel('Peso', { exact: true });
+              stazioneStacco = { testo, peso: (await peso.count()) === 0 ? '(nessun campo)' : await peso.inputValue() };
+            }
+          }
           const campi = page.locator('input[type=number]');
           for (let k = 0; k < (await campi.count()); k += 1) await campi.nth(k).fill('8');
           await fatto.click();
@@ -1837,6 +1846,17 @@ try {
         await page.waitForTimeout(300);
       }
       check(serieFatte === 9, `Il tri-set A della Seduta 2 sono 9 serie: registrate ${String(serieFatte)}.`);
+      if (conR14) {
+        check(
+          stazioneStacco !== null && stazioneStacco.testo.includes('se resti a 8 kg la scelta si toglie'),
+          `R14d: con il manubrio scelto e non preso, la stazione dello stacco deve dirlo. Legge: ${JSON.stringify(stazioneStacco?.testo.slice(0, 500) ?? null)}`,
+        );
+        check(
+          stazioneStacco !== null && /^8([.,]0)?$/.test(stazioneStacco.peso),
+          `R14d: il peso dello stacco deve partire da 8 kg, quello di prima, non da 10,5. Legge «${String(stazioneStacco?.peso)}».`,
+        );
+        console.log(`R14d: stacco, peso di partenza ${String(stazioneStacco?.peso)}.`);
+      }
       await page.waitForTimeout(800);
       await alRiepilogo();
 

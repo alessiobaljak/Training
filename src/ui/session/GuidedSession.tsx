@@ -29,7 +29,7 @@ import {
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
 import { useSessions, useSuggestions } from '../hooks/useData.ts';
-import { decadenze } from '../../engine/decadenza.ts';
+import { decadenze, manubrioInAttesa } from '../../engine/decadenza.ts';
 import { effectiveTempo, initialExerciseState } from '../../engine/progression.ts';
 import { formatNumber } from '../../engine/dates.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
@@ -297,6 +297,8 @@ interface Contesto {
   readonly states: ReadonlyMap<ExerciseSlug, ExerciseState>;
   readonly previous: ReadonlyMap<string, LoggedExercise>;
   readonly tests: ReadonlyMap<TestId, TestResult>;
+  /** R14d: i manubri scelti e non ancora presi, con il peso di prima e il testo. */
+  readonly manubriInAttesa: ReadonlyMap<ExerciseSlug, { readonly B: number; readonly testo: string }>;
 }
 
 interface Stazione {
@@ -647,6 +649,12 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
     states,
     previous: state.previous,
     tests: state.tests,
+    manubriInAttesa: new Map(
+      program.blocks.flatMap((block) => {
+        const attesa = manubrioInAttesa(block.exercise, registrate ?? [], sedutePassate ?? [], states.get(block.exercise), draft.id);
+        return attesa === null ? [] : [[block.exercise, attesa] as const];
+      }),
+    ),
   };
 
   /*
@@ -1045,7 +1053,15 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
    * faceva salvare il peso vecchio a chi non lo correggeva, e lo stato
    * tornava indietro.
    */
-  const kgDalloStato = contesto.states.get(stazione?.esercizio.slug ?? step.exercise)?.loadKg ?? 0;
+  /*
+   * R14d: con un manubrio scelto e non ancora preso, lo stato è il manubrio
+   * nuovo. Il campo parte dal peso di prima: lasciato com'è non deve mai
+   * alzare un numero.
+   */
+  const kgDalloStato =
+    contesto.manubriInAttesa.get(stazione?.esercizio.slug ?? step.exercise)?.B ??
+    contesto.states.get(stazione?.esercizio.slug ?? step.exercise)?.loadKg ??
+    0;
   /*
    * Sui manubri lo stato accettato è un tetto, «al massimo +2,5 kg», non il
    * peso che si ha in mano (R14d): precompilarlo faceva registrare 14,5 kg a
@@ -1233,7 +1249,17 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
           )}
           {load.recordable ? (
             <div className="mt-3">
-              <NumberStepper label="Peso" value={kg} onChange={setKg} step={2.5} unit="kg" />
+              {contesto.manubriInAttesa.get(esercizio.slug) === undefined ? null : (
+                <p className="mb-2 text-sm leading-relaxed text-dim">{contesto.manubriInAttesa.get(esercizio.slug)?.testo}</p>
+              )}
+              {/* I manubri vanno a passi di 1 kg fino a 10 (D-19 b); la zavorra a 2,5. */}
+              <NumberStepper
+                label="Peso"
+                value={kg}
+                onChange={setKg}
+                step={esercizio.loadPolicy === 'inherent' ? 1 : 2.5}
+                unit="kg"
+              />
             </div>
           ) : null}
         </Card>

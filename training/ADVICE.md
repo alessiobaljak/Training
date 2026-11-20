@@ -250,9 +250,8 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   <giorno> (<valori>[, tempo non confermato]). L'ultima seduta non conferma le
   due lette: niente cambia, conta la prossima coppia di sedute.»
 - Evidenza con R11: `<numeri>` + « Rifatto <giorno>: <valori>[ · …].»
-- `pocheProve` con R12: «(1 seduta: le ultime due sono del <giorno>, e lo stesso
-  giorno conta una volta)»; nota in fondo + «Due sedute nello stesso giorno
-  contano come una.»
+- `pocheProve` con R12: «(1 seduta: le ultime due sono del <giorno>, e lo stesso giorno conta
+  una volta)»; nota in fondo + «Due sedute nello stesso giorno contano come una.»
 - R13 · revisione `fermi` `sette-giorni`: «<Esercizio>: massimo chiuso, ma un
   aumento per esercizio ogni 7 giorni. L'ultimo è del <giorno> (<cosa>): il
   prossimo si può proporre dal <giorno+7>.» · fine seduta: «Un aumento [di
@@ -260,13 +259,13 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   prossimo si può proporre dal <giorno+7>: oggi resta tutto com'è.» · `<cosa>`:
   «livello <x> → <y>», «eccentrica +1"», «pausa +1"», «carico <x> → <y> kg»,
   «peso scritto da te, <x> → <y> kg», «livello scritto da te, <x> → <y>».
-- R10c-1 (solo con D-19): titolo «<Esercizio>: passa al manubrio successivo».
-  Cambio «Manubrio successivo, al massimo <L+2,5> kg: oggi usi <L> kg. Tempo e
-  pausa tornano a quelli della scheda. Nel player scrivi il peso vero: da lì in
-  poi comanda quello che scrivi. Se il tuo manubrio successivo pesa più di
-  <L+2,5> kg, resta a <L> kg.» Cautela «Aspettati di scendere verso <min>
-  ripetizioni: è il segno che il carico è aumentato davvero.» Kg con la virgola
-  (L17). Con R10c-0 nessun testo nuovo: `leve-finite` com'è.
+- R10c-1 (D-19; **rev. 11-21, D-19 b**, PROPOSTA): titolo invariato «<Esercizio>: passa al
+  manubrio successivo». Cambio «Passa al manubrio da <N> kg: oggi usi <L> kg. Tempo e pausa
+  tornano a quelli della scheda. Nel player il peso parte da <L> kg: quando prendi quello da
+  <N> kg, scrivilo in ogni serie. Da lì in poi comanda quello che scrivi.» (`N` dall'elenco;
+  prima «al massimo <L+2,5> kg»). Cautela invariata. Senza leva: «Peso mai scritto…», «<v> kg
+  non è fra i tuoi manubri…», «<v> kg è il manubrio più pesante che hai…» (rapporto 11-21 §1).
+  Kg con la virgola (L17). Con R10c-0 nessun testo nuovo: `leve-finite` com'è.
 
 **Consigli 4.0 — R14-R17 `[2026-11-18 · A in produzione 0f3f191 · B e rev. 11-20 PROPOSTA]`** (varianti nei rapporti).
 - R14a: «Oggi hai usato <B> kg, il peso di prima: la scelta del <giorno> (<cosa>)
@@ -278,14 +277,15 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   2026-11-20 (L24, M21): `<v>`, `<x>` = valore della seduta; primo peso «Primo peso
   scritto su questo esercizio: <v> kg. Da qui si parte[, con tempo e pausa della
   scheda]: le leve si valutano dalla prossima seduta a <v> kg.» (appendice 2026-11-20).
-- R14c `rimandati` `decaduta` · R14d «Manubrio successivo: al massimo <T> kg. Scrivi il
-  peso che usi davvero…» · R14e «Peso non scritto: lo stato resta <L> kg…».
-- R15 `<cosa>`: «carico <B> → <v> kg, scelta del <giorno>», «livello <B> → <v>,
-  scelta del <giorno>»; manubrio in attesa «manubrio successivo scelto, al massimo <T> kg».
+- R14c `rimandati` `decaduta` · R14d (rev. 11-21) «Manubrio scelto: <T> kg. Il peso parte da
+  <B> kg, quello di prima: se prendi quello da <T> kg, scrivilo in ogni serie…» · R14e «Peso non scritto…».
+- R15 `<cosa>`: «carico <B> → <v> kg, scelta del <giorno>», «livello <B> → <v>, scelta del
+  <giorno>»; manubrio in attesa «manubrio successivo scelto, <B> → <T> kg» (`T` fuori elenco: «al massimo <T> kg»).
 - R16 T-S2: «Le due sedute lette sono di scarico (<g1> e <g2>): niente aumenti da
   quei numeri. Si riprende con due sedute piene.» + « Rifatto <giorno>: <valori>.»
 - R17b code: «Un aumento per esercizio ogni 7 giorni: si può proporre dal <dal13>.»
-  (variante) · «… non prima del <dal13>.» (tempo, pausa). R17c: nessun testo nuovo.
+  (variante) · «… non prima del <dal13>.» (tempo, pausa). R17c e R10a «tetto», `alMassimo`
+  `tetto` e `manubrio` (rev. 11-21, M22): testi esatti nel rapporto 2026-11-21 §1-§2.
 
 **Rientro (R9) — Home e player.**
 - Prima della seduta: «Sono passati <g> giorni dall'ultima seduta. Le prossime

@@ -166,16 +166,16 @@ inverted-row-trx, pike-push-up, bulgarian-split-squat, hollow-hold.
   circuito, stima (trazioni +2″/+2″: 30 → 54). Prove 18.x: rapporto 2026-11-18.
 - Recupero: quattro livelli, §2.
 
-## 5. Durata massima della seduta
+## 5. Durata massima della seduta — R19 `[programmi 2.3: IN CODICE e30cdc6 a fine seduta · rev. 2026-11-21 PROPOSTA]`
 
-`[IN CODICE]` `estimatedMinutes` 38, 36, 35, 39 (scheda, bonus a 0); la durata vera
-è `estimatedSeconds` con gli stati (R18): ai bonus massimi 46-59′, 66′ (M19, D-22).
-
-`[PROPOSTA]` Tetto duro **55 minuti** di piano guidato, riscaldamento compreso.
-Se un blocco nuovo porta il piano sopra il tetto, il tempo si recupera in questo
-ordine e in nessun altro: transizioni → pausa di blocco → serie della finitura.
-**Il recupero di giro e le serie dei tri-set di forza non si toccano:** tagliarli
-cambia l'allenamento, non la fretta. Da verificare con un test sui dati.
+`estimatedMinutes` 38, 36, 35, 39 = scheda, bonus a 0. Durata vera: `durata(C, σ) =
+estimatedSeconds(buildGuidedPlan(C, 1, σ))`, settimana piena, riscaldamento compreso.
+**Tetto 55′** (D-22 a, 2026-11-20): passo di tempo o pausa su `e` solo se `durata ≤ 3.300 s`.
+- Fine seduta (L25): σ′ = stati della chiusura di S senza scelte (sync, R14) + passo + proposte dei blocchi sopra che allungano.
+- Revisione (M22): R10a (2)-(3) con stati della revisione + passo + `sali-di-livello` che allungano; oltre ⇒ (4)-(7).
+- Oltre il tetto: variante e carico con R5-R7, R13, Z3-Z4. **Niente tagli** a serie, ripetizioni, recuperi, transizioni, finitura (proposta 11-08 ritirata).
+- Variante mai fermata (D5, 2026-11-20): hip thrust al 3, per lato ⇒ circuito 4 ≈ 59′. Massimi 46, 48, 49, 59′.
+- Nota del circuito 4: `DEVIAZIONI_NOTA` (L26). Testi e prove: rapporto 2026-11-21.
 
 ## 6. Sostituzioni quando manca un attrezzo
 

@@ -536,9 +536,10 @@ describe('R6 in revisione · prima la variante, poi la zavorra', () => {
     const r = rivedi(4, [c('2026-03-17'), c('2026-03-24')], [stato(MARTELLO, { loadKg: 10, ...esauriti })]);
     expect(r.verdicts[0]?.kind).toBe('aggiungi-peso');
     expect(r.verdicts[0]?.stateAfter).toEqual(
-      expect.objectContaining({ loadKg: 12.5, level: null, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+      expect.objectContaining({ loadKg: 12, level: null, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
     );
-    expect(r.verdicts[0]?.change).toContain('al massimo 12,5 kg');
+    /* D-19 (b): il manubrio successivo esatto dell'elenco. */
+    expect(r.verdicts[0]?.change).toContain('Passa al manubrio da 12 kg');
 
     /* 10.2: a bonus 0 la prossima leva è il tempo, e la propone la fine seduta. */
     const bonusZero = rivedi(4, [c('2026-03-17'), c('2026-03-24')], [stato(MARTELLO, { loadKg: 10 })]);
@@ -982,5 +983,31 @@ describe('R14c · in revisione, una scelta tolta che riporta tempo e pausa', () 
       tests: latestTestResults([testResultSingle('pull-up', '2026-02-23', 0, 12)]),
     });
     expect(r.rimandati.filter((x) => x.motivo === 'decaduta')).toHaveLength(0);
+  });
+});
+
+describe('D-19 (b) in revisione · il manubrio successivo esatto', () => {
+  const ESAURITI = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+  const coppia = (kg: number) => [
+    seduta('2026-03-17', [voce(MARTELLO, [10, 10, 10], { loadKg: kg })]),
+    seduta('2026-03-24', [voce(MARTELLO, [10, 10, 10], { loadKg: kg })]),
+  ];
+
+  it('D19.12 · in cima: leve finite con il motivo del manubrio', () => {
+    const r = rivedi(4, coppia(24), [stato(MARTELLO, { loadKg: 24, ...ESAURITI })]);
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'leve-finite' }));
+    expect(r.alMassimo[0]?.testo).toBe(
+      'Hai esaurito le leve su questo esercizio: 24 kg è il manubrio più pesante che hai. Serve un cambio di programmazione, non un altro giro.',
+    );
+  });
+
+  it('D19.12 · fuori elenco: alMassimo «manubrio», si chiede il peso vero', () => {
+    const r = rivedi(4, coppia(14.5), [stato(MARTELLO, { loadKg: 14.5, ...ESAURITI })]);
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'manubrio' }));
+    expect(r.alMassimo[0]?.testo).toBe(
+      'massimo chiuso su tutte le serie. 14,5 kg non è fra i tuoi manubri: scrivi nel player il peso che usi davvero, e il prossimo si calcola da lì.',
+    );
   });
 });

@@ -137,7 +137,8 @@ describe('R14 · una scelta in salita non eseguita si toglie', () => {
     const al30 = seduta('2026-03-30', MARTELLO, [10, 10, 10], { loadKg: 12, status: 'in-progress' });
     const recente = aumentoRecente(MARTELLO, registro, [al19, chiusa], al30.date, al30);
     expect(recente).toBeNull();
-    expect(fine(al30, d.stato, recente).suggestion?.change).toContain('al massimo 14,5 kg');
+    /* D-19 (b): torna proponibile, come manubrio esatto dell'elenco. */
+    expect(fine(al30, d.stato, recente).suggestion?.change).toContain('Passa al manubrio da 14 kg');
   });
 
   it('14.2, 14.3, 14.4 · a 14, 14,5 o 16 kg la scelta non si toglie', () => {

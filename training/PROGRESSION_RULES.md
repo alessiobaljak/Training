@@ -1,11 +1,6 @@
 # PROGRESSION_RULES.md — soglie di progressione
 
-**In produzione: progressione 3.0** (`fe85203`): R5-R7 (§9), R10 con R10c-1 e
-R13 con D-4 (a) (§10); R8, R11, R12 in PROGRESS_REVIEW §6. GO quality 2026-11-16
-su `cf7588a`. R9 no. Storia: RULES_CHANGELOG. **PROPOSTA 2026-11-18,
-progressione 4.0: R14, R15, R17 (§11)**; R16 PROGRESS_REVIEW §6; R18
-PROGRAM_RULES §4. Gradino di partenza: PROGRAM_RULES R1. Motore: `src/engine/progression.ts` (fine seduta), `src/engine/review.ts`
-(fine settimana), `src/engine/loading.ts` (zavorra).
+**In produzione `e30cdc6`: progressione 4.0** — R5-R7 §9, R10 R13 §10, R14b R15 R17 §11, R19 a fine seduta (PROGRAM_RULES §5), D-21 a, D-23 a; R8 R11 R12 R16 in PROGRESS_REVIEW §6. Rilascio B (R14a/c/e, R14d) in corso. **PROPOSTA progressione 4.1 (rev. 2026-11-21): D-19 b, R19 in revisione, R17c.** R9 no. Motore: `engine/progression.ts`, `review.ts`, `loading.ts`.
 
 Ogni soglia è un numero, non un giudizio; `[PROPOSTA]` = la regola oggi non c'è.
 
@@ -25,13 +20,12 @@ variant → load`. Indisponibilità e motivo:
 
 | leva | indisponibile quando |
 |---|---|
-| tempo | TUT non a quattro fasi · eccentrica `X` · eccentrica ≥ **5"** |
-| iso-pause | TUT non a quattro fasi · fase `X` · pausa ≥ **2"** |
+| tempo | TUT non a quattro fasi · eccentrica `X` · eccentrica ≥ **5"** · passo oltre **55′** (R19) |
+| iso-pause | TUT non a quattro fasi · fase `X` · pausa ≥ **2"** · passo oltre **55′** (R19) |
 | variant | `pattern === null` · gradino = **6** |
-| load | `loadPolicy = inherent` o `forbidden` · settimana < **3** · massimale sotto la soglia «sconsigliata» |
+| load | `forbidden` · `inherent` fuori `LEVA_MANUBRIO` · settimana < **3** · manubrio: `manubrioDopo` ≠ `N` (mai scritto, fuori elenco, cima; rev. 11-21) · zavorra: variante non esaurita, soglia del test |
 
-Esaurite tutte: nessun suggerimento, e il testo dice che serve un cambio di
-programmazione, non un altro giro.
+Esaurite tutte: nessun suggerimento, testo di R17c (§11).
 
 ## 3. Zavorra
 
@@ -231,6 +225,7 @@ e `isoPauseLever` della fine seduta, esportate).
 esaurita ⇒ `alMassimo` `variante` (+ data R7); (5) `forbidden` ⇒ `leve-finite`;
 (6) `inherent` ⇒ R10c; (7) `allowed` ⇒ R6 Z3, Z4 ⇒ R13 ⇒ `aggiungi-peso`.
 La revisione propone solo gradino e carico; tempo e pausa solo la fine seduta.
+Rev. 11-21 (M22): (2)-(3) solo se il passo sta sotto 55′ (R19), altrimenti (4)-(7) con i testi «tetto».
 **R10b** stato completo: la coppia vale solo se, oltre a gradino e carico (R8),
 nel registro non c'è un `accepted` su `e` (con R14c anche un `lapsed`) che alza
 `eccentricBonusSeconds` o `bottomPauseBonusSeconds` con `date ≥ b.date`.
@@ -239,7 +234,8 @@ Altrimenti `rimandati` `leva` (`decaduta`). Le sedute non registrano i bonus.
 `leve-finite`. **R10c-1** (D-19 sì, 2026-11-16): per `e ∈ LEVA_MANUBRIO` a
 ripetizioni il manubrio successivo è la leva 5, stessa funzione in revisione e
 a fine seduta: cancello R5, tempo e pausa esauriti, settimana ≥ 3, R13;
-`loadKg = L + 2,5` come **tetto**, bonus a 0. Kettlebell fuori (salto 4 kg > S2).
+bonus a 0; `loadKg = N` = successivo **esatto** di `MANUBRI_KG` (D-19 b, rev. 11-21; prima
+`L + 2,5` come tetto). Mai scritto, fuori elenco, cima ⇒ niente leva. Kettlebell fuori (> S2).
 Registro perso ⇒ R10b fail-open: scrittura atomica (L22 aperto).
 
 ### R13 — Un aumento per esercizio ogni 7 giorni (D-4, S2)
@@ -257,10 +253,10 @@ Revisione: `fermi` `sette-giorni`. Date e spiegazioni del diario: **R15** (§11)
 
 ## 11. R14, R15, R17 — M18, L18, L19, L21 `[progressione 4.0 — 2026-11-18, rev. 2026-11-20]`
 
-Rilascio A (R15, R17, R14b) in produzione `0f3f191`; rilascio B (R14a/c/d/e) PROPOSTA.
-Prove, motivazioni e testi: `reports/2026-11-18-training.md` + appendice `2026-11-20`.
+Rilascio A (R15, R17, R14b) in produzione; rilascio B (R14a/c/d/e) in corso.
+Prove, motivazioni e testi: `reports/2026-11-18-training.md` + appendici `2026-11-20`, `2026-11-21`.
 **Notazione.** Scelta in salita `c` su `g` ∈ {carico, livello}: `accepted` con
-`stateAfter.g > stateBefore.g`; `B`, `T` i due valori (manubrio: `T` è un tetto).
+`stateAfter.g > stateBefore.g`; `B`, `T` i due valori (manubrio: `T` esatto, D-19 b; tetto solo nei record vecchi con `T` fuori elenco).
 `v_g(X)`: max `loadKg`, **max `level`** delle voci di `e` in X con serie (L24, rev.
 2026-11-20, anche in `syncStatesFromLog`). Peso non scritto: `inherent`, `v = 0`,
 stato > 0. `D(c)`: prima seduta di `e` in `(date, id)` fra **tutte** le chiuse, anche
@@ -277,8 +273,8 @@ insieme (`putTogether`). Decaduta non conta per R13; in attesa conta da `c.date`
 con voce **e seduta** allo stato `L` (rev. 11-20: L24; M21 «primo peso»); motivi: senza range · R14a · R14e · E1 ·
 E2-E5 · R13 · R14b · leve. **R14c** R10b legge anche i `lapsed` che rialzano un
 bonus ⇒ `rimandati` `decaduta`. **R14d** player: manubrio in attesa ⇒ peso
-proposto `B` (zavorra `T`), fino a D-19 (b). **R14e** peso non scritto: stato
-invariato (chiude L2), scelta ancora in attesa, nessuna leva.
+proposto `B` **anche con D-19 b** (zavorra `T`): il campo lasciato com'è non alza mai. **R14e**
+peso non scritto: stato invariato (chiude L2), scelta ancora in attesa, nessuna leva.
 
 ### R15 — Il diario esegue una scelta (L18, L19)
 Un aumento del diario in `D` è spiegato ⇔ una scelta in salita sulla stessa
@@ -293,8 +289,9 @@ pausa: prima seduta dopo la scelta (D-20 a e b, decise il 2026-11-20).
 **R17a** fine seduta: R13 blocca solo se dopo R5 resta una leva ≠ `reps`
 disponibile. **R17b** ogni «si può proporre dal» dà la data più lontana fra R7 e
 R13, con il testo della regola che la fissa (fine seduta; revisione R10a 1, 2-3, 4).
-**R17c** fine seduta senza leve: R7 in attesa ⇒ R7 (o R13 se più lontana); carico
-fermo solo per settimana o test ⇒ il suo motivo; altrimenti «leve finite».
+**R17c** fine seduta senza leve (rev. 11-21): (1) R7 in attesa ⇒ R7 (o R13 se più lontana);
+(2) carico fermo per settimana o test ⇒ il suo motivo; (3) manubrio mai scritto o fuori elenco ⇒
+il suo motivo; (4) tempo o pausa fermi per R19 ⇒ testo «tetto»; (5) cima ⇒ «leve finite» con i kg; (6) «leve finite».
 
 ### Ordine di implementazione
-A (fatto): R18 → R16 → R17 → R15 → R14b. B: T-17…T-20 (rev. 11-20) → R14a, c, e (`lapsed`) → R14d. R9 dopo.
+A e T-17…T-23 in produzione (`e30cdc6`). B: T-15 → T-16 (testo 11-21) → T-24. Poi T-25 → T-26 → T-27. R9 dopo.

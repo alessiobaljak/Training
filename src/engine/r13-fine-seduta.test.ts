@@ -301,14 +301,14 @@ describe('R10c-1 · il manubrio successivo a fine seduta (D-19)', () => {
     expect(fineSeduta(draft, stato(MARTELLO, { loadKg: 12 }), null).suggestion?.lever).toBe('tempo');
   });
 
-  it('con tempo e pausa al massimo: manubrio successivo, al massimo +2,5 kg, tempo alla scheda', () => {
+  it('con tempo e pausa al massimo: il manubrio successivo esatto, tempo alla scheda (D-19 b)', () => {
     const draft = seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: 12, status: 'in-progress' });
     const e = fineSeduta(draft, stato(MARTELLO, { loadKg: 12, ...ESAURITI }), null);
     expect(e.suggestion?.lever).toBe('load');
     expect(e.suggestion?.nextState).toEqual(
-      expect.objectContaining({ loadKg: 14.5, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+      expect.objectContaining({ loadKg: 14, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
     );
-    expect(e.suggestion?.change).toContain('al massimo 14,5 kg');
+    expect(e.suggestion?.change).toContain('Passa al manubrio da 14 kg');
   });
 
   it('nelle prime due settimane il manubrio non si cambia', () => {

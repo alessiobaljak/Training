@@ -4,7 +4,8 @@ Riepilogo: al 2026-11-14 quattro voci del BACKLOG escono dal file principale
 (una chiusa in codice, tre assorbite da R5 e R7). Al 2026-11-16 escono W-19…W-22
 (R5-R8 in produzione, `a747e09`) e le tabelle di prova di R5-R7. Al 2026-11-18
 escono i casi limite di R5-R7 e W-24…W-31 (R10-R13 in produzione, `fe85203`). Al
-2026-11-20 escono W-32…W-36 (rilascio A di R14-R18 in produzione, `0f3f191`).
+2026-11-20 escono W-32…W-36 (rilascio A di R14-R18 in produzione, `0f3f191`). Al
+2026-11-21 escono W-39…W-42, W-12 e W-38 (rev. 11-20, D-21, D-22, D-23 in `e30cdc6`).
 
 | id | cosa era | esito | data |
 |---|---|---|---|
@@ -17,6 +18,7 @@ escono i casi limite di R5-R7 e W-24…W-31 (R10-R13 in produzione, `fe85203`). 
 | W-21 | R6 variante prima del carico (A3) | **chiuso in codice**; A3 CHIUSO. Ordine tempo/pausa in revisione: R10 (W-26) | 2026-11-16 |
 | W-22 | R7 un gradino ogni 14 giorni (A4) | **chiuso in codice**; A4 CHIUSO | 2026-11-16 |
 | W-24…W-31 | Giro 2026-11-16: R12, registro + scrittura atomica, R10a/R10c-0, R10b, R11, R13 (D-4 a), R10c-1 (D-19 sì) | **in codice** (`cf7588a`), GO quality 2026-11-16 (A17, M17, L15, B12 chiusi), in produzione `fe85203`. Resti: M18, L18-L22, L17 → giro 2026-11-18 (W-32…W-37) | 2026-11-18 |
+| W-39…W-42, W-12, W-38 | T-17 L23, T-18 L24, T-19 M21, T-20 17.2, T-21 E4 prima dello scarico (D-21 a), T-22 R19 tetto 55′ a fine seduta (D-22 a), T-23 gradino a mano (D-23 a) | **in produzione** `e30cdc6`; quality 2026-11-20 (`221b2e8`): L23, L24, M21, M19 chiusi; M20 residuo accettato da Alessio; nuovi M22, L25, L26 → W-44 | 2026-11-21 |
 | W-32…W-36 | Rilascio A del giro 2026-11-18: R18 minimo con i bonus, R16, R17, R15 (data dell'esecuzione, D-20 a e b), R14b | **in codice** (`4edf751`, + A19 `0f3f191`), GO quality 2026-11-20 (L18-L21 e B13 chiusi), in produzione `0f3f191`. Resti: L23, L24, M19, M20, M21 → W-38…W-42 | 2026-11-20 |
 
 ## Casi limite di R5, R6, R7 (spostati da PROGRESSION_RULES §9 il 2026-11-18)

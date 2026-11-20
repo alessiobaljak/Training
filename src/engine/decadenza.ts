@@ -1,7 +1,7 @@
 import { getExercise } from '../data/exercises.ts';
 import { formatDayLong, formatNumber } from './dates.ts';
 import { syncStatesFromLog } from './draft.ts';
-import { livelloVoci } from './progression.ts';
+import { inElencoManubri, livelloVoci } from './progression.ts';
 import type {
   ExerciseSlug,
   ExerciseState,
@@ -74,9 +74,13 @@ export function cosaDellaScelta(scelta: Pick<SceltaRegistrata, 'exercise' | 'sta
   const prima = scelta.stateBefore;
   const dopo = scelta.stateAfter;
   if (dopo.loadKg > prima.loadKg) {
-    return getExercise(scelta.exercise).loadPolicy === 'inherent'
-      ? `manubrio successivo, al massimo ${kg(dopo.loadKg)}`
-      : `carico ${formatNumber(prima.loadKg)} → ${kg(dopo.loadKg)}`;
+    if (getExercise(scelta.exercise).loadPolicy !== 'inherent') {
+      return `carico ${formatNumber(prima.loadKg)} → ${kg(dopo.loadKg)}`;
+    }
+    /* D-19 (b): una scelta nuova è un manubrio esatto; una vecchia era un tetto. */
+    return inElencoManubri(dopo.loadKg)
+      ? `manubrio successivo, ${formatNumber(prima.loadKg)} → ${kg(dopo.loadKg)}`
+      : `manubrio successivo, al massimo ${kg(dopo.loadKg)}`;
   }
   return `livello ${String(prima.level)} → ${String(dopo.level)}`;
 }
@@ -90,13 +94,95 @@ export function cosaDellaScelta(scelta: Pick<SceltaRegistrata, 'exercise' | 'sta
  * altra seduta chiusa l'ha risolta, lo stato è ancora il suo — e S ha scritto
  * un valore non più alto di quello di prima.
  */
+/**
+ * La scelta in salita in attesa su un esercizio (R14): accettata, nata fuori
+ * dalla seduta `sedutaId`, non tolta, con lo stato ancora uguale al suo, e
+ * nessuna seduta chiusa che l'abbia già risolta. `null` se non ce n'è.
+ */
+export function sceltaInAttesa(
+  slug: ExerciseSlug,
+  registro: readonly SceltaRegistrata[],
+  sessions: readonly LoggedSession[],
+  stato: ExerciseState,
+  sedutaId: string,
+): { readonly scelta: SceltaRegistrata; readonly sulCarico: boolean; readonly B: number; readonly T: number } | null {
+  const exercise = getExercise(slug);
+  const tolte = new Set(registro.flatMap((r) => (r.decision === 'lapsed' && r.ref !== undefined ? [r.ref] : [])));
+  const c = registro
+    .filter(
+      (r) =>
+        r.exercise === slug &&
+        r.decision === 'accepted' &&
+        !tolte.has(r.id) &&
+        r.sessionLogId !== sedutaId &&
+        stessoStato(stato, r.stateAfter),
+    )
+    .sort((a, b) => (a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date < b.date ? -1 : 1))
+    .at(-1);
+  if (c === undefined) return null;
+  const sulCarico = exercise.loadPolicy !== 'forbidden' && c.stateAfter.loadKg > c.stateBefore.loadKg;
+  const sulLivello =
+    !sulCarico && c.stateBefore.level !== null && c.stateAfter.level !== null && c.stateAfter.level > c.stateBefore.level;
+  if (!sulCarico && !sulLivello) return null;
+  const B = sulCarico ? c.stateBefore.loadKg : (c.stateBefore.level ?? 0);
+  const T = sulCarico ? c.stateAfter.loadKg : (c.stateAfter.level ?? 0);
+  const valore = (seduta: LoggedSession): number | null => {
+    const voci = vociDi(seduta, slug);
+    if (voci.length === 0) return null;
+    if (sulCarico) {
+      const v = caricoDi(voci);
+      return exercise.loadPolicy === 'inherent' && v === 0 && stato.loadKg > 0 ? null : v;
+    }
+    return livelloVoci(voci);
+  };
+  const risolta = sessions.some((seduta) => {
+    if (seduta.status !== 'completed' || seduta.id === sedutaId || seduta.id === c.sessionLogId) return false;
+    if (seduta.date < c.date) return false;
+    const v = valore(seduta);
+    return v !== null && v !== B;
+  });
+  return risolta ? null : { scelta: c, sulCarico, B, T };
+}
+
+/**
+ * R14d: il testo della stazione con un manubrio scelto e non ancora preso.
+ * Il peso parte da B, quello di prima: un campo lasciato com'è non deve mai
+ * alzare un numero. `null` se sull'esercizio non c'è un manubrio in attesa.
+ */
+export function testoManubrioInAttesa(
+  slug: ExerciseSlug,
+  registro: readonly SceltaRegistrata[],
+  sessions: readonly LoggedSession[],
+  stato: ExerciseState | undefined,
+  sedutaId: string,
+): string | null {
+  return manubrioInAttesa(slug, registro, sessions, stato, sedutaId)?.testo ?? null;
+}
+
+/** R14d: il manubrio scelto e non ancora preso, con il peso di prima da cui parte il player. */
+export function manubrioInAttesa(
+  slug: ExerciseSlug,
+  registro: readonly SceltaRegistrata[],
+  sessions: readonly LoggedSession[],
+  stato: ExerciseState | undefined,
+  sedutaId: string,
+): { readonly B: number; readonly T: number; readonly testo: string } | null {
+  if (stato === undefined || getExercise(slug).loadPolicy !== 'inherent') return null;
+  const attesa = sceltaInAttesa(slug, registro, sessions, stato, sedutaId);
+  if (attesa === null || !attesa.sulCarico) return null;
+  const { B, T } = attesa;
+  const testo = inElencoManubri(T)
+    ? `Manubrio scelto: ${kg(T)}. Il peso parte da ${kg(B)}, quello di prima: se prendi quello da ${kg(T)}, scrivilo in ogni serie. Se resti a ${kg(B)} la scelta si toglie e tempo e pausa tornano come prima.`
+    : `Manubrio successivo: al massimo ${kg(T)}. Scrivi il peso che usi davvero; se resti a ${kg(B)} la scelta si toglie e tempo e pausa tornano come prima.`;
+  return { B, T, testo };
+}
+
 export function decadenze(
   S: LoggedSession,
   registro: readonly SceltaRegistrata[],
   sessions: readonly LoggedSession[],
   stati: ReadonlyMap<ExerciseSlug, ExerciseState>,
 ): Decadenza[] {
-  const tolte = new Set(registro.flatMap((r) => (r.decision === 'lapsed' && r.ref !== undefined ? [r.ref] : [])));
   const esercizi = [...new Set(S.exercises.filter((voce) => voce.sets.length > 0).map((voce) => voce.exercise))];
   const out: Decadenza[] = [];
 
@@ -104,50 +190,17 @@ export function decadenze(
     const stato = stati.get(slug);
     if (stato === undefined) continue;
     const exercise = getExercise(slug);
+    const attesa = sceltaInAttesa(slug, registro, sessions, stato, S.id);
+    if (attesa === null) continue;
+    const { scelta: c, sulCarico, B, T } = attesa;
 
-    /* In attesa: la più recente, se un dato incoerente ne mostra due. */
-    const inAttesa = registro
-      .filter(
-        (c) =>
-          c.exercise === slug &&
-          c.decision === 'accepted' &&
-          !tolte.has(c.id) &&
-          c.sessionLogId !== S.id &&
-          stessoStato(stato, c.stateAfter),
-      )
-      .sort((a, b) => (a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date < b.date ? -1 : 1))
-      .at(-1);
-    if (inAttesa === undefined) continue;
-    const c = inAttesa;
-
-    const sulCarico = exercise.loadPolicy !== 'forbidden' && c.stateAfter.loadKg > c.stateBefore.loadKg;
-    const sulLivello =
-      !sulCarico && c.stateBefore.level !== null && c.stateAfter.level !== null && c.stateAfter.level > c.stateBefore.level;
-    if (!sulCarico && !sulLivello) continue;
-
-    const B = sulCarico ? c.stateBefore.loadKg : (c.stateBefore.level ?? 0);
-    const T = sulCarico ? c.stateAfter.loadKg : (c.stateAfter.level ?? 0);
-    /* Il valore scritto in una seduta, o `null` se non è scritto (R14e). */
-    const valore = (seduta: LoggedSession): number | null => {
-      const voci = vociDi(seduta, slug);
-      if (voci.length === 0) return null;
-      if (sulCarico) {
-        const v = caricoDi(voci);
-        return exercise.loadPolicy === 'inherent' && v === 0 && stato.loadKg > 0 ? null : v;
-      }
-      return livelloVoci(voci);
-    };
-
-    /* Nessuna altra seduta chiusa è D(c), nemmeno con una data dopo oggi (L23). */
-    const risolta = sessions.some((seduta) => {
-      if (seduta.status !== 'completed' || seduta.id === S.id || seduta.id === c.sessionLogId) return false;
-      if (seduta.date < c.date) return false;
-      const v = valore(seduta);
-      return v !== null && v !== B;
-    });
-    if (risolta) continue;
-
-    const v = valore(S);
+    /* Il valore scritto in S, o `null` se non è scritto (R14e). */
+    const voci = vociDi(S, slug);
+    const v = sulCarico
+      ? exercise.loadPolicy === 'inherent' && caricoDi(voci) === 0 && stato.loadKg > 0
+        ? null
+        : caricoDi(voci)
+      : livelloVoci(voci);
     if (v === null || v > B) continue;
 
     const sincronizzato = syncStatesFromLog(S, new Map([[slug, c.stateBefore]])).find((s) => s.exercise === slug);

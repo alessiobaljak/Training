@@ -1,7 +1,7 @@
 import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
 import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import { getExercise as getExerciseBySlug } from '../data/exercises.ts';
-import { ENDURANCE_REP_THRESHOLD, LEVA_MANUBRIO, LOAD_UNLOCK_WEEK, getLoadThreshold } from '../data/method.ts';
+import { ENDURANCE_REP_THRESHOLD, LEVA_MANUBRIO, LOAD_STEP_KG, LOAD_UNLOCK_WEEK, MANUBRI_KG, getLoadThreshold } from '../data/method.ts';
 import { DELOAD_WEEKS } from '../data/program.ts';
 import { getTest, testBaseline } from '../data/tests.ts';
 import {
@@ -480,7 +480,9 @@ export function aumenti(
           tipi: ['carico'],
           cosa:
             exercise.loadPolicy === 'inherent'
-              ? `manubrio successivo scelto, al massimo ${kg(T)}`
+              ? inElencoManubri(T)
+                ? `manubrio successivo scelto, ${formatNumber(B)} → ${kg(T)}`
+                : `manubrio successivo scelto, al massimo ${kg(T)}`
               : `carico ${formatNumber(B)} → ${kg(T)}`,
         });
       }
@@ -594,13 +596,60 @@ export function manubrioSuccessivo(
   state: ExerciseState,
   rangeMin: number,
 ): { readonly title: string; readonly change: string; readonly caution: string; readonly nextState: ExerciseState } {
-  const tetto = stepLoad(state.loadKg, 1);
+  /* D-19 (b): il manubrio dopo nell'elenco. Chi chiama ha già controllato che esista. */
+  const esito = manubrioDopo(state.loadKg);
+  const N = esito.tipo === 'successivo' ? esito.kg : state.loadKg;
   return {
     title: `${exercise.name}: passa al manubrio successivo`,
-    change: `Manubrio successivo, al massimo ${kg(tetto)}: oggi usi ${kg(state.loadKg)}. Tempo e pausa tornano a quelli della scheda. Nel player scrivi il peso vero: da lì in poi comanda quello che scrivi. Se il tuo manubrio successivo pesa più di ${kg(tetto)}, resta a ${kg(state.loadKg)}.`,
+    change: `Passa al manubrio da ${kg(N)}: oggi usi ${kg(state.loadKg)}. Tempo e pausa tornano a quelli della scheda. Nel player il peso parte da ${kg(state.loadKg)}: quando prendi quello da ${kg(N)}, scrivilo in ogni serie. Da lì in poi comanda quello che scrivi.`,
     caution: `Aspettati di scendere verso ${String(rangeMin)} ripetizioni: è il segno che il carico è aumentato davvero.`,
-    nextState: { ...state, loadKg: tetto, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
+    nextState: { ...state, loadKg: N, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
   };
+}
+
+/** Il manubrio dopo `v` nell'elenco, o perché non c'è (D-19 b). */
+export type EsitoManubrio =
+  | { readonly tipo: 'successivo'; readonly kg: number }
+  | { readonly tipo: 'oltre-s2'; readonly kg: number }
+  | { readonly tipo: 'mai-scritto' | 'fuori-elenco' | 'cima' };
+
+const ugualeKg = (a: number, b: number): boolean => Math.abs(a - b) < 1e-9;
+
+/** `true` se il peso è uno dei manubri dell'elenco. */
+export function inElencoManubri(v: number, elenco: readonly number[] = MANUBRI_KG): boolean {
+  return elenco.some((peso) => ugualeKg(peso, v));
+}
+
+/**
+ * Il manubrio successivo esatto (D-19 b). Un peso fuori elenco ferma la leva
+ * invece di salire al successivo: è un refuso o un residuo del vecchio tetto
+ * (14,5 kg scritti da chi era a 12), e salire da lì vorrebbe dire salire da un
+ * numero che nessuno ha sollevato.
+ */
+export function manubrioDopo(v: number, elenco: readonly number[] = MANUBRI_KG): EsitoManubrio {
+  if (v <= 0) return { tipo: 'mai-scritto' };
+  const indice = elenco.findIndex((peso) => ugualeKg(peso, v));
+  if (indice < 0) return { tipo: 'fuori-elenco' };
+  const dopo = elenco[indice + 1];
+  if (dopo === undefined) return { tipo: 'cima' };
+  if (dopo - v > LOAD_STEP_KG + 1e-9) return { tipo: 'oltre-s2', kg: dopo };
+  return { tipo: 'successivo', kg: dopo };
+}
+
+/** Il motivo della leva del manubrio quando non c'è. */
+export function testoManubrioFermo(esito: EsitoManubrio, v: number): string | null {
+  switch (esito.tipo) {
+    case 'successivo':
+      return null;
+    case 'mai-scritto':
+      return 'Peso mai scritto su questo esercizio: scrivi nel player il manubrio che usi, e il prossimo si calcola da lì.';
+    case 'fuori-elenco':
+      return `${kg(v)} non è fra i tuoi manubri: scrivi nel player il peso che usi davvero, e il prossimo si calcola da lì.`;
+    case 'cima':
+      return `${kg(v)} è il manubrio più pesante che hai: il manubrio non sale più.`;
+    case 'oltre-s2':
+      return `Dopo ${kg(v)} il tuo manubrio successivo pesa ${kg(esito.kg)}: più di 2,5 kg in un passo, oltre il limite del metodo. Il manubrio non sale.`;
+  }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -744,7 +793,11 @@ function loadLever(input: ProgressionInput): LeverAvailability {
  * La leva del carico, e se è ferma solo per la settimana (Z3) o per il test
  * (Z4): in quel caso le leve non sono finite, arrivano più avanti (R17c).
  */
-function loadLeverConMotivo(input: ProgressionInput): { leva: LeverAvailability; piuAvanti: boolean } {
+function loadLeverConMotivo(input: ProgressionInput): {
+  leva: LeverAvailability;
+  piuAvanti: boolean;
+  manubrio?: EsitoManubrio;
+} {
   const label = OVERLOAD_LEVER_LABELS.load;
   const ferma = (reason: string | null, piuAvanti = false) => ({
     leva: { lever: 'load' as const, label, available: false, reason },
@@ -775,7 +828,12 @@ function loadLeverConMotivo(input: ProgressionInput): { leva: LeverAvailability;
         true,
       );
     }
-    return { leva: { lever: 'load', label, available: true, reason: null }, piuAvanti: false };
+    /* D-19 (b): il manubrio successivo esatto, se c'è. Prima di R13: se non sale, non c'è niente da fermare. */
+    const esito = manubrioDopo(input.state.loadKg);
+    if (esito.tipo !== 'successivo') {
+      return { ...ferma(testoManubrioFermo(esito, input.state.loadKg)), manubrio: esito };
+    }
+    return { leva: { lever: 'load', label, available: true, reason: null }, piuAvanti: false, manubrio: esito };
   }
 
   /*
@@ -1267,7 +1325,11 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
           : testoSalitaInAttesa(input.state.level, input.salita)
         : carico.piuAvanti && carico.leva.reason !== null
           ? carico.leva.reason
-          : 'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.';
+          : (carico.manubrio?.tipo === 'mai-scritto' || carico.manubrio?.tipo === 'fuori-elenco') && carico.leva.reason !== null
+            ? carico.leva.reason
+            : carico.manubrio?.tipo === 'cima'
+              ? `Hai esaurito tutte le leve disponibili su questo esercizio: ${kg(input.state.loadKg)} è il manubrio più pesante che hai. Serve un cambio di programmazione, non un altro giro.`
+              : 'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.';
     return {
       closedRange,
       tempoRespected: true,

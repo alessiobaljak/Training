@@ -5,22 +5,33 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## In produzione oggi
 
-**`0f3f191` (2026-11-20): rilascio A di progressione 4.0, progressi 3.1, consigli
-4.0, programmi 2.2, limiti 1.4** (R18, R16, R17, R15 con D-20 a e b, R14b; più A19),
-GO di training-quality su `4edf751`. Prima: `fe85203` (3.0), `a747e09` (R5-R8). R9
-e il rilascio B (R14a/c/d/e) non ancora. Il resto è il codice trascritto con
-`[IN CODICE]` nei file di metodo.
+**`e30cdc6` (2026-11-20)**: rilascio A di progressione 4.0, progressi 3.1, consigli
+4.0, programmi 2.2-2.3, limiti 1.4 (R18, R16, R17, R15, R14b; A19) **+ rev. 2026-11-20**
+(L23, L24, M21, 17.2) **+ D-21 a, D-22 a (R19 a fine seduta), D-23 a**. Prima: `0f3f191`
+(rilascio A), `fe85203` (3.0), `a747e09` (R5-R8). Non ancora: R9, rilascio B (R14a/c/d/e,
+in corso). Il resto è il codice trascritto con `[IN CODICE]` nei file di metodo.
 
 ## Voci aperte
 
+### progressione 4.1 · consigli 4.1 · programmi 2.3 rev. · limiti 1.4 rev. (2026-11-21)
+- **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-21-training.md`, T-24…T-27).
+- **Cosa.** D-19 b: manubrio successivo esatto da `MANUBRI_KG` (minor: soglia), niente leva con
+  peso mai scritto, fuori elenco o in cima; R14d resta `B`. M22: R19 anche in revisione, R10a
+  (2)-(3), motivi `tetto` e `manubrio`; R17c punti 3-5. L25: σ′ = stati della chiusura + proposte
+  sopra che allungano. L26: nota del circuito 4 (≈ 59′, D5), PROGRAM_RULES §5, `DEVIAZIONI_NOTA`.
+- **Perché.** Decisioni di Alessio del 2026-11-20 (D-19 b, D5, M20 residuo); quality 2026-11-20
+  `221b2e8` (M22 Medio, L25 e L26 Bassi).
+- **Limiti.** Nessuno allentato: passo massimo 2 kg (era un tetto di 2,5), σ′ più stretto.
+- **Esito training-quality.** Non ancora valutato.
+
 ### progressione 4.0 · progressi 3.1 · consigli 4.0 · programmi 2.2 · limiti 1.4
-- **Data.** 2026-11-18, rev. 2026-11-20. **Stato.** Rilascio A in produzione
-  `0f3f191`; rilascio B e rev. 2026-11-20 PROPOSTA.
+- **Data.** 2026-11-18, rev. 2026-11-20. **Stato.** Rilascio A e rev. 2026-11-20 in
+  produzione (`e30cdc6`); rilascio B in corso.
 - **Rev. 2026-11-20** (domande di quality, rapporto 2026-11-20): L23 una data dopo
   oggi ferma R13 (togliere `giorni >= 0`); L24 gradino della seduta = il più alto,
   R14b con voce e seduta allo stato; M21 testo «primo peso scritto»; 16.4 →
   16.4′ + 16.P; 17.2 dal 2 aprile (D-20 b). Nessuna soglia cambiata; tutte
-  stringono o correggono testi. In attesa: D-21 (M20), D-22 (M19), D-23.
+  stringono o correggono testi. D-21 a, D-22 a, D-23 a decise il 2026-11-20, in produzione.
 - **Cosa.** R14 (M18): scelta in salita non eseguita ⇒ stato a `stateBefore`,
   record `lapsed`, non conta per R13; R14b leve a fine seduta solo allo stato;
   R14c R10b legge i `lapsed`; R14d peso proposto per il manubrio; R14e peso non

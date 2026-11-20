@@ -14,7 +14,9 @@ import {
   isFixedRange,
   isLevaManubrio,
   leveDiTempo,
+  manubrioDopo,
   manubrioSuccessivo,
+  testoManubrioFermo,
   isScarico,
   motivoBlocco,
   righeVere,
@@ -144,7 +146,9 @@ export type MotivoAlMassimo =
   | 'settimana'
   | 'soglia'
   | 'nessun-test'
-  | 'leve-finite';
+  | 'leve-finite'
+  /** D-19 (b): il peso non è scritto o non è fra i manubri dell'elenco. */
+  | 'manubrio';
 
 /** Massimo chiuso senza una leva che la revisione possa tirare (R6). */
 export interface AlMassimo {
@@ -760,6 +764,18 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
             `Fino alla settimana ${String(LOAD_UNLOCK_WEEK)} il manubrio non si cambia: le prime due settimane servono a ricostruire lo schema motorio.`,
           );
         }
+        /* D-19 (b): il manubrio successivo esatto; senza, niente da fermare per R13. */
+        const esito = manubrioDopo(before.loadKg);
+        if (esito.tipo === 'mai-scritto' || esito.tipo === 'fuori-elenco') {
+          return alMassimoCon('manubrio', `massimo chiuso su tutte le serie. ${testoManubrioFermo(esito, before.loadKg) ?? ''}`);
+        }
+        if (esito.tipo === 'cima') {
+          return alMassimoCon(
+            'leve-finite',
+            `Hai esaurito le leve su questo esercizio: ${formatNumber(before.loadKg)} kg è il manubrio più pesante che hai. Serve un cambio di programmazione, non un altro giro.`,
+          );
+        }
+        if (esito.tipo === 'oltre-s2') return leveFinite();
         if (recente !== null) return fermoSetteGiorni();
         const manubrio = manubrioSuccessivo(exercise, before, range.min);
         return {

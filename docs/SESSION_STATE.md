@@ -295,6 +295,21 @@ Punto di ritorno, aggiornato a ogni push:
       livello con `v < B` («Oggi hai fatto il livello <v>, sotto quello di
       prima…»), che la specifica non scrive.
     - T-16 (R14d) aspetta il designer su D-19 (b).
+  - **B2 completo** (commit locali `3b4db08`, `d5f72e2` vetro, poi T-16 + T-24):
+    - T-24 (D-19 b, appendice `2026-11-21-training.md` §1): `MANUBRI_KG`,
+      `manubrioDopo`, leva del manubrio esatta, testi `mai-scritto`,
+      `fuori-elenco`, `cima`, `oltre-s2`, R17c 3 e 5, R10a (6) con motivo
+      `manubrio`, `<cosa>` nuova. Prove D19.1-D19.20, D19.P, D19.12.
+    - T-16 (R14d): testo della stazione; con un manubrio in attesa il peso
+      parte da B anche senza una seduta precedente (prima partiva dallo
+      stato, cioè da T: buco trovato dalla sessione principale). Il passo del
+      peso sui manubri è 1 kg. Smoke: stazione dello stacco, testo e 8 kg.
+    - `SessionScreen` non apre sedute di circuito (App.tsx: `eCircuito` →
+      GuidedSession): D19.21 non si applica; R-7 lì riguarda solo il programma
+      archiviato.
+    - verify 908, smoke, offline verdi.
+  - Rilascio C dopo B2: T-25 (M22), T-26 (L25), T-27 (L26; `NOTE_SCHEDA` resta
+    NON COPERTA senza il foglio originale).
   - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
     aumento eseguito in scarico; designer e quality: a, niente leve a fine
     seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:

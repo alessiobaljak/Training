@@ -108,6 +108,14 @@ export const LEVA_MANUBRIO: ReadonlySet<string> = new Set([
   'rematore-manubrio-un-braccio',
 ]);
 
+/**
+ * D-19 (b), Alessio, 2026-11-20: i manubri che ha, in kg, in ordine
+ * crescente. Il manubrio successivo è il valore dopo nell'elenco, non un
+ * tetto di +2,5 kg: da 3 kg il tetto permetteva 5 kg, +67% in un colpo.
+ * Prima del rilascio pubblico l'elenco diventa dell'atleta (W-45).
+ */
+export const MANUBRI_KG: readonly number[] = Object.freeze([3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24]);
+
 export { LOAD_STEP_KG } from '../types/core.ts';
 
 export interface LoadThreshold {
