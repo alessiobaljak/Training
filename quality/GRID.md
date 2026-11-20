@@ -119,6 +119,10 @@ meno di 7 giorni da un altro). Al 2026-11-16 passa: C4 v4 = 75% (6/8). **2026-11
 +4:15), che il §7 di R19 lascia proponibile, e a 56:07 in C3 (L25). D5 stretta:
 80%. Proposta: «entro il tetto, salvo il passo di una variante» (decisione di
 Alessio).
+**D5 al 2026-11-20d (`18`):** massimi assoluti, ogni gradino e bonus al massimo: circuito 1
+46:25, circuito 2 51:43 (rematore inverso per lato ai gradini 5-6), circuito 3 49:15;
+circuito 4: estremo teorico 59:15 (tetto + hip thrust 2 → 3), simulato 56:43. La
+nota del circuito 4 ora dichiara «circa 59»: D5 letta sul tetto dichiarato = 100%.
 **Proposta v4, seconda voce (2026-11-20, da approvare):** C8 + **D5**, «durata
 stimata della seduta con gli stati raggiungibili (tempo e pausa ai massimi)
 entro il tetto dichiarato». Con R18 la stima segue gli stati: 46-59′ (66′ con

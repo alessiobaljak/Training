@@ -4,17 +4,15 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v10** · 2026-11-20c · misurato su `src/` al commit `0d85597`
-(head locale, rilascio B2). **v10: 4j nuovo (R-7)**: con un manubrio scelto e non
-ancora preso il campo del peso lasciato com'è non alza mai un numero (peso composto
-come `PassoLavoro` di `GuidedSession`, chiusura come `chiudi`; volta scorsa 12 e 0
-kg; positivo: chi scrive il manubrio nuovo lo esegue; composizione del player
-verificata in modo statico come 4i). Provato al contrario: su `e30cdc6` 4j dà R-7
-×2 (campo a 14,5 kg con la volta scorsa a 0, stato salvato 14,5); su `0d85597`
-solo S9. v9 (2026-11-20b, `221b2e8`): 4e (ii)-(iv) spostati di 5 settimane per
-D-21 (a); su `001de30` 4e v9 dà S2 il 05-04. v8: 4e sul carico *sollevato*
-(D-20 a). v7: la revisione riceve il registro; 4e su 7 giorni.
-Note di v6 e v5: `ARCHIVE-2.md`.
+Versione: **v11** · 2026-11-20d · misurato su `src/` al commit `f7f945d`
+(head locale, rilascio C). **v11: 4k nuovo (R-14)**: la revisione riceve la durata
+come in Home e nella schermata Revisione (`durataDellaSedutaDi`, M22). Circuito 4
+sotto il tetto, military press `{10, +1″, 0}` e dip su panche al gradino 1 con i
+passi di tempo e pausa oltre 55′: manubrio 10 → 12 esatto (S2 sui manubri, D-19 b),
+niente zavorra con la variante aperta (S5). Se la military press non arriva al
+manubrio la fixture non misura e il caso fallisce. Provato al contrario: su
+`fb560e7` 4k non misura (la revisione dice ancora «tempo»); su `f7f945d` solo S9.
+v10 (`0d85597`): 4j, R-7. Note di v10 e precedenti: `ARCHIVE-2.md`.
 
 ## Lettura dopo le decisioni del 2026-11-12
 
@@ -74,18 +72,16 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-20c (v10, `0d85597`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+## Esito del 2026-11-20d (v11, `f7f945d`): 2 PASS · 4 FALLITI · 2 NON COPERTI
 
-Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4j (R-7) superato
-con il positivo; su `e30cdc6` (produzione) il caso 4 fallisce anche per 4j ×2.
-Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS (caso 7: nessun
-campo di testo nel codice nuovo). B14 (riquadro di calibrazione, preesistente) non
-è nel nucleo: si misura in `17`; entra in 4 quando training-designer avrà la regola.
+Conteggio invariato, identico su `fb560e7` con la v10. Caso 4 fallisce **solo per
+4h** (S9, B10): 4j e il nuovo 4k superati; su `fb560e7` il 4k non misura (positivo).
+Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS (nessun campo di
+testo nel codice nuovo: `DEVIAZIONI_NOTA` è testo dell'app). B14 è chiuso nei
+circuiti (`18`: 0 su 61.410 voci pesate); il residuo sulle sedute archiviate (L31)
+non entra nel nucleo finché training-designer non decide.
 
-Esito del 2026-11-20b (v9, `221b2e8`): 2 PASS · 4 FALLITI · 2 NON COPERTI. Caso 4
-solo 4h; con la v8 il 4e dava «positivo mancato» (D-21).
-
-Esiti precedenti al 2026-11-20b: `ARCHIVE-2.md`.
+Esiti precedenti: `ARCHIVE-2.md`.
 
 ---
 
@@ -155,9 +151,9 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi (2026-11-20c, `0d85597`, v10): FALLITO** — 1 violazione su 10
+**Stato oggi (2026-11-20d, `f7f945d`, v11): FALLITO** — 1 violazione su 11
 controlli: 4h (S9, B10). Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
-4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10), **4j (R-7, v10)**. La revisione
+4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10), 4j (R-7, v10), **4k (R-14, v11)**. La revisione
 riceve il registro: vuoto salvo 4c (salite accettate) e 4e (zavorra accettata). Inizio programma 2026-03-02; revisione della settimana W
 con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 
@@ -175,6 +171,7 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 4h (S9) | `buildGuidedPlan` delle 4 sedute, settimane 1 e 6. Stabilizzazione del tronco: suitcase carry, hollow hold, plank con trascinamento, Pallof press, plank tocco spalla. Balistici carichi: swing, corda slam | ogni giunzione tronco → balistico ha ≥ 15" di passi `rest` in mezzo; se non ne trova nessuna il controllo fallisce (fixture vuota) | **violata**: `circuito-4` sett. 1, F4 plank tocco spalla → F1 corda slam del giro 2, **0"** (finitura: 15" fra stazioni, 0 fra i giri). Le giunzioni B3 → F hanno 15" (R2). In sett. 6 la finitura ha un giro e il caso non si presenta (B10) |
 | 4i (S10) | (1) push-up `circuito-3/A2` gradino 2, 18-18-18 su 12-18, `tempoRespected=null`, R7 aperta; (2) controllo statico di `GuidedSession.tsx`, come 5 e 6a | (1) nessuna leva oltre le ripetizioni; (2) ogni `setTempoRespected` del player scrive `false` | **corretto**: nessuna leva; 1 scrittura, `false`. Se il player tornasse a scrivere «sì» da una misura, (2) fallisce e il controllo va riscritto come misura (`07`) |
 | 4j (R-7, v10) | curl a martello `circuito-1/B1`, `{12, +2″, +2″}`, massimo chiuso il 19 (sett. 4): la fine seduta propone il manubrio, accettato (registro, seduta del 19). Seduta del 23: peso come `PassoLavoro` (B del manubrio in attesa, se no lo stato; `pesoIniziale` con volta scorsa 12 e 0 kg), chiusura come `chiudi`; positivo: seduta scritta a T. Statico: composizione del peso in `GuidedSession` | campo ≤ 12 kg e stato salvato ≤ 12 kg in tutti e due i casi; positivo: stato = T. Composizione non riconosciuta ⇒ il controllo va riscritto | **corretto** su `0d85597`. Su `e30cdc6`: campo a 14,5 kg e stato 14,5 con la volta scorsa a 0 (R-7) |
+| 4k (R-14, v11) | circuito 4 a meno di 55′, stati casuali con seme fisso; military press `circuito-4/A3` `{10, +1″, 0}`, dip su panche `B2` al gradino 1 con tempo e pausa liberi, i passi di tempo e pausa di tutti e due oltre 55′; chiuse 03-02, 03-19, 03-26 al massimo, tempo sì; revisione W4 il 03-30 **con `durata: durataDellaSedutaDi`** | military press: `aggiungi-peso` 10 → 12, mai più di 2 kg; dip: nessuna zavorra, `alMassimo` «variante»; se la military press non arriva al manubrio la fixture non misura | **corretto** su `f7f945d`. Su `fb560e7` non misura: la revisione dice «tempo» |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
 **Stato oggi: PASS.**
@@ -279,3 +276,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-20 | v8 | 2 | 4 | 2 | training-quality (commit `4edf751`, rilascio A di R14-R18; 4e sul carico sollevato, D-20 a; caso 4 solo 4h; su `001de30` anche S2, B13) |
 | 2026-11-20b | v9 | 2 | 4 | 2 | training-quality (commit `221b2e8`, rilascio B1; 4e fuori dalla settimana 5 per D-21; caso 4 solo 4h; su `001de30` anche S2) |
 | 2026-11-20c | v10 | 2 | 4 | 2 | training-quality (commit `0d85597`, rilascio B2; 4j R-7 nuovo; caso 4 solo 4h; su `e30cdc6` anche 4j ×2) |
+| 2026-11-20d | v11 | 2 | 4 | 2 | training-quality (commit `f7f945d`, rilascio C; 4k R-14 nuovo; caso 4 solo 4h; su `fb560e7` 4k non misura) |

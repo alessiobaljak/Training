@@ -19,7 +19,8 @@ import { testBaseline } from '../../src/data/tests.ts';
 import { evaluateProgression } from '../../src/engine/progression.ts';
 import { resolveBlockRange } from '../../src/engine/ranges.ts';
 import { reviewWeek } from '../../src/engine/review.ts';
-import { buildGuidedPlan } from '../../src/engine/circuit.ts';
+import { buildGuidedPlan, estimatedSeconds } from '../../src/engine/circuit.ts';
+import * as CircE from '../../src/engine/circuit.ts';
 import { summarizeExercise } from '../../src/engine/metrics.ts';
 import { calibrateLoad } from '../../src/engine/loading.ts';
 import type {
@@ -545,6 +546,46 @@ function fileTesto(dir: string, ext: string[]): string[] {
         }
         if (chiudi(T.loadKg).loadKg !== T.loadKg) violazioni.push(`4j: positivo mancato: scritto il manubrio nuovo (${String(T.loadKg)} kg), lo stato salvato è ${String(chiudi(T.loadKg).loadKg)} kg: la fixture non misura`);
       }
+    }
+  }
+
+  /* 4k — R-14 (v11, 2026-11-20, rilascio C): la revisione con la durata, come Home e Revisione (M22, T-25). Circuito 4
+     sotto il tetto, military press {10, +1″, 0} e dip su panche al gradino 1 con i passi di tempo e di pausa oltre i 55′:
+     con R19 in revisione arriva la leva dopo. Atteso: military press → manubrio successivo esatto 10 → 12 (S2 sui
+     manubri, D-19 b), mai più di 2 kg; dip → niente zavorra con la variante aperta (S5). Se la military press non arriva
+     al manubrio (per esempio la revisione dice ancora «tempo», come senza `durataDellaSedutaDi`) la fixture non misura e
+     il controllo fallisce. */
+  {
+    const durataRev = (CircE as Record<string, unknown>)['durataDellaSedutaDi'] as ((x: ExerciseSlug, m: ReadonlyMap<ExerciseSlug, ExerciseState>) => number | null) | undefined;
+    const C4 = findCircuitSession('circuito-4')!;
+    const dur = (m: ReadonlyMap<ExerciseSlug, ExerciseState>): number => estimatedSeconds(buildGuidedPlan(C4, 1, m));
+    const MPk = 'military-press-manubri' as ExerciseSlug; const DPk = 'dip-panche-piedi-rialzati' as ExerciseSlug;
+    const giud = C4.blocks.filter((b) => b.excludeFromReview !== true);
+    const bmax = (tut: string): { e: number; p: number } => { const f = tut.split('-'); return { e: f[0] === 'X' ? 0 : Math.max(0, 5 - Number(f[0])), p: f[1] === 'X' ? 0 : Math.max(0, 2 - Number(f[1])) }; };
+    let seme = 20261120; const rnd = (): number => { seme = (Math.imul(seme, 1103515245) + 12345) >>> 0; return seme / 4294967296; };
+    const piu1 = (m: Map<ExerciseSlug, ExerciseState>, x: ExerciseSlug, k: 'e' | 'p'): Map<ExerciseSlug, ExerciseState> => { const L = m.get(x)!; return new Map(m).set(x, k === 'e' ? { ...L, eccentricBonusSeconds: L.eccentricBonusSeconds + 1 } : { ...L, bottomPauseBonusSeconds: L.bottomPauseBonusSeconds + 1 }); };
+    let statiK: Map<ExerciseSlug, ExerciseState> | null = null;
+    for (let i = 0; i < 200000 && statiK === null; i += 1) {
+      const m = new Map<ExerciseSlug, ExerciseState>();
+      for (const b of C4.blocks) { const ex = getExercise(b.exercise); const bm = bmax(b.tut); const giudicato = giud.includes(b);
+        m.set(ex.slug, { exercise: ex.slug, level: ex.defaultLevel, loadKg: ex.loadPolicy === 'inherent' ? 10 : 0, eccentricBonusSeconds: giudicato ? Math.floor(rnd() * (bm.e + 1)) : 0, bottomPauseBonusSeconds: giudicato ? Math.floor(rnd() * (bm.p + 1)) : 0 }); }
+      m.set(MPk, { ...stato(MPk, null, 10), eccentricBonusSeconds: 1 });
+      { const bm = bmax(C4.blocks.find((b) => b.exercise === DPk)!.tut); m.set(DPk, { ...stato(DPk, 1, 0), eccentricBonusSeconds: Math.floor(rnd() * bm.e), bottomPauseBonusSeconds: Math.floor(rnd() * bm.p) }); }
+      if (dur(m) <= 3300 && dur(piu1(m, MPk, 'e')) > 3300 && dur(piu1(m, MPk, 'p')) > 3300 && dur(piu1(m, DPk, 'e')) > 3300 && dur(piu1(m, DPk, 'p')) > 3300) statiK = m;
+    }
+    if (statiK === null) violazioni.push('4k: stato del circuito 4 non costruito: la fixture non misura');
+    else {
+      const bDP = C4.blocks.find((b) => b.exercise === DPk)!; const pDP = bDP.prescription as { kind: string; max?: number };
+      const maxDP = pDP.kind === 'reps' ? pDP.max! : 10;
+      const voci = (liv: LevelIndex | null): LoggedExercise[] => [esercizio('A3', MPk, sets([15, 15, 15], { kg: 10, rir: 1 }), true, null), esercizio(bDP.code, DPk, sets([maxDP, maxDP, maxDP], { rir: 1 }), true, liv)];
+      const storia = [seduta('k0', 1, 'circuito-4', voci(1), null, '2026-03-02'), seduta('k1', 3, 'circuito-4', voci(1), null, '2026-03-19'), seduta('k2', 4, 'circuito-4', voci(1), null, '2026-03-26')];
+      const r = reviewWeek({ week: 4, sessions: storia, states: statiK, tests: VUOTO, weekEnd: fineSett(4), today: '2026-03-30', decisioni: [], ...(durataRev === undefined ? {} : { durata: durataRev }) } as Parameters<typeof reviewWeek>[0]);
+      const vMP = r.verdicts.find((v) => v.exercise === MPk); const vDP = r.verdicts.find((v) => v.exercise === DPk);
+      const amMP = r.alMassimo.find((a) => a.exercise === MPk); const amDP = r.alMassimo.find((a) => a.exercise === DPk);
+      if (vMP?.kind !== 'aggiungi-peso') violazioni.push(`4k: circuito 4 a ${String(dur(statiK))} s, military press col passo di tempo oltre il tetto: la revisione non arriva al manubrio («${vMP?.kind ?? amMP?.motivo ?? 'niente'}»): la fixture non misura${durataRev === undefined ? ' (durataDellaSedutaDi assente)' : ''}`);
+      else { const dk = vMP.stateAfter.loadKg - 10; if (vMP.stateAfter.loadKg !== 12 || dk > 2) violazioni.push(`S2 (4k): manubrio 10 → ${String(vMP.stateAfter.loadKg)} kg in revisione`); }
+      if (vDP?.kind === 'aggiungi-peso') violazioni.push(`S5 (4k): dip su panche al gradino 1 con la variante aperta: zavorra 0 → ${String(vDP.stateAfter.loadKg)} kg`);
+      if (vMP?.kind === 'aggiungi-peso' && amDP?.motivo !== 'variante') violazioni.push(`4k: dip su panche: atteso «variante» al massimo, è ${vDP?.kind ?? amDP?.motivo ?? 'niente'}: la fixture non misura`);
     }
   }
 

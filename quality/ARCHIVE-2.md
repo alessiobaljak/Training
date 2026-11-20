@@ -205,3 +205,56 @@ verify (811), smoke, offline eseguiti da me in sequenza: verdi.
 |---|---|---|
 | R5, R6, R7 a fine seduta, commit `2c9d822` | 12/12 righe come la specifica; X: tempo accettato + zavorra in revisione = due aumenti (A17); M17: revisione aperta dopo la seduta del lunedì = «rimandati» W1-W7 | `13-fine-seduta-r5r6r7.mts` |
 | Leva accettata e ricarica su `sessionDecisions`, commit `ff42dfb` | A 6/6 tenute, R 2/2, Q1 2/2, Q2 2/2 stessa leva e blocco deciso, V coerente 6/6; L11 invariato | `08-leva-accettata.mts` v3 |
+
+## Spostati il 2026-11-20d (da `RESULTS.md`)
+
+Misura del 2026-11-20 (commit `4edf751`, incrementale su `001de30`): **GO per
+il push del rilascio A** (nessun Bloccante o Alto introdotto o peggiorato); app
+ancora NO-GO per la regola approvata. `15` (nuovo): F 107 righe eseguite, 1 DIVERSO (Q5 =
+M18, rilascio B), NC 15.12, b.8, 16.4 non costruibile; A 0 differenze su 259.782
+esiti; B 1 (R11, L23); C/C2 800 atleti: 13.P 0, S1 0, E7 0, R13 di fine seduta
+= riferimento su 23.060 sedute; R14b toglie 226 proposte su 2.318 in C2, 0
+allo stato. Positivo su `001de30`: F 41, A 64, E7 36, 237 leve su voci non allo
+stato, nucleo v8 4e S2. Chiusi **B13** (aperto e chiuso), **A18**, L18-L21.
+Nuovi A19 (preesistente), M19-M21, L23, L24. verify (857), smoke eseguiti da me
+in sequenza: verdi; offline no (non tocca il metodo).
+
+| ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
+|---|---|---|---|---|
+| M21 | Medio | R14b rumoroso alla prima seduta pesata | 2026-11-20b | `16` 21.1-21.5; testo M21 in 106 sedute di C2; il blocco della leva resta |
+| M19 | Medio | Durata oltre i 40′ con i bonus | 2026-11-20b (D-22 a, R19) | `16` R19.0-R19.4, C3: 0 passi di tempo o pausa con σ′ oltre 55′. Residui: variante oltre il tetto (voluta, fino a 59:07), L25 |
+| B13 | Bloccante | S2 e D-4 (a) contati all'esecuzione (D-20 a, b, Alessio 2026-11-20) violati in produzione `001de30`: 13.4 (2,5 kg sollevati il 03-30, +2,5 proposti lo stesso giorno). Aperto e chiuso il 2026-11-20 | 2026-11-20 (`4edf751`; in produzione fino al push) | su `001de30`: nucleo v8 4e S2, `15` E7 36, 15.6 `load`; su `4edf751`: 4e superato, E7 0 su 800 atleti, 15.5-15.7 |
+| A18 | Alto | Player guidato senza lo stato accettato | 2026-11-20 (corretto in `fe85203`) | `15` A18 statico; `npm run smoke` eseguito da me su `4edf751`: eccentrica annunciata, peso dallo stato (14 kg), R18 36″. Resto: peso dei manubri dalla volta scorsa (R-7, voluto) → M18 |
+
+| Metrica | Esito | Script |
+|---|---|---|
+| Leva accettata e R13 nel riepilogo, commit `cf7588a` | A 6/6, V 6/6, Q 2/2, R 2/2; senza il filtro della seduta il riquadro si svuoterebbe (scostamento necessario) | `08-leva-accettata.mts` v4 |
+| R8 + R5/R6/R7 della revisione, riferimento scritto dalla specifica, commit `ff42dfb` | **coincide**: 192.234 esiti per esercizio su 120.000 revisioni (stato, finestra, sessionsCounted, setsCounted, categoria, stato dopo); 32 righe di PROGRESS_REVIEW §6 e PROGRESSION_RULES §9 = atteso; 0 violazioni S1-S5/E4/T2; 300 atleti simulati: 0 salite sotto i 14 giorni | `12-r8-revisione.mts` |
+
+## Nucleo: note di versione ed esiti spostati il 2026-11-20d (da `SAFETY_CORE.md`)
+
+Note di versione v10 (spostate il 2026-11-20d):
+
+Versione: **v10** · 2026-11-20c · misurato su `src/` al commit `0d85597`
+(head locale, rilascio B2). **v10: 4j nuovo (R-7)**: con un manubrio scelto e non
+ancora preso il campo del peso lasciato com'è non alza mai un numero (peso composto
+come `PassoLavoro` di `GuidedSession`, chiusura come `chiudi`; volta scorsa 12 e 0
+kg; positivo: chi scrive il manubrio nuovo lo esegue; composizione del player
+verificata in modo statico come 4i). Provato al contrario: su `e30cdc6` 4j dà R-7
+×2 (campo a 14,5 kg con la volta scorsa a 0, stato salvato 14,5); su `0d85597`
+solo S9. v9 (2026-11-20b, `221b2e8`): 4e (ii)-(iv) spostati di 5 settimane per
+D-21 (a); su `001de30` 4e v9 dà S2 il 05-04. v8: 4e sul carico *sollevato*
+(D-20 a). v7: la revisione riceve il registro; 4e su 7 giorni.
+
+Esito del 2026-11-20c (v10) e del 2026-11-20b (v9), spostati il 2026-11-20d:
+
+
+Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4j (R-7) superato
+con il positivo; su `e30cdc6` (produzione) il caso 4 fallisce anche per 4j ×2.
+Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS (caso 7: nessun
+campo di testo nel codice nuovo). B14 (riquadro di calibrazione, preesistente) non
+è nel nucleo: si misura in `17`; entra in 4 quando training-designer avrà la regola.
+
+Esito del 2026-11-20b (v9, `221b2e8`): 2 PASS · 4 FALLITI · 2 NON COPERTI. Caso 4
+solo 4h; con la v8 il 4e dava «positivo mancato» (D-21).
+
