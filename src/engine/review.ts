@@ -1,3 +1,4 @@
+import { cosaDellaScelta } from './decadenza.ts';
 import { getExercise } from '../data/exercises.ts';
 import { LOAD_UNLOCK_WEEK, getLoadThreshold } from '../data/method.ts';
 import { adjacentLevel, getProgressionStep } from '../data/progressions.ts';
@@ -113,7 +114,7 @@ export interface Rimandato {
   readonly exercise: ExerciseSlug;
   readonly exerciseName: string;
   readonly date: string;
-  readonly motivo: 'stato' | 'leva' | 'smentito';
+  readonly motivo: 'stato' | 'leva' | 'smentito' | 'decaduta';
   /** Il testo per l'atleta, senza il nome dell'esercizio davanti. */
   readonly testo: string;
 }
@@ -460,6 +461,33 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         date: levaDiTempo.date,
         motivo: 'leva',
         testo: `${formatDayLong(levaDiTempo.date)} hai accettato un secondo in più di ${quale}. Le sedute lette sono di prima: si giudica quando avrai due sedute al tempo nuovo.`,
+      });
+      continue;
+    }
+
+    /*
+     * R14c: una scelta tolta dopo la più vecchia delle due ha riportato tempo
+     * e pausa a quelli di prima. Le sedute lette sono state fatte con il tempo
+     * della scelta, non con quello di adesso: non si giudicano.
+     */
+    const tolta = decisioni.find(
+      (record) =>
+        record.exercise === slug &&
+        record.decision === 'lapsed' &&
+        primaDellaCoppia !== undefined &&
+        record.date >= primaDellaCoppia.date &&
+        (record.stateAfter.eccentricBonusSeconds > record.stateBefore.eccentricBonusSeconds ||
+          record.stateAfter.bottomPauseBonusSeconds > record.stateBefore.bottomPauseBonusSeconds),
+    );
+    if (tolta !== undefined) {
+      const scelta = decisioni.find((record) => record.id !== undefined && record.id === tolta.ref);
+      const cosa = cosaDellaScelta({ exercise: slug, stateBefore: tolta.stateAfter, stateAfter: tolta.stateBefore });
+      rimandati.push({
+        exercise: slug,
+        exerciseName: exercise.name,
+        date: tolta.date,
+        motivo: 'decaduta',
+        testo: `${formatDayLong(tolta.date)} la scelta${scelta === undefined ? '' : ` del ${formatDayLong(scelta.date)}`} (${cosa}) non è stata eseguita e tempo e pausa sono tornati a quelli di prima. Le sedute lette non sono a questo stato: si giudica quando avrai due sedute allo stato di adesso.`,
       });
       continue;
     }

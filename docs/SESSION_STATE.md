@@ -271,6 +271,30 @@ Punto di ritorno, aggiornato a ogni push:
     eseguito in scarico, costo accettato o regola? D5 in C8 con la variante
     dell'hip thrust oltre il tetto. V-LEVE in C4.
   - Per training-designer: M22, L25, L26, M20 residuo.
+  - **2026-11-20, Alessio:** manubri confermati (D-19 b): da 3 a 10 kg a
+    passi di 1 kg, poi 12, 14, 16, 18, 20, 22, 24. M20 residuo (scelta di W4
+    eseguita in scarico): costo accettato. Variante dell'hip thrust oltre il
+    tetto di 55′ (D5): accettata. **«Smettila di chiedere conferme e deploya in
+    produzione la versione finale»**: da qui si procede senza domande; restano
+    obbligatori training-quality sulle modifiche al metodo e il nucleo di
+    release-gate a ogni rilascio (CLAUDE.md, regole che non si toccano).
+  - Piano fino alla versione finale: training-designer su D-19 b (manubrio
+    successivo esatto), M22, L25, L26 → B2 (T-15 record `lapsed`, R14a/c/e;
+    T-16 R14d) + regole nuove del designer + secondo giro liquid glass sui
+    contenitori → quality → gate → push. Stile delle figure: resta una scelta
+    di Alessio (CLAUDE.md: solo immagini approvate da lui).
+  - **B2, T-15 fatto** (commit locale): record `lapsed` con `ref`, motore in
+    `src/engine/decadenza.ts`, R14a nel riepilogo (R13 senza la scelta tolta),
+    R14e nella sincronizzazione e nel riepilogo, R14c in revisione (motivo
+    `decaduta`), `sessionDecisions` e `aumenti` ignorano i tolti, backup con
+    `lapsed` e `ref`, chiusura con `recordDecision` (stato + record insieme).
+    Prove 14.1-14.17 e b.8; smoke R14 end-to-end (stacco 10,5 → seduta a 8 →
+    R14a → chiusura → stato 8 kg +1″/+1″ e record `lapsed` letti
+    dall'emulatore). verify 894, smoke, offline verdi.
+    - Testo inventato dalla sessione principale, da far vedere a quality: R14a
+      livello con `v < B` («Oggi hai fatto il livello <v>, sotto quello di
+      prima…»), che la specifica non scrive.
+    - T-16 (R14d) aspetta il designer su D-19 (b).
   - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
     aumento eseguito in scarico; designer e quality: a, niente leve a fine
     seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:

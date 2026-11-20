@@ -133,11 +133,15 @@ export interface ExerciseState {
 export interface DecisioneRegistrata {
   readonly date: string;
   readonly exercise: ExerciseSlug;
-  readonly decision: 'accepted' | 'postponed';
+  /** `lapsed`: una scelta accettata e non eseguita, tolta (R14). */
+  readonly decision: 'accepted' | 'postponed' | 'lapsed';
   readonly stateBefore: ExerciseState;
   readonly stateAfter: ExerciseState;
   /** La seduta in cui è nata, o la chiave della revisione. */
   readonly sessionLogId?: string;
+  readonly id?: string;
+  /** Solo per `lapsed`: l'id della scelta tolta. */
+  readonly ref?: string;
 }
 
 /* -------------------------------------------------------------------------- */

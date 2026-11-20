@@ -10,6 +10,7 @@ import {
 import { formatClock } from '../hooks/useTimers.ts';
 import { aumentoRecente, evaluateProgression, livelloVoci, salitaConsentita } from '../../engine/progression.ts';
 import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
+import { decadenze } from '../../engine/decadenza.ts';
 import { testBaseline } from '../../data/tests.ts';
 import { useSessions, useSuggestions } from '../hooks/useData.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
@@ -92,6 +93,13 @@ export function SessionSummary({
      * pausa già proposte nei blocchi sopra, in questo stesso riepilogo.
      */
     const statiRiepilogo = new Map(states);
+    /*
+     * R14a: le scelte che questa seduta toglie. Su quegli esercizi niente
+     * leve, e R13 non conta la scelta tolta.
+     */
+    const tolte = decadenze(draft, registro ?? [], sessions ?? [], states);
+    const toltePerEsercizio = new Map(tolte.map((d) => [d.exercise, d]));
+    const idTolti = new Set(tolte.map((d) => d.scelta.id));
     return program.blocks.flatMap((declared) => {
         const logged = findLoggedExercise(draft, declared.code);
         if (logged === undefined || logged.sets.length === 0) return [];
@@ -135,7 +143,7 @@ export function SessionSummary({
           rientro: null,
           aumentoRecente: aumentoRecente(
             block.exercise,
-            (registro ?? []).filter((record) => record.sessionLogId !== draft.id),
+            (registro ?? []).filter((record) => record.sessionLogId !== draft.id && !idTolti.has(record.id)),
             sessions ?? [],
             draft.date,
             draft,
@@ -155,6 +163,7 @@ export function SessionSummary({
                 (voce) => voce.exercise === block.exercise && voce.sets.some((set) => set.loadKg > 0),
               ),
           ),
+          decaduta: toltePerEsercizio.get(block.exercise)?.testo ?? null,
           durataCon: (stato) =>
             estimatedSeconds(buildGuidedPlan(program, 1, new Map(statiRiepilogo).set(stato.exercise, stato))),
         });
@@ -421,7 +430,7 @@ export function SessionSummary({
                   )}
                 </div>
               ) : evaluation.blockedReason !== null &&
-                evaluation.closedRange &&
+                (evaluation.closedRange || evaluation.fuoriStato === 'r14a' || evaluation.fuoriStato === 'r14e') &&
                 evaluation.motivoBlocco !== 'tempo-null' &&
                 evaluation.motivoBlocco !== 'tempo-no' ? (
                 /*

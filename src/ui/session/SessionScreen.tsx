@@ -35,7 +35,8 @@ import type { SetValues } from './SetEntry.tsx';
 import { VariantPicker } from './VariantPicker.tsx';
 import { useSessionDraft } from './useSessionDraft.ts';
 import type { ExerciseSlug, LoggedSet, OverloadLever, SessionId } from '../../types/index.ts';
-import { useSuggestions } from '../hooks/useData.ts';
+import { useSessions, useSuggestions } from '../hooks/useData.ts';
+import { decadenze } from '../../engine/decadenza.ts';
 import type { RestDecision, SessionStep } from '../../engine/rest.ts';
 import type { ProgressionSuggestion } from '../../engine/progression.ts';
 
@@ -90,6 +91,8 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
   const [confermaScarto, setConfermaScarto] = useState(false);
   /* Le scelte di fine seduta si ricostruiscono da quello che è salvato (B11). */
   const registrate = useSuggestions();
+  /* R14: le sedute chiuse, per sapere se una scelta è già stata eseguita. */
+  const sedutePassate = useSessions();
   const [locali, setLocali] = useState<readonly RecordedDecision[]>([]);
   const positioned = useRef(false);
 
@@ -122,8 +125,20 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
      * una, valgono senza doverli ridire in un'altra schermata.
      */
     /* Le leve accettate a fine seduta vincono sul diario (A13). */
+    /*
+     * R14: una scelta accettata e non eseguita si toglie. Lo stato di quegli
+     * esercizi e il record `lapsed` si scrivono insieme (L22): mai l'uno
+     * senza l'altro.
+     */
+    const tolte = decadenze(draft, registrate ?? [], sedutePassate ?? [], states);
+    const tolti = new Set(tolte.map((d) => d.exercise));
     for (const state of statesToSave(syncStatesFromLog(draft, states), scelte.accepted)) {
+      if (tolti.has(state.exercise)) continue;
       confirmExercise(state);
+    }
+    for (const d of tolte) {
+      confirmExercise(d.stato, false);
+      void repository.recordDecision(d.record, d.stato);
     }
     update((session) => closeSession(session, new Date().toISOString()));
     goHome();

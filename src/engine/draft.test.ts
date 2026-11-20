@@ -471,8 +471,12 @@ describe('quello che scrivi torna nello stato', () => {
     const primo = syncStatesFromLog(session, new Map([
       ['alzate-laterali-elastico', stato('alzate-laterali-elastico', null, 8)],
     ]));
-    // Le alzate registrano il peso: uno zero scritto lì è una correzione vera.
-    expect(primo[0]?.loadKg).toBe(0);
+    /*
+     * R14e (rilascio B2): sulle alzate, che sono a manubrio, uno zero con lo
+     * stato a 8 kg è un peso non scritto. Lo stato resta, tempo e pausa
+     * compresi. Prima diventava 0 kg (L2).
+     */
+    expect(primo.every((entry) => entry.loadKg === 8)).toBe(true);
 
     const vietata = loggedSession('2026-01-05', 1, [
       loggedExercise('hollow-hold', sets([30, 30, 30], 0), { blockCode: 'A' }),

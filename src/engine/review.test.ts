@@ -927,3 +927,60 @@ describe('L23 in revisione · una seduta con data dopo oggi', () => {
     );
   });
 });
+
+describe('R14c · in revisione, una scelta tolta che riporta tempo e pausa', () => {
+  const PRIMA = { loadKg: 12, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+  const DOPO = { loadKg: 14.5, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 } as const;
+  const c = (date: string) => seduta(date, [voce(MARTELLO, [10, 10, 10], { loadKg: 12 })]);
+  const registro: DecisioneRegistrata[] = [
+    { ...scelta('2026-03-23', MARTELLO, PRIMA, DOPO), id: 'c-23' },
+    {
+      date: '2026-03-26',
+      exercise: MARTELLO,
+      decision: 'lapsed',
+      id: 'lapsed:s26:c-23',
+      ref: 'c-23',
+      sessionLogId: 's26',
+      stateBefore: stato(MARTELLO, DOPO),
+      stateAfter: stato(MARTELLO, PRIMA),
+    },
+  ];
+
+  it('14.17 · la coppia (19, 26) è a uno stato che non c’è più: rimandata', () => {
+    const r = rivedi(4, [c('2026-03-19'), c('2026-03-26')], [stato(MARTELLO, PRIMA)], { today: '2026-03-30', decisioni: registro });
+    expect(r.verdicts).toHaveLength(0);
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'decaduta' }));
+    expect(r.rimandati[0]?.testo).toBe(
+      'giovedì 26 marzo la scelta del lunedì 23 marzo (manubrio successivo, al massimo 14,5 kg) non è stata eseguita e tempo e pausa sono tornati a quelli di prima. Le sedute lette non sono a questo stato: si giudica quando avrai due sedute allo stato di adesso.',
+    );
+  });
+
+  it('14.17 · due sedute dopo, allo stato di adesso: si giudica', () => {
+    const r = rivedi(5, [c('2026-03-19'), c('2026-03-26'), c('2026-03-30'), c('2026-04-02')], [stato(MARTELLO, PRIMA)], {
+      today: '2026-04-06',
+      decisioni: registro,
+    });
+    expect(r.rimandati.filter((x) => x.motivo === 'decaduta')).toHaveLength(0);
+  });
+
+  it('14.7 · zavorra tolta con i bonus uguali: la coppia vale', () => {
+    const ESAURITI = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+    const t = (date: string) => seduta(date, [voce(TRAZIONI, [8, 8, 8], { level: 6, loadKg: 2.5 })]);
+    const zavorra: DecisioneRegistrata[] = [
+      {
+        date: '2026-03-26',
+        exercise: TRAZIONI,
+        decision: 'lapsed',
+        ref: 'z',
+        stateBefore: stato(TRAZIONI, { level: 6, loadKg: 5, ...ESAURITI }),
+        stateAfter: stato(TRAZIONI, { level: 6, loadKg: 2.5, ...ESAURITI }),
+      },
+    ];
+    const r = rivedi(4, [t('2026-03-19'), t('2026-03-26')], [stato(TRAZIONI, { level: 6, loadKg: 2.5, ...ESAURITI })], {
+      today: '2026-03-30',
+      decisioni: zavorra,
+      tests: latestTestResults([testResultSingle('pull-up', '2026-02-23', 0, 12)]),
+    });
+    expect(r.rimandati.filter((x) => x.motivo === 'decaduta')).toHaveLength(0);
+  });
+});

@@ -436,7 +436,16 @@ export function aumenti(
 ): Aumento[] {
   const exercise = getExerciseBySlug(slug);
   const out: Aumento[] = [];
-  const accettate = decisioni.filter((record) => record.exercise === slug && record.decision === 'accepted');
+  /* R14: una scelta tolta non conta né come aumento né come spiegazione. */
+  const decadute = new Set(
+    decisioni.flatMap((record) => (record.decision === 'lapsed' && record.ref !== undefined ? [record.ref] : [])),
+  );
+  const accettate = decisioni.filter(
+    (record) =>
+      record.exercise === slug &&
+      record.decision === 'accepted' &&
+      (record.id === undefined || !decadute.has(record.id)),
+  );
 
   const diario = [
     ...sessions.filter((session) => session.status === 'completed' && session.id !== inCorso?.id),
@@ -643,6 +652,8 @@ export interface ProgressionInput {
    * passasse allo stato dato. Senza, il tetto non si controlla.
    */
   readonly durataCon?: (stato: ExerciseState) => number;
+  /** R14a: il testo della scelta che questa seduta toglie, se ce n'è una. */
+  readonly decaduta?: string | null;
 }
 
 /** R19 (D-22, Alessio, 2026-11-20): oltre 55 minuti tempo e pausa si fermano. */
@@ -830,8 +841,11 @@ export interface ProgressionEvaluation {
   readonly enduranceWarning: string | null;
   /** Il motivo di R5 per cui nessun aumento si applica, se c'è. */
   readonly motivoBlocco: MotivoBlocco | null;
-  /** La voce non è allo stato (R14b): nessuna leva, e `blockedReason` dice perché. */
-  readonly fuoriStato: 'r14b' | null;
+  /**
+   * Nessuna leva, e `blockedReason` dice perché: la scelta di prima si toglie
+   * (R14a), il peso non è scritto (R14e), la voce non è allo stato (R14b).
+   */
+  readonly fuoriStato: 'r14a' | 'r14b' | 'r14e' | null;
 }
 
 function meanValue(logged: LoggedExercise): number {
@@ -981,6 +995,22 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       ? `Sopra ${String(ENDURANCE_REP_THRESHOLD.min)}-${String(ENDURANCE_REP_THRESHOLD.max)} ripetizioni stai allenando la resistenza, non l’ipertrofia. Cambia leva.`
       : null;
 
+  /* R14a: la scelta di prima non è stata eseguita e si toglie: niente leve su questo esercizio. */
+  if (input.decaduta !== undefined && input.decaduta !== null) {
+    const motivo = input.decaduta;
+    return {
+      closedRange: false,
+      tempoRespected: logged.tempoRespected,
+      triggered: false,
+      levers: levers.map((entry) => (entry.lever !== 'reps' && entry.available ? { ...entry, available: false, reason: motivo } : entry)),
+      suggestion: null,
+      blockedReason: motivo,
+      enduranceWarning,
+      motivoBlocco: null,
+      fuoriStato: 'r14a',
+    };
+  }
+
   if (range.kind !== 'range') {
     return {
       closedRange: false,
@@ -996,6 +1026,25 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
   }
 
   const caricoVoce = logged.sets.reduce((max, set) => Math.max(max, set.loadKg), 0);
+
+  /*
+   * R14e: un manubrio lasciato a 0 kg con lo stato a peso è un peso non
+   * scritto. Lo stato resta e non si valuta nessuna leva.
+   */
+  if (input.exercise.loadPolicy === 'inherent' && input.state.loadKg > 0 && (input.caricoMassimoSeduta ?? caricoVoce) === 0) {
+    const motivo = `Peso non scritto: lo stato resta ${kg(input.state.loadKg)}. Scrivi il peso la prossima volta: senza, su questo esercizio le leve non si valutano.`;
+    return {
+      closedRange: false,
+      tempoRespected: logged.tempoRespected,
+      triggered: false,
+      levers: levers.map((entry) => (entry.lever !== 'reps' && entry.available ? { ...entry, available: false, reason: motivo } : entry)),
+      suggestion: null,
+      blockedReason: motivo,
+      enduranceWarning,
+      motivoBlocco: null,
+      fuoriStato: 'r14e',
+    };
+  }
 
   /*
    * Si giudicano le serie vere (R8): una serie per lato a cui manca un lato

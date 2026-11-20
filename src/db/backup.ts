@@ -149,7 +149,7 @@ const SESSION_IDS: readonly SessionId[] = ALL_SESSIONS.map((session) => session.
 const SESSION_STATUSES: readonly SessionStatus[] = ['in-progress', 'completed', 'abandoned'];
 const SIDES: readonly Side[] = ['left', 'right'];
 const TEST_IDS: readonly TestId[] = WEEK_ZERO_TESTS.map((test) => test.id);
-const DECISIONS: readonly SuggestionDecision[] = ['accepted', 'postponed'];
+const DECISIONS: readonly SuggestionDecision[] = ['accepted', 'postponed', 'lapsed'];
 
 /* -------------------------------------------------------------------------- */
 /* Validatori di riga                                                          */
@@ -338,6 +338,7 @@ function readSuggestion(value: unknown, path: string, warnings: string[]): Sugge
     decision: expectOneOf(row['decision'], DECISIONS, `${path}.decision`),
     stateBefore: readExerciseState(row['stateBefore'], `${path}.stateBefore`, warnings),
     stateAfter: readExerciseState(row['stateAfter'], `${path}.stateAfter`, warnings),
+    ...(row['ref'] === undefined ? {} : { ref: expectString(row['ref'], `${path}.ref`) }),
   };
 }
 

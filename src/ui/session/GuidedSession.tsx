@@ -28,7 +28,8 @@ import {
   pesoIniziale,
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
-import { useSuggestions } from '../hooks/useData.ts';
+import { useSessions, useSuggestions } from '../hooks/useData.ts';
+import { decadenze } from '../../engine/decadenza.ts';
 import { effectiveTempo, initialExerciseState } from '../../engine/progression.ts';
 import { formatNumber } from '../../engine/dates.ts';
 import { getLoadAvailability } from '../../engine/loading.ts';
@@ -497,6 +498,8 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
    * restituisca la scelta appena fatta.
    */
   const registrate = useSuggestions();
+  /* R14: le sedute chiuse, per sapere se una scelta è già stata eseguita. */
+  const sedutePassate = useSessions();
   const [locali, setLocali] = useState<readonly RecordedDecision[]>([]);
   const posizionato = useRef(false);
 
@@ -546,8 +549,20 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
   const scelte = sessionDecisions(draft.id, registrate ?? [], locali, states);
 
   const chiudi = (): void => {
+    /*
+     * R14: una scelta accettata e non eseguita si toglie. Lo stato di quegli
+     * esercizi e il record `lapsed` si scrivono insieme (L22): mai l'uno
+     * senza l'altro.
+     */
+    const tolte = decadenze(draft, registrate ?? [], sedutePassate ?? [], states);
+    const tolti = new Set(tolte.map((d) => d.exercise));
     for (const next of statesToSave(syncStatesFromLog(draft, states), scelte.accepted)) {
+      if (tolti.has(next.exercise)) continue;
       confirmExercise(next);
+    }
+    for (const d of tolte) {
+      confirmExercise(d.stato, false);
+      void repository.recordDecision(d.record, d.stato);
     }
     update((session) => closeSession(session, new Date().toISOString()));
     navigate({ name: 'home' });

@@ -1761,6 +1761,43 @@ try {
   };
   const accetta = () => page.getByRole('button', { name: 'Accetto, dalla prossima volta' });
 
+  /*
+   * R14 (M18): una scelta in salita accettata e non eseguita si toglie. Prima
+   * della Seduta 2 si scrive una scelta «manubrio successivo» sullo stacco
+   * rumeno (A2), da 8 kg con +1″/+1″ a «al massimo 10,5 kg», con lo stato già
+   * su 10,5 kg. Il tri-set A scrive 8 in ogni campo: lo stacco resta a 8 kg,
+   * quindi la scelta non è eseguita. Il riepilogo deve dirlo, e alla chiusura
+   * lo stato deve tornare a 8 kg con +1″/+1″, insieme a un record `lapsed`.
+   */
+  const SCELTA_R14 = 'smoke-scelta-stacco';
+  /* Lo stacco non ha ancora uno stato: nasce alla prima seduta. Lo si crea, accanto agli altri. */
+  const unoStato = (await readFromEmulator('exerciseStates'))[0];
+  check(unoStato !== undefined, 'R14: serve almeno uno stato salvato per sapere dove scrivere.');
+  const conR14 = unoStato !== undefined;
+  if (unoStato !== undefined) {
+    const utente = unoStato.name.slice(0, unoStato.name.lastIndexOf('/exerciseStates/'));
+    const campiStato = (kg, eccentrica, pausa) => ({
+      exercise: { stringValue: 'stacco-rumeno-manubri' },
+      level: { nullValue: null },
+      loadKg: Number.isInteger(kg) ? { integerValue: String(kg) } : { doubleValue: kg },
+      eccentricBonusSeconds: { integerValue: String(eccentrica) },
+      bottomPauseBonusSeconds: { integerValue: String(pausa) },
+    });
+    await writeToEmulator(utente, 'exerciseStates', 'stacco-rumeno-manubri', campiStato(10.5, 0, 0));
+    await writeToEmulator(utente, 'suggestions', SCELTA_R14, {
+      id: { stringValue: SCELTA_R14 },
+      date: { stringValue: new Date().toISOString().slice(0, 10) },
+      sessionLogId: { stringValue: 'smoke-revisione' },
+      exercise: { stringValue: 'stacco-rumeno-manubri' },
+      blockCode: { stringValue: 'A2' },
+      lever: { stringValue: 'load' },
+      decision: { stringValue: 'accepted' },
+      stateBefore: { mapValue: { fields: campiStato(8, 1, 1) } },
+      stateAfter: { mapValue: { fields: campiStato(10.5, 0, 0) } },
+    });
+    await page.waitForTimeout(1500);
+  }
+
   await page.goto(`${BASE}/#/seduta/circuito-2`, { waitUntil: 'load' });
   await page.waitForTimeout(1400);
   const partiS2 = page.getByRole('button', { name: 'Parti subito', exact: true });
@@ -1813,7 +1850,14 @@ try {
         await page.waitForTimeout(1200);
       }
 
-      const titoloPrima = titoloLeva(await page.locator('main').innerText());
+      const riepilogoS2 = await page.locator('main').innerText();
+      if (conR14) {
+        check(
+          riepilogoS2.includes('Oggi hai usato 8 kg, il peso di prima') && riepilogoS2.includes('non è stata eseguita e si toglie'),
+          `R14a: lo stacco a 8 kg non esegue «al massimo 10,5 kg», e il riepilogo deve dirlo. Legge: ${JSON.stringify(riepilogoS2.slice(0, 600))}`,
+        );
+      }
+      const titoloPrima = titoloLeva(riepilogoS2);
       check(
         titoloPrima !== null && (await accetta().count()) === 1,
         `Range chiuso e tempo confermato: il riepilogo deve proporre una leva sola. Titolo letto: ${String(titoloPrima)}.`,
@@ -1888,6 +1932,22 @@ try {
               leve(salvato) === leve(accettata),
               `B11: dopo «Salva e chiudi» lo stato salvato deve essere quello accettato, ${leve(accettata)}. Salvato: ${leve(salvato)} (prima: ${leve(prima)}).`,
             );
+
+            if (conR14) {
+              /* R14: lo stato torna a prima della scelta, e il record `lapsed` è scritto con lui. */
+              const stacco = (await readFromEmulator('exerciseStates'))
+                .map((doc) => Object.fromEntries(Object.entries(doc.fields ?? {}).map(([k, v]) => [k, daFirestore(v)])))
+                .find((state) => state.exercise === 'stacco-rumeno-manubri');
+              check(
+                stacco?.loadKg === 8 && stacco?.eccentricBonusSeconds === 1 && stacco?.bottomPauseBonusSeconds === 1,
+                `R14: tolta la scelta, lo stacco deve tornare a 8 kg con +1″/+1″. Salvato: ${leve(stacco)}.`,
+              );
+              const tolta = (await readFromEmulator('suggestions')).find(
+                (doc) => doc.fields?.decision?.stringValue === 'lapsed' && doc.fields?.ref?.stringValue === SCELTA_R14,
+              );
+              check(tolta !== undefined, 'R14: alla chiusura deve esserci un record `lapsed` che rimanda alla scelta tolta.');
+              console.log(`R14: stacco ${leve(stacco)}, record lapsed ${tolta === undefined ? 'assente' : 'presente'}.`);
+            }
 
             /*
              * A18: la seduta dopo deve annunciare il tempo accettato. Prima il

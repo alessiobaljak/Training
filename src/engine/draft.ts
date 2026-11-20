@@ -429,7 +429,13 @@ export function syncStatesFromLog(
       (max, voce) => voce.sets.reduce((m, set) => Math.max(m, set.loadKg), max),
       0,
     );
-    const loadKg = exercise.loadPolicy === 'forbidden' ? before.loadKg : maxLoad;
+    /*
+     * R14e: un manubrio a 0 kg con uno stato a peso è un peso non scritto, non
+     * un peso. Lo stato tiene peso, tempo e pausa; il gradino si aggiorna.
+     * Prima 12 kg con +2″/+2″ diventavano 0 kg con +0″/+0″ (L2).
+     */
+    const nonScritto = exercise.loadPolicy === 'inherent' && maxLoad === 0 && before.loadKg > 0;
+    const loadKg = exercise.loadPolicy === 'forbidden' || nonScritto ? before.loadKg : maxLoad;
     /* L24: il gradino più alto scritto oggi, come il peso. */
     const level = livelloVoci(stessoEsercizio) ?? before.level;
 
@@ -498,7 +504,7 @@ export interface RecordedDecision {
   readonly sessionLogId: string;
   readonly exercise: ExerciseSlug;
   readonly blockCode: string;
-  readonly decision: 'accepted' | 'postponed';
+  readonly decision: 'accepted' | 'postponed' | 'lapsed';
   readonly stateBefore: ExerciseState;
   readonly stateAfter: ExerciseState;
 }
@@ -546,6 +552,8 @@ export function sessionDecisions(
   /* Le locali per ultime: sono le più recenti. */
   for (const record of [...records, ...local]) {
     if (record.sessionLogId !== sessionLogId) continue;
+    /* Un record `lapsed` non è una scelta del riepilogo: lo scrive la chiusura (R14). */
+    if (record.decision === 'lapsed') continue;
     decided.add(`${sessionLogId}:${record.blockCode}`);
     if (record.decision === 'accepted') accepted.set(record.exercise, record.stateAfter);
     else accepted.delete(record.exercise);

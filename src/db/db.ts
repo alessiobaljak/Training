@@ -68,7 +68,12 @@ export interface ExerciseMedia {
   readonly updatedAt: string;
 }
 
-export type SuggestionDecision = 'accepted' | 'postponed';
+/**
+ * `lapsed` (R14): una scelta in salita accettata e non eseguita, tolta alla
+ * chiusura della seduta che l'ha lasciata al valore di prima. Il record porta
+ * `ref` = id della scelta, ed è scritto insieme allo stato.
+ */
+export type SuggestionDecision = 'accepted' | 'postponed' | 'lapsed';
 
 /** Traccia della scelta fatta su un suggerimento di avanzamento. */
 export interface SuggestionRecord {
@@ -81,6 +86,8 @@ export interface SuggestionRecord {
   readonly decision: SuggestionDecision;
   readonly stateBefore: ExerciseState;
   readonly stateAfter: ExerciseState;
+  /** Solo per `lapsed`: l'id della scelta che si toglie. */
+  readonly ref?: string;
 }
 
 /* -------------------------------------------------------------------------- */
