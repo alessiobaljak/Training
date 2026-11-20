@@ -142,3 +142,66 @@ Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4e v7 (S2 su 7
 giorni) superato con i positivi, 4b v7 superato. Sul codice di produzione
 `a747e09` lo stesso caso 4 fallisce anche per S2 ×2 e R10a (B12, chiuso da
 `cf7588a`). Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.
+
+## Nucleo: esito spostato il 2026-11-20c (da `SAFETY_CORE.md`)
+
+Esito del 2026-11-20b (v9, `221b2e8`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+
+Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4e v9 superato,
+con il positivo del 05-07. Con la v8 su `221b2e8` il 4e dava «positivo mancato»
+(D-21), non una violazione. Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON
+COPERTI; 5 e 7 PASS (caso 7: nessun campo di testo nel codice nuovo).
+
+Esito del 2026-11-20 (v8, `4edf751`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+
+Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4e v8 (S2 sul
+carico sollevato, D-20 a) superato con il positivo del 04-02. Sul codice di
+produzione `001de30` lo stesso caso 4 fallisce anche per S2 (03-30, B13, chiuso
+da `4edf751`). Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.
+
+Intestazione v9 (sostituita dalla v10):
+
+Versione: **v9** · 2026-11-20 · misurato su `src/` al commit `221b2e8`
+(head locale, rilascio B1). **v9: 4e (ii)-(iv) spostati di 5 settimane**
+(revisione W8 del 04-27, sedute 04-30, 05-04, 05-07): con D-21 (a) di Alessio la
+fine seduta della settimana 5 tace per lo scarico in arrivo, quindi la v8 (03-30,
+04-02) non misurava più S2 e il positivo non tornava. Stessa misura, settimane
+7-10. Il 05-04 un silenzio che non sia R13 fa fallire il controllo. Provato al
+contrario: su `001de30` 4e v9 dà S2 il 05-04; su `221b2e8` e `59daf79` solo S9.
+v8 (2026-11-20, `4edf751`): 4e (iii) sul carico *sollevato* (D-20 a, R15).
+v7 (2026-11-16, `cf7588a`, R10-R13): la revisione riceve il registro
+(`decisioni`) e la fine seduta `aumentoRecente`, come nel prodotto. **4e misura
+S2 su 7 giorni** («+2,5 kg a settimana»): revisione accettata il lunedì e fine
+seduta il giovedì, due sedute nello stesso giorno, positivo 7 giorni dopo. Fino
+alla v6 4e guardava solo il passo della singola proposta: **un PASS su metà
+controllo** (R-1 del designer, B12). 4b: il positivo al gradino 6 vuole tempo e
+pausa esauriti (R10a) e a bonus 0 non deve arrivare la zavorra; 4c passa le
+salite accettate nel registro; caso 7 con R13 sul diario con le note. Provato al
+contrario: su `a747e09` (produzione) il caso 4 v7 dà S2 ×2 (+5 kg in 3 giorni,
++5 kg nello stesso giorno), R10a e S9; su `cf7588a` solo S9.
+
+## Note di misura spostate il 2026-11-20c (da `RESULTS.md`)
+
+Misura del 2026-11-16 (commit `cf7588a`, incrementale su `a747e09`): **GO per
+il push delle modifiche al metodo** (nessun Bloccante o Alto introdotto o
+peggiorato); app ancora NO-GO. Chiusi **A17, M17, L15** (`14` F 52/52 righe
+della specifica, A 0 differenze su 259.782 esiti, B 0 violazioni, C 0 su 400
+atleti; `13` v2; positivo su `a747e09`) e **B12** (S2 su 7 giorni: violata in
+produzione, +5 kg in 3 giorni, chiusa da R13; nucleo v7 4e). Nuovi **A18**
+(player guidato senza stato accettato, preesistente), **M18**, L18-L22. C3
+rimisurato 67 → 33 per A18 (c'era anche prima: non guardavo il player).
+verify (811), smoke, offline eseguiti da me in sequenza: verdi.
+
+## Voci chiuse e ricalcoli spostati il 2026-11-20c (da `RESULTS.md`)
+
+| ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
+|---|---|---|---|---|
+| L18 | Basso | Manubrio sotto il tetto contato due volte | 2026-11-20 | `15` 15.1, 15.2; positivo su `001de30` |
+| L19 | Basso | Spiegazione larga del diario | 2026-11-20 | `15` 15.4, b.10; C su `001de30` R13 ≠ riferimento |
+| L20 | Basso | Scarico e scarico-coppia in R11 | 2026-11-20 | `15` 16.1-16.3, 16.5; A 0 differenze (62 su `001de30`) |
+| L21 | Basso | R13 senza leve a fine seduta | 2026-11-20 | `15` 17.1, 17.10 |
+
+| Metrica | Esito | Script |
+|---|---|---|
+| R5, R6, R7 a fine seduta, commit `2c9d822` | 12/12 righe come la specifica; X: tempo accettato + zavorra in revisione = due aumenti (A17); M17: revisione aperta dopo la seduta del lunedì = «rimandati» W1-W7 | `13-fine-seduta-r5r6r7.mts` |
+| Leva accettata e ricarica su `sessionDecisions`, commit `ff42dfb` | A 6/6 tenute, R 2/2, Q1 2/2, Q2 2/2 stessa leva e blocco deciso, V coerente 6/6; L11 invariato | `08-leva-accettata.mts` v3 |

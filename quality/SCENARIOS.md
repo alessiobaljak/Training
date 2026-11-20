@@ -94,3 +94,4 @@ quattordici restano un'opinione mia.
 | G8 | P1 | dead hang misurato 8", decompressione 30" al gradino 2 | gradino 1 (piedi che sfiorano) o tempo ridotto; l'onboarding non dice «non usato» | — | DIFETTO (B9, caso 2c) |
 | M-RIEP-SEDUTA | P2 | settimana 6 (scarico), seduta completa | «12 serie su 12», nessun «chiusa prima della fine» | — | DIFETTO (M14) |
 | R1-PART | P1, P2 | gradino di partenza per ogni esercizio con valori 0..40 | = R1 di PROGRAM_RULES §3 | — | OK (`09`, 3024 celle) |
+| P-MAN | P2 | **proposto 2026-11-20c (D-Q1, per C1)**: curl o military press con manubri, 4 settimane, revisioni e riepiloghi accettati, sedute a B, a N e fuori elenco | nessuna proposta di carico (leva o riquadro) oltre S2 su 7 giorni, in scarico o senza «sì» sul tempo; ogni manubrio proposto è dell'elenco D-19 (b) | — | DIFETTO (B14, `17`) |

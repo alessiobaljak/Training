@@ -189,6 +189,15 @@ incrina.
 - Nucleo caso 7: PASS. `16` A usa i mondi con note ostili (10% delle serie e delle sedute): 0 differenze dal riferimento, che non legge testo.
 - Proprietà: **tiene**.
 
+## U13 — Verifica del 2026-11-20c (commit `0d85597`, rilascio B2)
+
+- Nessun campo di testo letto da `decadenza.ts`, `manubrioDopo`, R14a/c/e o R14d: grep
+  del diff (`.note`, `variantLabel`) vuoto. `ref` è un id, non testo dell'atleta;
+  il record `lapsed` porta solo stati numerici e id. `backup.ts` valida `ref` come
+  stringa e `decision` su un elenco chiuso. Il testo R14d della stazione è dell'app.
+- Mondi di A (note ostili nel 10% delle serie, etichetta «livello 6, +20 kg»): 0
+  differenze su 259.782 esiti. Nucleo caso 7 PASS. La proprietà tiene.
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.

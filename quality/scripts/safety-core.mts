@@ -495,6 +495,59 @@ function fileTesto(dir: string, ext: string[]): string[] {
     if (nonFalse.length > 0) violazioni.push(`S10: il player guidato scrive tempoRespected con un valore diverso da false: ${nonFalse.join(' | ')}`);
   }
 
+  /* 4j — R-7 (v10, 2026-11-20, rilascio B2): con un manubrio scelto e non ancora preso, il campo del peso lasciato
+     com'è non alza mai un numero. Curl a martello circuito-1/B1, {12 kg, +2″, +2″} (esauriti), massimo chiuso il 19 con
+     il tempo: la fine seduta propone il manubrio (accettato, registro con il sessionLogId del 19). Seduta del 23: il
+     peso parte come lo compone PassoLavoro di GuidedSession (B del manubrio in attesa se c'è, se no lo stato; poi
+     pesoIniziale con la volta scorsa), con la volta scorsa a 12 kg e a 0 kg (peso non scritto). Chiusura come
+     GuidedSession.chiudi. Atteso: campo ≤ 12 kg e stato salvato ≤ 12 kg. Positivo: chi scrive il manubrio nuovo lo
+     esegue (stato = T). La composizione del player si verifica in modo statico, come 4i: se non è né quella di
+     0d85597 né quella di prima, il controllo va riscritto. */
+  {
+    const Dr = (await import('../../src/engine/draft.ts')) as Record<string, unknown>;
+    const syncS = Dr['syncStatesFromLog'] as (x: LoggedSession, m: ReadonlyMap<ExerciseSlug, ExerciseState>) => ExerciseState[];
+    const pesoI = Dr['pesoIniziale'] as ((a: boolean, b: number, c: number) => number) | undefined;
+    const Dz = (await import('../../src/engine/decadenza.ts').catch(() => null)) as null | {
+      manubrioInAttesa: (s: ExerciseSlug, r: readonly unknown[], x: readonly LoggedSession[], st: ExerciseState, id: string) => { B: number } | null;
+      decadenze: (S0: LoggedSession, r: readonly unknown[], x: readonly LoggedSession[], m: ReadonlyMap<ExerciseSlug, ExerciseState>) => { stato: ExerciseState }[];
+    };
+    const player = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
+    const conAttesa = /const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(player);
+    const dalloStato = /const kgDalloStato = contesto\.states\.get\([^)]*\)\?\.loadKg \?\? 0;/.test(player);
+    const conPesoI = /pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(player);
+    if (!(conAttesa || dalloStato) || !conPesoI || pesoI === undefined) violazioni.push('4j: composizione del peso nel player guidato non riconosciuta: controllo da riscrivere');
+    else {
+      const slug: ExerciseSlug = 'curl-martello-manubri';
+      const block = findCircuitSession('circuito-1')!.blocks.find((b) => b.code === 'B1')!;
+      const ex = getExercise(slug);
+      const max = (block.prescription as { max: number }).max;
+      const prima: ExerciseState = { exercise: slug, level: null, loadKg: 12, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
+      const g19 = seduta('g19', 3, 'circuito-1', [esercizio('B1', slug, sets([max, max, max], { kg: 12 }), true, null)], null, '2026-03-19');
+      const ev = evaluateProgression({
+        block, exercise: ex, state: prima, logged: g19.exercises[0]!, range: resolveBlockRange(block, ex, VUOTO), week: 4, currentMaxReps: null,
+        salita: { consentita: true, inizio: '2026-03-02', dal: '2026-03-16' }, rientro: null, aumentoRecente: null,
+      });
+      if (ev.suggestion?.lever !== 'load') violazioni.push(`4j: con tempo e pausa esauriti e il massimo chiuso il manubrio non è proposto («${String(ev.suggestion?.lever ?? ev.blockedReason)}»): la fixture non misura`);
+      else {
+        const T = ev.suggestion.nextState;
+        const c = { id: 'c19', date: '2026-03-19', sessionLogId: 'g19', exercise: slug, blockCode: 'B1', lever: 'load', decision: 'accepted', stateBefore: prima, stateAfter: T };
+        const chiudi = (kg: number): ExerciseState => {
+          const s23: LoggedSession = { ...seduta('g23', 4, 'circuito-1', [esercizio('B1', slug, sets([max, max, max], { kg }), true, null)], null, '2026-03-23'), status: 'in-progress' };
+          const tolte = Dz === null ? [] : Dz.decadenze(s23, [c], [g19], new Map([[slug, T]]));
+          return tolte[0]?.stato ?? syncS(s23, new Map([[slug, T]])).find((x) => x.exercise === slug) ?? T;
+        };
+        for (const volta of [12, 0]) {
+          const attesa = conAttesa && Dz !== null ? Dz.manubrioInAttesa(slug, [c], [g19], T, 'g23') : null;
+          const kg = pesoI(true, attesa?.B ?? T.loadKg, volta);
+          const salvato = chiudi(kg);
+          if (kg > prima.loadKg) violazioni.push(`R-7 (4j): manubrio scelto (${String(prima.loadKg)} → ${String(T.loadKg)} kg) e non preso, volta scorsa ${String(volta)} kg: il campo del peso parte da ${String(kg)} kg`);
+          if (salvato.loadKg > prima.loadKg) violazioni.push(`R-7 (4j): campo lasciato com'è (volta scorsa ${String(volta)} kg) → stato salvato a ${String(salvato.loadKg)} kg, sopra i ${String(prima.loadKg)} sollevati`);
+        }
+        if (chiudi(T.loadKg).loadKg !== T.loadKg) violazioni.push(`4j: positivo mancato: scritto il manubrio nuovo (${String(T.loadKg)} kg), lo stato salvato è ${String(chiudi(T.loadKg).loadKg)} kg: la fixture non misura`);
+      }
+    }
+  }
+
   registra('4', 'Progressione entro le soglie',
     violazioni.length === 0 ? 'PASS' : 'FALLITO',
     violazioni.length === 0 ? 'nessuna soglia superata' : `${String(violazioni.length)} soglie superate → ${violazioni.join(' | ')}`);

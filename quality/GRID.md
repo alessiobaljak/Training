@@ -112,7 +112,7 @@ v3 presuppone il righello v2 (domanda aperta nel rapporto del 2026-11-12b).
 aumenti», misurata con tre proprietà insieme (`14` B e C): **10.P** (ogni
 aumento della revisione è lo scavalco o la prima leva che la fine seduta darebbe
 allo stesso stato, settimana W+1), **R10b**, **13.P** (nessun aumento dell'app a
-meno di 7 giorni da un altro). Al 2026-11-16 passa: C4 v4 = 75% (6/8).
+meno di 7 giorni da un altro). Al 2026-11-16 passa: C4 v4 = 75% (6/8). **2026-11-20c:** non regge più per B14 (il riquadro di calibrazione propone «+2,5 kg» fuori dall'ordine delle leve e senza R13): C4 v4 = 63% (5/8).
 
 **D5 al 2026-11-20b, con il tetto approvato di 55′:** circuiti 1-3 entro (massimo
 49:15). Il circuito 4 arriva a 59:07 con la variante dell'hip thrust (2 → 3,
