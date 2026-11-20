@@ -183,3 +183,19 @@ export function calibrateLoad(sets: readonly LoggedSet[], currentKg: number): Lo
   }
   return { adjustment: 'hold', currentKg, suggestedKg: currentKg, meanReps, meanRir, message: null };
 }
+
+/**
+ * B14: la calibrazione del carico si mostra solo fuori dai circuiti. Le sue
+ * soglie fisse (6-8, ±2,5 kg) vengono dal programma archiviato e saltano ogni
+ * controllo delle leve: nei circuiti proponeva «aggiungi 2,5 kg» in scarico,
+ * dopo un aumento recente, senza un sì sul tempo, verso manubri che non ci
+ * sono. Lì i numeri li danno le leve e la revisione.
+ */
+export function calibrazioneDaMostrare(
+  tipoSeduta: string,
+  sets: readonly LoggedSet[],
+  caricoMassimo: number,
+): LoadCalibration | null {
+  if (tipoSeduta === 'circuit' || caricoMassimo <= 0) return null;
+  return calibrateLoad(sets, caricoMassimo);
+}

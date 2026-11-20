@@ -218,3 +218,12 @@ describe('calibrazione del carico', () => {
     expect(calibrateLoad(sets([3, 3]), 0)?.suggestedKg).toBe(0);
   });
 });
+
+describe('B14 · la calibrazione del carico non si mostra nei circuiti', () => {
+  it('12 ripetizioni a 10 kg: nel circuito niente «aggiungi 2,5 kg», nel programma archiviato sì', async () => {
+    const { calibrazioneDaMostrare } = await import('./loading.ts');
+    expect(calibrazioneDaMostrare('circuit', sets([12, 12, 12], 10), 10)).toBeNull();
+    expect(calibrazioneDaMostrare('strength', sets([12, 12, 12], 10), 10)?.adjustment).toBe('increase');
+    expect(calibrazioneDaMostrare('strength', sets([12, 12, 12], 0), 0)).toBeNull();
+  });
+});

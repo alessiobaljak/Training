@@ -14,7 +14,7 @@ import { decadenze } from '../../engine/decadenza.ts';
 import { statiDellaChiusura, tettoDelRiepilogo } from '../../engine/tetto.ts';
 import { testBaseline } from '../../data/tests.ts';
 import { useSessions, useSuggestions } from '../hooks/useData.ts';
-import { calibrateLoad } from '../../engine/loading.ts';
+import { calibrazioneDaMostrare } from '../../engine/loading.ts';
 import { resolveBlockRange } from '../../engine/ranges.ts';
 import { summarizeExercise } from '../../engine/metrics.ts';
 import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
@@ -173,8 +173,14 @@ export function SessionSummary({
         /* L25: ogni proposta che allunga la seduta conta per i blocchi sotto. */
         if (evaluation.suggestion !== null) tetto.proposta(evaluation.suggestion.nextState);
 
-        const calibration =
-          summary.maxLoadKg > 0 ? calibrateLoad(logged.sets, summary.maxLoadKg) : null;
+        /*
+         * B14: la calibrazione del carico (soglie fisse 6-8, ±2,5 kg) viene dal
+         * programma archiviato e salta ogni controllo delle leve: proponeva
+         * «aggiungi 2,5 kg» in scarico, dopo un aumento di tre giorni prima,
+         * senza un sì sul tempo, verso manubri che non ci sono. Nei circuiti
+         * i numeri li danno le leve e la revisione: qui non si mostra.
+         */
+        const calibration = calibrazioneDaMostrare(program.kind, logged.sets, summary.maxLoadKg);
 
         return [{ block, exercise, logged, summary, evaluation, calibration }];
       });
