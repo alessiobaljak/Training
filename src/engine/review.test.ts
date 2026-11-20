@@ -904,3 +904,26 @@ describe('R17 in revisione · la data più lontana fra R7 e R13', () => {
     expect(r.alMassimo[0]?.testo).not.toContain('ogni 7 giorni');
   });
 });
+
+describe('L23 in revisione · una seduta con data dopo oggi', () => {
+  it('15.16 · la salita eseguita in una seduta datata domani ferma il +2,5 kg di oggi', () => {
+    /*
+     * Il mondo 668 di quality, spostato di un giorno: con l'inizio del
+     * programma di queste prove la settimana 3 finisce domenica 22, e la
+     * revisione si apre lunedì 23. La seduta che esegue la salita ha la data
+     * di martedì 24, cioè dopo oggi.
+     */
+    const ESAURITI = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+    const t = (date: string) => seduta(date, [voce(TRAZIONI, [8, 8, 8], { level: 6 })]);
+    const r = rivedi(3, [t('2026-03-17'), t('2026-03-19'), t('2026-03-24')], [stato(TRAZIONI, { level: 6, ...ESAURITI })], {
+      tests: latestTestResults([testResultSingle('pull-up', '2026-02-23', 0, 12)]),
+      today: '2026-03-23',
+      decisioni: [scelta('2026-03-20', TRAZIONI, { level: 5 }, { level: 6 })],
+    });
+    expect(r.verdicts.filter((v) => v.kind === 'aggiungi-peso')).toHaveLength(0);
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'sette-giorni' }));
+    expect(r.fermi[0]?.testo).toContain(
+      'L’ultimo è del martedì 24 marzo (livello 5 → 6, scelta del venerdì 20 marzo): il prossimo si può proporre dal martedì 31 marzo.',
+    );
+  });
+});

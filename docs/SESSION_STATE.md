@@ -241,6 +241,26 @@ Punto di ritorno, aggiornato a ogni push:
       sfasati o da un backup ripristinato da un altro dispositivo. Una bozza
       a cavallo della mezzanotte tiene la data di partenza, cioè passata.
       T-17 resta a priorità media.
+  - **2026-11-20, Alessio: «A per tutte».** D-21 (a): a fine seduta niente
+    leve in salita nella settimana prima dello scarico. D-22 (a): tetto di
+    durata 55′, oltre il tetto niente tempo né pausa. D-23 (a): un gradino
+    scritto a mano diverso dallo stato riporta tempo e pausa alla scheda.
+    «B» di D-20: lasciato stare da Alessio, D-20 (b) resta com'è.
+    D-19 (b), risposta provvisoria («credo»): manubri da 3 a 10 kg a passi di
+    1 kg, poi 12 e a passi di 2 kg fino a 24. Da confermare prima di usarla
+    come regola; il tetto di +2,5 kg permette 3 → 5 kg (+67%).
+  - **Rilascio B diviso:** B1 = T-17, T-18 + T-23, T-19, T-20, T-21, T-22
+    (nessun dato nuovo); B2 = T-15 (record `lapsed`, R14a/c/e) + T-16 (R14d).
+  - **B1 implementato** (commit locale): verify 880, smoke, offline verdi;
+    15 prove nuove falliscono togliendo le regole. In attesa di
+    training-quality e release-gate.
+    - 15.16 in revisione spostata di un giorno (revisione lunedì 23, seduta
+      datata martedì 24): con l'inizio delle prove la settimana 3 finisce
+      domenica 22 e la revisione sarebbe «in corso».
+    - Nota del circuito 4 riscritta col testo del designer; `DEVIAZIONI`
+      accetta solo esercizi, quindi il motivo sta in un commento accanto.
+    - R19 vale a fine seduta. La revisione (R10a 2-3) può ancora dire «la
+      prossima leva è il tempo» su un circuito oltre il tetto: da chiedere.
   - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
     aumento eseguito in scarico; designer e quality: a, niente leve a fine
     seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:

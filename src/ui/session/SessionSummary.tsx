@@ -8,7 +8,8 @@ import {
   setTempoRespected,
 } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
-import { aumentoRecente, evaluateProgression, salitaConsentita } from '../../engine/progression.ts';
+import { aumentoRecente, evaluateProgression, livelloVoci, salitaConsentita } from '../../engine/progression.ts';
+import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
 import { testBaseline } from '../../data/tests.ts';
 import { useSessions, useSuggestions } from '../hooks/useData.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
@@ -85,9 +86,13 @@ export function SessionSummary({
    */
   const tempoMisurato = plannedSeconds !== undefined;
 
-  const rows = useMemo(
-    () =>
-      program.blocks.flatMap((declared) => {
+  const rows = useMemo(() => {
+    /*
+     * R19: la durata si misura con gli stati di oggi più le leve di tempo e
+     * pausa già proposte nei blocchi sopra, in questo stesso riepilogo.
+     */
+    const statiRiepilogo = new Map(states);
+    return program.blocks.flatMap((declared) => {
         const logged = findLoggedExercise(draft, declared.code);
         if (logged === undefined || logged.sets.length === 0) return [];
 
@@ -139,15 +144,31 @@ export function SessionSummary({
           caricoMassimoSeduta: draft.exercises
             .filter((voce) => voce.exercise === block.exercise)
             .reduce((max, voce) => voce.sets.reduce((m, set) => Math.max(m, set.loadKg), max), 0),
+          /* L24: lo stesso per il gradino, il più alto. */
+          livelloMassimoSeduta: livelloVoci(draft.exercises.filter((voce) => voce.exercise === block.exercise)),
+          /* M21: il primo peso scritto su un manubrio. */
+          pesoScrittoPrima: (sessions ?? []).some(
+            (session) =>
+              session.status === 'completed' &&
+              session.id !== draft.id &&
+              session.exercises.some(
+                (voce) => voce.exercise === block.exercise && voce.sets.some((set) => set.loadKg > 0),
+              ),
+          ),
+          durataCon: (stato) =>
+            estimatedSeconds(buildGuidedPlan(program, 1, new Map(statiRiepilogo).set(stato.exercise, stato))),
         });
+        const proposta = evaluation.suggestion;
+        if (proposta !== null && (proposta.lever === 'tempo' || proposta.lever === 'iso-pause')) {
+          statiRiepilogo.set(block.exercise, proposta.nextState);
+        }
 
         const calibration =
           summary.maxLoadKg > 0 ? calibrateLoad(logged.sets, summary.maxLoadKg) : null;
 
         return [{ block, exercise, logged, summary, evaluation, calibration }];
-      }),
-    [program, draft, states, tests, week, sessions, registro],
-  );
+      });
+  }, [program, draft, states, tests, week, sessions, registro]);
 
   /*
    * Due gruppi, e solo il primo si giudica.

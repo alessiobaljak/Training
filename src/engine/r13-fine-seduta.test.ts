@@ -4,6 +4,7 @@ import {
   aumentoRecente,
   evaluateProgression,
   initialExerciseState,
+  livelloVoci,
 } from './progression.ts';
 import type { AumentoRecente, ProgressionInput } from './progression.ts';
 import { latestTestResults, resolveBlockRange, testResultSingle } from './ranges.ts';
@@ -90,9 +91,15 @@ function fineSeduta(
   state: ExerciseState,
   recente: AumentoRecente | null,
   week = 4,
-  opzioni: { salita?: ProgressionInput['salita']; caricoMassimoSeduta?: number } = {},
+  opzioni: {
+    salita?: ProgressionInput['salita'];
+    caricoMassimoSeduta?: number;
+    livelloMassimoSeduta?: LevelIndex | null;
+    pesoScrittoPrima?: boolean;
+    indice?: number;
+  } = {},
 ): ReturnType<typeof evaluateProgression> {
-  const voce = draft.exercises[0];
+  const voce = draft.exercises[opzioni.indice ?? 0];
   if (voce === undefined) throw new Error('voce');
   const blocco = BLOCCO[voce.exercise];
   if (blocco === undefined) throw new Error('blocco');
@@ -111,6 +118,8 @@ function fineSeduta(
     rientro: null,
     aumentoRecente: recente,
     ...(opzioni.caricoMassimoSeduta === undefined ? {} : { caricoMassimoSeduta: opzioni.caricoMassimoSeduta }),
+    ...(opzioni.livelloMassimoSeduta === undefined ? {} : { livelloMassimoSeduta: opzioni.livelloMassimoSeduta }),
+    ...(opzioni.pesoScrittoPrima === undefined ? {} : { pesoScrittoPrima: opzioni.pesoScrittoPrima }),
   };
   return evaluateProgression(input);
 }
@@ -329,11 +338,16 @@ describe('R17 · a fine seduta R13 parla solo se c’è una leva da fermare', ()
     expect(e.blockedReason).not.toContain('venerdì 27 marzo');
   });
 
-  it('17.2 · tempo disponibile e R13 attivo: R13 come prima', () => {
+  it('17.2 · T-20: pausa accettata a fine seduta lunedì 23, il 26 R13 conta dal 26 (D-20 b)', () => {
+    const al23 = seduta('2026-03-23', MARTELLO, [10, 10, 10], { loadKg: 12 });
+    const pausa = { ...scelta('2026-03-23', MARTELLO, { loadKg: 12 }, { bottomPauseBonusSeconds: 1 }), sessionLogId: al23.id };
     const draft = seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: 12, status: 'in-progress' });
-    const e = fineSeduta(draft, stato(MARTELLO, { loadKg: 12 }), r13('2026-03-30'));
+    const recente = aumentoRecente(MARTELLO, [pausa], [al23], draft.date, draft);
+    const e = fineSeduta(draft, stato(MARTELLO, { loadKg: 12, bottomPauseBonusSeconds: 1 }), recente);
     expect(e.suggestion).toBeNull();
-    expect(e.blockedReason).toContain('dal lunedì 30 marzo');
+    expect(e.blockedReason).toBe(
+      'Un aumento per esercizio ogni 7 giorni: l’ultimo è del giovedì 26 marzo (pausa +1"). Il prossimo si può proporre dal giovedì 2 aprile: oggi resta tutto com’è.',
+    );
   });
 
   it('17.3 · variante in attesa per R7 dal 28, R13 dal 30: il testo di R13', () => {
@@ -456,5 +470,227 @@ describe('R14b · a fine seduta si giudica allo stato', () => {
     });
     expect(e.fuoriStato).toBeNull();
     expect(e.suggestion).not.toBeNull();
+  });
+});
+
+/* -------------------------------------------------------------------------- */
+/* Rilascio B1 (training/reports/2026-11-20-training.md)                      */
+/* -------------------------------------------------------------------------- */
+
+describe('L23 · un aumento con data dopo oggi ferma come uno di oggi (T-17)', () => {
+  const al19 = seduta('2026-03-19', MARTELLO, [10, 10, 10], { loadKg: 12 });
+
+  it('15.17 · peso scritto in una seduta datata dopo oggi', () => {
+    const futura = seduta('2026-03-23', MARTELLO, [10, 10, 10], { loadKg: 14 });
+    const recente = aumentoRecente(MARTELLO, [], [al19, futura], '2026-03-22');
+    expect(recente).toEqual({ date: '2026-03-23', cosa: 'peso scritto da te, 12 → 14 kg', dal: '2026-03-30' });
+  });
+
+  it('15.18 · scelta datata dopo oggi, nessuna seduta dopo', () => {
+    const scelta23 = scelta('2026-03-23', MARTELLO, { loadKg: 12 }, { loadKg: 14.5 });
+    const recente = aumentoRecente(MARTELLO, [scelta23], [al19], '2026-03-22');
+    expect(recente).toEqual({ date: '2026-03-23', cosa: 'manubrio successivo scelto, al massimo 14,5 kg', dal: '2026-03-30' });
+  });
+
+  it('15.19 · proprietà: con date fino a oggi niente cambia; con una data futura ferma sempre', () => {
+    const vecchia = (oggi: string, lista: ReturnType<typeof aumenti>) => {
+      const recenti = lista.filter((a) => {
+        const giorni = Math.round((Date.parse(oggi) - Date.parse(a.date)) / 86_400_000);
+        return giorni >= 0 && giorni < 7;
+      });
+      return recenti.sort((a, b) => (a.date < b.date ? -1 : 1)).at(-1)?.date ?? null;
+    };
+    for (let giorno = 0; giorno < 21; giorno += 1) {
+      const oggi = addDays('2026-03-19', giorno);
+      for (const kg of [12, 14, 16]) {
+        const storico = [al19, seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: kg })];
+        const lista = aumenti(MARTELLO, [], storico);
+        const recente = aumentoRecente(MARTELLO, [], storico, oggi);
+        const future = lista.filter((a) => a.date > oggi);
+        if (future.length === 0) {
+          expect(recente?.date ?? null, `${oggi} ${String(kg)}`).toBe(vecchia(oggi, lista));
+        } else {
+          for (const a of future) {
+            expect(recente, `${oggi} ${String(kg)}`).not.toBeNull();
+            expect((recente?.dal ?? '') >= addDays(a.date, 7)).toBe(true);
+          }
+        }
+      }
+    }
+  });
+});
+
+describe('M21 · il primo peso scritto su un manubrio (T-19)', () => {
+  it('21.1 · stato iniziale a 0 kg, prima seduta a 10 kg', () => {
+    const draft = seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: 10, status: 'in-progress' });
+    const L = stato(MARTELLO, { loadKg: 0 });
+    const e = fineSeduta(draft, L, null, 4, { pesoScrittoPrima: false });
+    expect(e.suggestion).toBeNull();
+    expect(e.blockedReason).toBe(
+      'Primo peso scritto su questo esercizio: 10 kg. Da qui si parte: le leve si valutano dalla prossima seduta a 10 kg.',
+    );
+    expect(syncStatesFromLog(draft, new Map([[MARTELLO, L]]))[0]).toEqual(
+      expect.objectContaining({ loadKg: 10, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+    );
+  });
+
+  it('21.2 · con tempo accumulato a peso non scritto', () => {
+    const draft = seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: 10, status: 'in-progress' });
+    const L = stato(MARTELLO, { loadKg: 0, eccentricBonusSeconds: 1 });
+    expect(fineSeduta(draft, L, null, 4, { pesoScrittoPrima: false }).blockedReason).toBe(
+      'Primo peso scritto su questo esercizio: 10 kg. Da qui si parte, con tempo e pausa della scheda: le leve si valutano dalla prossima seduta a 10 kg.',
+    );
+    expect(syncStatesFromLog(draft, new Map([[MARTELLO, L]]))[0]).toEqual(
+      expect.objectContaining({ loadKg: 10, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+    );
+  });
+
+  it('21.3 · un peso già scritto prima: il testo generico', () => {
+    const draft = seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: 12, status: 'in-progress' });
+    const e = fineSeduta(draft, stato(MARTELLO, { loadKg: 0 }), null, 4, { pesoScrittoPrima: true });
+    expect(e.blockedReason).toContain('Oggi hai usato 12 kg e lo stato era 0 kg');
+  });
+
+  it('21.4 · zavorra: 0 kg è un valore vero, niente M21', () => {
+    const draft = seduta('2026-03-26', TRAZIONI, [8, 8, 8], { level: 6, loadKg: 2.5, status: 'in-progress' });
+    const e = fineSeduta(draft, stato(TRAZIONI, { level: 6, loadKg: 0 }), null, 4, { pesoScrittoPrima: false });
+    expect(e.blockedReason).not.toContain('Primo peso');
+    expect(e.blockedReason).toContain('Oggi hai usato 2,5 kg e lo stato era 0 kg');
+  });
+
+  it('21.5 · la seduta dopo, allo stato: le leve come sempre', () => {
+    const draft = seduta('2026-03-30', MARTELLO, [10, 10, 10], { loadKg: 10, status: 'in-progress' });
+    expect(fineSeduta(draft, stato(MARTELLO, { loadKg: 10 }), null, 4, { pesoScrittoPrima: true }).suggestion?.lever).toBe('tempo');
+  });
+});
+
+describe('L24 e D-23 · lo stesso esercizio in due blocchi (T-18, T-23)', () => {
+  const dueVoci = (
+    date: string,
+    slug: ExerciseSlug,
+    voci: readonly { level?: LevelIndex | null; loadKg?: number; values: readonly number[] }[],
+  ): LoggedSession => {
+    const base = seduta(date, slug, voci[0]?.values ?? [], { status: 'in-progress' });
+    const blocco = BLOCCO[slug]?.code ?? 'A1';
+    return {
+      ...base,
+      exercises: voci.map((v, i) => ({
+        ...loggedExercise(slug, sets(v.values, v.loadKg ?? 0), { blockCode: i === 0 ? blocco : `${blocco}bis` }),
+        level: v.level === undefined ? (getExercise(slug).pattern === null ? null : 2) : v.level,
+      })),
+    };
+  };
+  const seduteDi = (draft: LoggedSession, slug: ExerciseSlug) => ({
+    livelloMassimoSeduta: livelloVoci(draft.exercises.filter((v) => v.exercise === slug)),
+    caricoMassimoSeduta: draft.exercises
+      .filter((v) => v.exercise === slug)
+      .reduce((m, v) => v.sets.reduce((n, set) => Math.max(n, set.loadKg), m), 0),
+  });
+
+  it('24.1 e 24.2 · un blocco al 2 e uno al 3: R13 su tutti e due, chiusura al 3 con bonus a zero', () => {
+    const L = stato(PUSH, { level: 2, eccentricBonusSeconds: 1 });
+    const prima = seduta('2026-03-19', PUSH, [18, 18, 18], { level: 2 });
+    for (const ordine of [
+      [{ level: 2 as LevelIndex, values: [18, 18, 18] }, { level: 3 as LevelIndex, values: [10, 10, 10] }],
+      [{ level: 3 as LevelIndex, values: [10, 10, 10] }, { level: 2 as LevelIndex, values: [18, 18, 18] }],
+    ]) {
+      const draft = dueVoci('2026-03-26', PUSH, ordine);
+      const recente = aumentoRecente(PUSH, [], [prima], draft.date, draft);
+      expect(recente?.cosa).toBe('livello scritto da te, 2 → 3');
+      for (const indice of [0, 1]) {
+        const e = fineSeduta(draft, L, recente, 4, { ...seduteDi(draft, PUSH), indice });
+        expect(e.suggestion).toBeNull();
+      }
+      expect(syncStatesFromLog(draft, new Map([[PUSH, L]]))).toEqual([
+        expect.objectContaining({ level: 3, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+      ]);
+    }
+  });
+
+  it('24.3 · stato al 3, un blocco al 2: «in questo blocco», e lo stato resta', () => {
+    const L = stato(PUSH, { level: 3 });
+    const draft = dueVoci('2026-03-26', PUSH, [{ level: 3, values: [18, 18, 18] }, { level: 2, values: [19, 19, 19] }]);
+    expect(fineSeduta(draft, L, null, 4, { ...seduteDi(draft, PUSH), indice: 0 }).fuoriStato).toBeNull();
+    expect(fineSeduta(draft, L, null, 4, { ...seduteDi(draft, PUSH), indice: 1 }).blockedReason).toBe(
+      'In questo blocco hai fatto il livello 2 invece del 3: le leve si valutano solo sulle serie fatte allo stato, che resta il livello 3.',
+    );
+    expect(syncStatesFromLog(draft, new Map([[PUSH, L]]))).toEqual([]);
+  });
+
+  it('24.4 · curl a 12 e a 14: R13 su tutti e due, chiusura a 14', () => {
+    const L = stato(MARTELLO, { loadKg: 12 });
+    const draft = dueVoci('2026-03-26', MARTELLO, [{ loadKg: 12, values: [10, 10, 10] }, { loadKg: 14, values: [10, 10, 10] }]);
+    const recente = aumentoRecente(MARTELLO, [], [seduta('2026-03-19', MARTELLO, [10, 10, 10], { loadKg: 12 })], draft.date, draft);
+    expect(recente?.cosa).toBe('peso scritto da te, 12 → 14 kg');
+    for (const indice of [0, 1]) {
+      expect(fineSeduta(draft, L, recente, 4, { ...seduteDi(draft, MARTELLO), indice }).blockedReason).toContain('peso scritto da te, 12 → 14 kg');
+    }
+    expect(syncStatesFromLog(draft, new Map([[MARTELLO, L]]))).toEqual([expect.objectContaining({ loadKg: 14 })]);
+  });
+
+  it('24.5 · primo peso in un blocco, 0 kg nell’altro: M21 su tutti e due', () => {
+    const L = stato(MARTELLO, { loadKg: 0 });
+    const draft = dueVoci('2026-03-26', MARTELLO, [{ loadKg: 10, values: [10, 10, 10] }, { loadKg: 0, values: [10, 10, 10] }]);
+    for (const indice of [0, 1]) {
+      expect(fineSeduta(draft, L, null, 4, { ...seduteDi(draft, MARTELLO), pesoScrittoPrima: false, indice }).blockedReason).toBe(
+        'Primo peso scritto su questo esercizio: 10 kg. Da qui si parte: le leve si valutano dalla prossima seduta a 10 kg.',
+      );
+    }
+    expect(syncStatesFromLog(draft, new Map([[MARTELLO, L]]))).toEqual([expect.objectContaining({ loadKg: 10 })]);
+  });
+
+  it('D-23 · gradino scritto a mano sotto lo stato: tempo e pausa alla scheda, e il testo lo dice', () => {
+    const L = stato(PUSH, { level: 3, eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 });
+    const draft = seduta('2026-03-26', PUSH, [18, 18, 18], { level: 2, status: 'in-progress' });
+    expect(fineSeduta(draft, L, null).blockedReason).toBe(
+      'Oggi hai fatto il livello 2 e lo stato era il 3: da qui comanda quello che hai scritto, e tempo e pausa tornano a quelli della scheda. Il prossimo passo si valuta dalla prossima seduta al livello 2.',
+    );
+    expect(syncStatesFromLog(draft, new Map([[PUSH, L]]))).toEqual([
+      expect.objectContaining({ level: 2, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
+    ]);
+  });
+
+  it('D-23 · gradino invariato: i bonus restano', () => {
+    const L = stato(PUSH, { level: 2, eccentricBonusSeconds: 2 });
+    const draft = seduta('2026-03-26', PUSH, [18, 18, 18], { level: 2, status: 'in-progress' });
+    expect(syncStatesFromLog(draft, new Map([[PUSH, L]]))).toEqual([]);
+  });
+
+  it('24.6 · con una voce per esercizio, passare gradino e peso della seduta non cambia niente', () => {
+    for (const [slug, values, kg] of [
+      [PUSH, [18, 18, 18], 0],
+      [MARTELLO, [10, 10, 10], 12],
+      [TRAZIONI, [8, 8, 8], 2.5],
+    ] as const) {
+      const draft = seduta('2026-03-26', slug, values, { loadKg: kg, ...(slug === TRAZIONI ? { level: 6 as LevelIndex } : {}), status: 'in-progress' });
+      const L = stato(slug, { loadKg: kg, ...(slug === TRAZIONI ? { level: 6 as LevelIndex } : {}) });
+      expect(fineSeduta(draft, L, null, 4, seduteDi(draft, slug))).toEqual(fineSeduta(draft, L, null));
+    }
+  });
+});
+
+describe('D-21 · niente aumenti nella settimana prima dello scarico (T-21)', () => {
+  const draft = () => seduta('2026-03-26', MARTELLO, [10, 10, 10], { loadKg: 12, status: 'in-progress' });
+  const L = stato(MARTELLO, { loadKg: 12 });
+
+  it('settimana 5: nessuna leva, il testo nuovo', () => {
+    const e = fineSeduta(draft(), L, null, 5);
+    expect(e.suggestion).toBeNull();
+    expect(e.motivoBlocco).toBe('scarico');
+    expect(e.blockedReason).toBe(
+      'La settimana prossima è di scarico: niente aumenti da questa seduta, anche con il massimo chiuso. Si riprende dopo lo scarico.',
+    );
+  });
+
+  it('settimana 4 come prima; settimana 6 con il testo dello scarico', () => {
+    expect(fineSeduta(draft(), L, null, 4).suggestion?.lever).toBe('tempo');
+    expect(fineSeduta(draft(), L, null, 6).blockedReason).toContain('Settimana di scarico');
+    expect(fineSeduta(draft(), L, null, 11).motivoBlocco).toBe('scarico');
+    expect(fineSeduta(draft(), L, null, 17).motivoBlocco).toBe('scarico');
+  });
+
+  it('con le leve finite il testo dello scarico vince su «leve finite»', () => {
+    const pullover = seduta('2026-03-26', PULLOVER, [15, 15, 15], { status: 'in-progress' });
+    expect(fineSeduta(pullover, stato(PULLOVER, ESAURITI), null, 5).blockedReason).toContain('La settimana prossima è di scarico');
   });
 });

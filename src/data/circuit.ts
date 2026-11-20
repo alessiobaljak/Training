@@ -748,7 +748,14 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
     estimatedMinutes: 39,
     warmup: [],
     warmupSteps: RISCALDAMENTO,
-    note: 'È la più lunga delle quattro, per le due stazioni unilaterali del Tri-set A. Se sfori i 40 minuti togli 2 ripetizioni al rematore, non il recupero.',
+    /*
+     * La scheda dice «Se sfori i 40 minuti togli 2 ripetizioni al rematore,
+     * non il recupero». Togliere ripetizioni impedisce al rematore di chiudere
+     * il massimo, quindi di progredire (M19). Alessio ha deciso un tetto di
+     * 55 minuti (D-22 a, 2026-11-20): oltre, il metodo non propone più tempo e
+     * pausa (R19). `DEVIAZIONI` dichiara solo esercizi, non note.
+     */
+    note: 'È la più lunga delle quattro, per le due stazioni unilaterali del Tri-set A. Con tempo e pausa accumulati può arrivare a 55 minuti: oltre, il metodo non aggiunge altro tempo. Non togliere ripetizioni né recupero.',
     blocks: SEDUTA_4,
   },
 ] as const satisfies readonly ProgramSession[]);

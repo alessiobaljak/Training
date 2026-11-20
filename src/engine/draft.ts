@@ -13,6 +13,7 @@ import type {
 } from '../types/index.ts';
 import { findExercise, getExercise } from '../data/exercises.ts';
 import { effectiveSets } from './schedule.ts';
+import { livelloVoci } from './progression.ts';
 import type { SessionStep } from './rest.ts';
 
 /**
@@ -429,7 +430,8 @@ export function syncStatesFromLog(
       0,
     );
     const loadKg = exercise.loadPolicy === 'forbidden' ? before.loadKg : maxLoad;
-    const level = [...stessoEsercizio].reverse().find((voce) => voce.sets.length > 0 && voce.level !== null)?.level ?? before.level;
+    /* L24: il gradino più alto scritto oggi, come il peso. */
+    const level = livelloVoci(stessoEsercizio) ?? before.level;
 
     if (level === before.level && loadKg === before.loadKg) continue;
     /*
@@ -439,8 +441,10 @@ export function syncStatesFromLog(
      * passo che il metodo chiede.
      */
     const manubrioCambiato = exercise.loadPolicy === 'inherent' && loadKg !== before.loadKg;
+    /* D-23 (a), Alessio, 2026-11-20: lo stesso per un gradino cambiato a mano. */
+    const gradinoCambiato = level !== before.level;
     changed.push(
-      manubrioCambiato
+      manubrioCambiato || gradinoCambiato
         ? { ...before, level, loadKg, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }
         : { ...before, level, loadKg },
     );

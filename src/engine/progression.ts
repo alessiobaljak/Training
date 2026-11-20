@@ -399,8 +399,17 @@ function caricoMassimoVoci(voci: readonly LoggedExercise[]): number {
   return voci.reduce((max, voce) => voce.sets.reduce((m, set) => Math.max(m, set.loadKg), max), 0);
 }
 
-function livelloVoci(voci: readonly LoggedExercise[]): LevelIndex | null {
-  return voci.find((voce) => voce.level !== null)?.level ?? null;
+/**
+ * Il gradino di un esercizio in una seduta: il più alto fra le voci con
+ * almeno una serie (L24), come il peso è il più alto. Non dipende dall'ordine
+ * dei blocchi.
+ */
+export function livelloVoci(voci: readonly LoggedExercise[]): LevelIndex | null {
+  return voci.reduce<LevelIndex | null>(
+    (max, voce) =>
+      voce.sets.length === 0 || voce.level === null ? max : max === null || voce.level > max ? voce.level : max,
+    null,
+  );
 }
 
 /**
@@ -536,8 +545,12 @@ export function aumentoRecente(
 ): AumentoRecente | null {
   const recenti = aumenti(slug, decisioni, sessions, inCorso)
     .filter((aumento) => {
-      const giorni = daysBetween(aumento.date, oggi);
-      return giorni >= 0 && giorni < GIORNI_PER_AUMENTO;
+      /*
+       * L23: un aumento con data dopo oggi (orologio avanti, due dispositivi,
+       * un backup) ferma come uno di oggi. Prima spariva, e la revisione
+       * proponeva un passo sopra uno già fatto.
+       */
+      return daysBetween(aumento.date, oggi) < GIORNI_PER_AUMENTO;
     })
     .sort((a, b) => (a.date < b.date ? -1 : 1));
   const ultimo = recenti.at(-1);
@@ -618,7 +631,22 @@ export interface ProgressionInput {
    * lo stato. Senza, si usa il blocco stesso.
    */
   readonly caricoMassimoSeduta?: number;
+  /** R14b (L24): il gradino più alto scritto oggi su questo esercizio. */
+  readonly livelloMassimoSeduta?: LevelIndex | null;
+  /**
+   * M21: c'è già una seduta chiusa di questo esercizio con un peso scritto.
+   * Senza, si assume di sì: il testo generico di R14b è sempre vero.
+   */
+  readonly pesoScrittoPrima?: boolean;
+  /**
+   * R19 (D-22): la durata stimata della seduta, in secondi, se l'esercizio
+   * passasse allo stato dato. Senza, il tetto non si controlla.
+   */
+  readonly durataCon?: (stato: ExerciseState) => number;
 }
+
+/** R19 (D-22, Alessio, 2026-11-20): oltre 55 minuti tempo e pausa si fermano. */
+export const DURATA_MASSIMA_SECONDI = 55 * 60;
 
 function tempoLever(block: ProgramBlock, state: ExerciseState): LeverAvailability {
   const label = OVERLOAD_LEVER_LABELS.tempo;
@@ -919,6 +947,26 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
   ];
 
   /*
+   * R19 (D-22 a): tempo e pausa allungano ogni ripetizione. Oltre i 55 minuti
+   * stimati la seduta non cresce più così: si passa a variante e carico.
+   * Niente tagli a serie, ripetizioni o recuperi.
+   */
+  if (input.durataCon !== undefined) {
+    for (const [indice, entry] of levers.entries()) {
+      if ((entry.lever === 'tempo' || entry.lever === 'iso-pause') && entry.available) {
+        const dopo = buildSuggestion(entry.lever, input).nextState;
+        if (input.durataCon(dopo) > DURATA_MASSIMA_SECONDI) {
+          levers[indice] = {
+            ...entry,
+            available: false,
+            reason: `Con questo passo la seduta supererebbe i ${String(DURATA_MASSIMA_SECONDI / 60)} minuti: tempo e pausa si fermano qui, si passa alla leva successiva.`,
+          };
+        }
+      }
+    }
+  }
+
+  /*
    * La soglia è in ripetizioni e vale solo dove si contano ripetizioni.
    *
    * Su un'isometria il numero registrato sono secondi: 40" di wall sit
@@ -975,7 +1023,11 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     ? motivoBlocco({
         tempo: [logged.tempoRespected],
         serieVere: vere.length,
-        scarico: isScarico(input.week),
+        /*
+         * D-21 (a): anche la settimana prima dello scarico. Una leva accettata
+         * nell'ultima seduta della settimana 5 si fa nella 6, a metà serie.
+         */
+        scarico: isScarico(input.week) || isScarico(input.week + 1),
         rientro: input.rientro !== null,
       })
     : null;
@@ -986,7 +1038,9 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     const blockedReason = !closedRange
       ? `Non hai ancora chiuso ${String(range.range.max)} su tutte le serie. Resta sulla leva 1 e sali dentro il range.`
       : motivo === 'scarico'
-        ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Stessa difficoltà, metà delle serie.'
+        ? isScarico(input.week)
+          ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Stessa difficoltà, metà delle serie.'
+          : 'La settimana prossima è di scarico: niente aumenti da questa seduta, anche con il massimo chiuso. Si riprende dopo lo scarico.'
         : motivo === 'rientro' && input.rientro !== null
           ? `Seduta di rientro (${String(input.rientro.seduta)} di ${String(input.rientro.di)}): niente aumenti finché non torni al volume pieno.`
           : motivo === 'tempo-null'
@@ -1052,21 +1106,34 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
    * «eccentrica +1″» giudicata su una seduta a 0 kg cancellava gli 0 kg
    * scritti e rimetteva 2,5 kg (L19).
    */
-  const fuoriLivello =
-    input.state.level !== null && logged.level !== null && logged.level !== input.state.level;
-  const fuoriCarico = input.exercise.loadPolicy !== 'forbidden' && caricoVoce !== input.state.loadKg;
-  if (fuoriLivello || fuoriCarico) {
-    const L = input.state;
-    const scheda =
-      input.exercise.loadPolicy === 'inherent' && (L.eccentricBonusSeconds > 0 || L.bottomPauseBonusSeconds > 0)
-        ? ', e tempo e pausa tornano a quelli della scheda'
-        : '';
+  const L = input.state;
+  const livelloSeduta = input.livelloMassimoSeduta === undefined ? logged.level : input.livelloMassimoSeduta;
+  const caricoSeduta = input.caricoMassimoSeduta ?? caricoVoce;
+  const conCarico = input.exercise.loadPolicy !== 'forbidden';
+  const sedutaFuoriLivello = L.level !== null && livelloSeduta !== null && livelloSeduta !== L.level;
+  const sedutaFuoriCarico = conCarico && caricoSeduta !== L.loadKg;
+  const voceFuoriLivello = L.level !== null && logged.level !== null && logged.level !== L.level;
+  const voceFuoriCarico = conCarico && caricoVoce !== L.loadKg;
+  if (sedutaFuoriLivello || sedutaFuoriCarico || voceFuoriLivello || voceFuoriCarico) {
+    const conBonus = L.eccentricBonusSeconds > 0 || L.bottomPauseBonusSeconds > 0;
+    /* M21: il primo peso scritto su un manubrio non è un cambio di peso. */
+    const primoPeso =
+      input.exercise.loadPolicy === 'inherent' && L.loadKg === 0 && caricoSeduta > 0 && input.pesoScrittoPrima === false;
+    /*
+     * Il testo è il primo che vale (L24): prima la seduta, che decide lo
+     * stato alla chiusura, poi il blocco. D-23: un gradino cambiato a mano
+     * riporta tempo e pausa alla scheda, come il manubrio.
+     */
     const motivo =
-      fuoriLivello && logged.level !== null && L.level !== null
-        ? `Oggi hai fatto il livello ${String(logged.level)} e lo stato era il ${String(L.level)}: da qui comanda quello che hai scritto. Il prossimo passo si valuta dalla prossima seduta al livello ${String(logged.level)}.`
-        : (input.caricoMassimoSeduta ?? caricoVoce) === L.loadKg
-          ? `In questo blocco hai usato ${kg(caricoVoce)} invece di ${kg(L.loadKg)}: le leve si valutano solo sulle serie fatte allo stato, che resta ${kg(L.loadKg)}.`
-          : `Oggi hai usato ${kg(caricoVoce)} e lo stato era ${kg(L.loadKg)}: da qui comanda quello che hai scritto${scheda}. Il prossimo passo si valuta dalla prossima seduta a ${kg(caricoVoce)}.`;
+      sedutaFuoriLivello && livelloSeduta !== null && L.level !== null
+        ? `Oggi hai fatto il livello ${String(livelloSeduta)} e lo stato era il ${String(L.level)}: da qui comanda quello che hai scritto${conBonus ? ', e tempo e pausa tornano a quelli della scheda' : ''}. Il prossimo passo si valuta dalla prossima seduta al livello ${String(livelloSeduta)}.`
+        : sedutaFuoriCarico && primoPeso
+          ? `Primo peso scritto su questo esercizio: ${kg(caricoSeduta)}. Da qui si parte${conBonus ? ', con tempo e pausa della scheda' : ''}: le leve si valutano dalla prossima seduta a ${kg(caricoSeduta)}.`
+          : sedutaFuoriCarico
+            ? `Oggi hai usato ${kg(caricoSeduta)} e lo stato era ${kg(L.loadKg)}: da qui comanda quello che hai scritto${input.exercise.loadPolicy === 'inherent' && conBonus ? ', e tempo e pausa tornano a quelli della scheda' : ''}. Il prossimo passo si valuta dalla prossima seduta a ${kg(caricoSeduta)}.`
+            : voceFuoriLivello && logged.level !== null && L.level !== null
+              ? `In questo blocco hai fatto il livello ${String(logged.level)} invece del ${String(L.level)}: le leve si valutano solo sulle serie fatte allo stato, che resta il livello ${String(L.level)}.`
+              : `In questo blocco hai usato ${kg(caricoVoce)} invece di ${kg(L.loadKg)}: le leve si valutano solo sulle serie fatte allo stato, che resta ${kg(L.loadKg)}.`;
     for (const [indice, entry] of levers.entries()) {
       if (entry.lever !== 'reps' && entry.available) {
         levers[indice] = { ...entry, available: false, reason: motivo };
