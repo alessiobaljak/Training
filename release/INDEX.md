@@ -1,7 +1,7 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-20c, claude/calisthenics-pwa-offline-kor52w, ebd3a34 (codice 0d85597), L.
-Esito: GO per regressioni vs e30cdc6; nucleo v10 2 PASS, 4 FALLITI, 2 NON COPERTI (invariato); verify (908 test), build, smoke (R14d, R14, A19), offline verdi; diff db/types non vuoto (lapsed, ref), rules vuoto. Limite rollback: vecchio codice rifiuta un backup con record lapsed. B14 non blocca. Rapporto reports/2026-11-20c-claude-calisthenics-pwa-offline-kor52w.md.
-- 2026-11-20c: persone fittizie, UAT, rollback Vercel, percorso browser R14 (revisione accettata -> seduta) NON eseguiti. B14 aperto (rilascio successivo).
+Ultimo rilascio: 2026-11-20d, claude/calisthenics-pwa-offline-kor52w, c15814a (codice f7f945d), L.
+Esito: GO per regressioni vs fb560e7; nucleo v11 2 PASS, 4 FALLITI, 2 NON COPERTI (invariato); verify (924 test), build, smoke (R14d, R14, A19), offline verdi; diff types/db/rules vuoto (rollback dati compatibile). Rapporto reports/2026-11-20d-claude-calisthenics-pwa-offline-kor52w.md.
+- 2026-11-20d: persone fittizie, UAT, rollback Vercel, percorso browser R14 NON eseguiti. B14 chiuso nei circuiti.
 Problemi aperti:
 - 2026-11-20b: A19 CHIUSO (smoke asserisce badge = panoramica). Persone fittizie, UAT, rollback Vercel ancora NON eseguiti.
 - 2026-11-16b: kg dallo stato nel player (A18) senza asserzione di smoke; persone fittizie, UAT, rollback ancora NON eseguiti. Chiusi A17, M17, L15, B12.
@@ -20,5 +20,4 @@ File:
 - reports/AAAA-MM-GG-<branch>.md: rapporti completi.
 Comando nucleo: node --experimental-strip-types quality/scripts/safety-core.mts
 Ordine: verify, nucleo, build, smoke, POI offline (mai insieme).
-
-Tempi (L, 2026-11-20c): verify 4 s, build 8 s, smoke 3m14, offline 39 s.
+Tempi (L, 2026-11-20d): verify 10 s, build 1 s, smoke 3m12, offline 40 s.

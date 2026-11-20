@@ -173,7 +173,7 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: rilascio B2 (`3b4db08` R14, `d5f72e2` vetro, `0d85597` D-19 b + R14d; 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v10). **Punto di ritorno: `e30cdc6`** (B1). Prima: `59daf79` (rilascio A), `001de30`, `721fd42`.
+- in produzione: **rilascio C**, versione finale del giro R14-R19 (`d8c18ce` L26, `4142059` L25, `17ea244` M22, `f7f945d` B14; 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v11). **Punto di ritorno: `fb560e7`** (B2): diff su `src/types`, `src/db`, `firestore.rules` vuoto. Prima: `e30cdc6` (B1), `59daf79` (A), `001de30`, `721fd42`.
 - **Limite del ritorno a `e30cdc6`:** il vecchio `backup.ts` rifiuta per intero un backup che contiene un record `lapsed`; uno senza si importa. La lettura dei `lapsed` già salvati da parte del vecchio codice non è provata.
 - `git diff e30cdc6..ebd3a34`: `firestore.rules` invariato; `src/db` e `src/types` aggiungono `lapsed` e `ref` (opzionale), `DATA_VERSION` invariato. Procedura in `docs/configurazione.md` §10, mai
   eseguita in produzione (il gate la segna NON VERIFICATA).
@@ -312,8 +312,13 @@ Punto di ritorno, aggiornato a ogni push:
   - **B14 (quality, Bloccante, già in produzione):** il riquadro «Aggiungi 2,5
     kg» del riepilogo senza i controlli delle leve. Correzione prudente nel
     rilascio C: niente calibrazione nei circuiti.
-  - Rilascio C pronto nel worktree `../Training-c`: `97a6088` L26, `b329f3e`
-    L25, `f174599` M22, `f1b36dd` B14; 924 prove.
+  - Rilascio C in produzione (cherry-pick sul ramo: `d8c18ce`, `4142059`,
+    `17ea244`, `f7f945d`); B14 chiuso. Aperti Bassi per training-designer: L27,
+    L28, L29 (testi R14a), L30 (revisione «tetto» contro riepilogo «scrivi il
+    peso» al circuito 4), L31 (calibrazione sulle sedute archiviate), L32
+    (nessun testo per un carico troppo pesante nei circuiti, M3). Per Alessio:
+    D-Q1 (scenario P-MAN nel criterio di sicurezza), stile delle figure.
+    Restano i Bloccanti B6, B8, B9, B10, M4 e B1-B4 (rilascio pubblico).
   - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
     aumento eseguito in scarico; designer e quality: a, niente leve a fine
     seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:
