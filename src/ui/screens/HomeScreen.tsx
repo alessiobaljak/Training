@@ -421,8 +421,8 @@ export function HomeScreen() {
                   <button
                     type="button"
                     onClick={() => { navigate({ name: 'scheda', sessionId: session.id }); }}
-                    className={`flex min-h-16 w-full items-center gap-3 rounded-2xl border p-3 text-left ${
-                      attiva ? 'border-accent bg-accent/10' : 'border-line bg-panel active:bg-line'
+                    className={`flex min-h-16 w-full items-center gap-3 rounded-2xl p-3 text-left ${
+                      attiva ? 'glass-tint border border-accent bg-accent/10' : 'glass-soft active:bg-line'
                     }`}
                   >
                     <span className="min-w-0 flex-1">

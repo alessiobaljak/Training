@@ -93,7 +93,7 @@ export function CountdownPanel({
   const tone = countdown.done || ready ? 'text-good' : 'text-ink';
 
   return (
-    <div className="rounded-2xl border border-line bg-surface p-6 text-center">
+    <div className="rounded-2xl glass-soft p-6 text-center">
       <p className="text-sm font-medium text-dim">{title}</p>
       <p className={`tabular mt-2 text-7xl font-semibold ${tone}`}>{formatClock(countdown.remaining)}</p>
 

@@ -82,7 +82,7 @@ export function Metronome({ tut }: { readonly tut: Tut }) {
   const progress = current === undefined ? 0 : Math.min(1, within / current.seconds);
 
   return (
-    <div className="rounded-2xl border border-line bg-panel p-3">
+    <div className="rounded-2xl glass-soft p-3">
       <div className="flex items-center gap-3">
         <button
           type="button"

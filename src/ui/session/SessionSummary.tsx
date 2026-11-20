@@ -332,7 +332,7 @@ export function SessionSummary({
                   Prima il campo nasceva a «sì»: la domanda arrivava già
                   risposta, premere «Sì» non cambiava niente e sembrava rotto.
                 */
-                <div className="mt-4 rounded-2xl border border-line bg-panel p-3">
+                <div className="mt-4 rounded-2xl glass-soft p-3">
                   <p className="text-sm font-semibold">
                     Hai tenuto il tempo prescritto su tutte le serie?
                   </p>

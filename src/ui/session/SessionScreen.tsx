@@ -691,7 +691,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
                 return (
                   <li
                     key={index}
-                    className="flex items-center gap-3 rounded-2xl border border-line bg-panel/70 px-3 py-2 text-sm"
+                    className="flex items-center gap-3 rounded-2xl glass-soft px-3 py-2 text-sm"
                   >
                     <span className="w-6 shrink-0 font-mono text-dim">{index}</span>
                     <span className="tabular flex-1 font-semibold">{label}</span>

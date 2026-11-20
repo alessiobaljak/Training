@@ -73,7 +73,7 @@ export function LibraryScreen() {
                   <button
                     type="button"
                     onClick={() => { navigate({ name: 'exercise', slug: exercise.slug }); }}
-                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-line-strong bg-surface px-4 text-left active:bg-panel"
+                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl glass-soft px-4 text-left active:bg-panel"
                   >
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold">{exercise.name}</span>

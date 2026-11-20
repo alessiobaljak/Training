@@ -105,7 +105,7 @@ export function ExerciseScreen({ slug }: { readonly slug: string }) {
                       </button>
 
                       {aperto ? (
-                        <div className="mt-1 rounded-2xl border border-line bg-surface/80 p-3">
+                        <div className="mt-1 rounded-2xl glass-soft p-3">
                           <p className="text-sm leading-relaxed text-dim">
                             {current
                               ? 'È il gradino su cui stai lavorando adesso.'

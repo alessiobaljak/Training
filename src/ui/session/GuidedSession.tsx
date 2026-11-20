@@ -431,7 +431,7 @@ function Prescrizione({ stazione }: { readonly stazione: Stazione }) {
 function NotaVariante({ testo }: { readonly testo: string | undefined }) {
   if (testo === undefined) return null;
   return (
-    <p className="mt-3 rounded-2xl border-l-4 border-accent bg-accent/10 px-3 py-2 text-sm leading-relaxed">
+    <p className="mt-3 rounded-2xl glass-tint border-l-4 border-accent bg-accent/10 px-3 py-2 text-sm leading-relaxed">
       {testo}
     </p>
   );
@@ -972,7 +972,7 @@ function PassoRecupero({
       </div>
 
       {step.task === null ? null : (
-        <div className="mb-3 rounded-2xl border border-accent bg-accent/10 p-4">
+        <div className="mb-3 rounded-2xl glass-tint border border-accent bg-accent/10 p-4">
           <p className="text-xs font-semibold tracking-wide text-accent uppercase">In questa pausa</p>
           <p className="mt-1 text-base leading-snug font-semibold">{step.task}</p>
         </div>

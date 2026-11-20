@@ -59,7 +59,7 @@ function CardioBlock({
         <Badge tone={logged === null ? 'neutral' : 'good'}>{target}</Badge>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-line bg-surface p-4 text-center">
+      <div className="mt-4 rounded-2xl glass-soft p-4 text-center">
         <p className="tabular text-5xl font-semibold">{formatClock(stopwatch.seconds)}</p>
         <div className="mt-3 flex gap-2">
           <Button
