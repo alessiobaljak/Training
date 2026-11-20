@@ -173,10 +173,9 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: rilascio B1 (`221b2e8` + smoke A19 `f5455d8`, 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v9). **Punto di ritorno: `59daf79`** (rilascio A di R14-R18 + A19). Prima: `001de30` (R-7, L17, L22, R10-R13, A18), `721fd42` (R5-R8).
-- `git diff 59daf79..f5455d8` su `src/types`, `src/db` e `firestore.rules` è
-  vuoto, in `src/data` cambia solo la nota del circuito 4 (release-gate,
-  2026-11-20): tornare indietro non rompe catalogo né dati. Procedura in `docs/configurazione.md` §10, mai
+- in produzione: rilascio B2 (`3b4db08` R14, `d5f72e2` vetro, `0d85597` D-19 b + R14d; 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v10). **Punto di ritorno: `e30cdc6`** (B1). Prima: `59daf79` (rilascio A), `001de30`, `721fd42`.
+- **Limite del ritorno a `e30cdc6`:** il vecchio `backup.ts` rifiuta per intero un backup che contiene un record `lapsed`; uno senza si importa. La lettura dei `lapsed` già salvati da parte del vecchio codice non è provata.
+- `git diff e30cdc6..ebd3a34`: `firestore.rules` invariato; `src/db` e `src/types` aggiungono `lapsed` e `ref` (opzionale), `DATA_VERSION` invariato. Procedura in `docs/configurazione.md` §10, mai
   eseguita in produzione (il gate la segna NON VERIFICATA).
 
 ## Aperti dopo R10-R13 (quality, `quality/reports/2026-11-16-quality.md`)
@@ -310,6 +309,11 @@ Punto di ritorno, aggiornato a ogni push:
     - verify 908, smoke, offline verdi.
   - Rilascio C dopo B2: T-25 (M22), T-26 (L25), T-27 (L26; `NOTE_SCHEDA` resta
     NON COPERTA senza il foglio originale).
+  - **B14 (quality, Bloccante, già in produzione):** il riquadro «Aggiungi 2,5
+    kg» del riepilogo senza i controlli delle leve. Correzione prudente nel
+    rilascio C: niente calibrazione nei circuiti.
+  - Rilascio C pronto nel worktree `../Training-c`: `97a6088` L26, `b329f3e`
+    L25, `f174599` M22, `f1b36dd` B14; 924 prove.
   - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
     aumento eseguito in scarico; designer e quality: a, niente leve a fine
     seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:

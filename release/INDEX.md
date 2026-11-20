@@ -1,6 +1,7 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-20b, claude/calisthenics-pwa-offline-kor52w, f5455d8, L.
-Esito: GO per regressioni vs 59daf79; nucleo v9 2 PASS, 4 FALLITI, 2 NON COPERTI (invariato); verify (880 test), smoke (con A19), offline verdi; diff types/db/rules vuoto, data solo nota circuito 4. Rapporto reports/2026-11-20b-claude-calisthenics-pwa-offline-kor52w.md.
+Ultimo rilascio: 2026-11-20c, claude/calisthenics-pwa-offline-kor52w, ebd3a34 (codice 0d85597), L.
+Esito: GO per regressioni vs e30cdc6; nucleo v10 2 PASS, 4 FALLITI, 2 NON COPERTI (invariato); verify (908 test), build, smoke (R14d, R14, A19), offline verdi; diff db/types non vuoto (lapsed, ref), rules vuoto. Limite rollback: vecchio codice rifiuta un backup con record lapsed. B14 non blocca. Rapporto reports/2026-11-20c-claude-calisthenics-pwa-offline-kor52w.md.
+- 2026-11-20c: persone fittizie, UAT, rollback Vercel, percorso browser R14 (revisione accettata -> seduta) NON eseguiti. B14 aperto (rilascio successivo).
 Problemi aperti:
 - 2026-11-20b: A19 CHIUSO (smoke asserisce badge = panoramica). Persone fittizie, UAT, rollback Vercel ancora NON eseguiti.
 - 2026-11-16b: kg dallo stato nel player (A18) senza asserzione di smoke; persone fittizie, UAT, rollback ancora NON eseguiti. Chiusi A17, M17, L15, B12.
@@ -20,4 +21,4 @@ File:
 Comando nucleo: node --experimental-strip-types quality/scripts/safety-core.mts
 Ordine: verify, nucleo, build, smoke, POI offline (mai insieme).
 
-Tempi (L, 2026-11-20b): verify 4 s, smoke 3m10, offline 36 s.
+Tempi (L, 2026-11-20c): verify 4 s, build 8 s, smoke 3m14, offline 39 s.
