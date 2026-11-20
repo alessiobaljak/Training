@@ -1979,6 +1979,64 @@ try {
                   /^14([.,]0)?$/.test(peso),
                   `A18: il peso precompilato deve essere quello dello stato, 14 kg. Legge «${peso}».`,
                 );
+
+                /*
+                 * A19: la durata in Home è quella della seduta che farai, con
+                 * tempo e pausa accettati, come la panoramica. Prima era quella
+                 * della scheda e non cresceva mai. Si portano tutti gli stati a
+                 * +2″/+2″: il badge della Seduta 2 deve crescere e coincidere
+                 * con la panoramica. Poi gli stati tornano com'erano.
+                 */
+                const leggiBadge = async () => {
+                  await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+                  await page.waitForTimeout(1500);
+                  const riga = page.locator('li button', { hasText: 'Seduta 2' }).first();
+                  const testo = (await riga.count()) === 0 ? '' : await riga.innerText();
+                  return Number(/(\d+)′/.exec(testo)?.[1] ?? Number.NaN);
+                };
+                const badgePrima = await leggiBadge();
+                const statiSalvati = await readFromEmulator('exerciseStates');
+                const bonusOriginali = statiSalvati.map((doc) => ({
+                  name: doc.name,
+                  eccentrica: doc.fields?.eccentricBonusSeconds ?? { integerValue: '0' },
+                  pausa: doc.fields?.bottomPauseBonusSeconds ?? { integerValue: '0' },
+                }));
+                for (const doc of statiSalvati) {
+                  await updateInEmulator(doc.name, {
+                    eccentricBonusSeconds: { integerValue: '2' },
+                    bottomPauseBonusSeconds: { integerValue: '2' },
+                  });
+                }
+                await page.waitForTimeout(2500);
+                const badgeDopo = await leggiBadge();
+                await page.goto(`${BASE}/#/scheda/circuito-2`, { waitUntil: 'load' });
+                await page.waitForTimeout(1500);
+                const testoPanoramica = await page.locator('main').innerText();
+                const durataPanoramica = /Durata\s+(?:(\d+):)?(\d+):(\d{2})/.exec(testoPanoramica);
+                const minutiPanoramica =
+                  durataPanoramica === null
+                    ? Number.NaN
+                    : Math.round(
+                        Number(durataPanoramica[1] ?? 0) * 60 + Number(durataPanoramica[2]) + Number(durataPanoramica[3]) / 60,
+                      );
+                check(
+                  badgeDopo > badgePrima,
+                  `A19: con tempo e pausa a +2″ la durata della Seduta 2 in Home deve crescere. Prima ${String(badgePrima)}′, dopo ${String(badgeDopo)}′.`,
+                );
+                check(
+                  badgeDopo === minutiPanoramica,
+                  `A19: Home e panoramica devono dire la stessa durata. Home ${String(badgeDopo)}′, panoramica «${durataPanoramica?.[0] ?? testoPanoramica.slice(0, 160)}».`,
+                );
+                console.log(
+                  `A19: Seduta 2 in Home ${String(badgePrima)}′ → ${String(badgeDopo)}′ con +2″/+2″; panoramica ${String(minutiPanoramica)}′.`,
+                );
+                for (const originale of bonusOriginali) {
+                  await updateInEmulator(originale.name, {
+                    eccentricBonusSeconds: originale.eccentrica,
+                    bottomPauseBonusSeconds: originale.pausa,
+                  });
+                }
+                await page.waitForTimeout(1500);
               }
             }
           }

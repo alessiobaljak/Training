@@ -107,3 +107,38 @@ passato a FALLITO su `media/LIBRARY.md`; 4 aveva 6 violazioni su 10 controlli.
 |---|---|---|
 | Etichetta del gradino nel diario, commit `90b8b81` | **coincide** su 4 settimane e sui 2 casi di etichetta scritta a mano (A11 chiuso) | `11-etichetta-diario.mts` v2 |
 | Giunzioni tronco → balistico nel piano guidato (S9) | B3 → F: 15" in tutte e 4; F4 → F1 fra i giri di `circuito-4`: **0"** (B10) | `safety-core.mts` 4h |
+
+## Spostati il 2026-11-20b (da `RESULTS.md`)
+
+Misura del 2026-11-15 (commit `ff42dfb`, incrementale su `90b8b81`): **GO per
+il push delle modifiche al metodo** nel perimetro chiesto (nessun Bloccante o
+Alto introdotto o peggiorato); la regola di esito approvata resta NO-GO per
+l'app (5 Bloccanti attivi, 3 Alti). Chiusi **A2, A3, A4, M1** (eseguiti: nucleo
+4 v6 con controlli positivi, `12` A-D, `13`) e **B11, A15** (`08` v3 su
+`sessionDecisions` + `npm run smoke` eseguito da me, verde). Nuovi **A17**
+(revisione: zavorra o manubrio sopra una leva di tempo appena accettata, due
+aumenti dalle stesse due sedute; c'è anche su `0d2bb92`, più largo), **M17**
+(rimandati perpetuo), L14-L17. C1 0→29, C3 33→67, C4 29→71; C6 rimisurato
+per intero (75%, senza asterisco). Nucleo invariato nei numeri, 4 fallisce
+solo per 4h (B10).
+
+| ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
+|---|---|---|---|---|
+| B12 | Bloccante | S2 «+2,5 kg a settimana» valeva per proposta: revisione + fine seduta +5 kg in 3 giorni, due sedute nello stesso giorno +5 kg (in produzione fino a `a747e09`). Aperto e chiuso il 2026-11-16 | 2026-11-16 (`cf7588a`; in produzione fino al push) | eseguito su `a747e09`: 13.3 2,5 → 5 kg il 03-26, 13.5 +2,5 due volte, `14` C 739 coppie, nucleo v7 4e S2 ×2. Su `cf7588a`: «dal lunedì 30 marzo», 13.4 positivo 2,5 → 5 il 03-30, `14` C 0 su 400 atleti, 4e superato |
+| A17 | Alto | Revisione: due aumenti dalle stesse due sedute (carico sopra una leva di tempo accettata) | 2026-11-16 | `13` v2 X 8/8 (con registro: `rimandati` «leva»; registro perso: `alMassimo` «tempo»); `14` F 10.1-10.15 16/16; `14` B 0 R10a/R10b/10.P su 259.782 esiti; su `a747e09` 1.578 R10a, 79 R10b, 2.619 10.P. Resto: R-2 fail-open (10.10 con registro perso), L22 |
+| M17 | Medio | «Rimandati» perpetuo | 2026-11-16 | `14` F 11.1-11.14 14/14, 11.13 W2-W7 «scendi» come aprendo prima; `13` v2 M17; su `a747e09` `rimandati` W1-W7. Scheda della Home (`daLeggere`) letta, non eseguita. Resto: L20 |
+| L15 | Basso | Due sedute nello stesso giorno contavano 2 per S4 | 2026-11-16 | `14` F 12.1-12.6 6/6; B 0 coppie con la stessa data; su `a747e09` 783 |
+
+| Metrica | Esito | Script |
+|---|---|---|
+| Nucleo caso 4 v6 contro il codice di produzione `0d2bb92` | 31 violazioni (S3 ×5, S5, S1, S4): le fixture nuove discriminano; su `ff42dfb` solo S9 | `safety-core.mts` (copia su worktree temporaneo) |
+| Leva accettata, `statesToSave`, commit `90b8b81` | 6/6 tenute, 2/2 «Rimando» corretti; V: dopo «Accetto» il riquadro mostra la leva successiva (A15); Q: con una ricarica la leva si annulla o raddoppia (B11) | `08-leva-accettata.mts` v2 |
+
+## Nucleo: esito spostato il 2026-11-20b (da `SAFETY_CORE.md`)
+
+Esito del 2026-11-16 (v7, `cf7588a`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+
+Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4e v7 (S2 su 7
+giorni) superato con i positivi, 4b v7 superato. Sul codice di produzione
+`a747e09` lo stesso caso 4 fallisce anche per S2 ×2 e R10a (B12, chiuso da
+`cf7588a`). Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.

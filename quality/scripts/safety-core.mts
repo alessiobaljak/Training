@@ -385,30 +385,34 @@ function fileTesto(dir: string, ext: string[]): string[] {
     const exT = getExercise(TR);
     const ESA = (kg: number): ExerciseState => ({ ...stato(TR, 6, kg), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 });
     const tr = (id: string, date: string, kg: number) => seduta(id, settDi(date), 'circuito-1', [esercizio('A1', TR, sets([8, 8, 8], { kg }), true, 6)], null, date);
-    const storia = [tr('e0', '2026-02-26', 0), tr('e1', '2026-03-12', 0), tr('e2', '2026-03-19', 0)];
+    /* v9 (2026-11-20, D-21 a di Alessio): a fine seduta niente leve in salita nella settimana prima dello scarico.
+       Le date v8 (03-23 … 04-02) cadevano in W4-W5: il 03-30 e il 04-02 tacevano per D-21, non per S2, e il positivo
+       non tornava più. Tutto spostato di 5 settimane (W7-W10, nessuna settimana 5, 6, 11, 12): stessa misura. */
+    const storia = [tr('e0', '2026-02-26', 0), tr('e1', '2026-04-16', 0), tr('e2', '2026-04-23', 0)];
     const fine = (id: string, date: string, L: ExerciseState, kg: number, sedute: LoggedSession[], reg: DecisioneRegistrata[]) => {
       const bozza = { ...tr(id, date, kg), status: 'in-progress' as const };
       return evaluateProgression({ block: bA1, exercise: exT, state: L, logged: bozza.exercises[0]!, range: resolveBlockRange(bA1, exT, PULL12), week: settDi(date), currentMaxReps: 12,
         salita: salitaConsentita(TR, 6, sedute, date, bozza), rientro: null,
         aumentoRecente: aumentoRecente(TR, reg.filter((x) => x.sessionLogId !== id), sedute, date, bozza) });
     };
-    const rv = revisione(3, storia, new Map([[TR, ESA(0)]]), PULL12, '2026-03-23').verdicts.find((v) => v.exercise === TR);
-    if (rv?.kind !== 'aggiungi-peso') violazioni.push(`4e (7 giorni): la revisione W3 del 03-23 non propone la zavorra (${String(rv?.kind)}): la fixture non arriva a S2`);
-    const reg: DecisioneRegistrata[] = [{ date: '2026-03-23', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: ESA(2.5), sessionLogId: 'revisione-3:trazioni' }];
-    const gio = fine('e3', '2026-03-26', ESA(2.5), 2.5, storia, reg);
-    if (gio.suggestion !== null && gio.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni): +2,5 kg in revisione il 03-23 e altri +2,5 kg a fine seduta il 03-26 (${String(gio.suggestion.nextState.loadKg)} kg)`);
-    /* v8 (2026-11-20, D-20 a di Alessio, R15): S2 conta sul carico sollevato. Il 03-30 è la prima seduta a 2,5 kg:
-       proporre lì 2,5 → 5 vuol dire +5 kg veri in due sedute ravvicinate (era il positivo della v7, ora è una violazione).
-       Il positivo si sposta al 04-02, sette giorni dopo la prima seduta a 2,5 del 03-26. */
-    const lun = fine('e4', '2026-03-30', ESA(2.5), 2.5, storia, reg);
-    if (lun.suggestion !== null && lun.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni, sul carico sollevato, D-20 a): 2,5 kg sollevati per la prima volta il 03-30 e altri +2,5 kg proposti lo stesso giorno (${String(lun.suggestion.nextState.loadKg)} kg)`);
-    const gio2 = fine('e4b', '2026-04-02', ESA(2.5), 2.5, [...storia, tr('e3', '2026-03-26', 2.5)], reg);
-    if (gio2.suggestion?.lever !== 'load' || gio2.suggestion.nextState.loadKg !== 5) violazioni.push(`4e (7 giorni): positivo mancato, il 04-02 (7 giorni dopo la prima seduta a 2,5 kg) la zavorra 2,5 → 5 kg non torna (${String(gio2.suggestion?.lever)})`);
-    const p1 = fine('e5', '2026-03-26', ESA(0), 0, storia, []);
-    const reg2: DecisioneRegistrata[] = p1.suggestion === null ? [] : [{ date: '2026-03-26', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: p1.suggestion.nextState, sessionLogId: 'e5' }];
-    const p2 = fine('e6', '2026-03-26', p1.suggestion?.nextState ?? ESA(0), 0, [...storia, { ...tr('e5', '2026-03-26', 0) }], reg2);
+    const rv = revisione(8, storia, new Map([[TR, ESA(0)]]), PULL12, '2026-04-27').verdicts.find((v) => v.exercise === TR);
+    if (rv?.kind !== 'aggiungi-peso') violazioni.push(`4e (7 giorni): la revisione W8 del 04-27 non propone la zavorra (${String(rv?.kind)}): la fixture non arriva a S2`);
+    const reg: DecisioneRegistrata[] = [{ date: '2026-04-27', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: ESA(2.5), sessionLogId: 'revisione-8:trazioni' }];
+    const gio = fine('e3', '2026-04-30', ESA(2.5), 2.5, storia, reg);
+    if (gio.suggestion !== null && gio.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni): +2,5 kg in revisione il 04-27 e altri +2,5 kg a fine seduta il 04-30 (${String(gio.suggestion.nextState.loadKg)} kg)`);
+    /* v8 (2026-11-20, D-20 a di Alessio, R15): S2 conta sul carico sollevato. Il 05-04 (v8: 03-30) è la prima seduta a
+       2,5 kg: proporre lì 2,5 → 5 vuol dire +5 kg veri in due sedute ravvicinate. Il positivo è il 05-07 (v8: 04-02),
+       sette giorni dopo la prima seduta a 2,5 del 04-30 (v8: 03-26). */
+    const lun = fine('e4', '2026-05-04', ESA(2.5), 2.5, storia, reg);
+    if (lun.suggestion === null && !/7 giorni/.test(lun.blockedReason ?? '')) violazioni.push(`4e (v9): il 05-04 nessuna proposta ma non per R13 («${String(lun.blockedReason)}»): la fixture non misura S2`);
+    if (lun.suggestion !== null && lun.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni, sul carico sollevato, D-20 a): 2,5 kg sollevati per la prima volta il 05-04 e altri +2,5 kg proposti lo stesso giorno (${String(lun.suggestion.nextState.loadKg)} kg)`);
+    const gio2 = fine('e4b', '2026-05-07', ESA(2.5), 2.5, [...storia, tr('e3', '2026-04-30', 2.5)], reg);
+    if (gio2.suggestion?.lever !== 'load' || gio2.suggestion.nextState.loadKg !== 5) violazioni.push(`4e (7 giorni): positivo mancato, il 05-07 (7 giorni dopo la prima seduta a 2,5 kg) la zavorra 2,5 → 5 kg non torna (${String(gio2.suggestion?.lever)})`);
+    const p1 = fine('e5', '2026-04-30', ESA(0), 0, storia, []);
+    const reg2: DecisioneRegistrata[] = p1.suggestion === null ? [] : [{ date: '2026-04-30', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: p1.suggestion.nextState, sessionLogId: 'e5' }];
+    const p2 = fine('e6', '2026-04-30', p1.suggestion?.nextState ?? ESA(0), 0, [...storia, { ...tr('e5', '2026-04-30', 0) }], reg2);
     if (p1.suggestion?.lever !== 'load') violazioni.push('4e (stesso giorno): la prima seduta non propone la zavorra: la fixture non misura');
-    else if (p2.suggestion !== null) violazioni.push(`S2 (stesso giorno): due sedute il 03-26, zavorra accettata alla prima e «${p2.suggestion.lever}» proposta alla seconda`);
+    else if (p2.suggestion !== null) violazioni.push(`S2 (stesso giorno): due sedute il 04-30, zavorra accettata alla prima e «${p2.suggestion.lever}» proposta alla seconda`);
   }
 
   /* 4f — un blocco escluso dalla revisione non produce verdetti, nemmeno con due sedute. */

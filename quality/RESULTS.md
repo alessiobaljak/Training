@@ -8,6 +8,7 @@ regola che si è mossa.
 
 | Data | Regole / catalogo | Set | C1 Sic. | C2 Rim. | C3 Fed. | C4 Coer. | C5 Pers. | C6 Concr. | C7 Progr. | C8 Dur. | Bloc. | Alti | Medi | Bassi | Nucleo | Rapporto |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-11-20b | `221b2e8` (head locale non pushato, incrementale su `59daf79` = `0f3f191` in produzione): rilascio B1 (L23, L24, M21, 17.2, D-21 a, D-22 a / R19, D-23 a), progressione 4.0 rev., consigli 4.0 rev., progressi 3.1 rev., limiti 1.4 rev. · catalogo 72 · circuito 52 blocchi · griglia v3 | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | 33% (1/3) (A19 non eseguito, M22) | 71% (5/7) | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) (D5 proposta: 80%, circuito-4 fino a 59′ con la variante) | **5** + 4ᵖ | 3 | 14 | 19 | 2 PASS / 4 FALLITI / 2 NON COPERTI (**v9**, caso 4 solo 4h) | `quality/reports/2026-11-20-quality-221b2e8.md` |
 | 2026-11-20 | `4edf751` (head locale non pushato, incrementale su `001de30` in produzione): rilascio A di R14-R18 (R18, R16, R17, R15, R14b), progressione 4.0, progressi 3.1, consigli 4.0, programmi 2.2; D-20 (a, b) · catalogo 72 · circuito 52 blocchi · griglia v3 | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | 33% (1/3) (A18 chiuso, A19 aperto) | 71% (5/7) | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) (con D5 proposta: 80%) | **5** + 4ᵖ (B13 aperto e chiuso) | 3 | 15 | 19 | 2 PASS / 4 FALLITI / 2 NON COPERTI (v8, caso 4 solo 4h) | `quality/reports/2026-11-20-quality.md` |
 | 2026-11-16 | `cf7588a` (head locale non pushato, incrementale su `a747e09` in produzione): R10-R13, progressione 3.0, progressi 3.0, consigli 3.0; D-4 (a), D-19 sì · catalogo 72 · circuito 52 blocchi · griglia v3, composizione v2 confermata | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | **33% (1/3)** rimisurato (A18) | 71% (5/7) | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) | **5** + 4ᵖ (B12 aperto e chiuso) | 3 | 12 | 21 | 2 PASS / 4 FALLITI / 2 NON COPERTI (v7, caso 4 solo 4h) | `quality/reports/2026-11-16-quality.md` |
 | 2026-11-15 | `ff42dfb` (head locale non pushato; `2c9d822` R5-R7 a fine seduta, `ff42dfb` R8 e R5-R7 in revisione; B11/A15 da `79d2cb0`) · catalogo 72 · circuito 52 blocchi · soglie approvate, griglia v3, S4 nella lettura D-16 | PERSONAS v1, SCENARIOS v1 | **29% (2/7)** | 0% (0/4)ᵖ | **67% (2/3)** | **71% (5/7)** | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) | **5** + 4ᵖ | 3 | 12 | 17 | 2 PASS / 4 FALLITI / 2 NON COPERTI (caso 4 solo per 4h) | `quality/reports/2026-11-15-quality.md` |
@@ -21,6 +22,19 @@ Soglie **approvate da Alessio il 2026-11-12** (GRID.md v3): C1 100 · C2 100 ·
 C3 100 · C4 ≥90 · C5 ≥80 · C6 ≥90 · C7 100 · C8 100; GO solo con Bloccanti = 0
 e Alti = 0 su L. ᵖ = blocca solo il rilascio pubblico (B1-B4, decisione del
 2026-11-12; C2 è fatto solo di loro).
+
+Misura del 2026-11-20b (commit `221b2e8`, incrementale su `59daf79`): **GO per
+il push di B1** (nessun Bloccante o Alto nuovo o peggiorato); app ancora NO-GO.
+`16` (nuovo): F 153 righe eseguite, 2 DIVERSE (R19.R = M22 nuovo; Q5 = M18), NC
+15.12, b.8; A 0 su 259.782; B 0; 15.19 (b) 0 su 128.653, (a) 0 su 133.507; 16.P 0
+su 32; C/C2/C2R 18 settimane: 13.P, S2, E7, S1 all'esecuzione 0, 24.6 0 su 40.550,
+leve in W5-6/11-12/17-18 0; C3 (R19, circuito intero, 5.952 sedute): σ′ oltre il
+tetto 0, S5 0 su 466, 7 sedute oltre il tetto con una variante (L25), 54
+revisioni che promettono un passo fermato (M22). D-21 in C2: 912 proposte tolte
+sullo stesso ingresso, netto −540 aumenti su 3.091 (−17,5%). Positivo su
+`59daf79`: F 26, A 35, B 33, 15.19 128.653, W5-6 2.590, E4 all'esecuzione 1.349
+(119 su `221b2e8`). Nucleo v9 (4e fuori dalla W5): su `001de30` S2. Chiusi L23,
+L24, M21, M19. verify (880) eseguito da me; smoke, offline no (sessione principale).
 
 Misura del 2026-11-20 (commit `4edf751`, incrementale su `001de30`): **GO per
 il push del rilascio A** (nessun Bloccante o Alto introdotto o peggiorato); app
@@ -43,19 +57,7 @@ produzione, +5 kg in 3 giorni, chiusa da R13; nucleo v7 4e). Nuovi **A18**
 rimisurato 67 → 33 per A18 (c'era anche prima: non guardavo il player).
 verify (811), smoke, offline eseguiti da me in sequenza: verdi.
 
-Misura del 2026-11-15 (commit `ff42dfb`, incrementale su `90b8b81`): **GO per
-il push delle modifiche al metodo** nel perimetro chiesto (nessun Bloccante o
-Alto introdotto o peggiorato); la regola di esito approvata resta NO-GO per
-l'app (5 Bloccanti attivi, 3 Alti). Chiusi **A2, A3, A4, M1** (eseguiti: nucleo
-4 v6 con controlli positivi, `12` A-D, `13`) e **B11, A15** (`08` v3 su
-`sessionDecisions` + `npm run smoke` eseguito da me, verde). Nuovi **A17**
-(revisione: zavorra o manubrio sopra una leva di tempo appena accettata, due
-aumenti dalle stesse due sedute; c'è anche su `0d2bb92`, più largo), **M17**
-(rimandati perpetuo), L14-L17. C1 0→29, C3 33→67, C4 29→71; C6 rimisurato
-per intero (75%, senza asterisco). Nucleo invariato nei numeri, 4 fallisce
-solo per 4h (B10).
-
-Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; del 2026-11-12 e 2026-11-12b: `ARCHIVE-2.md`.
+Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; dal 2026-11-12 al 2026-11-15: `ARCHIVE-2.md`.
 
 ## Voci aperte
 
@@ -71,7 +73,7 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; del 2026-11-12 e 2026-11-12
 | B10 | Bloccante | **S9 violata**: `circuito-4`, ogni settimana tranne lo scarico (6), F4 plank tocco spalla → F1 corda slam del giro 2 **senza nessun passo** (finitura: 15" fra stazioni, 0 fra i giri). R2 copre solo la giunzione B → F; L14 verifica solo quella | caso 4h, V-GIUNZIONE | `src/data/circuit.ts` (`FINITURA`, ordine F di S4), `buildGuidedPlan` | 2026-11-12b |
 | A10 | Alto | `review.ts` scarta in silenzio l'entrata il cui esercizio non coincide con quello del blocco | P-2c, P-4b | `engine/review.ts` (`block.exercise !== logged.exercise`) | 2026-11-09b |
 | A16 | Alto | Regola di esito approvata: C4 (29%), C5 (67%) e C6 (75%*) sotto soglia insieme valgono un Alto. Si chiude quando uno dei tre torna in soglia | griglia | — | 2026-11-12b |
-| A19 | Alto | **Durata in Home senza gli stati.** `HomeScreen.durata` usa `buildGuidedPlan(session, 1)` senza stati: con R18 panoramica, player e stima dicono 46-59′ (66′ con hip thrust al 3) ai bonus massimi, la Home resta 38-39′. Preesistente (prima erano sbagliate tutte e sei); non introdotto né peggiorato da `4edf751`, che ne corregge cinque | `15` R-6 | `HomeScreen.tsx` 59-61 | 2026-11-20 |
+| A19 | Alto | **Durata in Home senza gli stati.** Corretto nel codice in `0f3f191` (`buildGuidedPlan(session, 1, stati)`, stessa formula di R19.0 = riferimento su 1.200 stati). **Non eseguito nell'interfaccia** (release-gate: nessuna asserzione smoke): resta aperto finché un controllo eseguito non lo prova | `15` R-6, `16` R19.0 | `HomeScreen.tsx` 59-66 | 2026-11-20 |
 | M3 | Medio | Nessuna regola di stallo | S1, P-8a | manca la regola | 2026-11-08 |
 | M4 | **Bloccante** (era Medio: S6 approvata) | Nessun adattamento al rientro dopo una pausa lunga. **2026-11-15**: R9 rimandata a un secondo rilascio (decisione di Alessio); `evaluateProgression` ha già il parametro `rientro` (E5), il prodotto passa sempre `null` | S3 | `engine/rotation.ts`, manca la regola | 2026-11-08 |
 | M5 | Medio | Nessuna seduta sotto i 40 minuti | G6 | `data/circuit.ts` | 2026-11-08 |
@@ -84,10 +86,9 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; del 2026-11-12 e 2026-11-12
 | M14 | Medio | Settimana di scarico ignorata: Progressi confronta con il previsto pieno (braccia 34,5 invece di 23) e il riepilogo dice «Seduta chiusa prima della fine: 12 serie su 18» a chi ha fatto lo scarico intero | V-VOLUME, M-RIEP-SEDUTA | `ProgressScreen.tsx:93`, `SessionSummary.tsx` (`pianificate`) | 2026-11-12 |
 | M15 | Medio | Pausa di blocco S1: «Due trazioni negative: sali con un salto o dal box» a chiunque, gradino 1 e senza sbarra compresi; non registrata; il «salto» non è nella scheda né nelle regole; accanto a «questa pausa serve tutta» | G1, G5 | `data/circuit.ts` `pauseTasks`, `engine/circuit.ts` | 2026-11-12 |
 | M16 | Medio | Banner del ritest: «l'app ricalcola da che gradino riparti». Gli stati salvati non si ricalcolano mai (R1 «dopo ogni ritest» contro T1.7) | S3, G4 | `HomeScreen.tsx:491`, `db/repository.ts:255` | 2026-11-12 |
-| M19 | Medio | Con tempo e pausa accumulati la seduta supera i 40′ dichiarati: 46:25 / 47:52 / 49:15 / 59:16 (66:31 con hip thrust al 3) contro 38-39′ a bonus 0; `circuito-4` oltre il tetto di 55′ proposto (PROGRAM_RULES §5, non approvato). Il tempo vero c'era già: R18 lo rende visibile (R-6) | `15` R-6 | `data/circuit.ts`, PROGRAM_RULES §5 | 2026-11-20 |
-| M20 | Medio | E4 all'esecuzione (domanda 5 del designer): 329 aumenti di fine seduta su 4.254 (7,7%) accettati nell'ultima seduta della settimana 5 o 11 si eseguono in scarico. Con D-20 l'aumento conta quando si esegue: è un aumento applicato in scarico. Preesistente | `15` INFO E4 | PROGRESSION_RULES E4 | 2026-11-20 |
-| M21 | Medio | R14b alla prima seduta: stato iniziale a 0 kg (`initialExerciseState`), primo peso scritto → «Oggi hai usato 10 kg e lo stato era 0 kg: da qui comanda quello che hai scritto…». Vero e prudente (in produzione la leva accettata rimetteva 0 kg), ma rumoroso: ogni atleta nuovo, sui 10 esercizi `inherent` giudicati; 96 dei 226 casi di C2 | `15` b.P1, b.P2 | `progression.ts` R14b, testi ADVICE | 2026-11-20 |
+| M20 | Medio | E4 all'esecuzione. **2026-11-20b**: D-21 (a) chiude la via principale (fine seduta in W5, 11, 17): aumenti eseguiti in scarico 1.349 → 119 su 12.192 scelte in salita. Restano (1) fine seduta in W4/10/16 con l'esercizio rifatto solo in scarico (sedute a più di 7 giorni) e (2) revisione W4 aperta in W5 (Q5.R1: domenica 5 aprile zavorra 0 → 2,5, prima seduta lunedì 6 in W6). Preesistente | `16` E4 all'esecuzione, Q5.R1 | PROGRESSION_RULES E4, `review.ts` E4 | 2026-11-20 |
 | M18 | Medio | **Manubrio accettato e non scritto nel player: lo stato perde tempo e pausa senza cambiare peso.** Curl 12 kg +2"/+2", accettato «al massimo 14,5» (bonus a 0), seduta dopo a 12 kg precompilati → salvato 12 kg +0"/+0"; R13 blocca 7 giorni, poi la catena tempo-pausa riparte. Su `a747e09` tornava a 12 kg con i bonus. Nuovo in `cf7588a` (R10c-1 + reset), conseguenza di A18 | `14` Q5 | `engine/draft.ts` `syncStatesFromLog`, R10c-1 | 2026-11-16 |
+| M22 | Medio | **Revisione e riepilogo si contraddicono sul circuito 4 oltre il tetto (R19 solo a fine seduta).** Revisione R10a (2-3): «La prossima leva è il tempo, eccentrica da 3" a 4": te la propone il riepilogo…»; il riepilogo allo stesso stato ferma il tempo (R19) e propone il manubrio (military press 10 → 12,5) o dice «Hai esaurito tutte le leve… Serve un cambio di programmazione» (plank, tempo e pausa liberi). C3: 54 revisioni, 66 «leve finite». Nuovo con R19 | `16` R19.R, R19.L, C3 | `review.ts` R10a (2-3), `progression.ts` R17c | 2026-11-20 |
 | L1 | Basso | CSV: una nota che comincia con `=` viene esportata come formula | U3 | `db/csv.ts` | 2026-11-08 |
 | L2 | Basso | `syncStatesFromLog` azzera il carico di un esercizio `inherent` senza kg (ipotesi). **2026-11-16**: con il reset del manubrio azzera anche tempo e pausa (eseguito: 12 kg +2"/+2" → 0 kg +0"/+0"). Latente: dipende da come il player scrive il peso. **2026-11-20**: con R14b il riepilogo lo dice («Oggi hai usato 0 kg e lo stato era 12 kg… dalla prossima seduta a 0 kg»); una leva accettata non lo maschera più. Chiude R14e (rilascio B) | — | `engine/draft.ts` | 2026-11-08 |
 | L3 | Basso | La conferma dell'azzeramento accetta `cancella` minuscolo | — | `SettingsScreen.tsx` | 2026-11-09 |
@@ -104,24 +105,24 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; del 2026-11-12 e 2026-11-12
 | L14 | Basso | Salita di gradino con la zavorra conservata: `sali-di-livello` e leva `variant` tengono `loadKg` (trazioni al 3 con 5 kg → 4 con 5 kg). Latente: con R6 la zavorra si propone solo al 6, uno stato con kg sotto il 6 viene solo da kg scritti a mano | caso 7 v6 | `engine/review.ts`, `buildSuggestion` `variant` | 2026-11-15 |
 | L16 | Basso | PROGRESS_REVIEW §6, base delle prove: «bulgarian `circuito-1/A2` 8-12»; la scheda dice **8-10**. Gli attesi tengono (13 sopra, 7 sotto), ma una fixture costruita su 11-12 sarebbe sbagliata | — | `training/PROGRESS_REVIEW.md` | 2026-11-15 |
 | L17 | Basso | Kg col punto in un testo italiano. **2026-11-16**: revisione e manubrio ora con la virgola; restano «Passa da 5 kg a 7.5 kg» (fine seduta, zavorra), «volta scorsa» del player, scheda del circuito, Progressi | `14` F 10.4 | `progression.ts` 878, `GuidedSession.tsx` 363, `CircuitOverview.tsx` 87, `ProgressScreen.tsx` 71, 78 | 2026-11-15 |
-| L23 | Basso | R15 senza «date ≤ oggi» in D(c): una seduta datata dopo oggi esegue la scelta nel futuro, l'aumento prende quella data e R13 non lo vede (`giorni < 0`); prima la scelta contava dal suo giorno. `15` B, mondo 668: salita 5→6 accettata il 03-20, seduta chiusa datata 03-23, revisione del 03-22 → `aggiungi-peso` invece del fermo. Latente: solo con date future (orologio o fuso fra due dispositivi). Conseguenza di classe S2 | `15` B R11 | `progression.ts` `aumenti`; Notazione comune D(c) | 2026-11-20 |
-| L24 | Basso | `syncStatesFromLog` prende il gradino dell'**ultima** voce con un gradino; R15 e R14b leggono `v_livello` = la **prima** (Notazione comune). Latente: nel circuito nessun esercizio compare in due blocchi della stessa seduta | — | `draft.ts` | 2026-11-20 |
 | L22 | Basso | La scrittura atomica non arriva alla chiusura: `decide` chiama `recordDecision` con `void`, poi «Salva e chiudi» riscrive lo stato accettato con `saveExerciseState` da solo. Se la traccia è fallita, lo stato cambia senza traccia (R10b/R13 fail-open, R-2). Letto, non eseguito; latente | — | `GuidedSession.tsx` `decide` e chiusura, `SessionScreen.tsx` | 2026-11-16 |
+| L25 | Basso | σ′ di R19 non contiene una variante proposta sopra nello stesso riepilogo: C3 7 sedute su 5.952 (circuito-4) chiuse oltre il tetto con tempo o pausa accettati, fino a 56:07 (es. 54:07 senza i passi, 55:31 con). Il §7 lo scrive così, ma dice anche «finché il circuito è sopra il tetto non si propongono tempo né pausa» | `16` C3 | §7, `SessionSummary.tsx` `statiRiepilogo` | 2026-11-20 |
+| L26 | Basso | Nota del circuito 4 «può arrivare a 55 minuti»: con la variante dell'hip thrust 59:07 (costruito), 56:07 (C3). Deviazione dalla scheda («togli 2 ripetizioni») dichiarata solo in un commento: nessun test confronta le note. PROGRAM_RULES §5 ha ancora il `[PROPOSTA]` che taglia transizioni e finitura, contro R19 | `16` R19.4 | `circuit.ts` nota, `deviations.ts`, PROGRAM_RULES §5 | 2026-11-20 |
 
 ## Voci chiuse (ultime 10)
 
 | ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
 |---|---|---|---|---|
+| L23 | Basso | R15 senza «date ≤ oggi»: una seduta datata dopo oggi faceva sparire l'aumento da R13 | 2026-11-20b (`221b2e8`) | `16` 15.16 (date originali, dal 30 marzo), 15.16′, 15.17, 15.18; 15.19 (b) 0 su 128.653, (a) 0 su 133.507; A 0, B 0. Su `59daf79`: A 35, B 33 |
+| L24 | Basso | Gradino della seduta: prima voce, ultima voce, peso massimo | 2026-11-20b | `16` 24.1-24.5 (fixture a due voci), 24.6 0 su 40.550 fine seduta, 24.6a sui 4 circuiti; su `59daf79` 24.1-24.3, 24.5 falliscono |
+| M21 | Medio | R14b rumoroso alla prima seduta pesata | 2026-11-20b | `16` 21.1-21.5; testo M21 in 106 sedute di C2; il blocco della leva resta |
+| M19 | Medio | Durata oltre i 40′ con i bonus | 2026-11-20b (D-22 a, R19) | `16` R19.0-R19.4, C3: 0 passi di tempo o pausa con σ′ oltre 55′. Residui: variante oltre il tetto (voluta, fino a 59:07), L25 |
 | B13 | Bloccante | S2 e D-4 (a) contati all'esecuzione (D-20 a, b, Alessio 2026-11-20) violati in produzione `001de30`: 13.4 (2,5 kg sollevati il 03-30, +2,5 proposti lo stesso giorno). Aperto e chiuso il 2026-11-20 | 2026-11-20 (`4edf751`; in produzione fino al push) | su `001de30`: nucleo v8 4e S2, `15` E7 36, 15.6 `load`; su `4edf751`: 4e superato, E7 0 su 800 atleti, 15.5-15.7 |
 | A18 | Alto | Player guidato senza lo stato accettato | 2026-11-20 (corretto in `fe85203`) | `15` A18 statico; `npm run smoke` eseguito da me su `4edf751`: eccentrica annunciata, peso dallo stato (14 kg), R18 36″. Resto: peso dei manubri dalla volta scorsa (R-7, voluto) → M18 |
 | L18 | Basso | Manubrio sotto il tetto contato due volte | 2026-11-20 | `15` 15.1, 15.2; positivo su `001de30` |
 | L19 | Basso | Spiegazione larga del diario | 2026-11-20 | `15` 15.4, b.10; C su `001de30` R13 ≠ riferimento |
 | L20 | Basso | Scarico e scarico-coppia in R11 | 2026-11-20 | `15` 16.1-16.3, 16.5; A 0 differenze (62 su `001de30`) |
 | L21 | Basso | R13 senza leve a fine seduta | 2026-11-20 | `15` 17.1, 17.10 |
-| B12 | Bloccante | S2 «+2,5 kg a settimana» valeva per proposta: revisione + fine seduta +5 kg in 3 giorni, due sedute nello stesso giorno +5 kg (in produzione fino a `a747e09`). Aperto e chiuso il 2026-11-16 | 2026-11-16 (`cf7588a`; in produzione fino al push) | eseguito su `a747e09`: 13.3 2,5 → 5 kg il 03-26, 13.5 +2,5 due volte, `14` C 739 coppie, nucleo v7 4e S2 ×2. Su `cf7588a`: «dal lunedì 30 marzo», 13.4 positivo 2,5 → 5 il 03-30, `14` C 0 su 400 atleti, 4e superato |
-| A17 | Alto | Revisione: due aumenti dalle stesse due sedute (carico sopra una leva di tempo accettata) | 2026-11-16 | `13` v2 X 8/8 (con registro: `rimandati` «leva»; registro perso: `alMassimo` «tempo»); `14` F 10.1-10.15 16/16; `14` B 0 R10a/R10b/10.P su 259.782 esiti; su `a747e09` 1.578 R10a, 79 R10b, 2.619 10.P. Resto: R-2 fail-open (10.10 con registro perso), L22 |
-| M17 | Medio | «Rimandati» perpetuo | 2026-11-16 | `14` F 11.1-11.14 14/14, 11.13 W2-W7 «scendi» come aprendo prima; `13` v2 M17; su `a747e09` `rimandati` W1-W7. Scheda della Home (`daLeggere`) letta, non eseguita. Resto: L20 |
-| L15 | Basso | Due sedute nello stesso giorno contavano 2 per S4 | 2026-11-16 | `14` F 12.1-12.6 6/6; B 0 coppie con la stessa data; su `a747e09` 783 |
 
 ## Verifiche tecniche delle immagini (ultime 10)
 
@@ -142,6 +143,8 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; del 2026-11-12 e 2026-11-12
 
 | Metrica | Esito | Script |
 |---|---|---|
+| B1 dal testo dell'appendice 2026-11-20 + D-21 a, D-22 a, D-23 a, commit `221b2e8` | F 151/153 = atteso (R19.R = M22, Q5 = M18); A 0 su 259.782; B 0; 15.19 0; 16.P 0; C/C2/C2R 18 settimane: 13.P, S2, E7, S1 all'esecuzione, 24.6, leve W5-6 a 0; C3 R19 σ′ 0, S5 0, L25 7, M22 54 + 66. Su `59daf79`: F 26, A 35, B 33, W5-6 2.590 | `16-b1.mts` |
+| Nucleo v9 (4e spostato a W8-W10, fuori da D-21) | `221b2e8` e `59daf79`: solo S9; `001de30`: S2 il 05-04 (la fixture discrimina). Con la v8 su `221b2e8`: «positivo mancato» per D-21 | `safety-core.mts` v9 |
 | R14b, R15, R16, R17, R18 dal testo della specifica 2026-11-18 + D-20, commit `4edf751` | F 106 righe su 107 = atteso (Q5 = M18 resta aperto); A 0 differenze su 259.782 esiti; B 1 (L23); C + C2 800 atleti: 13.P, S1, E7 0, R13 di fine seduta = riferimento; R14b 226 proposte tolte, 0 allo stato; R-6 durate. Su `001de30`: F 41, A 64, E7 36, 237 leve fuori stato | `15-r14-r18.mts` |
 | Nucleo v8 (4e sul carico sollevato) contro `001de30` | S2 il 03-30 + S9: la fixture nuova discrimina; su `4edf751` solo S9 | `safety-core.mts` v8 |
 | R10-R13, riferimento scritto dal testo di R10-R13, commit `cf7588a` | **coincide**: 259.782 esiti su 80.000 revisioni (categoria, motivo, stato dopo, `sessionsCounted`, `setsCounted`); 52/52 righe della specifica; 0 violazioni S3/S4/S5/E4/R10a/R10b/R10c/R12/R13/10.P/R11; 400 atleti simulati: 13.P 0, S1 0, S2 0. Su `a747e09`: 45.672 differenze, 6.273 violazioni, 13.P 2.889, S2 739 | `14-r10-r13.mts` |
@@ -150,5 +153,3 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; del 2026-11-12 e 2026-11-12
 | R8 + R5/R6/R7 della revisione, riferimento scritto dalla specifica, commit `ff42dfb` | **coincide**: 192.234 esiti per esercizio su 120.000 revisioni (stato, finestra, sessionsCounted, setsCounted, categoria, stato dopo); 32 righe di PROGRESS_REVIEW §6 e PROGRESSION_RULES §9 = atteso; 0 violazioni S1-S5/E4/T2; 300 atleti simulati: 0 salite sotto i 14 giorni | `12-r8-revisione.mts` |
 | R5, R6, R7 a fine seduta, commit `2c9d822` | 12/12 righe come la specifica; X: tempo accettato + zavorra in revisione = due aumenti (A17); M17: revisione aperta dopo la seduta del lunedì = «rimandati» W1-W7 | `13-fine-seduta-r5r6r7.mts` |
 | Leva accettata e ricarica su `sessionDecisions`, commit `ff42dfb` | A 6/6 tenute, R 2/2, Q1 2/2, Q2 2/2 stessa leva e blocco deciso, V coerente 6/6; L11 invariato | `08-leva-accettata.mts` v3 |
-| Nucleo caso 4 v6 contro il codice di produzione `0d2bb92` | 31 violazioni (S3 ×5, S5, S1, S4): le fixture nuove discriminano; su `ff42dfb` solo S9 | `safety-core.mts` (copia su worktree temporaneo) |
-| Leva accettata, `statesToSave`, commit `90b8b81` | 6/6 tenute, 2/2 «Rimando» corretti; V: dopo «Accetto» il riquadro mostra la leva successiva (A15); Q: con una ricarica la leva si annulla o raddoppia (B11) | `08-leva-accettata.mts` v2 |

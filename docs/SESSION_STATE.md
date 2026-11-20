@@ -260,7 +260,17 @@ Punto di ritorno, aggiornato a ogni push:
     - Nota del circuito 4 riscritta col testo del designer; `DEVIAZIONI`
       accetta solo esercizi, quindi il motivo sta in un commento accanto.
     - R19 vale a fine seduta. La revisione (R10a 2-3) può ancora dire «la
-      prossima leva è il tempo» su un circuito oltre il tetto: da chiedere.
+      prossima leva è il tempo» su un circuito oltre il tetto: è M22 (Medio).
+  - **training-quality GO su `221b2e8`** (`quality/reports/2026-11-20-quality-221b2e8.md`,
+    script `16-b1.mts`, nucleo v9). Nuovi: M22 (testo della revisione oltre il
+    tetto), L25 (σ′ senza la variante proposta più su: fino a 56:07), L26 (nota
+    del circuito 4 non verificata da un test; con l'hip thrust si arriva a 59′).
+    D-21 in C2 toglie 912 proposte (−17,5% degli aumenti accettati).
+  - Smoke: aggiunto A19 (badge Home = panoramica, con stati a +2″/+2″; 37′ → 41′).
+  - Per Alessio (quality): M20 residuo, cioè un aumento scelto in W4 ed
+    eseguito in scarico, costo accettato o regola? D5 in C8 con la variante
+    dell'hip thrust oltre il tetto. V-LEVE in C4.
+  - Per training-designer: M22, L25, L26, M20 residuo.
   - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
     aumento eseguito in scarico; designer e quality: a, niente leve a fine
     seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:

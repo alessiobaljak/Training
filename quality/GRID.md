@@ -43,6 +43,11 @@ criteri sotto soglia contemporaneamente valgono come un Alto.
 
 ## Soglie di sicurezza sulla progressione (approvate il 2026-11-12)
 
+**Al 2026-11-20b (`221b2e8`, rilascio B1): S1, S2, S5 rispettate** anche con
+R19 e D-21 (`16`: E7, S1 all'esecuzione, S5 con R19 a 0). L23 chiuso: un aumento
+datato dopo oggi ferma R13. E4 a fine seduta anche nella settimana prima dello
+scarico (D-21 a); resta M20 (revisione W4 aperta in W5, esercizio saltato in W5).
+Tetto di durata **55′ approvato** (D-22 a, R19): vedi D5 sotto.
 **Al 2026-11-20 (`4edf751`, rilascio A di R14-R18): S2 rispettata anche sul
 carico sollevato** (D-20 a e b di Alessio, 2026-11-20: carico e gradino contano
 dalla seduta che li esegue, tempo e pausa dalla prima seduta dopo la scelta):
@@ -109,6 +114,11 @@ aumento della revisione è lo scavalco o la prima leva che la fine seduta darebb
 allo stesso stato, settimana W+1), **R10b**, **13.P** (nessun aumento dell'app a
 meno di 7 giorni da un altro). Al 2026-11-16 passa: C4 v4 = 75% (6/8).
 
+**D5 al 2026-11-20b, con il tetto approvato di 55′:** circuiti 1-3 entro (massimo
+49:15). Il circuito 4 arriva a 59:07 con la variante dell'hip thrust (2 → 3,
++4:15), che il §7 di R19 lascia proponibile, e a 56:07 in C3 (L25). D5 stretta:
+80%. Proposta: «entro il tetto, salvo il passo di una variante» (decisione di
+Alessio).
 **Proposta v4, seconda voce (2026-11-20, da approvare):** C8 + **D5**, «durata
 stimata della seduta con gli stati raggiungibili (tempo e pausa ai massimi)
 entro il tetto dichiarato». Con R18 la stima segue gli stati: 46-59′ (66′ con

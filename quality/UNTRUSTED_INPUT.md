@@ -183,6 +183,12 @@ incrina.
 - Nucleo caso 7 (6 stringhe ostili × 4 campi): impronta identica, PASS. `15` A usa i mondi di `14` con note ostili nel 10% delle serie e delle sedute: 0 differenze dal riferimento, che non legge testo.
 - Proprietà: **tiene**.
 
+## U12 — Verifica del 2026-11-20b (commit `221b2e8`, rilascio B1)
+
+- Codice nuovo (`livelloVoci`, `aumentoRecente` senza `giorni >= 0`, R14b rivista con M21 e D-23, E4 con la settimana dopo, R19 `durataCon`, `syncStatesFromLog`, `SessionSummary` con i tre ingressi): grep sulle righe aggiunte, nessuna lettura di `note`, `variantLabel`, `title`. `livelloVoci` legge `level` e `sets`; `pesoScrittoPrima` legge `loadKg`; `durataCon` legge gli stati.
+- Nucleo caso 7: PASS. `16` A usa i mondi con note ostili (10% delle serie e delle sedute): 0 differenze dal riferimento, che non legge testo.
+- Proprietà: **tiene**.
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.
