@@ -58,6 +58,7 @@ function makeInput(options: {
 }): ProgressionInput {
   const block = blockOf(options.sessionId, options.code);
   const exercise = getExercise(block.exercise);
+  const state: ExerciseState = { ...initialExerciseState(exercise), level: exercise.defaultLevel, ...options.state };
   const tests = latestTestResults(options.tests ?? DEFAULT_TESTS);
   return {
     block,
@@ -68,11 +69,15 @@ function makeInput(options: {
      * state pensate. La partenza vera, che dipende dal test, ha le sue prove
      * più sotto.
      */
-    state: { ...initialExerciseState(exercise), level: exercise.defaultLevel, ...options.state },
-    logged: loggedExercise(exercise.slug, options.loggedSets, {
-      blockCode: block.code,
-      tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
-    }),
+    state,
+    /* La voce è fatta allo stato (R14b): il gradino scritto è quello dello stato. */
+    logged: {
+      ...loggedExercise(exercise.slug, options.loggedSets, {
+        blockCode: block.code,
+        tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
+      }),
+      level: state.level,
+    },
     range: resolveBlockRange(block, exercise, tests),
     week: options.week ?? 4,
     currentMaxReps: options.currentMaxReps ?? null,
@@ -419,7 +424,9 @@ describe('leve non disponibili', () => {
         }),
       );
       expect(evaluation.suggestion, String(week)).toBeNull();
-      expect(evaluation.blockedReason).toContain('esaurito tutte le leve');
+      /* R17c (17.9): le leve non sono finite, la zavorra arriva in settimana 3. */
+      expect(evaluation.blockedReason).not.toContain('esaurito tutte le leve');
+      expect(evaluation.blockedReason).toContain('settimana 3');
       const load = evaluation.levers.find((lever) => lever.lever === 'load');
       expect(load?.reason).toContain('settimana 3');
     }

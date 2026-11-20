@@ -1,6 +1,6 @@
 # Dove siamo
 
-Aggiornato: 2026-11-12 · branch `claude/calisthenics-pwa-offline-kor52w`
+Aggiornato: 2026-11-20 · branch `claude/calisthenics-pwa-offline-kor52w`
 
 ## Compito in corso
 **Revisione totale** chiesta da Alessio: design, esperienza d'uso, grafiche,
@@ -196,7 +196,25 @@ Punto di ritorno, aggiornato a ogni push:
   leva) → R15 (cosa spiega un aumento del diario; data = seduta che lo
   esegue, D-20 a) → R14b. Rilascio B: R14a, c, e (record `lapsed`) → R14d
   (già anticipata il 2026-11-18 come correzione di R-7: `pesoIniziale`).
-- Per Alessio: D-20 (a) conferma, (b) anche tempo e pausa; D-19 (b) manubri.
+- **2026-11-20, Alessio: «D20 a e B».** Letta come D-20 (a) sì e (b) sì:
+  carico e gradino contano dalla seduta che li esegue, tempo e pausa dalla
+  prima seduta dopo la scelta. Ambiguità segnalata: «B» potrebbe voler dire
+  lo stile B (Sagoma) delle prove di immagine; se è così, (b) va rifatta.
+- **Rilascio A, stato 2026-11-20:** R18, R16, R17, R15, R14b implementate,
+  commit locale, verify (857), smoke e offline verdi. Il controllo R18 nello
+  smoke è stato fatto fallire apposta (atteso 37″, l'app dice 36″) per
+  provare che si esegue. Non pushato: aspetta training-quality.
+  - R14e **non** anticipata: è nel rilascio B come dice il designer. Senza
+    R14e, su un manubrio a 0 kg il testo R14b dice «Oggi hai usato 0 kg…»,
+    vero rispetto alla sincronizzazione di oggi (L2 resta aperto).
+  - La sincronizzazione legge un esercizio in più blocchi una volta sola, al
+    peso più alto scritto (b.6: lo stato resta 12 kg).
+  - Fixture di 17 prove vecchie corrette: lo stato era al gradino 6 e la voce
+    registrata sempre al 3 (fissato in `__fixtures.ts`). Con R14b la voce
+    deve essere allo stato; la correzione è nei dati delle prove, non nella regola.
+  - Non coperte nel rilascio A: 14.x e 15.12 (servono i record `lapsed`),
+    16.4 (nessuna prova scritta), b.8 (è R14e).
+- Per Alessio: D-19 (b) manubri.
 - Risposte della sessione principale al designer: nel player guidato il peso
   si scrive durante la serie (i campi compaiono a stazione partita, si
   registra a «Fatto»); una seduta chiusa non si modifica da nessuna schermata.

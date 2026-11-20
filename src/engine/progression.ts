@@ -391,28 +391,6 @@ function kg(value: number): string {
   return `${formatNumber(value)} kg`;
 }
 
-function aumentiDiStato(prima: ExerciseState, dopo: ExerciseState): { tipi: TipoAumento[]; cosa: string[] } {
-  const tipi: TipoAumento[] = [];
-  const cosa: string[] = [];
-  if (prima.level !== null && dopo.level !== null && dopo.level > prima.level) {
-    tipi.push('livello');
-    cosa.push(`livello ${String(prima.level)} → ${String(dopo.level)}`);
-  }
-  if (dopo.eccentricBonusSeconds > prima.eccentricBonusSeconds) {
-    tipi.push('tempo');
-    cosa.push('eccentrica +1"');
-  }
-  if (dopo.bottomPauseBonusSeconds > prima.bottomPauseBonusSeconds) {
-    tipi.push('pausa');
-    cosa.push('pausa +1"');
-  }
-  if (dopo.loadKg > prima.loadKg) {
-    tipi.push('carico');
-    cosa.push(`carico ${kg(prima.loadKg)} → ${kg(dopo.loadKg)}`);
-  }
-  return { tipi, cosa };
-}
-
 function voceDi(session: LoggedSession, slug: ExerciseSlug): readonly LoggedExercise[] {
   return session.exercises.filter((voce) => voce.exercise === slug && voce.sets.length > 0);
 }
@@ -426,13 +404,20 @@ function livelloVoci(voci: readonly LoggedExercise[]): LevelIndex | null {
 }
 
 /**
- * Gli aumenti di un esercizio, da due fonti (R13).
+ * Gli aumenti di un esercizio (R13), datati dal giorno in cui si fanno (R15).
  *
- * Le scelte accettate, con la loro data; e il diario: una seduta chiusa con
- * un carico o un livello più alto della precedente è un aumento scritto
- * dall'atleta, salvo quando è proprio l'esecuzione di una scelta accettata
- * nel frattempo, che è già contata. A fine seduta conta anche la seduta in
- * corso. Nessun campo di testo viene letto.
+ * Due fonti. Le scelte accettate: un carico o un gradino contano dalla prima
+ * seduta che li esegue, cioè la prima che si stacca dal valore di prima
+ * restando entro quello accettato; tempo e pausa dalla prima seduta dopo la
+ * scelta (D-20, Alessio, 2026-11-20). Finché nessuna seduta li esegue contano
+ * dal giorno della scelta. E il diario: una seduta con un carico o un gradino
+ * più alto della precedente è un aumento scritto dall'atleta, salvo quando è
+ * proprio l'esecuzione di una scelta sulla stessa grandezza.
+ *
+ * Prima l'aumento contava dal giorno della scelta: la prima seduta al peso
+ * nuovo, sette giorni dopo, poteva già proporre il passo dopo — +5 kg veri in
+ * due sedute ravvicinate. Un peso non scritto (manubri a 0 kg) non è un
+ * valore e si salta. Nessun campo di testo viene letto.
  */
 export function aumenti(
   slug: ExerciseSlug,
@@ -444,11 +429,6 @@ export function aumenti(
   const out: Aumento[] = [];
   const accettate = decisioni.filter((record) => record.exercise === slug && record.decision === 'accepted');
 
-  for (const record of accettate) {
-    const { tipi, cosa } = aumentiDiStato(record.stateBefore, record.stateAfter);
-    if (tipi.length > 0) out.push({ date: record.date, tipi, cosa: cosa.join(', ') });
-  }
-
   const diario = [
     ...sessions.filter((session) => session.status === 'completed' && session.id !== inCorso?.id),
     ...(inCorso === null ? [] : [inCorso]),
@@ -456,42 +436,87 @@ export function aumenti(
     .filter((session) => voceDi(session, slug).length > 0)
     .sort((a, b) => (a.date === b.date ? (a.id < b.id ? -1 : 1) : a.date < b.date ? -1 : 1));
 
-  for (let i = 1; i < diario.length; i += 1) {
-    const prima = diario[i - 1];
-    const dopo = diario[i];
-    if (prima === undefined || dopo === undefined) continue;
-    const vociPrima = voceDi(prima, slug);
-    const vociDopo = voceDi(dopo, slug);
-    const spiegata = (vale: (record: DecisioneRegistrata) => boolean): boolean =>
-      accettate.some((record) => record.date >= prima.date && record.date <= dopo.date && vale(record));
+  const carico = (session: LoggedSession): number => caricoMassimoVoci(voceDi(session, slug));
+  const caricoScritto = (session: LoggedSession): boolean =>
+    exercise.loadPolicy !== 'forbidden' && (exercise.loadPolicy !== 'inherent' || carico(session) > 0);
+  const livello = (session: LoggedSession): LevelIndex | null => livelloVoci(voceDi(session, slug));
 
-    const caricoPrima = caricoMassimoVoci(vociPrima);
-    const caricoDopo = caricoMassimoVoci(vociDopo);
-    if (
-      exercise.loadPolicy !== 'forbidden' &&
-      caricoDopo > caricoPrima &&
-      !spiegata((record) => record.stateAfter.loadKg === caricoDopo)
-    ) {
+  /* Le sedute che eseguono una scelta, per grandezza: lì il diario non conta un secondo aumento. */
+  const eseguite = new Set<string>();
+
+  for (const scelta of accettate) {
+    const dopo = diario.filter((session) => session.id !== scelta.sessionLogId && session.date >= scelta.date);
+    const giorno = formatDayLong(scelta.date);
+
+    if (scelta.stateAfter.loadKg > scelta.stateBefore.loadKg) {
+      const B = scelta.stateBefore.loadKg;
+      const T = scelta.stateAfter.loadKg;
+      const esecuzione = dopo.find((session) => caricoScritto(session) && carico(session) !== B);
+      const v = esecuzione === undefined ? null : carico(esecuzione);
+      if (esecuzione !== undefined && v !== null && v > B && v <= T) {
+        out.push({ date: esecuzione.date, tipi: ['carico'], cosa: `carico ${formatNumber(B)} → ${kg(v)}, scelta del ${giorno}` });
+        eseguite.add(`${esecuzione.id}:carico`);
+      } else {
+        out.push({
+          date: scelta.date,
+          tipi: ['carico'],
+          cosa:
+            exercise.loadPolicy === 'inherent'
+              ? `manubrio successivo scelto, al massimo ${kg(T)}`
+              : `carico ${formatNumber(B)} → ${kg(T)}`,
+        });
+      }
+    }
+
+    const B = scelta.stateBefore.level;
+    const T = scelta.stateAfter.level;
+    if (B !== null && T !== null && T > B) {
+      const esecuzione = dopo.find((session) => livello(session) !== null && livello(session) !== B);
+      const v = esecuzione === undefined ? null : livello(esecuzione);
+      if (esecuzione !== undefined && v !== null && v > B && v <= T) {
+        out.push({ date: esecuzione.date, tipi: ['livello'], cosa: `livello ${String(B)} → ${String(v)}, scelta del ${giorno}` });
+        eseguite.add(`${esecuzione.id}:livello`);
+      } else {
+        out.push({ date: scelta.date, tipi: ['livello'], cosa: `livello ${String(B)} → ${String(T)}` });
+      }
+    }
+
+    /* Tempo e pausa: dalla prima seduta dopo la scelta (D-20 b). */
+    const tempo = scelta.stateAfter.eccentricBonusSeconds > scelta.stateBefore.eccentricBonusSeconds;
+    const pausa = scelta.stateAfter.bottomPauseBonusSeconds > scelta.stateBefore.bottomPauseBonusSeconds;
+    if (tempo || pausa) {
+      const prima = dopo[0];
+      out.push({
+        date: prima?.date ?? scelta.date,
+        tipi: [...(tempo ? (['tempo'] as const) : []), ...(pausa ? (['pausa'] as const) : [])],
+        cosa: [tempo ? 'eccentrica +1"' : '', pausa ? 'pausa +1"' : ''].filter(Boolean).join(', '),
+      });
+    }
+  }
+
+  const conCarico = diario.filter(caricoScritto);
+  for (let i = 1; i < conCarico.length; i += 1) {
+    const prima = conCarico[i - 1];
+    const dopo = conCarico[i];
+    if (prima === undefined || dopo === undefined) continue;
+    if (carico(dopo) > carico(prima) && !eseguite.has(`${dopo.id}:carico`)) {
       out.push({
         date: dopo.date,
         tipi: ['carico'],
-        cosa: `peso scritto da te, ${formatNumber(caricoPrima)} → ${kg(caricoDopo)}`,
+        cosa: `peso scritto da te, ${formatNumber(carico(prima))} → ${kg(carico(dopo))}`,
       });
     }
+  }
 
-    const livelloPrima = livelloVoci(vociPrima);
-    const livelloDopo = livelloVoci(vociDopo);
-    if (
-      livelloPrima !== null &&
-      livelloDopo !== null &&
-      livelloDopo > livelloPrima &&
-      !spiegata((record) => record.stateAfter.level === livelloDopo)
-    ) {
-      out.push({
-        date: dopo.date,
-        tipi: ['livello'],
-        cosa: `livello scritto da te, ${String(livelloPrima)} → ${String(livelloDopo)}`,
-      });
+  const conLivello = diario.filter((session) => livello(session) !== null);
+  for (let i = 1; i < conLivello.length; i += 1) {
+    const prima = conLivello[i - 1];
+    const dopo = conLivello[i];
+    if (prima === undefined || dopo === undefined) continue;
+    const lp = livello(prima);
+    const ld = livello(dopo);
+    if (lp !== null && ld !== null && ld > lp && !eseguite.has(`${dopo.id}:livello`)) {
+      out.push({ date: dopo.date, tipi: ['livello'], cosa: `livello scritto da te, ${String(lp)} → ${String(ld)}` });
     }
   }
   return out;
@@ -587,6 +612,12 @@ export interface ProgressionInput {
   readonly rientro: Rientro | null;
   /** R13: l'ultimo aumento entro 7 giorni, che ferma il prossimo. */
   readonly aumentoRecente: AumentoRecente | null;
+  /**
+   * R14b: il peso più alto scritto oggi su questo esercizio, in tutti i suoi
+   * blocchi. Se è quello dello stato, un blocco fatto più leggero non cambia
+   * lo stato. Senza, si usa il blocco stesso.
+   */
+  readonly caricoMassimoSeduta?: number;
 }
 
 function tempoLever(block: ProgramBlock, state: ExerciseState): LeverAvailability {
@@ -667,7 +698,19 @@ export function isFixedRange(block: ProgramBlock): boolean {
 }
 
 function loadLever(input: ProgressionInput): LeverAvailability {
+  return loadLeverConMotivo(input).leva;
+}
+
+/**
+ * La leva del carico, e se è ferma solo per la settimana (Z3) o per il test
+ * (Z4): in quel caso le leve non sono finite, arrivano più avanti (R17c).
+ */
+function loadLeverConMotivo(input: ProgressionInput): { leva: LeverAvailability; piuAvanti: boolean } {
   const label = OVERLOAD_LEVER_LABELS.load;
+  const ferma = (reason: string | null, piuAvanti = false) => ({
+    leva: { lever: 'load' as const, label, available: false, reason },
+    piuAvanti,
+  });
 
   /*
    * Il peso di un manubrio non è la quinta leva del metodo.
@@ -685,22 +728,15 @@ function loadLever(input: ProgressionInput): LeverAvailability {
      * l'esercizio: si registra, ma non è una leva.
      */
     if (!isLevaManubrio(input.exercise)) {
-      return {
-        lever: 'load',
-        label,
-        available: false,
-        reason: 'Qui il peso è l’esercizio, non una leva: si registra, ma non è zavorra.',
-      };
+      return ferma('Qui il peso è l’esercizio, non una leva: si registra, ma non è zavorra.');
     }
     if (input.week < LOAD_UNLOCK_WEEK) {
-      return {
-        lever: 'load',
-        label,
-        available: false,
-        reason: `Fino alla settimana ${String(LOAD_UNLOCK_WEEK)} il manubrio non si cambia: le prime due settimane servono a ricostruire lo schema motorio.`,
-      };
+      return ferma(
+        `Fino alla settimana ${String(LOAD_UNLOCK_WEEK)} il manubrio non si cambia: le prime due settimane servono a ricostruire lo schema motorio.`,
+        true,
+      );
     }
-    return { lever: 'load', label, available: true, reason: null };
+    return { leva: { lever: 'load', label, available: true, reason: null }, piuAvanti: false };
   }
 
   /*
@@ -710,17 +746,12 @@ function loadLever(input: ProgressionInput): LeverAvailability {
    * carico non prende il suo posto.
    */
   if (!varianteEsaurita(input.exercise, input.state, input.block)) {
-    return {
-      lever: 'load',
-      label,
-      available: false,
-      reason: 'Prima la variante: la zavorra arriva dopo l’ultimo gradino della scala.',
-    };
+    return ferma('Prima la variante: la zavorra arriva dopo l’ultimo gradino della scala.');
   }
 
   const availability = getLoadAvailability(input.exercise, input.week);
   if (!availability.allowed) {
-    return { lever: 'load', label, available: false, reason: availability.explanation };
+    return ferma(availability.explanation, availability.reason === 'locked-week');
   }
 
   /*
@@ -732,24 +763,14 @@ function loadLever(input: ProgressionInput): LeverAvailability {
     if (input.currentMaxReps === null) {
       const baseline = input.exercise.pattern === null ? null : testBaseline(input.exercise.pattern);
       const nome = baseline === null ? 'massimale' : getTest(baseline.testId).label;
-      return {
-        lever: 'load',
-        label,
-        available: false,
-        reason: `Per proporre la zavorra serve un test di ${nome} registrato.`,
-      };
+      return ferma(`Per proporre la zavorra serve un test di ${nome} registrato.`, true);
     }
     const need = assessLoadNeed(input.exercise, input.currentMaxReps);
     if (need.need === 'discouraged') {
-      return {
-        lever: 'load',
-        label,
-        available: false,
-        reason: `${need.message ?? ''} Ultimo test: ${String(input.currentMaxReps)}.`.trim(),
-      };
+      return ferma(`${need.message ?? ''} Ultimo test: ${String(input.currentMaxReps)}.`.trim(), true);
     }
   }
-  return { lever: 'load', label, available: true, reason: null };
+  return { leva: { lever: 'load', label, available: true, reason: null }, piuAvanti: false };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -781,6 +802,8 @@ export interface ProgressionEvaluation {
   readonly enduranceWarning: string | null;
   /** Il motivo di R5 per cui nessun aumento si applica, se c'è. */
   readonly motivoBlocco: MotivoBlocco | null;
+  /** La voce non è allo stato (R14b): nessuna leva, e `blockedReason` dice perché. */
+  readonly fuoriStato: 'r14b' | null;
 }
 
 function meanValue(logged: LoggedExercise): number {
@@ -920,8 +943,11 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       blockedReason: 'Questo blocco non ha un range di lavoro: la regola di avanzamento non si applica.',
       enduranceWarning,
       motivoBlocco: null,
+      fuoriStato: null,
     };
   }
+
+  const caricoVoce = logged.sets.reduce((max, set) => Math.max(max, set.loadKg), 0);
 
   /*
    * Si giudicano le serie vere (R8): una serie per lato a cui manca un lato
@@ -977,6 +1003,7 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       blockedReason,
       enduranceWarning,
       motivoBlocco: motivo,
+      fuoriStato: null,
     };
   }
 
@@ -993,7 +1020,13 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
    * Prima la revisione del lunedì e il riepilogo del giovedì potevano
    * sommare +5 kg in tre giorni sullo stesso esercizio.
    */
-  if (input.aumentoRecente !== null) {
+  /*
+   * R17a: R13 parla solo se resta una leva da fermare. Prima, con tutte le
+   * leve finite, il riepilogo diceva «il prossimo si può proporre dal…» di un
+   * aumento che non sarebbe arrivato mai.
+   */
+  const candidati = levers.filter((entry) => entry.lever !== 'reps' && entry.available);
+  if (input.aumentoRecente !== null && candidati.length > 0) {
     const motivo = testoSetteGiorni(input.aumentoRecente);
     for (const [indice, entry] of levers.entries()) {
       if (entry.lever !== 'reps' && entry.available) {
@@ -1009,6 +1042,46 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       blockedReason: motivo,
       enduranceWarning,
       motivoBlocco: null,
+      fuoriStato: null,
+    };
+  }
+
+  /*
+   * R14b: una leva si propone solo sulla voce fatta allo stato. La leva si
+   * applica allo stato, e lo stato accettato vince sul diario alla chiusura:
+   * «eccentrica +1″» giudicata su una seduta a 0 kg cancellava gli 0 kg
+   * scritti e rimetteva 2,5 kg (L19).
+   */
+  const fuoriLivello =
+    input.state.level !== null && logged.level !== null && logged.level !== input.state.level;
+  const fuoriCarico = input.exercise.loadPolicy !== 'forbidden' && caricoVoce !== input.state.loadKg;
+  if (fuoriLivello || fuoriCarico) {
+    const L = input.state;
+    const scheda =
+      input.exercise.loadPolicy === 'inherent' && (L.eccentricBonusSeconds > 0 || L.bottomPauseBonusSeconds > 0)
+        ? ', e tempo e pausa tornano a quelli della scheda'
+        : '';
+    const motivo =
+      fuoriLivello && logged.level !== null && L.level !== null
+        ? `Oggi hai fatto il livello ${String(logged.level)} e lo stato era il ${String(L.level)}: da qui comanda quello che hai scritto. Il prossimo passo si valuta dalla prossima seduta al livello ${String(logged.level)}.`
+        : (input.caricoMassimoSeduta ?? caricoVoce) === L.loadKg
+          ? `In questo blocco hai usato ${kg(caricoVoce)} invece di ${kg(L.loadKg)}: le leve si valutano solo sulle serie fatte allo stato, che resta ${kg(L.loadKg)}.`
+          : `Oggi hai usato ${kg(caricoVoce)} e lo stato era ${kg(L.loadKg)}: da qui comanda quello che hai scritto${scheda}. Il prossimo passo si valuta dalla prossima seduta a ${kg(caricoVoce)}.`;
+    for (const [indice, entry] of levers.entries()) {
+      if (entry.lever !== 'reps' && entry.available) {
+        levers[indice] = { ...entry, available: false, reason: motivo };
+      }
+    }
+    return {
+      closedRange,
+      tempoRespected: true,
+      triggered: true,
+      levers,
+      suggestion: null,
+      blockedReason: motivo,
+      enduranceWarning,
+      motivoBlocco: null,
+      fuoriStato: 'r14b',
     };
   }
 
@@ -1064,18 +1137,31 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
       input.state.level !== null &&
       !varianteEsaurita(input.exercise, input.state, input.block) &&
       !input.salita.consentita;
+    /*
+     * R17c, nell'ordine: la variante in attesa, con la data più lontana fra
+     * R7 e R13 (R17b); il carico fermo solo per la settimana o per il test,
+     * che arriva più avanti; altrimenti le leve sono finite davvero.
+     */
+    const recente = input.aumentoRecente;
+    const carico = loadLeverConMotivo(input);
+    const blockedReason =
+      inAttesa && input.state.level !== null
+        ? recente !== null && input.salita.dal !== null && recente.dal > input.salita.dal
+          ? testoSetteGiorni(recente)
+          : testoSalitaInAttesa(input.state.level, input.salita)
+        : carico.piuAvanti && carico.leva.reason !== null
+          ? carico.leva.reason
+          : 'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.';
     return {
       closedRange,
       tempoRespected: true,
       triggered: true,
       levers,
       suggestion: null,
-      blockedReason:
-        inAttesa && input.state.level !== null
-          ? testoSalitaInAttesa(input.state.level, input.salita)
-          : 'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.',
+      blockedReason,
       enduranceWarning,
       motivoBlocco: null,
+      fuoriStato: null,
     };
   }
 
@@ -1102,6 +1188,7 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
     blockedReason: null,
     enduranceWarning,
     motivoBlocco: null,
+    fuoriStato: null,
   };
 }
 

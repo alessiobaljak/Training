@@ -1,5 +1,6 @@
 import { getExercise } from '../data/exercises.ts';
 import { parseTut, repDurationSeconds } from './notation.ts';
+import { effectiveTempo } from './progression.ts';
 import { buildSessionPlan } from './rest.ts';
 import type { SessionStep } from './rest.ts';
 import type {
@@ -78,6 +79,33 @@ export function minWorkSeconds(
    * Sovrascrivendolo si perdeva il primo, e il confronto non si poteva fare.
    */
   perSideEseguito: boolean = block.perSide,
+  /**
+   * Lo stato dell'esercizio, con i secondi di tempo e pausa accettati (R18).
+   * Senza, il minimo è quello della scheda.
+   */
+  stato?: ExerciseState,
+): number {
+  const base = minWorkSecondsDellaScheda(block, exercise, perSideEseguito);
+  if (stato === undefined) return base;
+  /*
+   * R18: ogni secondo accettato si aggiunge a ogni ripetizione. Prima il
+   * minimo restava quello della scheda: dopo «eccentrica da 3" a 4"» le
+   * trazioni chiedevano ancora 30 secondi invece di 36.
+   */
+  const ripetizioni = minRepsOf(block);
+  if (ripetizioni === null) return base;
+  const scheda = repDurationSeconds(parseTut(block.tut));
+  const adesso = repDurationSeconds(effectiveTempo(block.tut, stato));
+  if (scheda === null || adesso === null) return base;
+  const delta = adesso - scheda;
+  if (delta <= 0) return base;
+  return base + delta * ripetizioni * (perSideEseguito ? 2 : 1);
+}
+
+function minWorkSecondsDellaScheda(
+  block: ProgramBlock,
+  exercise: Exercise,
+  perSideEseguito: boolean,
 ): number {
   const raddoppia = (value: number): number => (perSideEseguito ? value * 2 : value);
 
@@ -551,7 +579,8 @@ export function buildGuidedPlan(
       group: step.group,
       exercise: step.exercise,
       exerciseName: getExercise(step.exercise).name,
-      workSeconds: block === undefined ? 0 : minWorkSeconds(block, undefined, step.perSide),
+      workSeconds:
+        block === undefined ? 0 : minWorkSeconds(block, undefined, step.perSide, states.get(step.exercise)),
       autoComplete: block !== undefined && isAutoComplete(block),
     });
 

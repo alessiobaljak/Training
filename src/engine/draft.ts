@@ -388,9 +388,18 @@ export function syncStatesFromLog(
   states: ReadonlyMap<ExerciseSlug, ExerciseState>,
 ): ExerciseState[] {
   const changed: ExerciseState[] = [];
+  /*
+   * Un esercizio in più blocchi si sincronizza una volta, sul peso più alto
+   * scritto oggi (R14b): un blocco fatto a 10 kg accanto a uno allo stato di
+   * 12 kg non riporta lo stato a 10.
+   */
+  const visti = new Set<ExerciseSlug>();
 
   for (const logged of session.exercises) {
     if (logged.sets.length === 0) continue;
+    if (visti.has(logged.exercise)) continue;
+    visti.add(logged.exercise);
+    const stessoEsercizio = session.exercises.filter((voce) => voce.exercise === logged.exercise);
 
     /*
      * Una bozza aperta prima di un cambio di anagrafica può contenere uno slug
@@ -415,9 +424,12 @@ export function syncStatesFromLog(
      * Dove il peso non è registrabile resta quello che c'era: uno zero scritto
      * in un campo che non esiste cancellerebbe una zavorra vera.
      */
-    const maxLoad = logged.sets.reduce((max, set) => Math.max(max, set.loadKg), 0);
+    const maxLoad = stessoEsercizio.reduce(
+      (max, voce) => voce.sets.reduce((m, set) => Math.max(m, set.loadKg), max),
+      0,
+    );
     const loadKg = exercise.loadPolicy === 'forbidden' ? before.loadKg : maxLoad;
-    const level = logged.level ?? before.level;
+    const level = [...stessoEsercizio].reverse().find((voce) => voce.sets.length > 0 && voce.level !== null)?.level ?? before.level;
 
     if (level === before.level && loadKg === before.loadKg) continue;
     /*

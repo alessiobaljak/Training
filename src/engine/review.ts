@@ -206,7 +206,8 @@ function chiaveEsito(esito: Esito): string {
     case 'inRange':
       return 'inRange';
     case 'fermo':
-      return `fermo:${esito.fermo.motivo}`;
+      /* R16: «scarico» e «scarico-coppia» dicono la stessa cosa all'atleta. */
+      return `fermo:${esito.fermo.motivo === 'scarico-coppia' ? 'scarico' : esito.fermo.motivo}`;
     case 'inAttesa':
       return 'inAttesa';
     case 'alMassimo':
@@ -561,17 +562,17 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         rientro: false,
       });
       if (motivo === 'scarico') {
-        const tutta = isScarico(week + 1) || seduteScarico.length === sedute.length;
+        const prossima = isScarico(week + 1);
+        const tutta = prossima || seduteScarico.length === sedute.length;
+        /* T-S1 se lo scarico deve ancora venire; T-S2 se è già passato (R16). */
+        const testo = prossima
+          ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Si riprende dopo lo scarico.'
+          : tutta
+            ? `Le due sedute lette sono di scarico (${seduteScarico.map((session) => formatDayLong(session.date)).join(' e ')}): niente aumenti da quei numeri. Si riprende con due sedute piene.`
+            : `Una delle due sedute lette è di scarico (${formatDayLong(seduteScarico[0]?.date ?? weekEnd)}): niente aumenti da quei numeri. Si riprende con due sedute piene.`;
         return {
           tipo: 'fermo',
-          fermo: {
-            exercise: slug,
-            exerciseName: exercise.name,
-            motivo: tutta ? 'scarico' : 'scarico-coppia',
-            testo: tutta
-              ? 'Settimana di scarico: niente aumenti, anche con il massimo chiuso. Si riprende dopo lo scarico.'
-              : `Una delle due sedute lette è di scarico (${formatDayLong(seduteScarico[0]?.date ?? weekEnd)}): niente aumenti da quei numeri. Si riprende con due sedute piene.`,
-          },
+          fermo: { exercise: slug, exerciseName: exercise.name, motivo: tutta ? 'scarico' : 'scarico-coppia', testo },
         };
       }
       if (motivo === 'rientro') {
@@ -630,6 +631,10 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
       /* R10a, 1. Sopra il massimo con un gradino sopra: lo scavalco, con R7 e R13. */
       if (sopra === values.length && exercise.pattern !== null && before.level !== null && su !== null) {
         const salita = salitaConsentita(slug, before.level, sessions, today);
+        /* R17b: se R13 ferma più a lungo di R7, la data vera è quella di R13. */
+        if (!salita.consentita && recente !== null && salita.dal !== null && recente.dal > salita.dal) {
+          return fermoSetteGiorni();
+        }
         if (!salita.consentita) {
           return {
             tipo: 'inAttesa',
@@ -673,26 +678,33 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
       /* R10a, 2-3. Tempo e pausa vengono prima di tutto il resto. */
       const tp = leveDiTempo(riferimento.block, before);
       const tut = effectiveTempo(riferimento.block.tut, before);
+      /* R17b: con R13 attivo, tempo e pausa non arrivano prima della sua data. */
+      const nonPrima =
+        recente === null ? '' : ` Un aumento per esercizio ogni 7 giorni: non prima del ${formatDayLong(recente.dal)}.`;
       if (tp.tempo.available && isTempoBreakdown(tut) && tut.eccentric !== 'X') {
         return alMassimoCon(
           'tempo',
-          `massimo chiuso su tutte le serie. La prossima leva è il tempo, eccentrica da ${String(tut.eccentric)}" a ${String(tut.eccentric + 1)}": ${dopoChiusura}`,
+          `massimo chiuso su tutte le serie. La prossima leva è il tempo, eccentrica da ${String(tut.eccentric)}" a ${String(tut.eccentric + 1)}": ${dopoChiusura}${nonPrima}`,
         );
       }
       if (tp.pausa.available && isTempoBreakdown(tut) && tut.bottomPause !== 'X') {
         return alMassimoCon(
           'pausa',
-          `massimo chiuso su tutte le serie. La prossima leva è la pausa in allungamento, da ${String(tut.bottomPause)}" a ${String(tut.bottomPause + 1)}": ${dopoChiusura}`,
+          `massimo chiuso su tutte le serie. La prossima leva è la pausa in allungamento, da ${String(tut.bottomPause)}" a ${String(tut.bottomPause + 1)}": ${dopoChiusura}${nonPrima}`,
         );
       }
 
       /* R10a, 4. La variante, se c'è: la propone la fine seduta. */
       if (!varianteEsaurita(exercise, before, riferimento.block) && exercise.pattern !== null && su !== null && before.level !== null) {
         const salita = salitaConsentita(slug, before.level, sessions, today);
+        /* R17b: la più lontana fra la data di R7 e quella di R13. */
+        const dal7 = salita.consentita ? null : salita.dal;
         const quando =
-          salita.consentita || salita.dal === null
-            ? ''
-            : ` Un gradino ogni due settimane: si può proporre dal ${formatDayLong(salita.dal)}.`;
+          recente !== null && (salita.consentita || (dal7 !== null && recente.dal > dal7))
+            ? ` Un aumento per esercizio ogni 7 giorni: si può proporre dal ${formatDayLong(recente.dal)}.`
+            : dal7 === null
+              ? ''
+              : ` Un gradino ogni due settimane: si può proporre dal ${formatDayLong(dal7)}.`;
         return alMassimoCon(
           'variante',
           `massimo chiuso su tutte le serie. Tempo e pausa sono al massimo: la prossima leva è il livello ${String(su)} (${getProgressionStep(exercise.pattern, su).name}). Te lo propone il riepilogo di fine seduta, la prossima volta che chiudi il massimo con il tempo rispettato.${quando}`,
@@ -805,11 +817,18 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         });
         continue;
       }
+      /* R16: la coda vale per ogni esito confermato che ha un testo. */
+      const rifatto = ` Rifatto ${dopo
+        .map((session) => `${formatDayLong(session.date)}: ${valoriDi(session, unit)}`)
+        .join(' · ')}.`;
       if (esito.tipo === 'verdetto') {
-        const rifatto = ` Rifatto ${dopo
-          .map((session) => `${formatDayLong(session.date)}: ${valoriDi(session, unit)}`)
-          .join(' · ')}.`;
         esito = { tipo: 'verdetto', verdict: { ...esito.verdict, evidence: `${esito.verdict.evidence}${rifatto}` } };
+      } else if (esito.tipo === 'fermo') {
+        esito = { tipo: 'fermo', fermo: { ...esito.fermo, testo: `${esito.fermo.testo}${rifatto}` } };
+      } else if (esito.tipo === 'inAttesa') {
+        esito = { tipo: 'inAttesa', inAttesa: { ...esito.inAttesa, testo: `${esito.inAttesa.testo}${rifatto}` } };
+      } else if (esito.tipo === 'alMassimo') {
+        esito = { tipo: 'alMassimo', alMassimo: { ...esito.alMassimo, testo: `${esito.alMassimo.testo}${rifatto}` } };
       }
     }
 

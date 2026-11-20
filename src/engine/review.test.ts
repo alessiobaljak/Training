@@ -797,3 +797,110 @@ describe('R13 in revisione · un aumento per esercizio ogni 7 giorni', () => {
     expect(r.verdicts[0]?.kind).toBe('scendi-di-livello');
   });
 });
+
+/* -------------------------------------------------------------------------- */
+/* R16, R17 (training/reports/2026-11-18-training.md)                         */
+/* -------------------------------------------------------------------------- */
+
+describe('R16 · in R11 «scarico» e «scarico-coppia» sono lo stesso esito', () => {
+  const p = (date: string, values: readonly number[]) => seduta(date, [S(values)]);
+
+  it('16.1 · L20: coppia di scarico confermata da una seduta piena', () => {
+    const r = rivedi(6, [storia(PUSH), p('2026-04-06', [18, 18]), p('2026-04-09', [18, 18]), p('2026-04-13', [18, 18, 18])], [stato(PUSH)], {
+      today: '2026-04-13',
+    });
+    expect(r.rimandati).toHaveLength(0);
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'scarico' }));
+    expect(r.fermi[0]?.testo).toContain('Le due sedute lette sono di scarico (lunedì 6 aprile e giovedì 9 aprile)');
+    expect(r.fermi[0]?.testo).toContain('Si riprende con due sedute piene.');
+    expect(r.fermi[0]?.testo).toContain('Rifatto lunedì 13 aprile: 18-18-18.');
+  });
+
+  it('16.2 · una sola della coppia di scarico: T-S3, e la conferma', () => {
+    const r = rivedi(6, [storia(PUSH), p('2026-04-02', [18, 18, 18]), p('2026-04-08', [18, 18]), p('2026-04-13', [18, 18, 18])], [stato(PUSH)], {
+      today: '2026-04-13',
+    });
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'scarico-coppia' }));
+    expect(r.fermi[0]?.testo).toContain('Una delle due sedute lette è di scarico');
+    expect(r.fermi[0]?.testo).toContain('Rifatto lunedì 13 aprile');
+  });
+
+  it('16.3 · coppia di scarico, la seduta dopo sotto il massimo: smentito', () => {
+    const r = rivedi(6, [storia(PUSH), p('2026-04-06', [18, 18]), p('2026-04-09', [18, 18]), p('2026-04-13', [15, 15, 15])], [stato(PUSH)], {
+      today: '2026-04-13',
+    });
+    expect(r.fermi).toHaveLength(0);
+    expect(r.rimandati[0]).toEqual(expect.objectContaining({ motivo: 'smentito' }));
+  });
+
+  it('16.5 · revisione della settimana prima dello scarico: T-S1 e la conferma', () => {
+    const r = rivedi(5, [storia(PUSH), p('2026-03-31', [18, 18, 18]), p('2026-04-02', [18, 18, 18]), p('2026-04-06', [18, 18])], [stato(PUSH)], {
+      today: '2026-04-06',
+    });
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'scarico' }));
+    expect(r.fermi[0]?.testo).toContain('Settimana di scarico');
+    expect(r.fermi[0]?.testo).toContain('Rifatto lunedì 6 aprile: 18-18.');
+  });
+
+  it('16.6 · un fermo per i sette giorni confermato porta la coda', () => {
+    const ESAURITI = { eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 } as const;
+    const t = (date: string, kg: number) => seduta(date, [voce(TRAZIONI, [8, 8, 8], { level: 6, loadKg: kg })]);
+    const r = rivedi(4, [t('2026-03-17', 0), t('2026-03-24', 2.5), t('2026-03-26', 2.5), t('2026-03-30', 2.5)], [stato(TRAZIONI, { level: 6, loadKg: 2.5, ...ESAURITI })], {
+      tests: latestTestResults([testResultSingle('pull-up', '2026-02-23', 0, 12)]),
+      today: '2026-03-30',
+    });
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'sette-giorni' }));
+    expect(r.fermi[0]?.testo).toContain('Rifatto lunedì 30 marzo: 8-8-8.');
+  });
+});
+
+describe('R17 in revisione · la data più lontana fra R7 e R13', () => {
+  const p = (date: string, values: readonly number[]) => seduta(date, [S(values)]);
+  /* Una leva di tempo accettata a fine seduta conta dalla seduta dopo (D-20 b). */
+  const sceltaDiFine = (prima: LoggedSession, da: Partial<ExerciseState>, a: Partial<ExerciseState>): DecisioneRegistrata => ({
+    ...scelta(prima.date, PUSH, da, a),
+    sessionLogId: prima.id,
+  });
+
+  it('17.5 · sopra il massimo, R7 dal 24 e R13 dal 25: fermo per i sette giorni', () => {
+    const x = p('2026-03-10', [17, 17, 17]);
+    const r = rivedi(3, [x, p('2026-03-18', [19, 19, 19]), p('2026-03-20', [19, 19, 19])], [stato(PUSH, { eccentricBonusSeconds: 1 })], {
+      decisioni: [sceltaDiFine(x, {}, { eccentricBonusSeconds: 1 })],
+    });
+    expect(r.inAttesa).toHaveLength(0);
+    expect(r.fermi[0]).toEqual(expect.objectContaining({ motivo: 'sette-giorni' }));
+    expect(r.fermi[0]?.testo).toContain('dal mercoledì 25 marzo');
+  });
+
+  it('17.6 · R7 dal 26 e R13 dal 25: in attesa, dal 26 (invariato)', () => {
+    const x = p('2026-03-12', [17, 17, 17]);
+    const r = rivedi(3, [x, p('2026-03-18', [19, 19, 19]), p('2026-03-20', [19, 19, 19])], [stato(PUSH, { eccentricBonusSeconds: 1 })], {
+      decisioni: [sceltaDiFine(x, {}, { eccentricBonusSeconds: 1 })],
+    });
+    expect(r.inAttesa[0]).toEqual(expect.objectContaining({ dal: '2026-03-26' }));
+  });
+
+  it('17.7 · alMassimo variante con R7 libero e R13 attivo: la data di R13', () => {
+    const PUSH_ESAURITI = { eccentricBonusSeconds: 3, bottomPauseBonusSeconds: 2 } as const;
+    const x = p('2026-03-10', [17, 17, 17]);
+    const r = rivedi(3, [storia(PUSH), x, p('2026-03-18', [18, 18, 18]), p('2026-03-20', [18, 18, 18])], [stato(PUSH, PUSH_ESAURITI)], {
+      decisioni: [sceltaDiFine(x, { eccentricBonusSeconds: 3, bottomPauseBonusSeconds: 1 }, { bottomPauseBonusSeconds: 2 })],
+    });
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'variante' }));
+    expect(r.alMassimo[0]?.testo).toContain('Un aumento per esercizio ogni 7 giorni: si può proporre dal mercoledì 25 marzo.');
+  });
+
+  it('17.8 · alMassimo tempo con R13 attivo: «non prima del»', () => {
+    const x = p('2026-03-10', [17, 17, 17]);
+    const r = rivedi(3, [storia(PUSH), x, p('2026-03-18', [18, 18, 18]), p('2026-03-20', [18, 18, 18])], [stato(PUSH, { bottomPauseBonusSeconds: 1 })], {
+      decisioni: [sceltaDiFine(x, {}, { bottomPauseBonusSeconds: 1 })],
+    });
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'tempo' }));
+    expect(r.alMassimo[0]?.testo).toContain('Un aumento per esercizio ogni 7 giorni: non prima del mercoledì 25 marzo.');
+  });
+
+  it('senza R13 i testi restano quelli di prima', () => {
+    const r = rivedi(3, [storia(PUSH), p('2026-03-18', [18, 18, 18]), p('2026-03-20', [18, 18, 18])], [stato(PUSH)]);
+    expect(r.alMassimo[0]?.testo).not.toContain('ogni 7 giorni');
+  });
+});

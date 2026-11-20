@@ -57,14 +57,19 @@ function input(options: {
 }): ProgressionInput {
   const block = blockOf(options.sessionId, options.code);
   const exercise = getExercise(block.exercise);
+  const state: ExerciseState = { ...initialExerciseState(exercise), level: exercise.defaultLevel, ...options.state };
   return {
     block,
     exercise,
-    state: { ...initialExerciseState(exercise), level: exercise.defaultLevel, ...options.state },
-    logged: loggedExercise(exercise.slug, options.loggedSets, {
-      blockCode: block.code,
-      tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
-    }),
+    state,
+    /* La voce è fatta allo stato (R14b): il gradino scritto è quello dello stato. */
+    logged: {
+      ...loggedExercise(exercise.slug, options.loggedSets, {
+        blockCode: block.code,
+        tempoRespected: options.tempoRespected === undefined ? true : options.tempoRespected,
+      }),
+      level: state.level,
+    },
     range: resolveBlockRange(block, exercise, TESTS),
     week: options.week ?? 4,
     currentMaxReps: options.currentMaxReps === undefined ? 12 : options.currentMaxReps,

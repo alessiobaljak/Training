@@ -135,6 +135,10 @@ export function SessionSummary({
             draft.date,
             draft,
           ),
+          /* R14b: se il peso più alto di oggi è quello dello stato, lo stato resta. */
+          caricoMassimoSeduta: draft.exercises
+            .filter((voce) => voce.exercise === block.exercise)
+            .reduce((max, voce) => voce.sets.reduce((m, set) => Math.max(m, set.loadKg), max), 0),
         });
 
         const calibration =

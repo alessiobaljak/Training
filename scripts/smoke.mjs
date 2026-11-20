@@ -1919,6 +1919,16 @@ try {
                 new RegExp(`${eccentricaAccettata}″\\s*discesa`).test(annuncioA1),
                 `A18: accettata l'eccentrica a ${eccentricaAccettata}", la seduta dopo deve annunciarla. Legge: ${JSON.stringify(annuncioA1.slice(0, 240))}`,
               );
+              /*
+               * R18: il minimo della stazione cresce con l'eccentrica accettata.
+               * Pike push-up: scheda 30″, 3-0-1-0, minimo 6 ripetizioni, quindi
+               * 6″ in più per ogni secondo. Prima restava 30″.
+               */
+              const minimoAtteso = 30 + (Number(eccentricaAccettata) - 3) * 6;
+              check(
+                annuncioA1.includes(`Deve durare almeno ${String(minimoAtteso)}″`),
+                `R18: con l'eccentrica a ${eccentricaAccettata}" la stazione deve chiedere almeno ${String(minimoAtteso)}″. Legge: ${JSON.stringify(annuncioA1.slice(0, 400))}`,
+              );
 
               /*
                * A18, il peso: senza una seduta precedente da cui ripartire, il

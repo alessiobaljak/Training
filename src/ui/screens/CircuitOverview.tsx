@@ -54,7 +54,7 @@ function Riga({ block, contesto }: { readonly block: ProgramBlock; readonly cont
   const range = resolveBlockRange(block, exercise, contesto.tests);
   const gradino = contesto.states.get(exercise.slug)?.level ?? null;
   const perLato = blockPerSide(block, contesto.states);
-  const minimo = minWorkSeconds(block, exercise, perLato);
+  const minimo = minWorkSeconds(block, exercise, perLato, contesto.states.get(exercise.slug));
   const passato = contesto.previous.get(block.code);
   const riepilogo = passato === undefined ? null : summarizeExercise(passato);
 
