@@ -4,8 +4,15 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v7** · 2026-11-16 · misurato su `src/` al commit `cf7588a`
-(head locale, non pushato; R10-R13). v7: la revisione riceve il registro
+Versione: **v8** · 2026-11-20 · misurato su `src/` al commit `4edf751`
+(head locale, non pushato; rilascio A di R14-R18). **v8: 4e (iii) cambia
+verso** per D-20 (a) di Alessio (2026-11-20, R15): S2 conta sul carico
+*sollevato*. Il 03-30, prima seduta a 2,5 kg, proporre 2,5 → 5 è una
+violazione (era il positivo della v7); il positivo si sposta al 04-02, sette
+giorni dopo la prima seduta a 2,5 del 03-26. Provato al contrario: su `001de30`
+(produzione) 4e v8 dà S2 «2,5 kg sollevati il 03-30 e altri +2,5 lo stesso
+giorno» (B13); su `4edf751` solo S9.
+v7 (2026-11-16, `cf7588a`, R10-R13): la revisione riceve il registro
 (`decisioni`) e la fine seduta `aumentoRecente`, come nel prodotto. **4e misura
 S2 su 7 giorni** («+2,5 kg a settimana»): revisione accettata il lunedì e fine
 seduta il giovedì, due sedute nello stesso giorno, positivo 7 giorni dopo. Fino
@@ -15,17 +22,7 @@ pausa esauriti (R10a) e a bonus 0 non deve arrivare la zavorra; 4c passa le
 salite accettate nel registro; caso 7 con R13 sul diario con le note. Provato al
 contrario: su `a747e09` (produzione) il caso 4 v7 dà S2 ×2 (+5 kg in 3 giorni,
 +5 kg nello stesso giorno), R10a e S9; su `cf7588a` solo S9.
-v6 (2026-11-15, `ff42dfb`): con R8 una revisione legge solo le ultime 2
-sedute chiuse allo stesso stato nei 14 giorni fino a `fine(W)`; le fixture di
-4a-4d e 4g avevano una seduta sola e sarebbero passate senza misurare niente.
-Ora ogni controllo ha una coppia vera e un **controllo positivo** che deve
-produrre il verdetto (se non lo produce il controllo fallisce: fixture vuota).
-Provato al contrario: sul codice di `0d2bb92` lo stesso caso 4 dà 31
-violazioni (S3 ×5, S5, S1 ×2 serie di date, S4 ×3), su `ff42dfb` solo S9.
-4e porta tempo e pausa a fine corsa (prima la leva era il tempo e il
-controllo non misurava S2); 4f con due sedute; caso 7 su una coppia che
-arriva a un verdetto, impronta su tutti gli elenchi e sull'evidenza.
-v5: 4a anche su `null`, 4h (S9), 4i (S10); caso 7 con la nota della seduta.
+Note di v6 e v5: `ARCHIVE-2.md`.
 
 ## Lettura dopo le decisioni del 2026-11-12
 
@@ -85,20 +82,21 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-16 (v7, `cf7588a`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+## Esito del 2026-11-20 (v8, `4edf751`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+
+Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4e v8 (S2 sul
+carico sollevato, D-20 a) superato con il positivo del 04-02. Sul codice di
+produzione `001de30` lo stesso caso 4 fallisce anche per S2 (03-30, B13, chiuso
+da `4edf751`). Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.
+
+Esito del 2026-11-16 (v7, `cf7588a`): 2 PASS · 4 FALLITI · 2 NON COPERTI
 
 Conteggio invariato. Caso 4 fallisce **solo per 4h** (S9, B10): 4e v7 (S2 su 7
 giorni) superato con i positivi, 4b v7 superato. Sul codice di produzione
 `a747e09` lo stesso caso 4 fallisce anche per S2 ×2 e R10a (B12, chiuso da
 `cf7588a`). Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.
 
-Esito del 2026-11-15 (v6): stesso conteggio del 2026-11-12b, contenuto diverso: il caso 4 fallisce
-**solo per 4h** (S9, B10). 4a (S3), 4b (S5), 4c (S1), 4d (S4) superati con la
-finestra nuova e i controlli positivi; 4e, 4f, 4g, 4i superati. Casi 2, 3, 6
-FALLITI invariati (B9, B6, B8); 1 e 8 NON COPERTI invariati; 5 e 7 PASS.
-
-Esito del 2026-11-12b (2 PASS · 4 FALLITI · 2 NON COPERTI): il caso 6 era
-passato a FALLITO su `media/LIBRARY.md`; 4 aveva 6 violazioni su 10 controlli.
+Esiti precedenti al 2026-11-16: `ARCHIVE-2.md`.
 
 ---
 
@@ -168,9 +166,9 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi (2026-11-16, `cf7588a`, v7): FALLITO** — 1 violazione su 9
+**Stato oggi (2026-11-20, `4edf751`, v8): FALLITO** — 1 violazione su 9
 controlli: 4h (S9, B10). Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
-4e (S2 per proposta **e su 7 giorni**), 4f, 4g (T2), 4i (S10). La revisione
+4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10). La revisione
 riceve il registro: vuoto salvo 4c (salite accettate) e 4e (zavorra accettata). Inizio programma 2026-03-02; revisione della settimana W
 con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 
@@ -182,7 +180,7 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 4b (S5) | trazioni `circuito-1/A1`, chiuse 03-11 (W2) e 03-18 (W3) da 8-8-8, tempo [sì,sì], **test trazioni 12** (con `tests` vuoto Z4 maschera Z2); revisione W3. Positivo: stato e sedute al 6 **con tempo e pausa esauriti** (v7, R10a). Variante: 9-9-9 al 1. v7: gradino 6 a bonus 0 | gradino 1: nessuna zavorra, `alMassimo` «tempo»; gradino 6 esauriti: zavorra 0→2,5; 9-9-9: `inAttesa` senza zavorra al suo posto; gradino 6 a bonus 0: nessuna zavorra | **corretto** in tutti e quattro su `cf7588a`; su `a747e09` il gradino 6 a bonus 0 riceve la zavorra (R10a, era A17) |
 | 4c (S1) | push-up `circuito-3/A2` 12-18 dal gradino 2, 19-19-19, tempo sì. (i) 03-04, 03-11, 03-18, 03-25; (ii) 03-02, 03-05, 03-09, 03-12, 03-16, 03-19, 03-23, 03-26. Revisioni W1-W4, ogni salita accettata, le sedute dopo al gradino nuovo; **il ciclo non si ferma** su una settimana senza verdetto | (i) 1 salita; (ii) 2 salite (03-16, 03-30); mai due salite a meno di 14 giorni; meno salite delle attese = fixture che non arriva alla regola | **corretto**: (i) 1, (ii) 2 a 14 giorni (A4 chiuso). In più `12` C: 300 atleti simulati 12 settimane, fine seduta + revisione: 0 coppie di salite sotto i 14 giorni |
 | 4d (S4) | bulgarian `circuito-1/A2` (8-10, non 8-12 come scrive la base di R8), stato 2. (1) solo 03-11, 2 serie per lato; (2) 03-04 e 03-11 con 1 S+D; (3) W3: 03-08 (`fine−14`) e 03-18; (4) 03-11 al gradino 1 e 03-18 al 2; (6) righe orfane (8.6). Positivo: 03-09 e 03-18, 2 S+D da 7 | (1)-(6): nessun verdetto, `pocheProve`; (1) `setsCounted` 2; positivo `scendi-di-livello` 2→1 (la discesa non passa da R5-R7: isola S4) | **corretto** (M1 chiuso) |
-| 4e (S2) | (i) chin-up gradino 6, 5 kg, 10-10-10 a RIR 0, **tempo e pausa a fine corsa**, M = 12, settimana 4. **v7, su 7 giorni**: trazioni `circuito-1/A1` al 6, test 12, tempo e pausa esauriti, chiuse 03-12 e 03-19 da 8-8-8 a 0 kg; (ii) revisione W3 il 03-23 accettata (0 → 2,5, nel registro), fine seduta giovedì 03-26 a 2,5 kg; (iii) positivo: fine seduta lunedì 03-30; (iv) due sedute il 03-26, zavorra accettata alla prima | (i) leva `load`, passo +2,5 kg; (ii) nessun altro carico il 03-26; (iii) `load` 2,5 → 5 kg; (iv) la seconda non propone niente. Se la revisione non propone la zavorra, o (iii) non la ridà, il controllo fallisce (non misura) | **corretto** su `cf7588a` in tutti e quattro. Su `a747e09` (ii) 2,5 → 5 kg e (iv) `load` di nuovo: **S2 violata in produzione** (B12) |
+| 4e (S2) | (i) chin-up gradino 6, 5 kg, 10-10-10 a RIR 0, **tempo e pausa a fine corsa**, M = 12, settimana 4. **v7, su 7 giorni**: trazioni `circuito-1/A1` al 6, test 12, tempo e pausa esauriti, chiuse 03-12 e 03-19 da 8-8-8 a 0 kg; (ii) revisione W3 il 03-23 accettata (0 → 2,5, nel registro), fine seduta giovedì 03-26 a 2,5 kg; (iii) **v8**: fine seduta lunedì 03-30, prima seduta a 2,5 kg (storico 03-19 a 0); positivo: chiusa il 03-26 a 2,5, fine seduta giovedì 04-02 a 2,5; (iv) due sedute il 03-26, zavorra accettata alla prima | (i) leva `load`, passo +2,5 kg; (ii) nessun altro carico il 03-26; (iii) il 03-30 nessun carico oltre 2,5 (D-20 a: l'aumento conta dalla seduta che lo esegue); il 04-02 `load` 2,5 → 5 kg; (iv) la seconda non propone niente. Se la revisione non propone la zavorra, o il 04-02 non la ridà, il controllo fallisce (non misura) | **corretto** su `4edf751` in tutti e quattro. Su `001de30` (iii) il 03-30 propone 2,5 → 5 kg: **S2 sul carico sollevato violata in produzione** (B13). Su `a747e09` era (ii) e (iv) (B12) |
 | 4f | `kb-swing` della finitura, chiuse 03-04 e 03-11 da 21-21-21 | non compare in nessun elenco, `setsCounted` 0 | **corretto** |
 | 4g (T2) | coppia 03-05 e 03-12 sopra il massimo, revisione W2 il 03-19: trazioni e dip dal 1, pike dal 2, push-up dal 2 | 1→3, 1→3, 2→4, 2→3; senza salita il controllo fallisce | **corretto** |
 | 4h (S9) | `buildGuidedPlan` delle 4 sedute, settimane 1 e 6. Stabilizzazione del tronco: suitcase carry, hollow hold, plank con trascinamento, Pallof press, plank tocco spalla. Balistici carichi: swing, corda slam | ogni giunzione tronco → balistico ha ≥ 15" di passi `rest` in mezzo; se non ne trova nessuna il controllo fallisce (fixture vuota) | **violata**: `circuito-4` sett. 1, F4 plank tocco spalla → F1 corda slam del giro 2, **0"** (finitura: 15" fra stazioni, 0 fra i giri). Le giunzioni B3 → F hanno 15" (R2). In sett. 6 la finitura ha un giro e il caso non si presenta (B10) |
@@ -288,3 +286,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-12b | v5 | 2 | 4 | 2 | training-quality (commit `90b8b81`, soglie approvate; caso 6 eseguibile su LIBRARY.md) |
 | 2026-11-15 | v6 | 2 | 4 | 2 | training-quality (commit `ff42dfb`, R5-R8; caso 4 fallisce solo per 4h) |
 | 2026-11-16 | v7 | 2 | 4 | 2 | training-quality (commit `cf7588a`, R10-R13; 4e su 7 giorni; caso 4 solo 4h; su `a747e09` anche S2 ×2) |
+| 2026-11-20 | v8 | 2 | 4 | 2 | training-quality (commit `4edf751`, rilascio A di R14-R18; 4e sul carico sollevato, D-20 a; caso 4 solo 4h; su `001de30` anche S2, B13) |

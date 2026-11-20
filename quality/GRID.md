@@ -43,6 +43,12 @@ criteri sotto soglia contemporaneamente valgono come un Alto.
 
 ## Soglie di sicurezza sulla progressione (approvate il 2026-11-12)
 
+**Al 2026-11-20 (`4edf751`, rilascio A di R14-R18): S2 rispettata anche sul
+carico sollevato** (D-20 a e b di Alessio, 2026-11-20: carico e gradino contano
+dalla seduta che li esegue, tempo e pausa dalla prima seduta dopo la scelta):
+nucleo v8 4e, `15` E7 0 su 800 atleti simulati. In produzione `001de30` **era
+violata** (B13: 13.4, 2,5 kg sollevati il 03-30 e +2,5 proposti lo stesso
+giorno; E7 36). Residuo latente: L23 (seduta con data futura).
 **Al 2026-11-16 (`cf7588a`, R10-R13): S2 rispettata su 7 giorni** (R13; nucleo
 v7 4e, `14` C). Fino a `a747e09` **era violata** (B12: revisione + fine seduta
 +5 kg in 3 giorni): la mia «S2 rispettata» del 2026-11-12 guardava solo il
@@ -58,7 +64,7 @@ va allineata a queste, che sono approvate.
 | ID | Soglia proposta | Perché |
 |---|---|---|
 | S1 | massimo **1 gradino di scala per esercizio ogni 2 settimane** | oggi si va da 1 a 6 in 5 settimane su 5 settimane di numeri sopra il range; una scala a 6 gradini attraversata in 5 settimane non è una progressione, è un cambio di esercizio ogni lunedì |
-| S2 | massimo **+2,5 kg per esercizio a settimana**. Lettura confermata da training-quality il 2026-11-16: **7 giorni mobili** (R13a; mai più permissiva della settimana di calendario). Dal 2026-11-16 (D-4 a) un solo aumento di qualunque tipo ogni 7 giorni | passo unico del metodo; `stepLoad` lo rispetta solo per proposta (B12) |
+| S2 | massimo **+2,5 kg per esercizio a settimana**. Lettura confermata da training-quality il 2026-11-16: **7 giorni mobili** (R13a; mai più permissiva della settimana di calendario). Dal 2026-11-16 (D-4 a) un solo aumento di qualunque tipo ogni 7 giorni. **Dal 2026-11-20 (D-20 a, b)**: l'aumento conta dal giorno in cui si esegue (carico e gradino: prima seduta che si stacca dal valore di prima; tempo e pausa: prima seduta dopo la scelta); accettata da training-quality come lettura della griglia | passo unico del metodo; `stepLoad` lo rispetta solo per proposta (B12) |
 | S3 | nessuna salita di gradino **senza `tempoRespected === true`** su tutte le sedute della settimana | è la regola di `METHOD.md` (`ADVANCEMENT_REQUIRES_REACHING_MAX` + tempo prescritto); oggi la revisione settimanale la aggira con una semplice cautela testuale |
 | S4 | nessun verdetto con **meno di 2 sedute** e **meno di 3 serie vere** (non righe) su quell'esercizio. **Lettura D-16** (Alessio, 2026-11-15; parere favorevole di training-quality il 2026-11-15): le **ultime 2 sedute chiuse** dell'esercizio, allo stesso gradino e carico, entrambe nei 14 giorni fino alla domenica che chiude la settimana rivista; mai le «ultime due buone». Riserva di training-quality: due date diverse (L15) | fino al `ff42dfb` 2 serie per lato (4 righe) di una sola seduta bastavano (M1, chiuso) |
 | S5 | **zavorra solo dopo che la variante è esaurita**, e mai sotto le soglie di `getLoadThreshold` (8 trazioni, 10 dip) | il metodo mette il carico alla leva 5; oggi la revisione lo propone al gradino 1 e non consulta mai `assessLoadNeed` |
@@ -102,6 +108,12 @@ aumenti», misurata con tre proprietà insieme (`14` B e C): **10.P** (ogni
 aumento della revisione è lo scavalco o la prima leva che la fine seduta darebbe
 allo stesso stato, settimana W+1), **R10b**, **13.P** (nessun aumento dell'app a
 meno di 7 giorni da un altro). Al 2026-11-16 passa: C4 v4 = 75% (6/8).
+
+**Proposta v4, seconda voce (2026-11-20, da approvare):** C8 + **D5**, «durata
+stimata della seduta con gli stati raggiungibili (tempo e pausa ai massimi)
+entro il tetto dichiarato». Con R18 la stima segue gli stati: 46-59′ (66′ con
+hip thrust monopodalico) contro 40′ dichiarati (M19). Oggi C8 conta D1-D4 a
+bonus 0 e resta 100%; con D5 scenderebbe all'80% (4/5).
 
 ## Convenzioni in attesa di approvazione (non coperte dalla decisione del 2026-11-12)
 

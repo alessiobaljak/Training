@@ -69,3 +69,41 @@ iniettata, ora sì (PASS invariato).
 | Tempo «misurato» dal player, commit `47c7f6d` | 22/22 blocchi giudicati a ripetizioni passano un ritmo più veloce del TUT all'innesco della salita (56-91% senza latenza); 0/22 bocciano il TUT esatto al massimo | `07-player-tempo.mts` |
 | Leva accettata, poi salvataggio | variante e zavorra **annullate**, tempo e pause tenute | `08-leva-accettata.mts` |
 | Immagini nel bundle contro il registro | 265 file, 0 approvati, 0 non registrati (B8) | `safety-core.mts` caso 6 |
+
+## SAFETY_CORE — note di versione v6 e v5 ed esiti 2026-11-12b e 2026-11-15 (spostati il 2026-11-20)
+
+v6 (2026-11-15, `ff42dfb`): con R8 una revisione legge solo le ultime 2
+sedute chiuse allo stesso stato nei 14 giorni fino a `fine(W)`; le fixture di
+4a-4d e 4g avevano una seduta sola e sarebbero passate senza misurare niente.
+Ora ogni controllo ha una coppia vera e un **controllo positivo** che deve
+produrre il verdetto (se non lo produce il controllo fallisce: fixture vuota).
+Provato al contrario: sul codice di `0d2bb92` lo stesso caso 4 dà 31
+violazioni (S3 ×5, S5, S1 ×2 serie di date, S4 ×3), su `ff42dfb` solo S9.
+4e porta tempo e pausa a fine corsa (prima la leva era il tempo e il
+controllo non misurava S2); 4f con due sedute; caso 7 su una coppia che
+arriva a un verdetto, impronta su tutti gli elenchi e sull'evidenza.
+v5: 4a anche su `null`, 4h (S9), 4i (S10); caso 7 con la nota della seduta.
+
+Esito del 2026-11-15 (v6): stesso conteggio del 2026-11-12b, contenuto diverso: il caso 4 fallisce
+**solo per 4h** (S9, B10). 4a (S3), 4b (S5), 4c (S1), 4d (S4) superati con la
+finestra nuova e i controlli positivi; 4e, 4f, 4g, 4i superati. Casi 2, 3, 6
+FALLITI invariati (B9, B6, B8); 1 e 8 NON COPERTI invariati; 5 e 7 PASS.
+
+Esito del 2026-11-12b (2 PASS · 4 FALLITI · 2 NON COPERTI): il caso 6 era
+passato a FALLITO su `media/LIBRARY.md`; 4 aveva 6 violazioni su 10 controlli.
+
+## RESULTS — voci chiuse e ricalcoli spostati il 2026-11-20
+
+| ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
+|---|---|---|---|---|
+| A2 | Bloccante | Salita di gradino in revisione senza «sì» sul tempo (S3) | 2026-11-15 | nucleo 4a v6: coppia 03-05/03-12, 5 combinazioni di tempo → `rifai-al-tempo-giusto` / `rispondi-sul-tempo` a stato invariato, positivo [sì, sì] 2→3; fine seduta con «no» nessuna leva; `12` B: 0 salite o zavorre senza «sì» su 120.000 revisioni |
+| A3 | Bloccante | Zavorra sopra la variante, soglia del test mai letta (S5) | 2026-11-15 | nucleo 4b v6 con test 12 (gradino 1 → `alMassimo` «tempo», gradino 6 → +2,5 kg, 9-9-9 → `inAttesa`); `13` 6.8, 6.9, Z4, R6/R7; `12` D 6.1-6.10, B 0 violazioni S5. Resto sulle leve 2-3 → **A17** |
+| A4 | Bloccante | Nessun tetto alla velocità di salita (S1) | 2026-11-15 | nucleo 4c v6: (i) 1 salita, (ii) 2 a 14 giorni, ciclo senza `break`; `12` C: 300 atleti simulati 12 settimane con fine seduta e revisione, 0 salite sotto i 14 giorni; `13` 7.3, R7 |
+| M1 | Bloccante | Verdetto da righe, non da serie (S4) | 2026-11-15 | nucleo 4d v6 (1)-(6) `pocheProve`, `setsCounted` 2, positivo 2→1; `12` A: 192.234 esiti identici al riferimento scritto da PROGRESS_REVIEW §6, D 32 righe della specifica |
+| B11 | Bloccante | Ricarica fra «Accetto» e «Salva e chiudi» | 2026-11-15 | `08` v3 su `sessionDecisions`: Q1 tenuta 2/2, Q2 stessa leva e blocco deciso 2/2; `npm run smoke` eseguito da me su `ff42dfb`: verde (percorso con ricarica vera, tre giri) |
+| A15 | Alto | Leva successiva sopra «Scelta registrata» | 2026-11-15 | `08` v3 V: 6/6 il riquadro mostra la leva accettata (`toEvaluate` = stato di prima); smoke verde |
+
+| Metrica | Esito | Script |
+|---|---|---|
+| Etichetta del gradino nel diario, commit `90b8b81` | **coincide** su 4 settimane e sui 2 casi di etichetta scritta a mano (A11 chiuso) | `11-etichetta-diario.mts` v2 |
+| Giunzioni tronco → balistico nel piano guidato (S9) | B3 → F: 15" in tutte e 4; F4 → F1 fra i giri di `circuito-4`: **0"** (B10) | `safety-core.mts` 4h |

@@ -397,8 +397,13 @@ function fileTesto(dir: string, ext: string[]): string[] {
     const reg: DecisioneRegistrata[] = [{ date: '2026-03-23', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: ESA(2.5), sessionLogId: 'revisione-3:trazioni' }];
     const gio = fine('e3', '2026-03-26', ESA(2.5), 2.5, storia, reg);
     if (gio.suggestion !== null && gio.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni): +2,5 kg in revisione il 03-23 e altri +2,5 kg a fine seduta il 03-26 (${String(gio.suggestion.nextState.loadKg)} kg)`);
+    /* v8 (2026-11-20, D-20 a di Alessio, R15): S2 conta sul carico sollevato. Il 03-30 è la prima seduta a 2,5 kg:
+       proporre lì 2,5 → 5 vuol dire +5 kg veri in due sedute ravvicinate (era il positivo della v7, ora è una violazione).
+       Il positivo si sposta al 04-02, sette giorni dopo la prima seduta a 2,5 del 03-26. */
     const lun = fine('e4', '2026-03-30', ESA(2.5), 2.5, storia, reg);
-    if (lun.suggestion?.lever !== 'load' || lun.suggestion.nextState.loadKg !== 5) violazioni.push(`4e (7 giorni): positivo mancato, il 03-30 la zavorra 2,5 → 5 kg non torna (${String(lun.suggestion?.lever)})`);
+    if (lun.suggestion !== null && lun.suggestion.nextState.loadKg > 2.5) violazioni.push(`S2 (7 giorni, sul carico sollevato, D-20 a): 2,5 kg sollevati per la prima volta il 03-30 e altri +2,5 kg proposti lo stesso giorno (${String(lun.suggestion.nextState.loadKg)} kg)`);
+    const gio2 = fine('e4b', '2026-04-02', ESA(2.5), 2.5, [...storia, tr('e3', '2026-03-26', 2.5)], reg);
+    if (gio2.suggestion?.lever !== 'load' || gio2.suggestion.nextState.loadKg !== 5) violazioni.push(`4e (7 giorni): positivo mancato, il 04-02 (7 giorni dopo la prima seduta a 2,5 kg) la zavorra 2,5 → 5 kg non torna (${String(gio2.suggestion?.lever)})`);
     const p1 = fine('e5', '2026-03-26', ESA(0), 0, storia, []);
     const reg2: DecisioneRegistrata[] = p1.suggestion === null ? [] : [{ date: '2026-03-26', exercise: TR, decision: 'accepted', stateBefore: ESA(0), stateAfter: p1.suggestion.nextState, sessionLogId: 'e5' }];
     const p2 = fine('e6', '2026-03-26', p1.suggestion?.nextState ?? ESA(0), 0, [...storia, { ...tr('e5', '2026-03-26', 0) }], reg2);

@@ -177,6 +177,12 @@ incrina.
   giorni») sono fatti di date, numeri e nomi del catalogo. U3 (CSV, L1)
   invariato.
 
+## U11 — Verifica del 2026-11-20 (commit `4edf751`, rilascio A di R14-R18)
+
+- Codice nuovo (`aumenti` R15, R14b, R17, R16, `minWorkSeconds` R18, `syncStatesFromLog`): grep sul diff, nessuna lettura di `note`, `variantLabel`, `title`. R14b confronta solo `level` e `loadKg`; R15 solo `loadKg`, `level`, date e id.
+- Nucleo caso 7 (6 stringhe ostili × 4 campi): impronta identica, PASS. `15` A usa i mondi di `14` con note ostili nel 10% delle serie e delle sedute: 0 differenze dal riferimento, che non legge testo.
+- Proprietà: **tiene**.
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.

@@ -1,39 +1,40 @@
 # /quality/ — indice
-2026-11-16 · atleti **v1** · scenari v1 + §9 · griglia **v3 approvata**, composizione v2 confermata (Alessio 2026-11-16) · nucleo **v7**
+2026-11-20 · atleti **v1** · scenari v1 + §9 · griglia **v3 approvata**, composizione v2 confermata (Alessio 2026-11-16) · nucleo **v8**
 
-## Ultima misura — 2026-11-16, commit `cf7588a` (head locale, incrementale su `a747e09` in produzione)
-**GO per il push di R10-R13** (nessun Bloccante o Alto introdotto o peggiorato;
-il push chiude **B12**, S2 violata in produzione: +5 kg in 3 giorni). Regola di
-esito approvata: app ancora NO-GO. Bloccanti **5 attivi** (B6 B8 B9 B10 M4) + 4ᵖ ·
-Alti 3 (A10 A16 **A18**) · Medi 12 · Bassi 21. C1 29 · C2 0ᵖ · C3 **33** (rimisurato,
-A18) · C4 71 · C5 67 · C6 75 · C7 86 · C8 100. Nucleo 2 PASS · 4 FALLITI · 2 NC,
-caso 4 solo 4h. Chiusi A17 M17 L15 B12. Nuovi A18 (player guidato senza stato
-accettato, preesistente), M18, L18-L22. verify (811), smoke, offline eseguiti
-in sequenza: verdi. Rapporto: `quality/reports/2026-11-16-quality.md`.
+## Ultima misura — 2026-11-20, commit `4edf751` (head locale, incrementale su `001de30` in produzione)
+**GO per il push del rilascio A di R14-R18** (R18, R16, R17, R15, R14b): nessun
+Bloccante o Alto introdotto o peggiorato; il push chiude **B13** (S2 sul carico
+sollevato, D-20 a: in produzione 2,5 → 5 kg nella prima seduta a 2,5). Regola
+di esito: app ancora NO-GO. Bloccanti **5 attivi** (B6 B8 B9 B10 M4) + 4ᵖ ·
+Alti 3 (A10 A16 **A19**) · Medi 15 · Bassi 19. C1 29 · C2 0ᵖ · C3 33 · C4 71 ·
+C5 67 · C6 75 · C7 86 · C8 100 (con D5 proposta 80). Nucleo 2 PASS · 4 FALLITI
+· 2 NC, caso 4 solo 4h. Chiusi B13 A18 L18-L21. Nuovi A19 (Home senza stati,
+preesistente), M19 (durata 46-59′ ai bonus massimi), M20 (E4 all'esecuzione),
+M21 (testo R14b alla prima seduta), L23 (R15: seduta con data futura), L24.
+verify (857), smoke eseguiti da me: verdi; offline no. Rapporto: `quality/reports/2026-11-20-quality.md`.
 
 ## Soglie
 **Approvate da Alessio il 2026-11-12**: C1-C8, regola di esito, S1-S10, voci
 v3. B1-B4 bloccano solo il rilascio pubblico. D-16: S4 sulle ultime 2 sedute
 nei 14 giorni, con R12 date diverse. 2026-11-16: eccezione «non peggiorati»
-anche per gli Alti; composizione v2, S1 sui gradini eseguibili, RIR «—» in S9,
-`media/LIBRARY.md` registro delle immagini. S2 letta su 7 giorni mobili (mio
-parere, R13a). In attesa: **V-LEVE in C4 (v4)** = 10.P + R10b + 13.P, convenzioni
-di GRID.md (R3, D-13). Non decisi: B6, B8, B9, B10, D-12…D-15, D-17, D-18, R4, D-19 (b).
+anche per gli Alti; composizione v2, S1 sui gradini eseguibili, RIR «—» in S9.
+S2 su 7 giorni mobili; **D-20 (a, b), 2026-11-20: l'aumento conta da quando si
+esegue** (accettata come lettura di S2). In attesa: V-LEVE in C4 (v4), **D5 in
+C8 (v4)**, convenzioni di GRID.md. Non decisi: B6, B8, B9, B10, D-12…D-15,
+D-17, D-18, R4, D-19 (b), M19 (tetto di durata), M20 (E4 all'esecuzione).
 
 ## Da ricordare
-**Un controllo che non esisteva non è un PASS che si è rotto**, e un PASS dato
-su metà controllo non è un PASS (S2 «rispettata» per proposta era falso: B12).
-Ogni controllo ha un **positivo obbligatorio**: le fixture nuove si provano sul
-codice di produzione (`git archive <commit> src` nella scratchpad, script copiato
-in `quality/scripts/` lì dentro), dove devono fallire. Si verifica dai due
-motori (fine seduta ↔ revisione) **e dal player**: A18 viveva nell'interfaccia.
+**Un controllo che non esisteva non è un PASS che si è rotto**; un PASS su metà
+controllo non è un PASS. Ogni controllo ha un **positivo obbligatorio**: le
+fixture nuove si provano sul codice di produzione (`git archive <commit> src
+media firestore.rules` nella scratchpad, script copiato in `quality/scripts/`
+lì dentro, eseguito da quella radice). Due motori **e il player**. Le simulazioni
+seguono il prodotto (dal `de3956f` lo stato accettato si scrive all'«Accetto»).
 
 ## Cosa contiene ogni file
-- `PERSONAS.md` P1-P11 · `SCENARIOS.md` 30 scenari + §9 · `UNTRUSTED_INPUT.md` U1-U10, proprietà tiene (4 campi + registro).
-- `GRID.md` gravità, criteri, S1-S10, v3 + proposta v4 · `RESULTS.md` misure, aperte, ultime 10 chiuse, immagini, ricalcoli · `SAFETY_CORE.md` 8 casi v7 · `IMAGES.md` verifiche dal 2026-11-12 · `ARCHIVE.md` (chiuso) · `ARCHIVE-2.md`.
-- `scripts/` (`node --experimental-strip-types quality/scripts/X.mts` dalla radice): `safety-core` v7 (esce 1 se non tutti PASS), `01`, `03`, `04`, `05`, `06` (durate), `07`, `08` v4, `09`, `10`, `11` v2, `13` v2 (fine seduta, X, M17), **`14`** (R10-R13: righe della specifica, differenziale dal testo, proprietà, 400 atleti; Q1-Q5 e A18 sono rivelatori di difetti aperti). `02` e `12` obsoleti (API e regole superate da `14`).
+- `PERSONAS.md` P1-P11 · `SCENARIOS.md` 30 scenari + §9 · `UNTRUSTED_INPUT.md` U1-U11, proprietà tiene.
+- `GRID.md` gravità, criteri, S1-S10 (S2 con D-20), v3 + proposta v4 (V-LEVE, D5) · `RESULTS.md` misure, aperte, ultime 10 chiuse, immagini, ricalcoli · `SAFETY_CORE.md` 8 casi v8 · `IMAGES.md` · `ARCHIVE.md` (chiuso) · `ARCHIVE-2.md`.
+- `scripts/` (`node --experimental-strip-types quality/scripts/X.mts` dalla radice): `safety-core` v8, `01`, `03`-`11`, `13` v2, **`15`** (R14b-R18 + R10-R13: righe della specifica, differenziale, proprietà, C/C2 800 atleti, E7, R14b contro produzione con `PROD=<cartella>`; Q5 = M18 rivelatore aperto). `14` sostituito da `15` (il suo C perde lo stato accettato dopo `de3956f`); `02`, `12` obsoleti.
 
 ## Prossimo giro
-A18 (player: tempo effettivo e peso dello stato) e M18, poi rieseguire `14` (P, Q5) e smoke. L18-L21 dopo le risposte di training-designer.
-R9 (M4): E5 in `13` 5.12 provato solo passando `rientro` a mano. B10 dopo la decisione su ordine o pausa fra i giri.
-Immagini: 3 scartate e step-rapidi dopo il rifacimento; hip thrust solo dopo M7; mai guardate `burpee`, `hip-thrust-l4/l5`, `posterior-chain-l1`, `vertical-pull-l1`.
+Rilascio B (R14a/c/e, R14d, `lapsed`): 14.1-14.17, 15.12, b.8 in `15`; chiude M18, L2. Prima L23 nella specifica. A19, L24 dopo le risposte. R9 (M4), B10 dopo le decisioni. Immagini: 3 scartate e step-rapidi dopo il rifacimento; hip thrust solo dopo M7; mai guardate `burpee`, `hip-thrust-l4/l5`, `posterior-chain-l1`, `vertical-pull-l1`.

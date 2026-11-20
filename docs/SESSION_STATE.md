@@ -214,6 +214,19 @@ Punto di ritorno, aggiornato a ogni push:
     deve essere allo stato; la correzione è nei dati delle prove, non nella regola.
   - Non coperte nel rilascio A: 14.x e 15.12 (servono i record `lapsed`),
     16.4 (nessuna prova scritta), b.8 (è R14e).
+  - **training-quality GO su `4edf751`** (`quality/reports/2026-11-20-quality.md`):
+    nessun Bloccante o Alto nuovo; chiude B13 (in produzione la prima seduta a
+    2,5 kg propone già 5 kg). A19 (durata in Home senza i bonus) corretto
+    nello stesso push: il badge usa gli stati, come panoramica e player.
+  - Nuovi: M19 (durata oltre i 40′ con i bonus), M20 (7,7% degli aumenti
+    eseguiti in scarico), M21 (testo R14b alla prima seduta, «stato 0 kg»),
+    L23 (seduta con data futura e R13), L24 (gradino della prima o
+    dell'ultima voce nella sincronizzazione; latente).
+  - Per Alessio: tetto di durata 40′ o 55′ e voce D5 in C8 (M19); un aumento
+    eseguito in scarico conta come aumento in scarico (M20, quality dice sì);
+    V-LEVE in C4.
+  - Per training-designer: L23, L24, 17.2 «dal 2 aprile» con D-20 (b), 16.4
+    non costruibile, testo M21.
 - Per Alessio: D-19 (b) manubri.
 - Risposte della sessione principale al designer: nel player guidato il peso
   si scrive durante la serie (i campi compaiono a stazione partita, si

@@ -10,7 +10,7 @@ import { sessionDurationSeconds } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
 import { IconaImpostazioni } from '../components/icons.tsx';
 import { MUSCLE_GROUP_LABELS } from '../../types/index.ts';
-import type { LoggedSession, ProgramSession } from '../../types/index.ts';
+import type { ExerciseSlug, ExerciseState, LoggedSession, ProgramSession } from '../../types/index.ts';
 import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
 import {
@@ -56,8 +56,13 @@ function contaSerie(session: LoggedSession | null): number {
   }, 0);
 }
 
-function durata(session: ProgramSession): string {
-  const secondi = estimatedSeconds(buildGuidedPlan(session, 1));
+/*
+ * A19: la durata della seduta che farai, con tempo e pausa accettati (R18),
+ * come la panoramica e il player. Prima era quella della scheda: 38′ in Home,
+ * 46′ nella panoramica della stessa seduta.
+ */
+function durata(session: ProgramSession, stati: ReadonlyMap<ExerciseSlug, ExerciseState>): string {
+  const secondi = estimatedSeconds(buildGuidedPlan(session, 1, stati));
   return `${String(Math.round(secondi / 60))}′`;
 }
 
@@ -108,6 +113,7 @@ export function HomeScreen() {
   const startDate = settings.programStartDate;
   const week = startDate === null ? 1 : Math.max(1, programWeek(startDate, today));
   const weekState = getWeekState(week);
+  const stati = new Map((exerciseStates ?? []).map((state) => [state.exercise, state]));
 
   const tutte = sessions ?? [];
   const rotazione = rotationState(today, tutte);
@@ -343,7 +349,7 @@ export function HomeScreen() {
                 <p className="text-3xl leading-tight font-semibold">{prossima.name}</p>
                 <p className="mt-1 text-sm text-dim">{prossima.focus}</p>
               </div>
-              <Badge>{durata(prossima)}</Badge>
+              <Badge>{durata(prossima, stati)}</Badge>
             </div>
             <p className="mt-3 text-sm text-dim">
               Ultima volta: <span className="font-semibold text-ink">{quando(prossima.id)}</span>
@@ -424,7 +430,7 @@ export function HomeScreen() {
                       <span className="mt-0.5 block truncate text-xs text-dim">{session.focus}</span>
                     </span>
                     <span className="tabular shrink-0 text-right text-xs text-dim">
-                      <span className="block">{durata(session)}</span>
+                      <span className="block">{durata(session, stati)}</span>
                       <span className="block">{quando(session.id)}</span>
                     </span>
                   </button>
