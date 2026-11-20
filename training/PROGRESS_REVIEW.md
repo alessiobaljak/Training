@@ -181,6 +181,9 @@ esattamente le settimane W−1 e W del programma.
    famiglia del motivo (`scarico` = `scarico-coppia`); verdetti a tipo esatto. La
    coda «Rifatto…» vale per ogni esito confermato con un testo. Testo nuovo T-S2
    (tutte e due le sedute di scarico, W+1 no): ADVICE §7, rapporto 2026-11-18.
+   Rev. 2026-11-20: sullo stesso `L` due verdetti in salita su E ed E⁺ hanno lo
+   stesso tipo (16.P); 16.4 sostituita da 16.4′ (`alMassimo` → `inRange` ⇒
+   `smentito`). In produzione `0f3f191`. Appendice `reports/2026-11-20-training.md` §4.
 4. **Verdetto possibile ⇔ due utili e `Σ serieVere(utili) ≥ 3`**, per ogni
    verdetto, discesa compresa. `MIN_SESSIONS_FOR_VERDICT = 2` (nuovo),
    `MIN_SETS_FOR_VERDICT = 3` su serie vere. Altrimenti `pocheProve`.

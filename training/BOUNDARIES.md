@@ -198,8 +198,9 @@ dip misurati (R6). (S6) Dopo **≥ 14 giorni** senza sedute chiuse: 4 sedute (�
 giorni) a giri dimezzati, nessun aumento, ritest proposto (R9). Si scende sempre.
 Dettaglio: PROGRESSION_RULES §9, PROGRESS_REVIEW §6, PROGRAM_RULES §8.
 S2 su 7 giorni mobili (R13); D-4 (a) decisa: un aumento di qualunque leva ogni 7
-giorni. Proposta 1.4 (2026-11-18): l'aumento conta dal giorno in cui si esegue (R15).
-**Stato oggi** (`fe85203`): S1-S5 in codice, S2 su 7 giorni; S6 no (R9).
+giorni. 1.4: l'aumento conta dal giorno in cui si esegue (R15; D-20 a, b decise il
+2026-11-20). Rev. 2026-11-20 (proposta): una data dopo oggi ferma come oggi (L23).
+**Stato oggi** (`0f3f191`): S1-S5 in codice, S2 su 7 giorni dall'esecuzione; S6 no (R9).
 **Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre
 barriere aperte (rapporto 2026-11-15), 4d con controlli positivi, più un
 caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni

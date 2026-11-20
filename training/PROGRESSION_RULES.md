@@ -249,21 +249,23 @@ con carico massimo o gradino più alti della seduta chiusa precedente (peso o
 livello scritti dall'atleta; a fine seduta anche quella in corso). Mai le note.
 **R13** (S2 su 7 giorni + D-4 (a), decisa da Alessio il 2026-11-16): un
 aumento di qualunque leva, gradino compreso, si propone il giorno `oggi` solo se
-nessun aumento ha `daysBetween(d, oggi) < 7`. `oggi`: `draft.date` a fine
-seduta, `today` in revisione; `dal = d + 7`. Discese mai ferme; `postponed` non
-conta. Fine seduta: leve non disponibili e `blockedReason` R13 (con R17a solo se
-c'è una leva da fermare). Revisione: `fermi` `sette-giorni`. Date e spiegazioni
-del diario: **R15** (§11). Giro 2026-11-16 implementato in quell'ordine.
+nessun aumento ha `daysBetween(d, oggi) < 7`, **anche negativo**: una data dopo
+oggi ferma (L23, rev. 2026-11-20). `oggi`: `draft.date` a fine seduta, `today` in
+revisione; `dal = d + 7`. Discese mai ferme; `postponed` non conta. Fine seduta:
+leve non disponibili e `blockedReason` R13 (R17a: solo con una leva da fermare).
+Revisione: `fermi` `sette-giorni`. Date e spiegazioni del diario: **R15** (§11).
 
-## 11. R14, R15, R17 — M18, L18, L19, L21 `[PROPOSTA, progressione 4.0 — 2026-11-18]`
+## 11. R14, R15, R17 — M18, L18, L19, L21 `[progressione 4.0 — 2026-11-18, rev. 2026-11-20]`
 
-Prove 14.x, b.x, 15.x, 17.x, motivazioni e testi: `reports/2026-11-18-training.md`.
+Rilascio A (R15, R17, R14b) in produzione `0f3f191`; rilascio B (R14a/c/d/e) PROPOSTA.
+Prove, motivazioni e testi: `reports/2026-11-18-training.md` + appendice `2026-11-20`.
 **Notazione.** Scelta in salita `c` su `g` ∈ {carico, livello}: `accepted` con
 `stateAfter.g > stateBefore.g`; `B`, `T` i due valori (manubrio: `T` è un tetto).
-`v_g(X)`: carico = max `loadKg` delle voci di `e` in X, livello = primo `level`.
-Peso non scritto: `inherent`, `v = 0`, stato > 0. `D(c)`: prima seduta di `e` in
-`(date, id)` con `id ≠ c.sessionLogId`, `date ≥ c.date`, `v_g` scritto e `≠ B` (a
-fine seduta anche quella in corso). **Eseguita** ⇔ non decaduta, `B < v_g(D(c)) ≤ T`.
+`v_g(X)`: max `loadKg`, **max `level`** delle voci di `e` in X con serie (L24, rev.
+2026-11-20, anche in `syncStatesFromLog`). Peso non scritto: `inherent`, `v = 0`,
+stato > 0. `D(c)`: prima seduta di `e` in `(date, id)` fra **tutte** le chiuse, anche
+future (L23), con `id ≠ c.sessionLogId`, `date ≥ c.date`, `v_g` scritto e `≠ B` (a fine
+seduta anche quella in corso). **Eseguita** ⇔ non decaduta, `B < v_g(D(c)) ≤ T`.
 
 ### R14 — Scelta in salita non eseguita (M18)
 **In attesa a S**: `c.sessionLogId ≠ S.id`, non decaduta, nessun'altra seduta è
@@ -272,7 +274,7 @@ Alla chiusura: stato = sincronizzazione di S da `before = c.stateBefore` (a `v =
 è `c.stateBefore`, tempo e pausa compresi) + record `lapsed` con `ref = c.id`,
 insieme (`putTogether`). Decaduta non conta per R13; in attesa conta da `c.date`.
 **R14a** riepilogo di S: nessuna leva su `e`. **R14b** fine seduta: una leva solo
-con la voce allo stato `L` come in R8; motivi: senza range · R14a · R14e · E1 ·
+con voce **e seduta** allo stato `L` (rev. 11-20: L24; M21 «primo peso»); motivi: senza range · R14a · R14e · E1 ·
 E2-E5 · R13 · R14b · leve. **R14c** R10b legge anche i `lapsed` che rialzano un
 bonus ⇒ `rimandati` `decaduta`. **R14d** player: manubrio in attesa ⇒ peso
 proposto `B` (zavorra `T`), fino a D-19 (b). **R14e** peso non scritto: stato
@@ -285,7 +287,7 @@ grandezza è eseguita in `D` (una scelta di tempo non spiega un peso). In
 del <giorno>»); superata (`v > T`) ⇒ `c.date` + «scritto da te» in `D`; decaduta ⇒
 niente. Data dell'esecuzione perché S2 è sul carico sollevato: con la data della
 scelta la prima seduta al peso nuovo propone il successivo (13.4). Tempo e
-pausa: data della scelta, salvo D-20 (b).
+pausa: prima seduta dopo la scelta (D-20 a e b, decise il 2026-11-20).
 
 ### R17 — R13 parla solo con una leva da fermare (L21)
 **R17a** fine seduta: R13 blocca solo se dopo R5 resta una leva ≠ `reps`
@@ -294,6 +296,5 @@ R13, con il testo della regola che la fissa (fine seduta; revisione R10a 1, 2-3,
 **R17c** fine seduta senza leve: R7 in attesa ⇒ R7 (o R13 se più lontana); carico
 fermo solo per settimana o test ⇒ il suo motivo; altrimenti «leve finite».
 
-### Ordine di implementazione (giro 2026-11-18)
-Rilascio A: R18 → R16 → R17 → R15 → R14b. Rilascio B: R14a, c, e (record
-`lapsed`) → R14d. R15 prima di R14 perché R14 usa `D(c)`. R9 dopo.
+### Ordine di implementazione
+A (fatto): R18 → R16 → R17 → R15 → R14b. B: T-17…T-20 (rev. 11-20) → R14a, c, e (`lapsed`) → R14d. R9 dopo.

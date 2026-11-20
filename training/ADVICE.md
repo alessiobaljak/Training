@@ -268,16 +268,18 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   ripetizioni: è il segno che il carico è aumentato davvero.» Kg con la virgola
   (L17). Con R10c-0 nessun testo nuovo: `leve-finite` com'è.
 
-**Consigli 4.0 — R14-R17 `[PROPOSTA, 2026-11-18]`** (rapporto 2026-11-18, varianti lì).
+**Consigli 4.0 — R14-R17 `[2026-11-18 · A in produzione 0f3f191 · B e rev. 11-20 PROPOSTA]`** (varianti nei rapporti).
 - R14a: «Oggi hai usato <B> kg, il peso di prima: la scelta del <giorno> (<cosa>)
   non è stata eseguita e si toglie.[ Tempo e pausa tornano a quelli che avevi su
   <B> kg.] Il prossimo passo si valuta dalla prossima seduta.» (+ «meno di prima», livello).
 - R14b: «Oggi hai usato <v> kg e lo stato era <L> kg: da qui comanda quello che hai
   scritto[, e tempo e pausa tornano a quelli della scheda]. Il prossimo passo si
-  valuta dalla prossima seduta a <v> kg.» (+ livello, «in questo blocco»).
-- R14c `rimandati` `decaduta` · R14d stazione «Manubrio successivo: al massimo <T>
-  kg. Scrivi il peso che usi davvero; se resti a <B> kg la scelta si toglie…» · R14e
-  «Peso non scritto: lo stato resta <L> kg…».
+  valuta dalla prossima seduta a <v> kg.» (+ livello, «in questo blocco»). Rev.
+  2026-11-20 (L24, M21): `<v>`, `<x>` = valore della seduta; primo peso «Primo peso
+  scritto su questo esercizio: <v> kg. Da qui si parte[, con tempo e pausa della
+  scheda]: le leve si valutano dalla prossima seduta a <v> kg.» (appendice 2026-11-20).
+- R14c `rimandati` `decaduta` · R14d «Manubrio successivo: al massimo <T> kg. Scrivi il
+  peso che usi davvero…» · R14e «Peso non scritto: lo stato resta <L> kg…».
 - R15 `<cosa>`: «carico <B> → <v> kg, scelta del <giorno>», «livello <B> → <v>,
   scelta del <giorno>»; manubrio in attesa «manubrio successivo scelto, al massimo <T> kg».
 - R16 T-S2: «Le due sedute lette sono di scarico (<g1> e <g2>): niente aumenti da

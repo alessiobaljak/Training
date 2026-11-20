@@ -5,15 +5,22 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## In produzione oggi
 
-**`fe85203` (2026-11-16): progressione 3.0, progressi 3.0, consigli 3.0** (R5-R8,
-R10-R13 con D-4 a e R10c-1, più A18 nel player), GO di training-quality su
-`cf7588a`. Prima: `a747e09` (R5-R8). R9 non ancora. Il resto del comportamento è
-il codice trascritto con `[IN CODICE]` nei file di metodo.
+**`0f3f191` (2026-11-20): rilascio A di progressione 4.0, progressi 3.1, consigli
+4.0, programmi 2.2, limiti 1.4** (R18, R16, R17, R15 con D-20 a e b, R14b; più A19),
+GO di training-quality su `4edf751`. Prima: `fe85203` (3.0), `a747e09` (R5-R8). R9
+e il rilascio B (R14a/c/d/e) non ancora. Il resto è il codice trascritto con
+`[IN CODICE]` nei file di metodo.
 
 ## Voci aperte
 
 ### progressione 4.0 · progressi 3.1 · consigli 4.0 · programmi 2.2 · limiti 1.4
-- **Data.** 2026-11-18. **Stato.** PROPOSTA; `src/` non toccato (codice a `374176b`).
+- **Data.** 2026-11-18, rev. 2026-11-20. **Stato.** Rilascio A in produzione
+  `0f3f191`; rilascio B e rev. 2026-11-20 PROPOSTA.
+- **Rev. 2026-11-20** (domande di quality, rapporto 2026-11-20): L23 una data dopo
+  oggi ferma R13 (togliere `giorni >= 0`); L24 gradino della seduta = il più alto,
+  R14b con voce e seduta allo stato; M21 testo «primo peso scritto»; 16.4 →
+  16.4′ + 16.P; 17.2 dal 2 aprile (D-20 b). Nessuna soglia cambiata; tutte
+  stringono o correggono testi. In attesa: D-21 (M20), D-22 (M19), D-23.
 - **Cosa.** R14 (M18): scelta in salita non eseguita ⇒ stato a `stateBefore`,
   record `lapsed`, non conta per R13; R14b leve a fine seduta solo allo stato;
   R14c R10b legge i `lapsed`; R14d peso proposto per il manubrio; R14e peso non
@@ -25,7 +32,9 @@ il codice trascritto con `[IN CODICE]` nei file di metodo.
   (minimo). Giro approvato da Alessio il 2026-11-18.
 - **Major.** Record e motivo nuovi (`lapsed`, `decaduta`); R15 sposta date (13.3,
   13.4, B12). Nessuna soglia approvata allentata: R14b, R15 stringono.
-- **Esito training-quality.** Non ancora valutato.
+- **Esito training-quality (2026-11-20).** GO al push del rilascio A (`4edf751`):
+  L18-L21 chiusi, B13 aperto e chiuso; nuovi L23, L24, M19, M20, M21. Rilascio B
+  e rev. 2026-11-20: non ancora valutati.
 
 ### progressione 3.0 · progressi 3.0 · consigli 3.0 · limiti 1.3
 - **Data.** 2026-11-16. **Stato.** In produzione `fe85203`.

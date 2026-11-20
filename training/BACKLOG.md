@@ -15,19 +15,18 @@ W-19…W-22 (R5-R8) chiusi in codice, in produzione `a747e09`: `ARCHIVE.md`.
 
 W-24…W-31 (giro 2026-11-16, R10-R13): in produzione `fe85203`, `ARCHIVE.md`.
 
-## Giro 2026-11-18 — M18, L18-L21, minimo (spec: rapporto 2026-11-18, T-10…T-16)
+## Rilascio B del giro 2026-11-18 (spec: rapporti 2026-11-18 e 2026-11-20)
 
-Rilascio A: W-32 → W-33 → W-34 → W-35 → W-36. Rilascio B: W-37. Gli attesi
-vengono dal rapporto (13.3, 13.4, B12, Q1, Q2 cambiano).
+Rilascio A (W-32…W-36) in produzione `0f3f191`: `ARCHIVE.md`. Ordine del B:
+W-39 → W-41 → W-40 (con o prima di T-15) → W-37. Attesi dai rapporti, non dal codice.
 
 | id | cosa | dove | gravità (quality) |
 |---|---|---|---|
-| W-32 | R18 minimo della stazione con i bonus (T-10) | `circuit.ts`, `GuidedSession`, `CircuitOverview` | trovato dalla sessione principale |
-| W-33 | R16 «scarico» = «scarico-coppia» in R11, testo T-S2 (T-11) | `review.ts` | L20 Basso |
-| W-34 | R17 R13 solo con una leva, data più lontana fra R7 e R13 (T-12) | `progression.ts`, `review.ts` | L21 Basso |
-| W-35 | R15 esecuzione di una scelta, data dell'esecuzione (T-13) | `progression.ts` | L18, L19 Bassi |
-| W-36 | R14b fine seduta allo stato (T-14) | `progression.ts`, `SessionSummary` | M18 (parte) |
+| W-39 | T-17: R13 non scarta le date dopo oggi (15.16-15.19) | `progression.ts` `aumentoRecente` | L23 Basso |
+| W-40 | T-18: gradino della seduta = il più alto; R14b con voce e seduta allo stato (24.x) | `progression.ts`, `draft.ts` | L24 Basso |
+| W-41 | T-19: testo «primo peso scritto» (21.x); T-20: prova 17.2 dal registro | `progression.ts`, `r13-fine-seduta.test.ts` | M21 Medio |
 | W-37 | R14a/c/e + record `lapsed` (T-15), poi R14d peso proposto (T-16, D-19 b) | `types`, `draft.ts`, `review.ts`, `backup.ts`, `GuidedSession` | M18 Medio, L2; dipende da L22 |
+| W-42 | Dopo D-21 / D-22 / D-23: T-21 E4 prima dello scarico, T-22 R19 tetto di durata + nota del circuito 4, T-23 gradino a mano ⇒ bonus a 0 | `progression.ts`, `circuit.ts`, `draft.ts` | M20, M19 Medi; rilievo D-23 |
 
 ## Bloccanti per l'uso pubblico
 
@@ -67,6 +66,6 @@ vengono dal rapporto (13.3, 13.4, B12, Q1, Q2 cambiano).
 | W-09 | Tre slug mentono sull'attrezzo (`alzate-laterali-elastico`, `curl-elastico-presa-neutra`, `croci-elastico-o-pushup-presa-larga`): gli slug restano, `equipment` dice la verità |
 | W-10 | Il titolo di `aggiungi-peso` dice «passa al manubrio successivo» anche sulla kettlebell (salti di 4 kg). **Assorbito da W-26** (R10c-0); con R10c-1 kettlebell fuori dall'elenco |
 | W-11 | `SESSIONS_PER_WEEK` in `ProgressScreen.tsx` è corretto (4) ma il commento sopra dice «sei»: denominatore dell'aderenza, vale la pena che il commento non menta |
-| W-12 | Tetto di durata della seduta (PROGRAM_RULES §5): oggi `estimatedMinutes` è un dato scritto a mano, 40 su tutti e quattro i circuiti |
-| W-38 | Scarico: una leva accettata nell'ultima seduta prima dello scarico si esegue nello scarico (E4 guarda la seduta che propone). In attesa della misura di quality (domanda 5 del 2026-11-18) |
+| W-12 | Tetto di durata della seduta (PROGRAM_RULES §5): `estimatedMinutes` 38/36/35/39 scritti a mano; con i bonus fino a 59-66′ (M19). Assorbito da W-42 dopo D-22 |
+| W-38 | Scarico: leva accettata prima dello scarico ed eseguita nello scarico. Misurato da quality (M20, 7,7%); decide D-21, poi W-42 |
 | W-13 | Il riscaldamento non è saltabile dall'app quando la seduta ha un blocco a RIR 0-1 o una stazione balistica (METHOD §7) |

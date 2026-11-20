@@ -227,7 +227,25 @@ Punto di ritorno, aggiornato a ogni push:
     eseguito in scarico conta come aumento in scarico (M20, quality dice sì);
     V-LEVE in C4.
   - Per training-designer: L23, L24, 17.2 «dal 2 aprile» con D-20 (b), 16.4
-    non costruibile, testo M21.
+    non costruibile, testo M21. **Risposte il 2026-11-20** in
+    `training/reports/2026-11-20-training.md` (vale sopra la 11-18):
+    - L23: la seduta che esegue si cerca fra tutte quelle chiuse, e un aumento
+      con data futura ferma come uno di oggi (`aumentoRecente` oggi scarta i
+      `giorni < 0`). L24: il gradino più alto fra le voci, come il peso.
+    - Task per il rilascio B: T-17 (L23), T-18 (L24), T-19 (M21, «Primo peso
+      scritto su questo esercizio…»), T-20 (17.2 dal registro), con T-15/T-16.
+    - Risposta della sessione principale alla domanda 4: una seduta prende la
+      data del dispositivo all'apertura della bozza (`useSessionDraft`); non
+      c'è modo di cambiarla a mano (la striscia dei giorni è delle misure).
+      Una data futura nasce solo da un orologio avanti, da due dispositivi
+      sfasati o da un backup ripristinato da un altro dispositivo. Una bozza
+      a cavallo della mezzanotte tiene la data di partenza, cioè passata.
+      T-17 resta a priorità media.
+  - Decisioni nuove per Alessio (forma chiusa nell'appendice): D-21 (M20,
+    aumento eseguito in scarico; designer e quality: a, niente leve a fine
+    seduta nelle settimane 5, 11, 17), D-22 (M19, tetto di durata; designer:
+    a, 55′), D-23 (gradino scritto diverso dallo stato: tempo e pausa tornano
+    alla scheda? designer: a, sì), D-19 (b) manubri.
 - Per Alessio: D-19 (b) manubri.
 - Risposte della sessione principale al designer: nel player guidato il peso
   si scrive durante la serie (i campi compaiono a stazione partita, si

@@ -168,8 +168,8 @@ inverted-row-trx, pike-push-up, bulgarian-split-squat, hollow-hold.
 
 ## 5. Durata massima della seduta
 
-`[IN CODICE]` `estimatedMinutes = 40` su tutti e quattro i circuiti; la durata
-vera è calcolata dal piano guidato (`estimatedSeconds`, `src/engine/circuit.ts`).
+`[IN CODICE]` `estimatedMinutes` 38, 36, 35, 39 (scheda, bonus a 0); la durata vera
+è `estimatedSeconds` con gli stati (R18): ai bonus massimi 46-59′, 66′ (M19, D-22).
 
 `[PROPOSTA]` Tetto duro **55 minuti** di piano guidato, riscaldamento compreso.
 Se un blocco nuovo porta il piano sopra il tetto, il tempo si recupera in questo

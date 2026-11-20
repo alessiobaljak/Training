@@ -21,6 +21,7 @@ quelle che spettano ad Alessio e bloccano il lavoro.
 | D-4 | **Alessio, 2026-11-16: (a)** un aumento per esercizio ogni 7 giorni, di qualunque leva, gradino compreso (R13). In produzione `fe85203`. | PROGRESSION §10 |
 | D-19 | **Alessio, 2026-11-16: sì**, il manubrio successivo è la leva 5 come la zavorra (R10c-1); cambio di manubrio di propria iniziativa ⇒ tempo e pausa alla scheda. Resta aperta la parte (b), sotto. | PROGRESSION §10, `LEVA_MANUBRIO` |
 | P-12 | **Alessio, 2026-11-18**: V-LEVE approvata (griglia v4: 10.P + R10b + 13.P); avviato il giro M18, L18-L21, minimo con i bonus. | `docs/SESSION_STATE.md`, rapporto 2026-11-18 |
+| D-20 | **Alessio, 2026-11-20: (a) sì, (b) sì** («D20 a e B»). Un aumento conta dal giorno in cui si fa: carico e gradino dalla prima seduta che li esegue (R15), tempo e pausa dalla prima seduta dopo la scelta. In produzione `0f3f191`. | PROGRESSION §11, BOUNDARIES L9 |
 | D-16 | **Decisa da Alessio il 2026-11-15** (alternativa): per un verdetto della revisione contano le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni, non la settimana di calendario. S4 non si allenta (≥ 2 sedute, ≥ 3 serie vere). Finestra ancorata alla fine della settimana rivista. training-quality: lettura di S4 OK (2026-11-15), riserva L15 ⇒ R12. | PROGRESS_REVIEW §6, rapporto `reports/2026-11-15-training.md` |
 
 ## Da decidere — spettano ad Alessio
@@ -41,12 +42,22 @@ né soglie per loro, e dichiararli supportati senza averle sarebbe falso.
 (principiante/intermedio/avanzato con mediana dei gradini), usato **solo** per
 decidere cosa l'app ha diritto di proporre? Senza, il limite L8 non è esprimibile.
 
-**D-20 · Da che giorno conta un aumento per R13? (2026-11-18)** (a) Carico e
-gradino: dalla prima seduta che lo esegue, non dall'accettazione (R15, adottata:
-S2 è sul peso sollevato; con la data della scelta la prima seduta al peso nuovo
-può proporre il passo dopo, +5 kg veri in pochi giorni, prova 13.4). Costo 0-4
-giorni per passo. Da confermare. (b) Lo stesso per tempo e pausa (prima seduta
-dopo la scelta)? Raccomandato sì: una regola sola. Rapporto 2026-11-18.
+**D-21 · Aumento accettato a fine settimana 5, fatto nella 6 di scarico: conta
+come aumento in scarico? (M20, 2026-11-20)** (a) Sì: a fine seduta, nelle
+settimane 5, 11, 17, nessuna leva in salita, come già la revisione; costa una leva
+per esercizio a ogni scarico. (b) No: resta com'è, E4 si riscrive in «nessun
+aumento si propone in scarico». Raccomandato (a). Rapporto 2026-11-20.
+
+**D-22 · Durata con tempo e pausa accumulati (M19, 2026-11-20).** Ai massimi
+46-59′, 66′ con hip thrust monopodalico. Oltre il tetto il metodo smette di
+aggiungere tempo e pausa e passa alla leva dopo (R19, bozza). (a) Tetto 55′:
+tocca solo il circuito 4. (b) Tetto 40′: tempo e pausa quasi spariscono. Nessun
+tetto = com'è oggi. Raccomandato (a). La nota del circuito 4 («togli 2
+ripetizioni al rematore») va cambiata in ogni caso con un tetto.
+
+**D-23 · Gradino cambiato a mano: tempo e pausa alla scheda come per il
+manubrio? (2026-11-20)** (a) Sì: la sincronizzazione li azzera e R14b lo dice.
+(b) No: restano (oggi). Raccomandato (a).
 
 **D-19 (b) · Quali manubri, con quali salti? (2026-11-16, aperta)** Decide il
 peso proposto dal player dopo «manubrio successivo» (R14d): se arrivano
