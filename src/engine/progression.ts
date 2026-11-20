@@ -662,6 +662,8 @@ export interface LeverAvailability {
   readonly available: boolean;
   /** Perché la leva è esaurita o bloccata. `null` quando è disponibile. */
   readonly reason: string | null;
+  /** R19: ferma solo per il tetto di durata, e ripartirà da sola (R17c 4). */
+  readonly motivo?: 'tetto';
 }
 
 export interface ProgressionInput {
@@ -1032,6 +1034,7 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
             ...entry,
             available: false,
             reason: `Con questo passo la seduta supererebbe i ${String(DURATA_MASSIMA_SECONDI / 60)} minuti: tempo e pausa si fermano qui, si passa alla leva successiva.`,
+            motivo: 'tetto',
           };
         }
       }
@@ -1327,8 +1330,10 @@ export function evaluateProgression(input: ProgressionInput): ProgressionEvaluat
           ? carico.leva.reason
           : (carico.manubrio?.tipo === 'mai-scritto' || carico.manubrio?.tipo === 'fuori-elenco') && carico.leva.reason !== null
             ? carico.leva.reason
-            : carico.manubrio?.tipo === 'cima'
-              ? `Hai esaurito tutte le leve disponibili su questo esercizio: ${kg(input.state.loadKg)} è il manubrio più pesante che hai. Serve un cambio di programmazione, non un altro giro.`
+            : levers.some((entry) => entry.motivo === 'tetto')
+              ? `Tempo e pausa si fermano al tetto: con un altro passo la seduta supererebbe i ${String(DURATA_MASSIMA_SECONDI / 60)} minuti, e su questo esercizio non ci sono altre leve. Oggi resta tutto com’è; tempo e pausa ripartono quando la seduta torna sotto i ${String(DURATA_MASSIMA_SECONDI / 60)} minuti, per esempio dopo un cambio di manubrio su un altro esercizio del circuito.`
+              : carico.manubrio?.tipo === 'cima'
+                ? `Hai esaurito tutte le leve disponibili su questo esercizio: ${kg(input.state.loadKg)} è il manubrio più pesante che hai. Serve un cambio di programmazione, non un altro giro.`
               : 'Hai esaurito tutte le leve disponibili su questo esercizio. Serve un cambio di programmazione, non un altro giro.';
     return {
       closedRange,

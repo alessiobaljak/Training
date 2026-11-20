@@ -8,6 +8,7 @@ import { addDays, formatDayLong, formatNumber } from './dates.ts';
 import { effectiveBlock } from './draft.ts';
 import { assessLoadNeed, getLoadAvailability, stepLoad } from './loading.ts';
 import {
+  DURATA_MASSIMA_SECONDI,
   aumentoRecente,
   effectiveTempo,
   initialExerciseState,
@@ -148,7 +149,9 @@ export type MotivoAlMassimo =
   | 'nessun-test'
   | 'leve-finite'
   /** D-19 (b): il peso non è scritto o non è fra i manubri dell'elenco. */
-  | 'manubrio';
+  | 'manubrio'
+  /** R19 (M22): tempo e pausa fermi al tetto dei 55 minuti, e nessun'altra leva. */
+  | 'tetto';
 
 /** Massimo chiuso senza una leva che la revisione possa tirare (R6). */
 export interface AlMassimo {
@@ -193,6 +196,12 @@ export interface WeeklyReviewInput {
   readonly today: string;
   /** Il registro delle scelte accettate e rimandate (R10b, R13). */
   readonly decisioni: readonly DecisioneRegistrata[];
+  /**
+   * R19 in revisione (M22): la durata stimata, in secondi, della seduta del
+   * programma che contiene l'esercizio, con gli stati dati; la più lunga se
+   * sono più d'una, `null` se nessuna. Senza, il tetto non si controlla.
+   */
+  readonly durata?: (esercizio: ExerciseSlug, stati: ReadonlyMap<ExerciseSlug, ExerciseState>) => number | null;
 }
 
 /** L'esito di un esercizio, prima di finire in un elenco. */
@@ -303,6 +312,25 @@ function caricoMassimo(voce: LoggedExercise): number {
  * ogni due settimane), R6 (prima la variante, poi il carico).
  */
 export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
+  if (input.durata === undefined) return reviewInterna(input, new Map());
+  /*
+   * M22: R10a (1) non dipende da R19. Un primo giro trova le salite di
+   * gradino della revisione; il secondo le conta nella durata, perché una
+   * salita che allunga la seduta si applica prima del passo di tempo.
+   */
+  const { durata: _durata, ...senzaDurata } = input;
+  void _durata;
+  const primo = reviewInterna(senzaDurata, new Map());
+  const salite = new Map(
+    primo.verdicts.filter((v) => v.kind === 'sali-di-livello').map((v) => [v.exercise, v.stateAfter] as const),
+  );
+  return reviewInterna(input, salite);
+}
+
+function reviewInterna(
+  input: WeeklyReviewInput,
+  salite: ReadonlyMap<ExerciseSlug, ExerciseState>,
+): WeeklyReview {
   const { week, sessions, states, tests, weekEnd, today, decisioni } = input;
   const finestra = { dal: addDays(weekEnd, -(GIORNI_FINESTRA - 1)), al: weekEnd };
   const stato: StatoRevisione =
@@ -713,13 +741,36 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
       /* R17b: con R13 attivo, tempo e pausa non arrivano prima della sua data. */
       const nonPrima =
         recente === null ? '' : ` Un aumento per esercizio ogni 7 giorni: non prima del ${formatDayLong(recente.dal)}.`;
-      if (tp.tempo.available && isTempoBreakdown(tut) && tut.eccentric !== 'X') {
+      /*
+       * R19 in revisione (M22): un passo che porta la seduta oltre il tetto
+       * non è la prossima leva. σ_rev: gli stati della revisione, le salite
+       * di gradino di questa revisione che allungano, e il passo.
+       */
+      const oltreIlTetto = (dopo: ExerciseState): boolean => {
+        if (input.durata === undefined) return false;
+        const stati = new Map(states);
+        for (const [altro, salita] of salite) {
+          if (altro === slug) continue;
+          const con = new Map(stati).set(altro, salita);
+          if ((input.durata(slug, con) ?? 0) > (input.durata(slug, stati) ?? 0)) stati.set(altro, salita);
+        }
+        stati.set(slug, dopo);
+        return (input.durata(slug, stati) ?? 0) > DURATA_MASSIMA_SECONDI;
+      };
+      const tempoOltre =
+        tp.tempo.available && oltreIlTetto({ ...before, eccentricBonusSeconds: before.eccentricBonusSeconds + 1 });
+      const pausaOltre =
+        tp.pausa.available && oltreIlTetto({ ...before, bottomPauseBonusSeconds: before.bottomPauseBonusSeconds + 1 });
+      const tetto = tempoOltre || pausaOltre;
+      const minutiTetto = String(DURATA_MASSIMA_SECONDI / 60);
+      const testoTetto = `massimo chiuso su tutte le serie. Tempo e pausa si fermano al tetto: con un altro passo la seduta supererebbe i ${minutiTetto} minuti, e su questo esercizio non ci sono altre leve. Si resta così finché la seduta non torna sotto i ${minutiTetto} minuti: allora il riepilogo di fine seduta riprende con tempo e pausa.`;
+      if (tp.tempo.available && !tempoOltre && isTempoBreakdown(tut) && tut.eccentric !== 'X') {
         return alMassimoCon(
           'tempo',
           `massimo chiuso su tutte le serie. La prossima leva è il tempo, eccentrica da ${String(tut.eccentric)}" a ${String(tut.eccentric + 1)}": ${dopoChiusura}${nonPrima}`,
         );
       }
-      if (tp.pausa.available && isTempoBreakdown(tut) && tut.bottomPause !== 'X') {
+      if (tp.pausa.available && !pausaOltre && isTempoBreakdown(tut) && tut.bottomPause !== 'X') {
         return alMassimoCon(
           'pausa',
           `massimo chiuso su tutte le serie. La prossima leva è la pausa in allungamento, da ${String(tut.bottomPause)}" a ${String(tut.bottomPause + 1)}": ${dopoChiusura}${nonPrima}`,
@@ -739,15 +790,17 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
               : ` Un gradino ogni due settimane: si può proporre dal ${formatDayLong(dal7)}.`;
         return alMassimoCon(
           'variante',
-          `massimo chiuso su tutte le serie. Tempo e pausa sono al massimo: la prossima leva è il livello ${String(su)} (${getProgressionStep(exercise.pattern, su).name}). Te lo propone il riepilogo di fine seduta, la prossima volta che chiudi il massimo con il tempo rispettato.${quando}`,
+          `massimo chiuso su tutte le serie. ${tetto ? `Tempo e pausa si fermano al tetto: con un altro passo la seduta supererebbe i ${minutiTetto} minuti. La` : 'Tempo e pausa sono al massimo: la'} prossima leva è il livello ${String(su)} (${getProgressionStep(exercise.pattern, su).name}). Te lo propone il riepilogo di fine seduta, la prossima volta che chiudi il massimo con il tempo rispettato.${quando}`,
         );
       }
 
       const leveFinite = (): Esito =>
-        alMassimoCon(
-          'leve-finite',
-          'Hai esaurito le leve su questo esercizio: serve un cambio di programmazione, non un altro giro.',
-        );
+        tetto
+          ? alMassimoCon('tetto', testoTetto)
+          : alMassimoCon(
+              'leve-finite',
+              'Hai esaurito le leve su questo esercizio: serve un cambio di programmazione, non un altro giro.',
+            );
 
       /* R10a, 5. Senza carico, le leve sono finite. */
       if (exercise.loadPolicy === 'forbidden') return leveFinite();
@@ -767,8 +820,11 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
         /* D-19 (b): il manubrio successivo esatto; senza, niente da fermare per R13. */
         const esito = manubrioDopo(before.loadKg);
         if (esito.tipo === 'mai-scritto' || esito.tipo === 'fuori-elenco') {
-          return alMassimoCon('manubrio', `massimo chiuso su tutte le serie. ${testoManubrioFermo(esito, before.loadKg) ?? ''}`);
+          return tetto
+            ? alMassimoCon('tetto', testoTetto)
+            : alMassimoCon('manubrio', `massimo chiuso su tutte le serie. ${testoManubrioFermo(esito, before.loadKg) ?? ''}`);
         }
+        if (esito.tipo === 'cima' && tetto) return alMassimoCon('tetto', testoTetto);
         if (esito.tipo === 'cima') {
           return alMassimoCon(
             'leve-finite',
@@ -786,7 +842,9 @@ export function reviewWeek(input: WeeklyReviewInput): WeeklyReview {
             kind: 'aggiungi-peso',
             lever: 'load',
             title: manubrio.title,
-            evidence: `${numeri} Massimo del range chiuso su tutte le serie, con tempo e pausa al massimo.`,
+            evidence: tetto
+              ? `${numeri} Massimo del range chiuso su tutte le serie; tempo e pausa fermi al tetto dei ${minutiTetto} minuti.`
+              : `${numeri} Massimo del range chiuso su tutte le serie, con tempo e pausa al massimo.`,
             change: manubrio.change,
             caution: manubrio.caution,
             stateBefore: before,

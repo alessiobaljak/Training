@@ -1,3 +1,4 @@
+import { durataDellaSedutaDi } from '../../engine/circuit.ts';
 import { useState } from 'react';
 import { repository } from '../../db/repository.ts';
 import { addDays, formatDayLong, formatNumber, plural, todayIso } from '../../engine/dates.ts';
@@ -72,6 +73,8 @@ export function ReviewScreen({ week }: { readonly week: number }) {
     weekEnd: fine,
     today: oggi,
     decisioni: suggestions,
+    /* R19 in revisione (M22): lo stesso tetto della fine seduta. */
+    durata: durataDellaSedutaDi,
   });
 
   const giaDeciso = new Set([

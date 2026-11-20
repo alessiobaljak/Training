@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ACTIVE_SESSIONS, findAnySession } from '../../data/sessions.ts';
 import { findCircuitSession, isCircuitSessionId } from '../../data/circuit.ts';
 import { daysBetween, formatDayLong, formatDayShort, formatDaysAgo, plural, todayIso } from '../../engine/dates.ts';
-import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
+import { buildGuidedPlan, estimatedSeconds, durataDellaSedutaDi } from '../../engine/circuit.ts';
 import { IN_A_ROW_WARNING, rotationState } from '../../engine/rotation.ts';
 import { getWeekState, programWeek, weekEndDate } from '../../engine/schedule.ts';
 import { pendingVerdicts, reviewDecisionId, reviewWeek } from '../../engine/review.ts';
@@ -153,6 +153,7 @@ export function HomeScreen() {
           weekEnd: weekEndDate(startDate, settimanaChiusa),
           today,
           decisioni: suggestions,
+          durata: durataDellaSedutaDi,
         })
       : null;
   const decise = new Set((suggestions ?? []).map((record) => record.id));

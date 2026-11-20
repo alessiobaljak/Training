@@ -1,4 +1,5 @@
 import { getExercise } from '../data/exercises.ts';
+import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import { parseTut, repDurationSeconds } from './notation.ts';
 import { effectiveTempo } from './progression.ts';
 import { buildSessionPlan } from './rest.ts';
@@ -627,4 +628,21 @@ export function clockOffsets(plan: readonly GuidedStep[]): number[] {
 /** Quante serie di lavoro contiene il piano. Il riscaldamento non conta. */
 export function workStepCount(plan: readonly GuidedStep[]): number {
   return plan.filter((step) => step.kind === 'work').length;
+}
+
+/**
+ * R19 in revisione (M22): la durata stimata della seduta del programma che
+ * contiene l'esercizio, con gli stati dati. Se l'esercizio sta in più sedute
+ * vale la più lunga, perché il passo deve stare sotto il tetto in ognuna;
+ * `null` se non sta in nessuna.
+ */
+export function durataDellaSedutaDi(
+  slug: ExerciseSlug,
+  stati: ReadonlyMap<ExerciseSlug, ExerciseState>,
+  sessioni: readonly ProgramSession[] = CIRCUIT_SESSIONS,
+): number | null {
+  const durate = sessioni
+    .filter((sessione) => sessione.blocks.some((block) => block.exercise === slug))
+    .map((sessione) => estimatedSeconds(buildGuidedPlan(sessione, 1, stati)));
+  return durate.length === 0 ? null : Math.max(...durate);
 }

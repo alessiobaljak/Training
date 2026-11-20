@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { MIN_SESSIONS_FOR_VERDICT, MIN_SETS_FOR_VERDICT, reviewWeek } from './review.ts';
 import type { WeeklyReview } from './review.ts';
-import { initialExerciseState } from './progression.ts';
+import { evaluateProgression, initialExerciseState } from './progression.ts';
+import { durataDellaSedutaDi } from './circuit.ts';
+import { resolveBlockRange } from './ranges.ts';
+import { getAnySession } from '../data/sessions.ts';
 import { latestTestResults, testResultSingle } from './ranges.ts';
 import { programWeek, weekEndDate } from './schedule.ts';
 import { addDays } from './dates.ts';
@@ -50,6 +53,9 @@ const BLOCCO: Record<string, { sessionId: SessionId; code: string }> = {
   [TRX]: { sessionId: 'circuito-2', code: 'A3' },
   [SWING]: { sessionId: 'circuito-1', code: 'F1' },
   [PULLOVER]: { sessionId: 'circuito-3', code: 'A3' },
+  'military-press-manubri': { sessionId: 'circuito-4', code: 'A3' },
+  'plank-trascinamento-kb': { sessionId: 'circuito-4', code: 'B3' },
+  'hip-thrust-panca-bilaterale': { sessionId: 'circuito-4', code: 'A1' },
 };
 
 let progressivo = 0;
@@ -118,9 +124,11 @@ function rivedi(
     today?: string;
     tests?: ReadonlyMap<TestResult['testId'], TestResult>;
     decisioni?: readonly DecisioneRegistrata[];
+    durata?: (slug: ExerciseSlug, stati: ReadonlyMap<ExerciseSlug, ExerciseState>) => number | null;
   } = {},
 ): WeeklyReview {
   return reviewWeek({
+    ...(options.durata === undefined ? {} : { durata: options.durata }),
     week,
     sessions,
     states: new Map(stati.map((entry) => [entry.exercise, entry])),
@@ -1009,5 +1017,111 @@ describe('D-19 (b) in revisione · il manubrio successivo esatto', () => {
     expect(r.alMassimo[0]?.testo).toBe(
       'massimo chiuso su tutte le serie. 14,5 kg non è fra i tuoi manubri: scrivi nel player il peso che usi davvero, e il prossimo si calcola da lì.',
     );
+  });
+});
+
+describe('M22 · il tetto di 55 minuti anche in revisione', () => {
+  const MP = 'military-press-manubri';
+  const PLANK = 'plank-trascinamento-kb';
+  const HIP = 'hip-thrust-panca-bilaterale';
+  type Stati = ReadonlyMap<ExerciseSlug, ExerciseState>;
+  /* Durate finte, per isolare la regola: secondi di tempo e pausa degli esercizi indicati. */
+  const durataDi =
+    (base: number, pesi: Readonly<Record<string, number>>, hip3 = 0) =>
+    (_slug: ExerciseSlug, stati: Stati): number =>
+      [...stati.values()].reduce(
+        (t, x) =>
+          t + (pesi[x.exercise] ?? 0) * (x.eccentricBonusSeconds + x.bottomPauseBonusSeconds) + (x.exercise === HIP && x.level === 3 ? hip3 : 0),
+        base,
+      );
+  const fineSeduta = (slug: ExerciseSlug, values: readonly number[], L: ExerciseState, week: number, durata: (s: Stati) => number) => {
+    const blocco = BLOCCO[slug];
+    if (blocco === undefined) throw new Error(slug);
+    const block = getAnySession(blocco.sessionId).blocks.find((b) => b.code === blocco.code);
+    if (block === undefined) throw new Error(blocco.code);
+    const exercise = getExercise(slug);
+    return evaluateProgression({
+      block,
+      exercise,
+      state: L,
+      logged: { ...voce(slug, values, { loadKg: L.loadKg, ...(L.level === null ? {} : { level: L.level }) }), level: L.level },
+      range: resolveBlockRange(block, exercise, TEST_PIENI),
+      week,
+      currentMaxReps: 12,
+      salita: { consentita: true, inizio: '2026-01-05', dal: '2026-01-19' },
+      rientro: null,
+      aumentoRecente: null,
+      durataCon: (stato) => durata(new Map([[stato.exercise, stato]])),
+    });
+  };
+  const sedute = (slug: ExerciseSlug, values: readonly number[], kg: number, level?: LevelIndex) => [
+    seduta('2026-03-19', [voce(slug, values, { loadKg: kg, ...(level === undefined ? {} : { level }) })]),
+    seduta('2026-03-26', [voce(slug, values, { loadKg: kg, ...(level === undefined ? {} : { level }) })]),
+  ];
+
+  it('M22.1 · military press al tetto: in revisione il manubrio, come a fine seduta', () => {
+    const L = stato(MP, { loadKg: 10, eccentricBonusSeconds: 1 });
+    const durata = durataDi(3150, { [MP]: 100 });
+    expect(durata(MP, new Map([[MP, { ...L, eccentricBonusSeconds: 2 }]]))).toBeGreaterThan(3300);
+    expect(durata(MP, new Map([[MP, { ...L, bottomPauseBonusSeconds: 1 }]]))).toBeGreaterThan(3300);
+    const r = rivedi(4, sedute(MP, [15, 15, 15], 10), [L], { durata });
+    expect(r.alMassimo).toHaveLength(0);
+    expect(r.verdicts[0]?.kind).toBe('aggiungi-peso');
+    expect(r.verdicts[0]?.change).toContain('Passa al manubrio da 12 kg: oggi usi 10 kg.');
+    expect(r.verdicts[0]?.evidence).toContain('tempo e pausa fermi al tetto dei 55 minuti.');
+    const e = fineSeduta(MP, [15, 15, 15], L, 4, (s) => durata(MP, s));
+    expect(e.suggestion?.lever).toBe('load');
+    expect(e.suggestion?.nextState).toEqual(r.verdicts[0]?.stateAfter);
+  });
+
+  it('M22.2 · plank: tempo oltre il tetto e nessun’altra leva', () => {
+    const L = stato(PLANK);
+    const durata = durataDi(3250, { [PLANK]: 100 });
+    const r = rivedi(4, sedute(PLANK, [10, 10, 10], 0), [L], { durata });
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'tetto' }));
+    expect(r.alMassimo[0]?.testo).toBe(
+      'massimo chiuso su tutte le serie. Tempo e pausa si fermano al tetto: con un altro passo la seduta supererebbe i 55 minuti, e su questo esercizio non ci sono altre leve. Si resta così finché la seduta non torna sotto i 55 minuti: allora il riepilogo di fine seduta riprende con tempo e pausa.',
+    );
+    expect(fineSeduta(PLANK, [10, 10, 10], L, 4, (s) => durata(PLANK, s)).blockedReason).toBe(
+      'Tempo e pausa si fermano al tetto: con un altro passo la seduta supererebbe i 55 minuti, e su questo esercizio non ci sono altre leve. Oggi resta tutto com’è; tempo e pausa ripartono quando la seduta torna sotto i 55 minuti, per esempio dopo un cambio di manubrio su un altro esercizio del circuito.',
+    );
+  });
+
+  it('M22.3 · con la variante libera, la revisione la indica e dice del tetto', () => {
+    const L = stato(HIP, { level: 2 });
+    const durata = durataDi(3250, { [HIP]: 100 });
+    const r = rivedi(4, [storia(HIP, 2), ...sedute(HIP, [20, 20, 20], 0, 2)], [L], { durata });
+    expect(r.alMassimo[0]).toEqual(expect.objectContaining({ motivo: 'variante' }));
+    expect(r.alMassimo[0]?.testo).toContain('Tempo e pausa si fermano al tetto: con un altro passo la seduta supererebbe i 55 minuti. La prossima leva è il livello 3');
+    expect(fineSeduta(HIP, [20, 20, 20], L, 4, (s) => durata(HIP, s)).suggestion?.lever).toBe('variant');
+  });
+
+  it('M22.4 · una salita di gradino della stessa revisione che allunga conta per il tempo', () => {
+    const durata = durataDi(3150, { [MP]: 100 }, 200);
+    const stati = [stato(HIP, { level: 2 }), stato(MP, { loadKg: 10 })];
+    const coppia = ['2026-03-19', '2026-03-26'].map((d) =>
+      seduta(d, [voce(HIP, [21, 21, 21], { level: 2 }), voce(MP, [15, 15, 15], { loadKg: 10 })]),
+    );
+    const senza = rivedi(4, [storia(HIP, 2), ...coppia], stati);
+    expect(senza.alMassimo.find((a) => a.exercise === MP)?.motivo).toBe('tempo');
+    const r = rivedi(4, [storia(HIP, 2), ...coppia], stati, { durata });
+    expect(r.verdicts.find((v) => v.exercise === HIP)?.kind).toBe('sali-di-livello');
+    expect(r.alMassimo.find((a) => a.exercise === MP)).toBeUndefined();
+    expect(r.verdicts.find((v) => v.exercise === MP)?.kind).toBe('aggiungi-peso');
+  });
+
+  it('M22.5 e M22.6 · a fine seduta prima la settimana, poi il manubrio fuori elenco, poi il tetto', () => {
+    const durata = (s: Stati) => durataDi(3250, { [MP]: 100 })(MP, s);
+    expect(fineSeduta(MP, [15, 15, 15], stato(MP, { loadKg: 10 }), 2, durata).blockedReason).toContain('settimana 3');
+    expect(fineSeduta(MP, [15, 15, 15], stato(MP, { loadKg: 12.5 }), 4, durata).blockedReason).toContain(
+      '12,5 kg non è fra i tuoi manubri',
+    );
+  });
+
+  it('M22.7 · circuiti 1-3: con la durata vera niente cambia', () => {
+    const p = (date: string) => seduta(date, [S([18, 18, 18])]);
+    const senza = rivedi(4, [storia(PUSH), p('2026-03-19'), p('2026-03-26')], [stato(PUSH)]);
+    const con = rivedi(4, [storia(PUSH), p('2026-03-19'), p('2026-03-26')], [stato(PUSH)], { durata: durataDellaSedutaDi });
+    expect(con).toEqual(senza);
   });
 });
