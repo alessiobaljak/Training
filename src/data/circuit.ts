@@ -725,7 +725,8 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
     estimatedMinutes: 36,
     warmup: [],
     warmupSteps: RISCALDAMENTO,
-    note: 'È la più corta delle quattro. I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
+    /* Diversa dalla scheda: vedi `DEVIAZIONI_NOTA` (L26). */
+    note: 'I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
     blocks: SEDUTA_2,
   },
   {
@@ -748,14 +749,8 @@ export const CIRCUIT_SESSIONS: readonly ProgramSession[] = Object.freeze([
     estimatedMinutes: 39,
     warmup: [],
     warmupSteps: RISCALDAMENTO,
-    /*
-     * La scheda dice «Se sfori i 40 minuti togli 2 ripetizioni al rematore,
-     * non il recupero». Togliere ripetizioni impedisce al rematore di chiudere
-     * il massimo, quindi di progredire (M19). Alessio ha deciso un tetto di
-     * 55 minuti (D-22 a, 2026-11-20): oltre, il metodo non propone più tempo e
-     * pausa (R19). `DEVIAZIONI` dichiara solo esercizi, non note.
-     */
-    note: 'È la più lunga delle quattro, per le due stazioni unilaterali del Tri-set A. Con tempo e pausa accumulati può arrivare a 55 minuti: oltre, il metodo non aggiunge altro tempo. Non togliere ripetizioni né recupero.',
+    /* Diversa dalla scheda: vedi `DEVIAZIONI_NOTA` (L26, D-22, D5). */
+    note: 'È la più lunga delle quattro. Con tempo e pausa accumulati può arrivare a 55 minuti: oltre, il metodo non aggiunge altro tempo e passa alla leva successiva. Quando l’hip thrust passa ai gradini su una gamba, che si fanno per lato, può arrivare a circa 59 minuti. Non togliere ripetizioni né recupero.',
     blocks: SEDUTA_4,
   },
 ] as const satisfies readonly ProgramSession[]);

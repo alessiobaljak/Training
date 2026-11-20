@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CIRCUIT_ORDER, CIRCUIT_SESSIONS, findCircuitSession, isCircuitSessionId } from './circuit.ts';
 import { findExercise, getExercise } from './exercises.ts';
 import { WEEK_ZERO_TESTS } from './tests.ts';
+import { DEVIAZIONI_NOTA, applicaDeviazioneNota } from './deviations.ts';
 import { buildGuidedPlan, clockOffsets, estimatedSeconds } from '../engine/circuit.ts';
 import { variantNoteAt } from '../engine/draft.ts';
 import { plannedVolumeByGroup } from '../engine/metrics.ts';
@@ -502,5 +503,44 @@ describe('note della variante legate al gradino', () => {
     if (s1a2 === undefined) throw new Error('blocco mancante');
     expect(variantNoteAt(s1a2, 1)).toMatch(/racked/);
     expect(variantNoteAt(s1a2, null)).toMatch(/racked/);
+  });
+});
+
+/*
+ * L26: le note delle sedute contro la scheda.
+ *
+ * Il testo originale del circuito non è nel repository. Queste sono le note
+ * della prima trascrizione (`f63c9f1`, 2026-11-09), copiate da lì e non
+ * ricostruite: non sono una seconda trascrizione indipendente, quindi il
+ * controllo contro il testo originale resta NON COPERTO finché non si
+ * trascrive di nuovo dalla fonte.
+ */
+const NOTE_SCHEDA: Readonly<Record<string, string | null>> = {
+  'circuito-1': 'A fine terzo giro del Tri-set A, dentro la pausa di blocco: 2 trazioni negative da 5" di eccentrica.',
+  'circuito-2':
+    'È la più corta delle quattro. I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
+  'circuito-3': null,
+  'circuito-4':
+    'È la più lunga delle quattro, per le due stazioni unilaterali del Tri-set A. Se sfori i 40 minuti togli 2 ripetizioni al rematore, non il recupero.',
+};
+
+describe('L26 · le note delle sedute', () => {
+  it('1 · ogni nota è quella della scheda, salvo una deviazione dichiarata', () => {
+    for (const session of CIRCUIT_SESSIONS) {
+      expect(session.note ?? null, session.id).toBe(applicaDeviazioneNota(session.id, NOTE_SCHEDA[session.id] ?? null));
+    }
+  });
+
+  it('2 · nessuna deviazione orfana', () => {
+    for (const deviazione of DEVIAZIONI_NOTA) {
+      expect(deviazione.scheda, deviazione.sessione).toBe(NOTE_SCHEDA[deviazione.sessione]);
+    }
+  });
+
+  it('L26.4 · la seduta più corta è la 3, non la 2', () => {
+    const durate = CIRCUIT_SESSIONS.map((s) => ({ id: s.id, secondi: estimatedSeconds(buildGuidedPlan(s, 1)) }));
+    const corta = [...durate].sort((a, b) => a.secondi - b.secondi)[0];
+    expect(corta?.id).toBe('circuito-3');
+    expect(findCircuitSession('circuito-2')?.note ?? '').not.toContain('più corta');
   });
 });

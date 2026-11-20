@@ -126,3 +126,38 @@ describe('R19 · tetto di durata a 55 minuti', () => {
     }
   });
 });
+
+describe('L26 · i minuti della nota del circuito 4', () => {
+  it('3 · ogni «<n> minuti» è il tetto o la durata con tempo e pausa al tetto e l’hip thrust su una gamba', () => {
+    const c4 = circuito('circuito-4');
+    const stati = iniziali(c4);
+    for (let giro = 0; giro < 40; giro += 1) {
+      let cambiato = false;
+      /*
+       * Il caso peggiore (D5): tempo e pausa salgono fino al tetto sugli altri
+       * esercizi mentre l'hip thrust resta a due gambe senza bonus; poi
+       * passa su una gamba. Con il gradino nuovo i bonus ripartono da zero.
+       */
+      for (const block of c4.blocks) {
+        if (block.exercise === 'hip-thrust-panca-bilaterale') continue;
+        const proposta = fine(c4, block, stati)?.suggestion;
+        if (proposta !== undefined && proposta !== null && (proposta.lever === 'tempo' || proposta.lever === 'iso-pause')) {
+          stati.set(block.exercise, proposta.nextState);
+          cambiato = true;
+        }
+      }
+      if (!cambiato) break;
+    }
+    expect(durata(c4, stati)).toBeLessThanOrEqual(DURATA_MASSIMA_SECONDI);
+    const hip = stati.get('hip-thrust-panca-bilaterale');
+    if (hip === undefined) throw new Error('hip thrust');
+    stati.set('hip-thrust-panca-bilaterale', { ...hip, level: 3, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 });
+    const conVariante = Math.round(durata(c4, stati) / 60);
+    const ammessi = [DURATA_MASSIMA_SECONDI / 60, conVariante];
+    const nota = c4.note ?? '';
+    const minuti = [...nota.matchAll(/(\d+) minuti/g)].map((m) => Number(m[1]));
+    expect(minuti.length).toBeGreaterThan(0);
+    for (const n of minuti) expect(ammessi, `${String(n)} minuti`).toContain(n);
+    expect(conVariante, `con la variante: ${String(durata(c4, stati))} s`).toBe(59);
+  });
+});

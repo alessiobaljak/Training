@@ -335,3 +335,47 @@ export function applicaDeviazioneMinuti(sessione: SessionId, minutiDaScheda: num
   );
   return tolto?.minuti.app ?? minutiDaScheda;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Note delle sedute                                                           */
+/* -------------------------------------------------------------------------- */
+
+/** Una nota di seduta che l'app scrive diversamente dalla scheda (L26). */
+export interface DeviazioneNota {
+  readonly sessione: SessionId;
+  /** La nota della scheda, parola per parola; `null` se la scheda non ne ha. */
+  readonly scheda: string | null;
+  /** La nota dell'app; `null` se l'app la toglie. */
+  readonly app: string | null;
+  readonly motivo: string;
+}
+
+export const DEVIAZIONI_NOTA: readonly DeviazioneNota[] = [
+  {
+    sessione: 'circuito-1',
+    scheda: 'A fine terzo giro del Tri-set A, dentro la pausa di blocco: 2 trazioni negative da 5" di eccentrica.',
+    app: null,
+    motivo:
+      'Il player la dice dove serve: è l’istruzione della pausa del blocco A, al terzo giro (2026-11-12). Come nota della seduta si leggeva prima di cominciare, quando non serve.',
+  },
+  {
+    sessione: 'circuito-2',
+    scheda: 'È la più corta delle quattro. I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
+    app: 'I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
+    motivo:
+      'Nell’app la seduta più corta è la 3 (36:03 contro 36:40 a tempo e pausa della scheda): la frase della scheda non è più vera.',
+  },
+  {
+    sessione: 'circuito-4',
+    scheda: 'È la più lunga delle quattro, per le due stazioni unilaterali del Tri-set A. Se sfori i 40 minuti togli 2 ripetizioni al rematore, non il recupero.',
+    app: 'È la più lunga delle quattro. Con tempo e pausa accumulati può arrivare a 55 minuti: oltre, il metodo non aggiunge altro tempo e passa alla leva successiva. Quando l’hip thrust passa ai gradini su una gamba, che si fanno per lato, può arrivare a circa 59 minuti. Non togliere ripetizioni né recupero.',
+    motivo:
+      'Togliere 2 ripetizioni al rematore gli impedisce di chiudere il massimo del range, e senza il massimo il rematore non progredisce più (E1, M19). Al posto del taglio c’è il tetto di 55 minuti deciso da Alessio il 2026-11-20 (D-22 a, R19): oltre, il metodo non propone più tempo e pausa. La variante dell’hip thrust su una gamba può portare la seduta a circa 59 minuti (D5, Alessio, 2026-11-20). Le stazioni per lato del Tri-set A sono due solo dal gradino 3 dell’hip thrust: nell’app si parte a due gambe.',
+  },
+];
+
+/** La nota che l'app dà a una seduta, se diversa da quella della scheda. */
+export function applicaDeviazioneNota(sessione: SessionId, notaDaScheda: string | null): string | null {
+  const trovata = DEVIAZIONI_NOTA.find((d) => d.sessione === sessione && d.scheda === notaDaScheda);
+  return trovata === undefined ? notaDaScheda : trovata.app;
+}
