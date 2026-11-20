@@ -173,10 +173,10 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: rilascio A di R14-R18 + A19 (`0f3f191`, 2026-11-20; training-quality GO, release-gate GO per regressioni). **Punto di ritorno: `001de30`** (R-7, L17, L22, R10-R13, A18). Prima: `721fd42` (R5-R8).
-- `git diff 001de30..0f3f191` su `src/data`, `src/types`, `src/db` e
-  `firestore.rules` è vuoto (release-gate, 2026-11-20): tornare indietro non
-  rompe catalogo né dati. Procedura in `docs/configurazione.md` §10, mai
+- in produzione: rilascio B1 (`221b2e8` + smoke A19 `f5455d8`, 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v9). **Punto di ritorno: `59daf79`** (rilascio A di R14-R18 + A19). Prima: `001de30` (R-7, L17, L22, R10-R13, A18), `721fd42` (R5-R8).
+- `git diff 59daf79..f5455d8` su `src/types`, `src/db` e `firestore.rules` è
+  vuoto, in `src/data` cambia solo la nota del circuito 4 (release-gate,
+  2026-11-20): tornare indietro non rompe catalogo né dati. Procedura in `docs/configurazione.md` §10, mai
   eseguita in produzione (il gate la segna NON VERIFICATA).
 
 ## Aperti dopo R10-R13 (quality, `quality/reports/2026-11-16-quality.md`)
