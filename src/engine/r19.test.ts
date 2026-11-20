@@ -5,6 +5,7 @@ import { buildGuidedPlan, estimatedSeconds } from './circuit.ts';
 import { DURATA_MASSIMA_SECONDI, evaluateProgression, initialExerciseState, leveDiTempo } from './progression.ts';
 import type { ProgressionEvaluation } from './progression.ts';
 import { latestTestResults, resolveBlockRange, testResultSingle } from './ranges.ts';
+import { tettoDelRiepilogo } from './tetto.ts';
 import { loggedExercise, sets } from './__fixtures.ts';
 import type { ExerciseSlug, ExerciseState, ProgramBlock, ProgramSession } from '../types/index.ts';
 
@@ -49,7 +50,13 @@ function aiMassimi(sessione: ProgramSession): Stati {
 const durata = (sessione: ProgramSession, stati: Stati): number => estimatedSeconds(buildGuidedPlan(sessione, 1, stati));
 
 /** Il blocco chiuso al massimo, al tempo, allo stato: la fine seduta che si chiede la leva. */
-function fine(sessione: ProgramSession, block: ProgramBlock, stati: Stati, conTetto = true): ProgressionEvaluation | null {
+function fine(
+  sessione: ProgramSession,
+  block: ProgramBlock,
+  stati: Stati,
+  conTetto = true,
+  durataCon?: (stato: ExerciseState) => number,
+): ProgressionEvaluation | null {
   const exercise = getExercise(block.exercise);
   const state = stati.get(block.exercise);
   const range = resolveBlockRange(block, exercise, TEST);
@@ -66,7 +73,9 @@ function fine(sessione: ProgramSession, block: ProgramBlock, stati: Stati, conTe
     salita: { consentita: true, inizio: '2026-01-05', dal: '2026-01-19' },
     rientro: null,
     aumentoRecente: null,
-    ...(conTetto ? { durataCon: (stato: ExerciseState) => durata(sessione, new Map(stati).set(stato.exercise, stato)) } : {}),
+    ...(conTetto
+      ? { durataCon: durataCon ?? ((stato: ExerciseState) => durata(sessione, new Map(stati).set(stato.exercise, stato))) }
+      : {}),
   });
 }
 
@@ -159,5 +168,34 @@ describe('L26 · i minuti della nota del circuito 4', () => {
     expect(minuti.length).toBeGreaterThan(0);
     for (const n of minuti) expect(ammessi, `${String(n)} minuti`).toContain(n);
     expect(conVariante, `con la variante: ${String(durata(c4, stati))} s`).toBe(59);
+  });
+});
+
+describe('L25.P1 · in un riepilogo, nessun passo di tempo o pausa porta oltre il tetto', () => {
+  it('accettando ogni proposta nell’ordine dei blocchi, con l’hip thrust pronto a salire', () => {
+    const c4 = circuito('circuito-4');
+    const massimi = aiMassimi(c4);
+    let controllati = 0;
+    for (let togli = 1; togli <= 12; togli += 1) {
+      /* Stati vicini al tetto: ai massimi, poi ogni esercizio perde `togli` passi di eccentrica. */
+      const stati: Stati = new Map(
+        [...massimi].map(([slug, s]) => [slug, { ...s, eccentricBonusSeconds: Math.max(0, s.eccentricBonusSeconds - togli) }]),
+      );
+      const hip = massimi.get('hip-thrust-panca-bilaterale');
+      if (hip !== undefined) stati.set('hip-thrust-panca-bilaterale', { ...hip, level: 2 });
+      const tetto = tettoDelRiepilogo(stati, (s) => durata(c4, new Map(s)));
+      const accettati: Stati = new Map(stati);
+      for (const block of c4.blocks) {
+        const proposta = fine(c4, block, stati, true, tetto.durataCon)?.suggestion;
+        if (proposta === undefined || proposta === null) continue;
+        accettati.set(block.exercise, proposta.nextState);
+        tetto.proposta(proposta.nextState);
+        if (proposta.lever === 'tempo' || proposta.lever === 'iso-pause') {
+          controllati += 1;
+          expect(durata(c4, accettati), `togli ${String(togli)}, ${block.code}`).toBeLessThanOrEqual(DURATA_MASSIMA_SECONDI);
+        }
+      }
+    }
+    expect(controllati).toBeGreaterThan(0);
   });
 });

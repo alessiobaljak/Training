@@ -11,6 +11,7 @@ import { formatClock } from '../hooks/useTimers.ts';
 import { aumentoRecente, evaluateProgression, livelloVoci, salitaConsentita } from '../../engine/progression.ts';
 import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
 import { decadenze } from '../../engine/decadenza.ts';
+import { statiDellaChiusura, tettoDelRiepilogo } from '../../engine/tetto.ts';
 import { testBaseline } from '../../data/tests.ts';
 import { useSessions, useSuggestions } from '../hooks/useData.ts';
 import { calibrateLoad } from '../../engine/loading.ts';
@@ -92,7 +93,10 @@ export function SessionSummary({
      * R19: la durata si misura con gli stati di oggi più le leve di tempo e
      * pausa già proposte nei blocchi sopra, in questo stesso riepilogo.
      */
-    const statiRiepilogo = new Map(states);
+    const tetto = tettoDelRiepilogo(
+      statiDellaChiusura(draft, states, registro ?? [], sessions ?? []),
+      (stati) => estimatedSeconds(buildGuidedPlan(program, 1, stati)),
+    );
     /*
      * R14a: le scelte che questa seduta toglie. Su quegli esercizi niente
      * leve, e R13 non conta la scelta tolta.
@@ -164,13 +168,10 @@ export function SessionSummary({
               ),
           ),
           decaduta: toltePerEsercizio.get(block.exercise)?.testo ?? null,
-          durataCon: (stato) =>
-            estimatedSeconds(buildGuidedPlan(program, 1, new Map(statiRiepilogo).set(stato.exercise, stato))),
+          durataCon: tetto.durataCon,
         });
-        const proposta = evaluation.suggestion;
-        if (proposta !== null && (proposta.lever === 'tempo' || proposta.lever === 'iso-pause')) {
-          statiRiepilogo.set(block.exercise, proposta.nextState);
-        }
+        /* L25: ogni proposta che allunga la seduta conta per i blocchi sotto. */
+        if (evaluation.suggestion !== null) tetto.proposta(evaluation.suggestion.nextState);
 
         const calibration =
           summary.maxLoadKg > 0 ? calibrateLoad(logged.sets, summary.maxLoadKg) : null;
