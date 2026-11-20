@@ -1,7 +1,8 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-16b, claude/calisthenics-pwa-offline-kor52w, 274d12f (codice fe85203), L.
-Esito: GO per regressioni vs a747e09; nucleo invariato 2 PASS, 4 FALLITI, 2 NON COPERTI; 5 Bloccanti attivi. verify, smoke, offline verdi; A18 provato al contrario (smoke fallisce sul player vecchio). Rapporto reports/2026-11-16b-claude-calisthenics-pwa-offline-kor52w.md.
+Ultimo rilascio: 2026-11-20, claude/calisthenics-pwa-offline-kor52w, 0f3f191, L.
+Esito: GO per regressioni vs 001de30; nucleo 2 PASS, 4 FALLITI, 2 NON COPERTI (invariato); verify (857 test), smoke (con R18), offline verdi; diff src/data, types, db, firestore.rules vuoto. Rapporto reports/2026-11-20-claude-calisthenics-pwa-offline-kor52w.md.
 Problemi aperti:
+- 2026-11-20: A19 (badge Home) senza asserzione smoke; persone fittizie, UAT, rollback Vercel ancora NON eseguiti.
 - 2026-11-16b: kg dallo stato nel player (A18) senza asserzione di smoke; persone fittizie, UAT, rollback ancora NON eseguiti. Chiusi A17, M17, L15, B12.
 - 2026-11-16: B11/A15 CHIUSI (provati da smoke in browser). Aperti A10, A16, A17, M17. Rollback §10 NON eseguito: piano Vercel e deploy Current da annotare; Hobby torna solo al precedente. 2 persone fittizie NON eseguite; UAT di Alessio mai eseguite.
 - Quality/08 obsoleto (sezione Q): verificare.
@@ -18,4 +19,5 @@ File:
 - reports/AAAA-MM-GG-<branch>.md: rapporti completi.
 Comando nucleo: node --experimental-strip-types quality/scripts/safety-core.mts
 Ordine: verify, nucleo, build, smoke, POI offline (mai insieme).
-Tempi (L, 2026-11-16b): verify 10 s, smoke 2m51, offline 35 s.
+
+Tempi (L, 2026-11-20): verify 9 s, smoke 3m00, offline 35 s.
