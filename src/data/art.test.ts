@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EXERCISES } from './exercises.ts';
-import { ART_ATTRIBUTION, REPDB_ART, REPDB_STEP_ART } from './exercise-art.ts';
+import { ART_ATTRIBUTION, FIGURE_SENZA_IMMAGINE, REPDB_ART, REPDB_STEP_ART } from './exercise-art.ts';
 import { PROGRESSION_SCALES } from './progressions.ts';
 
 /**
@@ -154,7 +154,7 @@ describe('illustrazioni RepDB', () => {
      */
     for (const scala of PROGRESSION_SCALES) {
       for (const step of scala.steps) {
-        const coperto = step.slug in REPDB_STEP_ART || STEP_ART.has(step.slug);
+        const coperto = step.slug in REPDB_STEP_ART || STEP_ART.has(step.slug) || FIGURE_SENZA_IMMAGINE.has(step.slug);
         expect(coperto, step.slug).toBe(true);
       }
     }
@@ -162,7 +162,7 @@ describe('illustrazioni RepDB', () => {
 
   it('ogni esercizio ha un disegno, da una fonte o dall’altra', () => {
     for (const exercise of EXERCISES) {
-      const coperto = exercise.slug in REPDB_ART || ART.has(exercise.slug);
+      const coperto = exercise.slug in REPDB_ART || ART.has(exercise.slug) || FIGURE_SENZA_IMMAGINE.has(exercise.slug);
       expect(coperto, exercise.slug).toBe(true);
     }
   });
@@ -170,5 +170,27 @@ describe('illustrazioni RepDB', () => {
   it('l’attribuzione richiesta dalla licenza è presente e punta a RepDB', () => {
     expect(ART_ATTRIBUTION.href).toBe('https://repdb.co');
     expect(ART_ATTRIBUTION.text).toContain('RepDB');
+  });
+});
+
+describe('figure senza immagine, per scelta (audit 2026-11-21)', () => {
+  it('ogni voce è un esercizio o un gradino vero, con il suo motivo, e non ha una foto RepDB', () => {
+    const gradini = new Set(PROGRESSION_SCALES.flatMap((scala) => scala.steps.map((step) => step.slug)));
+    const esercizi = new Set(EXERCISES.map((exercise) => exercise.slug));
+    for (const [chiave, motivo] of FIGURE_SENZA_IMMAGINE) {
+      expect(gradini.has(chiave) || esercizi.has(chiave), chiave).toBe(true);
+      expect(motivo.length, chiave).toBeGreaterThan(10);
+      expect(chiave in REPDB_ART || chiave in REPDB_STEP_ART, chiave).toBe(false);
+    }
+  });
+
+  it('il rematore inverso TRX mostra il TRX, non la sbarra', () => {
+    expect(REPDB_ART['rematore-inverso-trx']?.source).toBe('trx-row');
+  });
+
+  it('la verticale libera non compare dove la scheda chiede il muro', () => {
+    for (const art of [...Object.values(REPDB_ART), ...Object.values(REPDB_STEP_ART)]) {
+      expect(art?.source).not.toBe('handstand-push-ups');
+    }
   });
 });

@@ -1,4 +1,4 @@
-import { REPDB_ART, REPDB_STEP_ART } from '../../data/exercise-art.ts';
+import { FIGURE_SENZA_IMMAGINE, REPDB_ART, REPDB_STEP_ART } from '../../data/exercise-art.ts';
 import { getExercise } from '../../data/exercises.ts';
 import { artFor } from '../../engine/media.ts';
 import type { LevelIndex } from '../../types/index.ts';
@@ -107,6 +107,8 @@ export function ExerciseArt({
   readonly frame?: 'both' | 'last';
 }) {
   const bersaglio = artFor(getExercise(slug), level);
+  /* Una figura che mostra l'attrezzo o la posizione sbagliata non si mostra (2026-11-21). */
+  if (FIGURE_SENZA_IMMAGINE.has(bersaglio.key)) return null;
   const frames =
     bersaglio.kind === 'step'
       ? framesFor(bersaglio.key, REPDB_STEP_ART)

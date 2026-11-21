@@ -73,14 +73,6 @@ export interface RepDbFrames {
  *   orizzontale li vuole rialzati.
  */
 export const REPDB_STEP_ART: Readonly<Record<string, RepDbFrames>> = {
-  'vertical-pull-l1': {
-    source: 'band-assisted-pull-ups',
-    label: 'Band Assisted Pull Ups',
-    frames: [
-      'band-assisted-pull-ups-start.webp',
-      'band-assisted-pull-ups-peak.webp',
-    ],
-  },
   'vertical-pull-l2': {
     source: 'negative-pull-ups',
     label: 'Negative Pull Ups',
@@ -209,11 +201,6 @@ export const REPDB_STEP_ART: Readonly<Record<string, RepDbFrames>> = {
     label: 'Inverted Row',
     frames: ['inverted-row-start.webp', 'inverted-row-peak.webp'],
   },
-  'horizontal-pull-l3': {
-    source: 'trx-row',
-    label: 'TRX Row',
-    frames: ['trx-row-start.webp', 'trx-row-peak.webp'],
-  },
   'horizontal-push-l2': {
     source: 'push-up',
     label: 'Push-Up',
@@ -233,16 +220,6 @@ export const REPDB_STEP_ART: Readonly<Record<string, RepDbFrames>> = {
     source: 'pike-push-ups',
     label: 'Pike Push Ups',
     frames: ['pike-push-ups-start.webp', 'pike-push-ups-peak.webp'],
-  },
-  'vertical-push-l5': {
-    source: 'handstand-push-ups',
-    label: 'Handstand Push Ups',
-    frames: ['handstand-push-ups-start.webp', 'handstand-push-ups-peak.webp'],
-  },
-  'dip-l1': {
-    source: 'bench-dips',
-    label: 'Bench Dips',
-    frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
   },
   'dip-l3': {
     source: 'dips',
@@ -337,20 +314,16 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
     label: 'Close-Grip Pull-Ups',
     frames: ['close-grip-pull-ups-start.webp', 'close-grip-pull-ups-peak.webp'],
   },
+  /* Al TRX, a due maniglie: prima mostrava il rematore alla sbarra (Alessio, 2026-11-21). */
   'rematore-inverso-trx': {
-    source: 'inverted-row',
-    label: 'Inverted Row',
-    frames: ['inverted-row-start.webp', 'inverted-row-peak.webp'],
+    source: 'trx-row',
+    label: 'TRX Row',
+    frames: ['trx-row-start.webp', 'trx-row-peak.webp'],
   },
   'rematore-inverso-trx-piedi-rialzati': {
     source: 'rings-inverted-row',
     label: 'Rings Inverted Row',
     frames: ['rings-inverted-row-start.webp', 'rings-inverted-row-peak.webp'],
-  },
-  'rematore-trx-monobraccio': {
-    source: 'trx-row',
-    label: 'TRX Row',
-    frames: ['trx-row-start.webp', 'trx-row-peak.webp'],
   },
   'push-up': {
     source: 'push-up',
@@ -391,26 +364,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
     source: 'bench-dips',
     label: 'Bench Dips',
     frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
-  },
-  'dip-panche-piedi-rialzati': {
-    source: 'bench-dips',
-    label: 'Bench Dips',
-    frames: ['bench-dips-start.webp', 'bench-dips-peak.webp'],
-  },
-  'pike-pushup-piedi-rialzati': {
-    source: 'pike-push-ups',
-    label: 'Pike Push Ups',
-    frames: ['pike-push-ups-start.webp', 'pike-push-ups-peak.webp'],
-  },
-  'negative-hspu-muro-o-pike-pushup': {
-    source: 'handstand-push-ups',
-    label: 'Handstand Push Ups',
-    frames: ['handstand-push-ups-start.webp', 'handstand-push-ups-peak.webp'],
-  },
-  'bulgarian-split-squat': {
-    source: 'bulgarian-split-squat',
-    label: 'Bulgarian Split Squat',
-    frames: ['bulgarian-split-squat-start.webp', 'bulgarian-split-squat-peak.webp'],
   },
   /*
    * Divisi in due esercizi, quindi anche i disegni si dividono: RepDB ha il
@@ -488,3 +441,33 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
     frames: ['trx-face-pull-start.webp', 'trx-face-pull-peak.webp'],
   },
 };
+
+/**
+ * Esercizi e gradini senza figura, per scelta (audit di exercise-media-lead,
+ * 2026-11-21, `media/reports/2026-11-21-media.md`).
+ *
+ * Qui la figura disponibile mostra un attrezzo, una presa o una posizione
+ * diversa da quella dell'esercizio, e nella libreria non c'è un'alternativa
+ * giusta: meglio nessuna figura che una che insegna il movimento sbagliato.
+ * La verticale libera al posto di quella al muro era il caso peggiore. Si
+ * toglie da qui solo con un disegno nuovo, verificato e approvato da Alessio.
+ */
+export const FIGURE_SENZA_IMMAGINE: ReadonlyMap<string, string> = new Map([
+  ['vertical-pull-l1', 'La foto mostra l’elastico; la nota della seduta dice piede sul box.'],
+  ['horizontal-pull-l3', 'Il TRX orizzontale si disegnava con lo stesso angolo dei gradini 1 e 2.'],
+  ['vertical-push-l5', 'La foto è una verticale libera su parallette, senza muro.'],
+  ['dip-l1', 'Una panca sola: il dip è tra due panche.'],
+  ['hang-l1', 'Mancano i piedi a terra.'],
+  ['hang-l3', 'Mostra la sbarra, non la trave a pinza.'],
+  ['hang-l4', 'Due mani invece di una.'],
+  ['hang-l5', 'Due mani invece di una.'],
+  ['hang-l6', 'Due mani e niente asciugamano.'],
+  ['single-leg-squat-l5', 'È lo skater squat: manca la mano sul piede dietro dello shrimp.'],
+  ['vertical-push-l6', 'Manca il deficit.'],
+  ['horizontal-push-l6', 'Manca la zavorra.'],
+  ['pike-pushup-piedi-rialzati', 'La foto ha i piedi a terra; il disegno col rialzo è da rifare.'],
+  ['negative-hspu-muro-o-pike-pushup', 'La foto è una verticale libera, senza muro.'],
+  ['estensione-tricipiti-sopra-testa', 'Disegna una barra, non il kettlebell tenuto per le corna.'],
+  ['stacco-rumeno-manubri', 'Disegna una barra unica, si legge come bilanciere.'],
+  ['curl-manubri-supino', 'Disegna una barra unica, si legge come bilanciere.'],
+]);
