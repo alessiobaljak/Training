@@ -1141,3 +1141,25 @@ describe('R21 · il dead hang della decompressione resta fuori dalla revisione (
     expect(r.setsCounted).toBe(senza.setsCounted);
   });
 });
+
+describe('B18 (S5) · scendendo di gradino la zavorra si toglie', () => {
+  it('trazioni al 6 con 5 kg, due sedute sotto il minimo: al 5 senza zavorra, e il testo lo dice', () => {
+    const sei = { level: 6 as LevelIndex, loadKg: 5 };
+    const r = rivedi(
+      2,
+      [seduta('2026-03-04', [voce(TRAZIONI, [3, 3, 3], sei)]), seduta('2026-03-11', [voce(TRAZIONI, [3, 3, 3], sei)])],
+      [stato(TRAZIONI, sei)],
+    );
+    expect(r.verdicts[0]?.kind).toBe('scendi-di-livello');
+    expect(r.verdicts[0]?.stateAfter).toEqual(expect.objectContaining({ level: 5, loadKg: 0 }));
+    expect(r.verdicts[0]?.change).toBe(
+      'Livello 6 → 5. Tempo e pause tornano a quelli della scheda; la zavorra si toglie, perché si mette solo all’ultimo gradino.',
+    );
+  });
+
+  it('senza zavorra il testo resta quello di prima', () => {
+    const r = rivedi(2, [seduta('2026-03-04', [S([9, 9])]), seduta('2026-03-11', [S([9])])], [stato(PUSH)]);
+    expect(r.verdicts[0]?.change).toBe('Livello 2 → 1. Tempo e pause tornano a quelli della scheda.');
+    expect(r.verdicts[0]?.stateAfter.loadKg).toBe(0);
+  });
+});

@@ -577,6 +577,12 @@ function reviewInterna(
       if (sotto === values.length) {
         if (exercise.pattern !== null && before.level !== null && giu !== null) {
           const step = getProgressionStep(exercise.pattern, giu);
+          /*
+           * B18 (S5): sotto l'ultimo gradino la zavorra non sta. Prima si
+           * scendeva dal 6 al 5 con gli stessi 5 kg, e il testo non lo diceva.
+           * Sui manubri il peso è l'esercizio, non zavorra: resta.
+           */
+          const togliZavorra = exercise.loadPolicy !== 'inherent' && before.loadKg > 0;
           return {
             tipo: 'verdetto',
             verdict: {
@@ -586,11 +592,17 @@ function reviewInterna(
               lever: 'variant',
               title: `Scendi al livello ${String(giu)}: ${step.name}`,
               evidence: `${numeri} Sotto il minimo su ${serie(sotto)} su ${String(values.length)}: il gradino è più alto di quello che regge.`,
-              change: `Livello ${String(before.level)} → ${String(giu)}. Tempo e pause tornano a quelli della scheda.`,
+              change: `Livello ${String(before.level)} → ${String(giu)}. Tempo e pause tornano a quelli della scheda${togliZavorra ? '; la zavorra si toglie, perché si mette solo all’ultimo gradino' : ''}.`,
               caution:
                 'Scendere di gradino non è un passo indietro: è l’unico modo di fare le ripetizioni che il programma chiede, invece di tre mezze ripetizioni a serie.',
               stateBefore: before,
-              stateAfter: { ...before, level: giu, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
+              stateAfter: {
+                ...before,
+                level: giu,
+                eccentricBonusSeconds: 0,
+                bottomPauseBonusSeconds: 0,
+                ...(togliZavorra ? { loadKg: 0 } : {}),
+              },
             },
           };
         }
