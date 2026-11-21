@@ -415,6 +415,15 @@ describe('quello che scrivi torna nello stato', () => {
     loadKg,
   });
 
+  it('23.7 · gradino cambiato a mano dal 6 al 5 con 5 kg e +2″/+2″: {5, 0, 0, 0 kg} (R23, L42)', () => {
+    const session = loggedSession('2026-01-05', 1, [
+      { ...loggedExercise('trazioni-prona-presa-media', sets([4, 4, 4], 5), { blockCode: 'A1' }), level: 5 },
+    ]);
+    const prima: ExerciseState = { ...stato('trazioni-prona-presa-media', 6, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
+    const changed = syncStatesFromLog(session, new Map([['trazioni-prona-presa-media', prima]]));
+    expect(changed[0]).toEqual(expect.objectContaining({ level: 5, loadKg: 0, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }));
+  });
+
   it('porta nello stato il carico davvero usato', () => {
     const session = loggedSession('2026-01-05', 1, [
       loggedExercise('chin-up-presa-supina-stretta', sets([8, 8, 7], 5), { blockCode: 'D' }),

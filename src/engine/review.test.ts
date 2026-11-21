@@ -1153,7 +1153,7 @@ describe('B18 (S5) · scendendo di gradino la zavorra si toglie', () => {
     expect(r.verdicts[0]?.kind).toBe('scendi-di-livello');
     expect(r.verdicts[0]?.stateAfter).toEqual(expect.objectContaining({ level: 5, loadKg: 0 }));
     expect(r.verdicts[0]?.change).toBe(
-      'Livello 6 → 5. Tempo e pause tornano a quelli della scheda; la zavorra si toglie, perché si mette solo all’ultimo gradino.',
+      'Livello 6 → 5. Tempo e pause tornano a quelli della scheda; la zavorra si toglie: sotto l’ultimo gradino il programma non la usa.',
     );
   });
 
@@ -1163,3 +1163,32 @@ describe('B18 (S5) · scendendo di gradino la zavorra si toglie', () => {
     expect(r.verdicts[0]?.stateAfter.loadKg).toBe(0);
   });
 });
+
+describe('R23 · ogni cambio di gradino porta la zavorra a 0', () => {
+  const SOTTO = 'la zavorra si toglie: sotto l’ultimo gradino il programma non la usa';
+
+  it('23.2 · push-up al 2 con 10 kg scritti, sotto il minimo due volte: al 1 a 0 kg, stesso testo', () => {
+    const due = { level: 2 as LevelIndex, loadKg: 10 };
+    const r = rivedi(2, [seduta('2026-03-04', [voce(PUSH, [9, 9], due)]), seduta('2026-03-11', [voce(PUSH, [9], due)])], [stato(PUSH, due)]);
+    expect(r.verdicts[0]?.stateAfter).toEqual(expect.objectContaining({ level: 1, loadKg: 0, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }));
+    expect(r.verdicts[0]?.change).toBe(`Livello 2 → 1. Tempo e pause tornano a quelli della scheda; ${SOTTO}.`);
+  });
+
+  it('23.3 · push-up al 2 con 5 kg scritti, sopra il massimo: si sale a 0 kg, con la clausola (L14)', () => {
+    const due = { level: 2 as LevelIndex, loadKg: 5 };
+    const r = rivedi(
+      2,
+      [storia(PUSH), seduta('2026-03-04', [voce(PUSH, [19, 19, 19], due)]), seduta('2026-03-11', [voce(PUSH, [19, 19, 19], due)])],
+      [stato(PUSH, due)],
+    );
+    expect(r.verdicts[0]?.kind).toBe('sali-di-livello');
+    expect(r.verdicts[0]?.stateAfter).toEqual(expect.objectContaining({ level: 3, loadKg: 0 }));
+    expect(r.verdicts[0]?.change).toBe(`Livello 2 → 3. Si riparte dal minimo del range, al tempo della scheda; ${SOTTO}.`);
+  });
+
+  it('23.8 · a 0 kg i testi della salita restano quelli di prima', () => {
+    const r = rivedi(2, [storia(PUSH), seduta('2026-03-04', [S([19, 19, 19])]), seduta('2026-03-11', [S([19, 19, 19])])], [stato(PUSH)]);
+    expect(r.verdicts[0]?.change).toBe('Livello 2 → 3. Si riparte dal minimo del range, al tempo della scheda.');
+  });
+});
+

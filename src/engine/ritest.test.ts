@@ -44,7 +44,7 @@ describe('R9b · un test dopo la settimana 0 può solo far scendere', () => {
       expect.objectContaining({ level: 1, loadKg: 0, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }),
     );
     expect(proposta?.verdict.change).toBe(
-      'Livello 6 → 1. Tempo e pause tornano a quelli della scheda; la zavorra si toglie, perché si mette solo all’ultimo gradino.',
+      'Livello 6 → 1. Tempo e pause tornano a quelli della scheda; la zavorra si toglie: sotto l’ultimo gradino il programma non la usa.',
     );
   });
 

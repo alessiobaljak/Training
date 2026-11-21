@@ -13,7 +13,7 @@ import type {
 } from '../types/index.ts';
 import { findExercise, getExercise } from '../data/exercises.ts';
 import { effectiveSets } from './schedule.ts';
-import { livelloVoci } from './progression.ts';
+import { livelloVoci, zavorraDopoIlCambio } from './progression.ts';
 import type { SessionStep } from './rest.ts';
 
 /**
@@ -449,9 +449,11 @@ export function syncStatesFromLog(
     const manubrioCambiato = exercise.loadPolicy === 'inherent' && loadKg !== before.loadKg;
     /* D-23 (a), Alessio, 2026-11-20: lo stesso per un gradino cambiato a mano. */
     const gradinoCambiato = level !== before.level;
+    /* R23 (L42): un gradino cambiato a mano non si porta dietro la zavorra; i manubri restano. */
+    const kgDopo = gradinoCambiato ? zavorraDopoIlCambio(exercise, { ...before, loadKg }, level).loadKg : loadKg;
     changed.push(
       manubrioCambiato || gradinoCambiato
-        ? { ...before, level, loadKg, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }
+        ? { ...before, level, loadKg: kgDopo, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }
         : { ...before, level, loadKg },
     );
   }

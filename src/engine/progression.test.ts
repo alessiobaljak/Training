@@ -3,6 +3,7 @@ import {
   MAX_ECCENTRIC_SECONDS,
   MAX_ISO_PAUSE_SECONDS,
   applyLever,
+  leverChange,
   effectiveTempo,
   evaluateProgression,
   initialExerciseState,
@@ -518,14 +519,20 @@ describe('applicazione del suggerimento', () => {
     });
   });
 
-  it('la leva variante non tocca la zavorra già in uso', () => {
+  it('23.5 · la leva variante porta la zavorra a 0, e il testo lo dice (R23, L14)', () => {
     const input = makeInput({
       sessionId: 'upper-a',
       code: 'A2',
       loggedSets: sets([8, 8, 8, 8]),
       state: { loadKg: 5 },
     });
-    expect(applyLever('variant', input).loadKg).toBe(5);
+    expect(applyLever('variant', input).loadKg).toBe(0);
+    expect(leverChange('variant', input)).toMatch(/; la zavorra (si toglie: sotto l’ultimo gradino il programma non la usa|riparte da zero: all’ultimo gradino è il programma a proporla)\.$/);
+  });
+
+  it('23.8 · a 0 kg il testo della leva variante resta quello di prima', () => {
+    const input = makeInput({ sessionId: 'upper-a', code: 'A2', loggedSets: sets([8, 8, 8, 8]) });
+    expect(leverChange('variant', input).endsWith('riparti dal minimo del range.')).toBe(true);
   });
 
   it('la leva zavorra aggiunge 2,5 kg', () => {

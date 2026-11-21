@@ -15,7 +15,7 @@ import { getProgressionStep } from '../data/progressions.ts';
 import { getTest } from '../data/tests.ts';
 import { formatDayLong } from './dates.ts';
 import { titleAtLevel } from './draft.ts';
-import { rigaOtto } from './progression.ts';
+import { rigaOtto, zavorraDopoIlCambio } from './progression.ts';
 import type { RigaOtto } from './progression.ts';
 import type { WeeklyVerdict } from './review.ts';
 import type { ExerciseSlug, ExerciseState, LevelIndex, TestId, TestResult } from '../types/index.ts';
@@ -95,7 +95,8 @@ export function propostaRitest(
     risultato.value === 0
       ? `${fonte(risultato)}: 0 al test ${test.label}. Il livello ${L} oggi è troppo alto: si riparte dal primo gradino.`
       : `${fonte(risultato)}: ${String(risultato.value)}${u} al test ${test.label}, al livello ${String(riga.livelloTest)}. Per il range di ${riga.dove} (${range}) ne servono almeno ${String(riga.soglia)}${u}: il livello ${L} oggi è troppo alto.`;
-  const zavorra = stato.loadKg > 0;
+  /* R23: cambiando gradino la zavorra torna a 0, e il testo lo dice. */
+  const zavorra = zavorraDopoIlCambio(exercise, stato, g);
 
   return {
     id: ritestDecisionId(risultato.date, slug),
@@ -108,11 +109,11 @@ export function propostaRitest(
       lever: 'variant',
       title: `Riparti dal livello ${String(g)}: ${getProgressionStep(riga.pattern, g).name}`,
       evidence,
-      change: `Livello ${L} → ${String(g)}. Tempo e pause tornano a quelli della scheda${zavorra ? '; la zavorra si toglie, perché si mette solo all’ultimo gradino' : ''}.`,
+      change: `Livello ${L} → ${String(g)}. Tempo e pause tornano a quelli della scheda${zavorra.clausola === null ? '' : `; ${zavorra.clausola}`}.`,
       caution: CAUTELA,
       stateBefore: stato,
       /* Sotto l'ultimo gradino la zavorra non sta (S5). */
-      stateAfter: { ...stato, level: g, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 },
+      stateAfter: { ...stato, level: g, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: zavorra.loadKg },
     },
   };
 }

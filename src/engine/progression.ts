@@ -89,6 +89,31 @@ function firstExecutableLevel(pattern: MotorPattern): LevelIndex {
   return adjacentLevel(pattern, 1, 1, true) ?? 1;
 }
 
+/**
+ * R23: ogni cambio di gradino porta la zavorra a 0, in discesa, in salita e
+ * a mano. La zavorra la propone il programma, e solo all'ultimo gradino (S5,
+ * R6): tenuta su un gradino nuovo, i kg scritti a mano diventerebbero un
+ * numero prescritto. Sui manubri il peso è l'esercizio, e resta.
+ *
+ * `clausola` va in coda al testo del cambio, e solo se prima c'erano kg.
+ */
+export function zavorraDopoIlCambio(
+  exercise: Exercise,
+  prima: ExerciseState,
+  livello: LevelIndex | null,
+): { readonly loadKg: number; readonly clausola: string | null } {
+  if (exercise.loadPolicy !== 'allowed') return { loadKg: prima.loadKg, clausola: null };
+  if (prima.loadKg <= 0) return { loadKg: 0, clausola: null };
+  /* Le scale hanno sei gradini: il sesto è l'ultimo. */
+  return {
+    loadKg: 0,
+    clausola:
+      livello === 6
+        ? 'la zavorra riparte da zero: all’ultimo gradino è il programma a proporla'
+        : 'la zavorra si toglie: sotto l’ultimo gradino il programma non la usa',
+  };
+}
+
 /** Cosa usa la riga 8 di R1 per un esercizio: la lettura che R9b rifà dopo un ritest. */
 export interface RigaOtto {
   readonly pattern: MotorPattern;
@@ -1018,13 +1043,15 @@ function buildSuggestion(
         return { lever, title, change: 'Nessuna variante più difficile disponibile.', warning: null, nextState: state };
       }
       const step = getProgressionStep(pattern, nextLevel);
+      /* R23 (L14): salendo, la zavorra scritta a mano non segue il gradino nuovo. */
+      const zavorra = zavorraDopoIlCambio(input.exercise, state, nextLevel);
       const achieved = meanValue(input.logged);
       const low = Math.max(1, Math.round(achieved * (1 - VARIANT_JUMP_REP_LOSS.max)));
       const high = Math.max(low, Math.round(achieved * (1 - VARIANT_JUMP_REP_LOSS.min)));
       return {
         lever,
         title,
-        change: `Sali al livello ${String(nextLevel)}: ${step.name}. Torna al tempo prescritto dalla scheda e riparti dal minimo del range.`,
+        change: `Sali al livello ${String(nextLevel)}: ${step.name}. Torna al tempo prescritto dalla scheda e riparti dal minimo del range${zavorra.clausola === null ? '' : `; ${zavorra.clausola}`}.`,
         warning: `Aspettati di scendere a ${String(low)}-${String(high)} ripetizioni. Perdere il 30-40% salendo di variante è normale e corretto: è il segno che il carico è aumentato davvero.`,
         nextState: {
           ...state,
@@ -1034,6 +1061,7 @@ function buildSuggestion(
           // quella vecchia.
           eccentricBonusSeconds: 0,
           bottomPauseBonusSeconds: 0,
+          loadKg: zavorra.loadKg,
         },
       };
     }
@@ -1441,6 +1469,11 @@ export function applyLever(
   input: ProgressionInput,
 ): ExerciseState {
   return buildSuggestion(lever, input).nextState;
+}
+
+/** Il testo del cambio di una leva, quello che l'atleta legge prima di «Applica». */
+export function leverChange(lever: OverloadLever, input: ProgressionInput): string {
+  return buildSuggestion(lever, input).change;
 }
 
 export interface TestOutcome {

@@ -10,6 +10,7 @@ import { assessLoadNeed, getLoadAvailability, stepLoad } from './loading.ts';
 import {
   DURATA_MASSIMA_SECONDI,
   aumentoRecente,
+  zavorraDopoIlCambio,
   effectiveTempo,
   initialExerciseState,
   isFixedRange,
@@ -579,12 +580,8 @@ function reviewInterna(
       if (sotto === values.length) {
         if (exercise.pattern !== null && before.level !== null && giu !== null) {
           const step = getProgressionStep(exercise.pattern, giu);
-          /*
-           * B18 (S5): sotto l'ultimo gradino la zavorra non sta. Prima si
-           * scendeva dal 6 al 5 con gli stessi 5 kg, e il testo non lo diceva.
-           * Sui manubri il peso è l'esercizio, non zavorra: resta.
-           */
-          const togliZavorra = exercise.loadPolicy !== 'inherent' && before.loadKg > 0;
+          /* B18 e R23 (S5): cambiando gradino la zavorra torna a 0; sui manubri il peso resta. */
+          const zavorra = zavorraDopoIlCambio(exercise, before, giu);
           return {
             tipo: 'verdetto',
             verdict: {
@@ -594,7 +591,7 @@ function reviewInterna(
               lever: 'variant',
               title: `Scendi al livello ${String(giu)}: ${step.name}`,
               evidence: `${numeri} Sotto il minimo su ${serie(sotto)} su ${String(values.length)}: il gradino è più alto di quello che regge.`,
-              change: `Livello ${String(before.level)} → ${String(giu)}. Tempo e pause tornano a quelli della scheda${togliZavorra ? '; la zavorra si toglie, perché si mette solo all’ultimo gradino' : ''}.`,
+              change: `Livello ${String(before.level)} → ${String(giu)}. Tempo e pause tornano a quelli della scheda${zavorra.clausola === null ? '' : `; ${zavorra.clausola}`}.`,
               caution:
                 'Scendere di gradino non è un passo indietro: è l’unico modo di fare le ripetizioni che il programma chiede, invece di tre mezze ripetizioni a serie.',
               stateBefore: before,
@@ -603,7 +600,7 @@ function reviewInterna(
                 level: giu,
                 eccentricBonusSeconds: 0,
                 bottomPauseBonusSeconds: 0,
-                ...(togliZavorra ? { loadKg: 0 } : {}),
+                loadKg: zavorra.loadKg,
               },
             },
           };
@@ -724,6 +721,8 @@ function reviewInterna(
         }
         if (recente !== null) return fermoSetteGiorni();
         const step = getProgressionStep(exercise.pattern, su);
+        /* R23 (L14): anche salendo la zavorra scritta a mano non segue il gradino nuovo. */
+        const zavorraSu = zavorraDopoIlCambio(exercise, before, su);
         return {
           tipo: 'verdetto',
           verdict: {
@@ -733,11 +732,11 @@ function reviewInterna(
             lever: 'variant',
             title: `Sali al livello ${String(su)}: ${step.name}`,
             evidence: `${numeri} Sopra il massimo su tutte e ${String(values.length)} le serie.`,
-            change: `Livello ${String(before.level)} → ${String(su)}. Si riparte dal minimo del range, al tempo della scheda.`,
+            change: `Livello ${String(before.level)} → ${String(su)}. Si riparte dal minimo del range, al tempo della scheda${zavorraSu.clausola === null ? '' : `; ${zavorraSu.clausola}`}.`,
             caution:
               'Aspettati di perdere il 30-40% delle ripetizioni. È normale e corretto: è il segno che il carico è aumentato davvero.',
             stateBefore: before,
-            stateAfter: { ...before, level: su, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 },
+            stateAfter: { ...before, level: su, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: zavorraSu.loadKg },
           },
         };
       }
