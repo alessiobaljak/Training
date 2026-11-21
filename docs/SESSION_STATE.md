@@ -76,6 +76,7 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 8. Bundle ID per TestFlight (in sospeso).
 
 ## Decisioni prese
+- **Comunicazione (Alessio, 2026-11-21):** niente aggiornamenti passo per passo. Si scrive solo alla fine, con il risultato e le domande, in modo conciso.
 - **2026-11-21, Alessio:**
   - **B6:** ha sbarra, anelli, TRX, corde, elastici, kettlebell da 8, 12, 20
     e 24 kg e tutti i macchinari classici da palestra. B6 vale solo per il
