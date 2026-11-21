@@ -139,3 +139,16 @@ pavimento); `respirazione-360` (tronco 12–14 u sopra).
 tratto sul bordo del pavimento (GENERATOR_SPEC §4.27). Con uno stile più
 spesso il contatto si ricalcola dallo spessore (STYLE_TRIALS §1.7, B2).
 **Come si trova prima**: y del punto più basso del tronco contro `FLOOR`.
+
+## R12 — Il registro resta indietro rispetto al codice (42 righe; nuovo 2026-11-21)
+**Sintomo**: LIBRARY.md dice `da rifare` o `da verificare` per immagini che
+l'app non mostra più, o non ha la riga di quelle che mostra. Il registro
+racconta una libreria che non c'è.
+**Casi**: dopo `50793fd`, `c8964ff` e `3b548e4` (sessione principale, stesso
+giorno dell'audit): 22 righe RepDB tolte dalle voci, 20 SVG nascoste da
+`FIGURE_SENZA_IMMAGINE`, 2 righe `trx-row` mancanti per `rematore-inverso-trx`.
+**Correzione**: allineate il 2026-11-21 (`ritirata`, con il commit).
+**Come si trova prima**: a ogni invocazione, prima di tutto,
+`node --experimental-strip-types media/scripts/library-drift.mts`. Nessuna
+riga stampata = allineato. Le foto generate (fonte 3) entreranno nello
+stesso controllo quando il codice avrà la loro tabella.

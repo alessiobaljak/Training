@@ -32,6 +32,9 @@ da cercare per primo, non l'anatomia.
   `verificata` con la riserva scritta in LIBRARY.md; **due o più** ⇒ `da rifare`.
 - Un PROBLEMA su pulizia (7) ⇒ `da rifare` sempre: testo e frecce dentro
   l'immagine non sono traducibili e non si correggono a valle.
+- Un PROBLEMA su corrispondenza (1) ⇒ `da rifare` (figura) o rimappare /
+  ritirare (foto RepDB). Mancava dalla regola fino al 2026-11-21, anche se
+  era già applicata così (R11).
 - `verificata` non è `approvata`. Approva solo Alessio, dopo la verifica
   indipendente di `training-quality`.
 
@@ -76,3 +79,42 @@ senza orfane, `currentColor` e nessun colore fisso, stessa tela `0 0 210 110`,
 nessuna immagine RepDB copiata e mai usata (termine 3 della licenza).
 Quello che i test **non** possono vedere è se la figura dice la verità: è
 esattamente il lavoro di questa checklist.
+
+## 5. Foto generate da testo (fonte 3) — dal 2026-11-21
+Si guarda il file finito (768×768), non il grezzo. Prima la provenienza,
+poi l'immagine; **contro la scheda, mai contro una foto RepDB dello stesso
+esercizio** (nessun confronto affiancato: LICENSING §3.3, C2).
+
+| # | punto | cosa guardo |
+|---|---|---|
+| G0 | Provenienza | riga in LIBRARY.md con modello@sha, seme, data; `media/prompts/<chiave>.md` uguale al prompt eseguito; nel prompt nessun rimando a RepDB (cerca `repdb`, `library`, `existing`, `same style`, `blue`, nomi di file); servizio registrato e «Prompt Enhance» spento (C3–C5); per E, ingresso = fotogramma 1 registrato e verificato |
+| G1 | Corrispondenza | stesso esercizio, fase giusta in ogni fotogramma, ordine partenza → arrivo; contro nome, cue, `frames` e `variantNote` del blocco (R11) |
+| G2 | Posizione | ogni voce «leggibile» di `frames[n]` si vede; ripetizione valida, non l'errore tipico; colonna, ginocchia-piedi, spalle e scapole, presa e larghezza della presa come nei cue; gli appoggi toccano davvero (ombra di contatto) |
+| G3 | Mani e dita | cinque dita per mano, nessuna fusa, doppia o mancante; le dita avvolgono la maniglia, non la attraversano; pollice dal lato giusto; polso diritto se la scheda non dice altro. **Si ingrandisce sempre**, sulle mani |
+| G4 | Arti e articolazioni | due braccia, due gambe, due piedi con scarpe uguali; gomiti e ginocchia piegati nel verso naturale; nessun arto fuso con il tronco o con l'attrezzo; lunghezze uguali fra i due fotogrammi |
+| G5 | Attrezzo | quello della scheda e nessun altro; forma intera e possibile (kettlebell con una maniglia sola, corda unica piegata con due capi, anello chiuso, cinghie che salgono a un ancoraggio); tenuto come dicono i cue; misura plausibile |
+| G6 | Pulizia | nessun testo, numero, freccia, logo, marchio, etichetta, filigrana, anche minuscoli: su vestiti, scarpe, attrezzo, fondale; nessun'altra persona o oggetto |
+| G7 | Due fotogrammi coerenti | stessa persona (volto, capelli, corporatura), stessi vestiti, luce, macchina, scala, fondale; nessuna linea dal taglio del dittico; cambia solo la posa |
+| G8 | Persona | non riconoscibile: nessuna somiglianza evidente con una persona nota; nessun tratto che la renda unica |
+| G9 | Stile | STYLE_GUIDE §8: fondale, vestiti, luce, inquadratura, corpo intero con margine; non ha l'aspetto di un'illustrazione o di un render |
+| G10 | Leggibilità | a 170 px di larghezza (un fotogramma affiancato sul telefono) si capisce quale esercizio è e in che fase |
+| G11 | File | webp 768×768, ≤ 60 KB, `src/assets/exercises-ai/<chiave>-1.webp` e `-2.webp`, nessun metadato oltre l'XMP di C7 |
+
+**Scarto**
+- G0 ⇒ `ritirata`: un'immagine di provenienza incerta non si ripara, si
+  rigenera da capo.
+- G1, G2, G3, G4, G6 o G8 ⇒ `da rifare`. Mani e dita non si perdonano perché
+  piccole: la presa è tecnica.
+- G5 ⇒ `da rifare` se l'attrezzo è sbagliato o impossibile; riserva se è
+  solo poco nitido.
+- G7, G9, G10, G11: uno ⇒ `verificata` con riserva; due ⇒ `da rifare`.
+- Si rifà cambiando **prima il seme**, poi il prompt. Se due semi sbagliano
+  la stessa cosa, il difetto è nel prompt: si corregge e va in REJECTIONS.md.
+
+**Come si guarda**
+- Stesso script, accetta anche webp: `node media/scripts/contact-sheet.mjs
+  <out.png> 4 170 /percorso/assoluto/<chiave>-1.webp::partenza ...`. Primo
+  passaggio a 170 px (il telefono); secondo a 768 px solo su mani, piedi e
+  contatto con l'attrezzo.
+- Il pilota si guarda **tutto**, compresi i semi scartati: dice se il prompt
+  regge o se è stato fortunato.
