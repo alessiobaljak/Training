@@ -54,12 +54,21 @@ async function ovunque<T>(store: DocumentStore, table: TableName): Promise<T[]> 
   return [...unione.values()];
 }
 
-/** I test più recenti fino a quel giorno compreso: quelli con cui l'app calcolava il gradino. */
+/**
+ * T-39: per ogni test, l'ultimo risultato **prima** di quel giorno; se non ce
+ * n'è nessuno, quello dello stesso giorno. Un ritest fatto il giorno della
+ * seduta non è il gradino con cui ci si è allenati, ma chi ha fatto test
+ * d'ingresso e prima seduta lo stesso giorno non deve finire al gradino 1.
+ */
 function testAllaData(
   risultati: readonly StoredTestResult[],
   data: string,
 ): ReadonlyMap<TestId, TestResult> {
-  return latestTestResults(risultati.filter((risultato) => risultato.date <= data));
+  const prima = latestTestResults(risultati.filter((risultato) => risultato.date < data));
+  const stessoGiorno = latestTestResults(risultati.filter((risultato) => risultato.date === data));
+  const tutti = new Map(prima);
+  for (const [id, risultato] of stessoGiorno) if (!tutti.has(id)) tutti.set(id, risultato);
+  return tutti;
 }
 
 function now(): string {

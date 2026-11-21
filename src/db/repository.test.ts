@@ -593,3 +593,57 @@ describe('R9b · le proposte di un ritest nel repository', () => {
   });
 });
 
+describe('T-39 · gli stati si fissano con i test di prima della seduta', () => {
+  const TRAZIONI = 'trazioni-prona-presa-media';
+  const seduta = (date: string, stato: 'completed' | 'in-progress' = 'completed'): LoggedSession => ({
+    id: `t39-${date}`,
+    date,
+    week: 1,
+    sessionId: 'circuito-1',
+    status: stato,
+    exercises: [{ ...loggedExercise(TRAZIONI, sets([6, 6, 6]), { blockCode: 'A1' }), level: 3 }],
+    note: null,
+  });
+  /* Le due vie: la migrazione e «Archivia». */
+  const vie: readonly [string, (repo: ShadowRepository, s: LoggedSession) => Promise<unknown>][] = [
+    ['migrazione', async (repo, s) => { await repo.saveSession(s); await repo.fissaStatiMancanti(); }],
+    ['Archivia', async (repo, s) => { const aperta = { ...s, status: 'in-progress' as const }; await repo.saveSession(aperta); await repo.archiviaSeduta(aperta); }],
+  ];
+
+  for (const [via, chiudi] of vie) {
+    it(`9.30 (${via}) · test 8, ritest 4 lo stesso giorno della seduta: fissato 3, e R9b propone 3 → 1`, async () => {
+      const repo = new ShadowRepository(new MemoryStore());
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-03-01', 0, 8));
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-04-11', 6, 4));
+      await chiudi(repo, seduta('2026-04-11'));
+      expect((await repo.getExerciseState(TRAZIONI)).level).toBe(3);
+      const proposte = (await repo.proposteRitest()).filter((p) => p.verdict.exercise === TRAZIONI);
+      expect(proposte.map((p) => p.verdict.stateAfter.level)).toEqual([1]);
+    });
+
+    it(`9.31 (${via}) · test 4, ritest 9 lo stesso giorno: fissato 1, nessuna proposta`, async () => {
+      const repo = new ShadowRepository(new MemoryStore());
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-03-01', 0, 4));
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-04-11', 6, 9));
+      await chiudi(repo, seduta('2026-04-11'));
+      expect((await repo.getExerciseState(TRAZIONI)).level).toBe(1);
+      expect((await repo.proposteRitest()).filter((p) => p.verdict.exercise === TRAZIONI)).toEqual([]);
+    });
+
+    it(`9.37 (${via}) · test d'ingresso e prima seduta lo stesso giorno: vale quel test`, async () => {
+      const repo = new ShadowRepository(new MemoryStore());
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-03-01', 0, 8));
+      await chiudi(repo, seduta('2026-03-01'));
+      expect((await repo.getExerciseState(TRAZIONI)).level).toBe(3);
+    });
+
+    it(`9.38 (${via}) · un ritest del giorno dopo la seduta non entra`, async () => {
+      const repo = new ShadowRepository(new MemoryStore());
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-03-01', 0, 4));
+      await repo.saveTestResult(testResultSingle('pull-up', '2026-04-12', 6, 9));
+      await chiudi(repo, seduta('2026-04-11'));
+      expect((await repo.getExerciseState(TRAZIONI)).level).toBe(1);
+    });
+  }
+});
+
