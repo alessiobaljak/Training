@@ -84,7 +84,7 @@ fatto sui `cues`.
 | horizontal-push-l3 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l3.svg | 2026-11-08 |  |
 | horizontal-push-l4 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l4.svg | 2026-11-08 |  |
 | horizontal-push-l5 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l5.svg | 2026-11-08 |  |
-| horizontal-push-l6 | inizio+fine | generata | `pushup` | da verificare | src/assets/steps/horizontal-push-l6.svg | 2026-11-08 |  |
+| horizontal-push-l6 | inizio+fine | generata | `pushup` | da rifare | src/assets/steps/horizontal-push-l6.svg | 2026-11-21 | attrezzo (R1): «push-up zavorrati» senza zavorra disegnata |
 | vertical-push-l1 | inizio+fine | generata | `pike` | da rifare | src/assets/steps/vertical-push-l1.svg | 2026-11-12 | Stessa posa di pike-pushup-piedi-rialzati: testa 95 gradi fuori asse nel pannello 1, gomito dentro la testa nel pannello 2 — spec 4.2 |
 | vertical-push-l2 | inizio+fine | generata | `pike` | da rifare | src/assets/steps/vertical-push-l2.svg | 2026-11-12 | Stessa posa di pike-pushup-piedi-rialzati: testa 95 gradi fuori asse nel pannello 1, gomito dentro la testa nel pannello 2 — spec 4.2 |
 | vertical-push-l3 | inizio+fine | generata | `hspu` | da rifare | src/assets/steps/vertical-push-l3.svg | 2026-11-12 | Stessa posa di negative-hspu-muro-o-pike-pushup: testa 58 gradi fuori asse nel pannello 1 — spec 4.2 |
@@ -101,7 +101,7 @@ fatto sui `cues`.
 | single-leg-squat-l2 | inizio+fine | generata | `split-squat` | da verificare | src/assets/steps/single-leg-squat-l2.svg | 2026-11-08 |  |
 | single-leg-squat-l3 | inizio+fine | generata | `split-squat` | da verificare | src/assets/steps/single-leg-squat-l3.svg | 2026-11-08 |  |
 | single-leg-squat-l4 | inizio+fine | generata | `shrimp` | da verificare | src/assets/steps/single-leg-squat-l4.svg | 2026-11-08 |  |
-| single-leg-squat-l5 | inizio+fine | generata | `shrimp` | da verificare | src/assets/steps/single-leg-squat-l5.svg | 2026-11-08 |  |
+| single-leg-squat-l5 | inizio+fine | generata | `shrimp` | da rifare | src/assets/steps/single-leg-squat-l5.svg | 2026-11-21 | presa (R1): stesso SVG dello skater (l4), manca la mano che tiene il piede dietro |
 | single-leg-squat-l6 | inizio+fine | generata | `shrimp` | da verificare | src/assets/steps/single-leg-squat-l6.svg | 2026-11-08 |  |
 | posterior-chain-l1 | inizio+fine | generata | `hip-thrust` `{bench:false}` | verificata | src/assets/steps/posterior-chain-l1.svg | 2026-11-12 | Come hip-thrust-l3, identica e giustificata. In app vince la foto RepDB |
 | posterior-chain-l2 | inizio+fine | generata | `nordic` | da verificare | src/assets/steps/posterior-chain-l2.svg | 2026-11-08 |  |
@@ -163,12 +163,12 @@ fatto sui `cues`.
 | l-sit-l4 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l4.svg | 2026-11-08 |  |
 | l-sit-l5 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l5.svg | 2026-11-08 |  |
 | l-sit-l6 | unica | generata | `lsit` | da verificare | src/assets/steps/l-sit-l6.svg | 2026-11-08 |  |
-| hang-l1 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l1.svg | 2026-11-08 |  |
+| hang-l1 | unica | generata | `hang-hold` | da rifare | src/assets/steps/hang-l1.svg | 2026-11-21 | posizione (R1): sei gradini hang con lo stesso SVG; qui i piedi devono sfiorare terra e non c'è pavimento |
 | hang-l2 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l2.svg | 2026-11-08 |  |
-| hang-l3 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l3.svg | 2026-11-08 |  |
-| hang-l4 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l4.svg | 2026-11-08 |  |
-| hang-l5 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l5.svg | 2026-11-08 |  |
-| hang-l6 | unica | generata | `hang-hold` | da verificare | src/assets/steps/hang-l6.svg | 2026-11-08 |  |
+| hang-l3 | unica | generata | `hang-hold` | da rifare | src/assets/steps/hang-l3.svg | 2026-11-21 | attrezzo e presa (R1): sbarra e presa normale, il gradino è presa a pinza sulla trave |
+| hang-l4 | unica | generata | `hang-hold` | da rifare | src/assets/steps/hang-l4.svg | 2026-11-21 | presa (R1): due mani sulla sbarra, il gradino è una mano con l'altra sul polso |
+| hang-l5 | unica | generata | `hang-hold` | da rifare | src/assets/steps/hang-l5.svg | 2026-11-21 | presa (R1): due mani sulla sbarra, il gradino è a una mano |
+| hang-l6 | unica | generata | `hang-hold` | da rifare | src/assets/steps/hang-l6.svg | 2026-11-21 | attrezzo e presa (R1): due mani sulla sbarra, il gradino è a una mano su asciugamano |
 | trazioni-prona-presa-media | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-start.webp | 2026-11-08 | sorgente RepDB `pull-up` |
 | trazioni-prona-presa-media | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-peak.webp | 2026-11-08 | sorgente RepDB `pull-up` |
 | trazioni-presa-larga | inizio | RepDB | — | verificata | src/assets/exercises-repdb/wide-grip-pull-ups-start.webp | 2026-11-08 | presa larga visibile: coerente |
@@ -177,12 +177,12 @@ fatto sui `cues`.
 | chin-up-presa-supina | fine | RepDB | — | da verificare | src/assets/exercises-repdb/chin-ups-peak.webp | 2026-11-08 | sorgente RepDB `chin-ups` |
 | chin-up-presa-supina-stretta | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/close-grip-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `close-grip-pull-ups` |
 | chin-up-presa-supina-stretta | fine | RepDB | — | da verificare | src/assets/exercises-repdb/close-grip-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `close-grip-pull-ups` |
-| rematore-inverso-trx | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-start.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
-| rematore-inverso-trx | fine | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-peak.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
+| rematore-inverso-trx | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/inverted-row-start.webp | 2026-11-21 | attrezzo (R11): sbarra, l'esercizio è al TRX con maniglie. Rimappare a `trx-row` (TRX, due mani, ~45° = gradino 2). Se il designer conferma la nota «agli anelli», `rings-inverted-row` |
+| rematore-inverso-trx | fine | RepDB | — | da rifare | src/assets/exercises-repdb/inverted-row-peak.webp | 2026-11-21 | attrezzo (R11): sbarra, l'esercizio è al TRX con maniglie. Rimappare a `trx-row` (TRX, due mani, ~45° = gradino 2). Se il designer conferma la nota «agli anelli», `rings-inverted-row` |
 | rematore-inverso-trx-piedi-rialzati | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/rings-inverted-row-start.webp | 2026-11-08 | foto agli anelli con i piedi a terra, la scheda dice TRX e piedi rialzati: rimappare o ritirare |
 | rematore-inverso-trx-piedi-rialzati | fine | RepDB | — | da rifare | src/assets/exercises-repdb/rings-inverted-row-peak.webp | 2026-11-08 | foto agli anelli con i piedi a terra, la scheda dice TRX e piedi rialzati: rimappare o ritirare |
-| rematore-trx-monobraccio | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-start.webp | 2026-11-08 | sorgente RepDB `trx-row` |
-| rematore-trx-monobraccio | fine | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-peak.webp | 2026-11-08 | sorgente RepDB `trx-row` |
+| rematore-trx-monobraccio | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/trx-row-start.webp | 2026-11-21 | presa (R11): due mani, l'esercizio è a un braccio («una maniglia sola»). Fuori dai 4 circuiti |
+| rematore-trx-monobraccio | fine | RepDB | — | da rifare | src/assets/exercises-repdb/trx-row-peak.webp | 2026-11-21 | presa (R11): due mani, l'esercizio è a un braccio («una maniglia sola»). Fuori dai 4 circuiti |
 | push-up | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-start.webp | 2026-11-08 | sorgente RepDB `push-up` |
 | push-up | fine | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-peak.webp | 2026-11-08 | sorgente RepDB `push-up` |
 | pushup-archer-o-pseudo-planche | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/archer-push-ups-start.webp | 2026-11-08 | sorgente RepDB `archer-push-ups` |
@@ -198,12 +198,12 @@ fatto sui `cues`.
 | dip-panche | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
 | dip-panche-piedi-rialzati | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/bench-dips-start.webp | 2026-11-08 | foto con i piedi a terra, la scheda dice talloni su una seconda panca: rimappare o ritirare |
 | dip-panche-piedi-rialzati | fine | RepDB | — | da rifare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-08 | foto con i piedi a terra, la scheda dice talloni su una seconda panca: rimappare o ritirare |
-| pike-pushup-piedi-rialzati | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-start.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
-| pike-pushup-piedi-rialzati | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
+| pike-pushup-piedi-rialzati | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/pike-push-ups-start.webp | 2026-11-21 | posizione (R11): piedi a terra, la scheda vuole piedi su un rialzo. È la foto del gradino `vertical-push-l1`, dove resta giusta. Nessuna foto con rialzo in libreria |
+| pike-pushup-piedi-rialzati | fine | RepDB | — | da rifare | src/assets/exercises-repdb/pike-push-ups-peak.webp | 2026-11-21 | posizione (R11): piedi a terra, la scheda vuole piedi su un rialzo. È la foto del gradino `vertical-push-l1`, dove resta giusta. Nessuna foto con rialzo in libreria |
 | negative-hspu-muro-o-pike-pushup | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-start.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
 | negative-hspu-muro-o-pike-pushup | fine | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
-| bulgarian-split-squat | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bulgarian-split-squat-start.webp | 2026-11-08 | sorgente RepDB `bulgarian-split-squat` |
-| bulgarian-split-squat | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bulgarian-split-squat-peak.webp | 2026-11-08 | sorgente RepDB `bulgarian-split-squat` |
+| bulgarian-split-squat | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/bulgarian-split-squat-start.webp | 2026-11-21 | attrezzo (R11): due manubri ai fianchi; la nota di circuito-1 A2 chiede kettlebell in rack «meglio di due manubri ai fianchi». Decide il designer: nota o immagine |
+| bulgarian-split-squat | fine | RepDB | — | da rifare | src/assets/exercises-repdb/bulgarian-split-squat-peak.webp | 2026-11-21 | attrezzo (R11): due manubri ai fianchi; la nota di circuito-1 A2 chiede kettlebell in rack «meglio di due manubri ai fianchi». Decide il designer: nota o immagine |
 | wall-sit | unica | RepDB | — | da verificare | src/assets/exercises-repdb/wall-sit-main.webp | 2026-11-08 | sorgente RepDB `wall-sit` |
 | nordic-curl | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/nordic-hamstring-curl-start.webp | 2026-11-08 | sorgente RepDB `nordic-hamstring-curl` |
 | nordic-curl | fine | RepDB | — | da verificare | src/assets/exercises-repdb/nordic-hamstring-curl-peak.webp | 2026-11-08 | sorgente RepDB `nordic-hamstring-curl` |
@@ -229,8 +229,8 @@ fatto sui `cues`.
 | curl-elastico-presa-neutra | fine | RepDB | — | verificata | src/assets/exercises-repdb/hammer-curl-peak.webp | 2026-11-08 | foto hammer-curl con manubri: coerente col nome, non con lo slug |
 | face-pull-elastico | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/trx-face-pull-start.webp | 2026-11-08 | foto con le cinghie TRX, la scheda dice elastico: decisione di Alessio |
 | face-pull-elastico | fine | RepDB | — | da rifare | src/assets/exercises-repdb/trx-face-pull-peak.webp | 2026-11-08 | foto con le cinghie TRX, la scheda dice elastico: decisione di Alessio |
-| vertical-pull-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/band-assisted-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `band-assisted-pull-ups` |
-| vertical-pull-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/band-assisted-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `band-assisted-pull-ups` |
+| vertical-pull-l1 | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/band-assisted-pull-ups-start.webp | 2026-11-21 | attrezzo (R11): assistenza con elastico; la nota di circuito-1 A1 al gradino 1 dice «un piede appoggiato sul box». Decide il designer |
+| vertical-pull-l1 | fine | RepDB | — | da rifare | src/assets/exercises-repdb/band-assisted-pull-ups-peak.webp | 2026-11-21 | attrezzo (R11): assistenza con elastico; la nota di circuito-1 A1 al gradino 1 dice «un piede appoggiato sul box». Decide il designer |
 | vertical-pull-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/negative-pull-ups-start.webp | 2026-11-08 | sorgente RepDB `negative-pull-ups` |
 | vertical-pull-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/negative-pull-ups-peak.webp | 2026-11-08 | sorgente RepDB `negative-pull-ups` |
 | vertical-pull-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pause-pull-up-start.webp | 2026-11-08 | sorgente RepDB `pause-pull-up` |
@@ -263,8 +263,8 @@ fatto sui `cues`.
 | vertical-pull-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pull-up-peak.webp | 2026-11-08 | sorgente RepDB `pull-up` |
 | horizontal-pull-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-start.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
 | horizontal-pull-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/inverted-row-peak.webp | 2026-11-08 | sorgente RepDB `inverted-row` |
-| horizontal-pull-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-start.webp | 2026-11-08 | sorgente RepDB `trx-row` |
-| horizontal-pull-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/trx-row-peak.webp | 2026-11-08 | sorgente RepDB `trx-row` |
+| horizontal-pull-l3 | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/trx-row-start.webp | 2026-11-21 | posizione (R11): TRX giusto ma corpo a ~45-50°, il gradino è «orizzontale». È il gradino 2: spostare la foto su `rematore-inverso-trx` |
+| horizontal-pull-l3 | fine | RepDB | — | da rifare | src/assets/exercises-repdb/trx-row-peak.webp | 2026-11-21 | posizione (R11): TRX giusto ma corpo a ~45-50°, il gradino è «orizzontale». È il gradino 2: spostare la foto su `rematore-inverso-trx` |
 | horizontal-push-l2 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-start.webp | 2026-11-08 | sorgente RepDB `push-up` |
 | horizontal-push-l2 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/push-up-peak.webp | 2026-11-08 | sorgente RepDB `push-up` |
 | horizontal-push-l4 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pseudo-planche-push-ups-start.webp | 2026-11-08 | sorgente RepDB `pseudo-planche-push-ups` |
@@ -273,10 +273,10 @@ fatto sui `cues`.
 | horizontal-push-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/archer-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `archer-push-ups` |
 | vertical-push-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-start.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
 | vertical-push-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/pike-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `pike-push-ups` |
-| vertical-push-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-start.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
-| vertical-push-l5 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/handstand-push-ups-peak.webp | 2026-11-08 | sorgente RepDB `handstand-push-ups` |
-| dip-l1 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-start.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
-| dip-l1 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-08 | sorgente RepDB `bench-dips` |
+| vertical-push-l5 | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/handstand-push-ups-start.webp | 2026-11-21 | attrezzo (R11): verticale libera su parallette, nessun muro; il gradino è «HSPU al muro complete» |
+| vertical-push-l5 | fine | RepDB | — | da rifare | src/assets/exercises-repdb/handstand-push-ups-peak.webp | 2026-11-21 | attrezzo (R11): verticale libera su parallette, nessun muro; il gradino è «HSPU al muro complete» |
+| dip-l1 | inizio | RepDB | — | da rifare | src/assets/exercises-repdb/bench-dips-start.webp | 2026-11-21 | appoggi (R11): una panca e piedi a terra; il gradino è «tra due panche». Stessa foto ritirata da `dip-panche-piedi-rialzati` |
+| dip-l1 | fine | RepDB | — | da rifare | src/assets/exercises-repdb/bench-dips-peak.webp | 2026-11-21 | appoggi (R11): una panca e piedi a terra; il gradino è «tra due panche». Stessa foto ritirata da `dip-panche-piedi-rialzati` |
 | dip-l3 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/dips-start.webp | 2026-11-08 | sorgente RepDB `dips` |
 | dip-l3 | fine | RepDB | — | da verificare | src/assets/exercises-repdb/dips-peak.webp | 2026-11-08 | sorgente RepDB `dips` |
 | dip-l5 | inizio | RepDB | — | da verificare | src/assets/exercises-repdb/ring-dips-start.webp | 2026-11-08 | sorgente RepDB `ring-dips` |
@@ -309,7 +309,7 @@ fatto sui `cues`.
 | corda-battaglia-onde-doppie | inizio+fine | generata | `rope-double` | da verificare | src/assets/exercises/corda-battaglia-onde-doppie.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
 | corda-battaglia-slam | inizio+fine | generata | `rope-slam` | da verificare | src/assets/exercises/corda-battaglia-slam.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
 | corda-per-saltare | inizio+fine | generata | `jump-rope` | da verificare | src/assets/exercises/corda-per-saltare.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
-| curl-manubri-supino | inizio+fine | generata | `db-curl` | da verificare | src/assets/exercises/curl-manubri-supino.svg | 2026-11-09 | arrivata con il commit f63c9f1, mai passata dalla checklist |
+| curl-manubri-supino | inizio+fine | generata | `db-curl` | da rifare | src/assets/exercises/curl-manubri-supino.svg | 2026-11-21 | attrezzo (R4): una barra unica fra le due mani legge come bilanciere, la scheda dice manubri. Stile da rifare: solo elenco — prima: arrivata con il commit f63c9f1, mai passata dalla checklist |
 | curl-panca-inclinata | inizio+fine | generata | `incline-curl` | verificata | src/assets/exercises/curl-panca-inclinata.svg | 2026-11-12 | verifica provvisoria (scheda senza equipment/frames). Prima verifica. Panca a 45 gradi, braccia che pendono dietro la linea del busto, gomito fermo nei due pannelli, braccio disteso in basso. La freccia segnata il 2026-11-09 non c-e mai stata: era il tracciato della panca. Note: tronco 7 gradi piu ripido dello schienale (spalle 2 unita sopra la panca), quattro segmenti affollati alla spalla nel pannello 2 |
 | curl-trx | inizio+fine | generata | `trx-curl` | da rifare | src/assets/exercises/curl-trx.svg | 2026-11-12 | Misurata con pose-audit e guardata a 230 px (2026-11-12). Anatomia: pannello 1 braccio collassato (1 + 6 unita contro 11 + 13), mano al mento; l-etichetta dice braccia distese. Seduta attiva, nessuna foto — spec 4.2 |
 | estensione-tricipiti-trx | inizio+fine | generata | `trx-ext` | da rifare | src/assets/exercises/estensione-tricipiti-trx.svg | 2026-11-12 | Misurata con pose-audit e guardata a 230 px (2026-11-12). Anatomia: testa piegata all-indietro di 79 e 84 gradi nei due pannelli; braccio da 8 a 21 tra i pannelli. Seduta attiva, nessuna foto — spec 4.2 |

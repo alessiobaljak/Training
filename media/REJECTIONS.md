@@ -5,7 +5,7 @@ frequente e il più pericoloso: **non è un errore di disegno, è una figura
 corretta messa sull'esercizio sbagliato**, e si vede solo confrontandola con
 la scheda.
 
-## R1 — Archetipo di un esercizio simile (13 casi)
+## R1 — Archetipo di un esercizio simile (17 casi)
 **Sintomo**: la figura è pulita, l'anatomia è giusta, l'esercizio è un altro.
 **Casi**: affondo con rotazione → box del bulgaro · rematore con manubrio →
 maniglie TRX · curl a martello → elastici (tutti e tre corretti il 2026-11-08)
@@ -15,6 +15,8 @@ alto (questi due corretti il 2026-11-12) · rollout TRX → ruota ab in ginocchi
 di un glute bridge a terra · dip piedi rialzati → foto con i piedi a terra.
 · plank sugli avambracci (`core-l1`) e hollow a ginocchia piegate (`core-l2`)
 → hollow hold a gambe distese (2026-11-18).
+· `hang-l1…l6` un solo SVG a due mani sulla sbarra · shrimp squat = skater
+· push-up zavorrati senza zavorra · HSPU con deficit senza rialzo (2026-11-21).
 **Correzione**: la regola di GENERATOR_SPEC §2 — archetipo nuovo quando cambia
 il gesto o l'attrezzo, parametro quando cambia solo un appoggio o un'ampiezza.
 **Come si trova prima**: confronto md5 a etichetta rimossa (GENERATOR_SPEC §2)
@@ -107,6 +109,25 @@ panca dell'hip thrust (§4.21 chiusa). Lo scorcio voluto si scrive nel
 commento dell'archetipo.
 **Come si trova prima**: `pose-audit`, righe `L` (soglia 80%): sono un
 segnale da guardare, non uno scarto automatico (GENERATOR_SPEC §4.25).
+
+## R11 — La foto RepDB scelta per nome, non per attrezzo (11 voci; nuovo 2026-11-21)
+**Sintomo**: la foto è un buon disegno della stessa famiglia, ma l'attrezzo,
+la presa o gli appoggi sono quelli di un'altra variante. Il nome inglese
+somiglia, l'esercizio no.
+**Casi**: `rematore-inverso-trx` → sbarra (`inverted-row`) · `horizontal-pull-l3`
+«TRX orizzontale» → TRX a 45° · `rematore-trx-monobraccio` → due mani ·
+`pike-pushup-piedi-rialzati` → piedi a terra · `vertical-push-l5` «al muro» →
+parallette senza muro · `dip-l1` «tra due panche» → una panca ·
+`dip-panche-piedi-rialzati` → piedi a terra · `bulgarian-split-squat` → due
+manubri ai fianchi contro la nota del blocco (kettlebell in rack) ·
+`vertical-pull-l1` → elastico contro la nota «piede sul box».
+**Correzione**: prima di legare una foto, cinque domande con risposta scritta
+nella voce: attrezzo, una o due mani, una o due gambe, appoggi (piedi a terra
+o rialzati, muro), inclinazione. Si confronta con nome, cue **e nota del
+blocco** (`variantNote` in `circuit.ts`), che l'utente legge accanto
+all'immagine. Una risposta diversa ⇒ niente foto.
+**Come si trova prima**: elenco delle voci di `exercise-art.ts` con le cinque
+risposte accanto; ogni voce nuova o spostata ripassa le cinque domande.
 
 ## R10 — Il corpo sospeso sopra l'appoggio (2 pose, 5 file; nuovo 2026-11-18)
 **Sintomo**: una posa sdraiata in cui nessun punto del tronco tocca il

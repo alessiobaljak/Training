@@ -1,6 +1,6 @@
 # COVERAGE.md — copertura della libreria
 
-Aggiornato al **2026-11-18** (conti di LIBRARY.md; figure invariate da `47c7f6d`).
+Aggiornato al **2026-11-21** (controllo dell'attrezzo sui 4 circuiti, rapporto `reports/2026-11-21-media.md`; figure invariate da `47c7f6d`).
 Numeri contati sul repo, non stimati.
 
 ## 1. Conti
@@ -14,7 +14,7 @@ Numeri contati sul repo, non stimati.
 | file RepDB nel repo | 91 | tutti usati (lo verifica un test) |
 | file SVG nel repo | **174** | 72 esercizi + 102 gradini |
 | registrate in LIBRARY.md | 307 | 174 figure + 133 righe RepDB (il 308 dei giorni scorsi era un errore di conto) |
-| stato in LIBRARY.md | 25 verificate · 46 da rifare · 236 da verificare | zero approvate; +7 da rifare il 2026-11-18 |
+| stato in LIBRARY.md | 25 verificate · 70 da rifare · 212 da verificare | zero approvate; +24 righe da rifare il 2026-11-21 (attrezzo) |
 | con freccia dentro l'immagine | **0** | erano 10 (non 11: `curl-panca-inclinata` era un falso positivo), §4.1 chiusa |
 | con difetto anatomico **misurato** (GENERATOR_SPEC §4.2, E1–E3) | **14** | 7 esercizi + 7 gradini; più 3 figure giuste a cui manca solo `sh` |
 | con un segmento sotto l'80% del suo omologo | 120 su 174 | segnale da guardare, non scarto (§4.25) |
@@ -60,6 +60,8 @@ specifiche §4.3, §4.4, §4.5, §4.17 e §4.19 hanno il testo in `ARCHIVE.md`.
 | `dip-panche-o-diamond-pushup` = `push-up` | **non suo**, ma coperto: il diamond ha le mani a rombo sotto lo sterno. Vince la foto RepDB, che è giusta. Figura di ripiego da parametrizzare |
 | 4 trazioni identiche (media, larga, supina, supina stretta) | **tollerato oggi**: la forma del corpo è la stessa, cambia la presa. Tutte e quattro hanno la foto giusta → §4.19 |
 | `corsa-continua-piano` = `zona-2-conclusiva` | **legittimo**: stesso gesto. La zona 2 ammette anche bici e camminata, ma la corsa è il caso principale |
+| `hang-l1` = `l2` = `l3` = `l4` = `l5` = `l6` (2026-11-21) | **non suo** per 5 su 6: piedi a terra (l1), trave a pinza (l3), una mano (l4–l6), asciugamano (l6). Solo `hang-l2` è giusto, e in app vince la foto |
+| `single-leg-squat-l4` = `l5` (2026-11-21) | **non suo** per lo shrimp: manca la mano che tiene il piede dietro |
 | `hollow-hold` = `core-l1` = `core-l2` = `core-l3` (2026-11-18) | **non suo** per `core-l1` (plank sugli avambracci) e `core-l2` (ginocchia piegate; senza foto, si vede in app); legittimo per `core-l3`. Tutti e quattro sospesi sopra il pavimento (R10) → §4.27 |
 
 **Censimento del 2026-11-12**: i gruppi identici in `src/assets/exercises/`
@@ -69,14 +71,26 @@ uguali solo `hip-thrust-l3` = `posterior-chain-l1` (stessa etichetta) e
 `hip-thrust-l4` = `l5` = `hip-thrust-monopodalico` (la pausa non si disegna).
 
 ## 4. Foto RepDB che non corrispondono alla scheda
-Qui l'immagine non si può «rifare»: si rimappa o si ritira. In tre casi su
-quattro **la figura generata è già più corretta della foto**.
+Qui l'immagine non si può «rifare»: si rimappa o si ritira. Erano 4, dal
+2026-11-21 sono **12** (11 voci di esercizi o gradini dei circuiti più una
+fuori). **Attenzione**: togliendo una foto subentra la SVG, e «nessuna
+immagine» oggi non si ottiene senza cambiare codice e test (`art.test.ts`
+richiede un disegno per ogni esercizio e per ogni gradino). Un file RepDB che
+resta senza voce va tolto dal repo (termine 3 e test «mai usate»).
 
 | esercizio | foto in uso | cosa dice la scheda | esito |
 |---|---|---|---|
 | `hip-thrust-monopodalico` | `single-leg-glute-bridge` (spalle **a terra**) | «spalle su panca», cue 1 «scapole appoggiate sul bordo della panca» | la figura generata ha la panca ed è **verificata** dal 2026-11-12: **ritirare la foto**, la figura è pronta a sostituirla |
 | `dip-panche-piedi-rialzati` | `bench-dips` (piedi **a terra**) | «talloni su una seconda panca» | la figura generata ha il rialzo: **ritirare la foto** |
 | `rematore-inverso-trx-piedi-rialzati` | `rings-inverted-row` (anelli, piedi **a terra**) | TRX, «piedi su un rialzo, corpo orizzontale» | la figura generata ha il rialzo: **ritirare la foto**. È lo stesso motivo per cui `exercise-art.ts` aveva già scartato questa foto per il gradino `horizontal-pull-l4` |
+| `rematore-inverso-trx` (2026-11-21) | `inverted-row` (**sbarra**) | TRX, «maniglie a larghezza spalle», gradino 2 «TRX a 45°» | **rimappare a `trx-row`**; se il designer conferma la nota «agli anelli» di circuito-2 A3, `rings-inverted-row` |
+| `pike-pushup-piedi-rialzati` (2026-11-21) | `pike-push-ups` (piedi **a terra**) | «piedi su un rialzo» | ritirare dalla voce (resta su `vertical-push-l1`); la SVG ha il rialzo ma è da rifare (§4.2) |
+| `bulgarian-split-squat` (2026-11-21) | `bulgarian-split-squat` (**manubri ai fianchi**) | nota circuito-1 A2: kettlebell in rack, «meglio di due manubri ai fianchi» | **decisione del designer**: nota o immagine; la SVG ha la panca e nessun carico |
+| `vertical-pull-l1` (2026-11-21) | `band-assisted-pull-ups` (**elastico**) | nota circuito-1 A1 al gradino 1: «un piede appoggiato sul box» | **decisione del designer**; la SVG non mostra nessuna assistenza |
+| `dip-l1` (2026-11-21) | `bench-dips` (una panca, piedi a terra) | «Dip tra due panche» | ritirare; la SVG `dip-l1` ha lo stesso difetto, quella giusta è `dip-panche-piedi-rialzati.svg` |
+| `vertical-push-l5` (2026-11-21) | `handstand-push-ups` (**parallette, nessun muro**) | «HSPU al muro complete» | ritirare; la SVG ha il muro ma è da rifare (§4.2). Stessa foto su `negative-hspu-muro-o-pike-pushup`, fuori dai circuiti |
+| `horizontal-pull-l3` (2026-11-21) | `trx-row` (TRX a **~45°**) | «Rematore TRX orizzontale» | spostare la foto su `rematore-inverso-trx`; la SVG `l3` è identica a `l1`/`l2` (stesso angolo) |
+| `rematore-trx-monobraccio` (2026-11-21, fuori circuiti) | `trx-row` (**due mani**) | «una maniglia sola» | ritirare; la SVG di ripiego ha i piedi sul rialzo, da verificare |
 | `face-pull-elastico` | `trx-face-pull` (**cinghie**) | «elastico fissato all'altezza del viso» | la figura generata ha l'elastico. RepDB non ha un face pull con elastico: **decisione di Alessio** (tenere la foto con l'attrezzo diverso, o passare alla figura) |
 
 ## 5. Debiti aperti

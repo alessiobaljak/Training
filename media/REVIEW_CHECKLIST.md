@@ -16,7 +16,7 @@ da cercare per primo, non l'anatomia.
 ## 1. Gli otto punti (ognuno: OK o PROBLEMA)
 | # | punto | cosa guardo |
 |---|---|---|
-| 1 | Corrispondenza con la scheda | stesso esercizio, fotogramma giusto, attrezzo giusto |
+| 1 | Corrispondenza con la scheda | stesso esercizio, fotogramma giusto, attrezzo giusto. Contro nome, cue **e `variantNote` del blocco**; per le foto RepDB anche mani, gambe, appoggi e inclinazione (R11) |
 | 2 | Archetipo | la figura mostra il gesto di *questo* esercizio, non di uno simile |
 | 3 | Anatomia | arti e dita nel numero giusto, articolazioni piegate nel verso naturale, proporzioni realistiche, nessun arto che attraversa la testa o il tronco |
 | 4 | Tecnica | colonna, allineamento ginocchia/piedi, spalle e scapole, **presa e larghezza della presa** coerenti con i cue |
