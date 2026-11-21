@@ -1,3 +1,4 @@
+import { statiDaFissare } from '../engine/draft.ts';
 import { getExercise } from '../data/exercises.ts';
 import { initialExerciseState } from '../engine/progression.ts';
 import { latestCompleteRound, latestTestResults, openRound, testRounds } from '../engine/ranges.ts';
@@ -23,8 +24,9 @@ import {
   type ExerciseMedia,
   type StoredTestResult,
   type SuggestionRecord,
+  type TableName,
 } from './db.ts';
-import { MemoryStore, type DocumentStore } from './store.ts';
+import { keyOf, MemoryStore, type DocumentStore } from './store.ts';
 
 /**
  * Unico punto di accesso ai dati dell'utente.
@@ -34,6 +36,22 @@ import { MemoryStore, type DocumentStore } from './store.ts';
  * volta, non sa dove i dati stiano davvero: `DocumentStore` è l'unica cosa che
  * conosce, quindi passare da IndexedDB a Firestore non gli cambia una riga.
  */
+
+/**
+ * R9c: la tabella come la vedono insieme questo dispositivo e il server.
+ * A parità di chiave vince la copia locale, che contiene anche le scritture
+ * non ancora partite. Se il magazzino ha un server e il server non risponde,
+ * fallisce: chi chiama non deve decidere su una copia forse vecchia.
+ */
+async function ovunque<T>(store: DocumentStore, table: TableName): Promise<T[]> {
+  const locale = await store.all<T>(table);
+  if (store.allFromServer === undefined) return locale;
+  const remoto = await store.allFromServer<T>(table);
+  const unione = new Map<string, T>();
+  for (const doc of remoto) unione.set(keyOf(table, doc), doc);
+  for (const doc of locale) unione.set(keyOf(table, doc), doc);
+  return [...unione.values()];
+}
 
 function now(): string {
   return new Date().toISOString();
@@ -274,6 +292,34 @@ export class ShadowRepository {
 
   async listExerciseStates(): Promise<ExerciseState[]> {
     return this.store.all<ExerciseState>('exerciseStates');
+  }
+
+  /**
+   * R9c, punto 2: al primo avvio dopo il rilascio, ogni esercizio con almeno
+   * una voce in una seduta chiusa e senza stato salvato riceve lo stato che
+   * l'app gli mostra oggi. Idempotente: alle aperture dopo non trova niente.
+   * Restituisce quanti stati ha fissato.
+   *
+   * Legge la copia locale e quella del server insieme: uno stato salvato da
+   * un altro dispositivo e non ancora arrivato qui non va sovrascritto, e una
+   * scrittura di questo dispositivo non ancora partita nemmeno. Senza rete la
+   * lettura dal server fallisce, e non si scrive niente.
+   */
+  async fissaStatiMancanti(): Promise<number> {
+    const store = this.store;
+    const [sessioni, salvati, risultati] = await Promise.all([
+      ovunque<LoggedSession>(store, 'sessions'),
+      ovunque<ExerciseState>(store, 'exerciseStates'),
+      ovunque<StoredTestResult>(store, 'testResults'),
+    ]);
+    const tests = latestTestResults(risultati);
+    const daFissare = statiDaFissare(
+      sessioni.filter((session) => session.status === 'completed'),
+      new Set(salvati.map((stato) => stato.exercise)),
+      (slug) => initialExerciseState(getExercise(slug), tests),
+    );
+    for (const stato of daFissare) await store.put('exerciseStates', stato);
+    return daFissare.length;
   }
 
   /**

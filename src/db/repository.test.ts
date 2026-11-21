@@ -373,3 +373,93 @@ describe('svuotamento', () => {
     expect(await count('weights')).toBe(0);
   });
 });
+
+describe('R9c (B16) · un test nuovo non alza il gradino di un esercizio già fatto', () => {
+  const sedutaPush = (id: string, date: string, level: 1 | 2): LoggedSession => ({
+    id,
+    date,
+    week: 1,
+    sessionId: 'circuito-3',
+    status: 'completed',
+    exercises: [{ ...loggedExercise('push-up', sets([12, 12, 12]), { blockCode: 'A2' }), level }],
+    note: null,
+  });
+
+  it('9.26 e 9.28 · push-up mai salvato, fatto al gradino del test: il ritest migliore non lo alza', async () => {
+    const repo = new ShadowRepository(new MemoryStore());
+    await repo.saveTestResult(testResultSingle('push-up', '2026-03-01', 0, 10));
+    const prima = (await repo.getExerciseState('push-up')).level;
+    await repo.saveSession(sedutaPush('s1', '2026-03-03', prima as 1 | 2));
+    expect(await repo.fissaStatiMancanti()).toBe(1);
+    /* Idempotente: la seconda apertura non trova niente. */
+    expect(await repo.fissaStatiMancanti()).toBe(0);
+    await repo.saveTestResult(testResultSingle('push-up', '2026-04-11', 6, 30));
+    expect((await repo.getExerciseState('push-up')).level).toBe(prima);
+  });
+
+  it('controllo: senza fissare lo stato, lo stesso ritest lo alzerebbe (il difetto che si chiude)', async () => {
+    const repo = new ShadowRepository(new MemoryStore());
+    await repo.saveTestResult(testResultSingle('push-up', '2026-03-01', 0, 10));
+    const prima = (await repo.getExerciseState('push-up')).level ?? 0;
+    await repo.saveTestResult(testResultSingle('push-up', '2026-04-11', 6, 30));
+    expect((await repo.getExerciseState('push-up')).level ?? 0).toBeGreaterThan(prima);
+  });
+
+  it('un esercizio mai fatto resta calcolato dai test: è un punto di partenza, non una salita', async () => {
+    const repo = new ShadowRepository(new MemoryStore());
+    await repo.saveTestResult(testResultSingle('push-up', '2026-03-01', 0, 10));
+    expect(await repo.fissaStatiMancanti()).toBe(0);
+  });
+
+  /*
+   * Un magazzino con una copia sul server, come Firestore: la copia locale
+   * può essere rimasta indietro rispetto a un altro dispositivo.
+   */
+  class ConServer extends MemoryStore {
+    readonly server = new Map<TableName, unknown[]>();
+    offline = false;
+    allFromServer<T>(table: TableName): Promise<T[]> {
+      if (this.offline) return Promise.reject(new Error('offline'));
+      return Promise.resolve((this.server.get(table) ?? []) as T[]);
+    }
+  }
+
+  async function giornoUno(store: ConServer): Promise<ShadowRepository> {
+    const repo = new ShadowRepository(store);
+    await repo.saveTestResult(testResultSingle('push-up', '2026-03-01', 0, 10));
+    const prima = (await repo.getExerciseState('push-up')).level;
+    await repo.saveSession(sedutaPush('s1', '2026-03-03', prima as 1 | 2));
+    return repo;
+  }
+
+  it('9.29 · uno stato salvato da un altro dispositivo e non ancora arrivato qui non si sovrascrive', async () => {
+    const store = new ConServer();
+    const repo = await giornoUno(store);
+    const altrove = { ...(await repo.getExerciseState('push-up')), level: 1 };
+    store.server.set('exerciseStates', [altrove]);
+    expect(await repo.fissaStatiMancanti()).toBe(0);
+    expect(await store.get('exerciseStates', 'push-up')).toBeUndefined();
+  });
+
+  it('9.30 · una scrittura di questo dispositivo non ancora partita conta come salvata', async () => {
+    const store = new ConServer();
+    const repo = await giornoUno(store);
+    /* Seduta e test sono già sul server; lo stato è partito solo qui. */
+    store.server.set('sessions', await store.all('sessions'));
+    store.server.set('testResults', await store.all('testResults'));
+    const qui = { ...(await repo.getExerciseState('push-up')), level: 1 };
+    await store.put('exerciseStates', qui);
+    expect(await repo.fissaStatiMancanti()).toBe(0);
+    expect(await store.get('exerciseStates', 'push-up')).toEqual(qui);
+  });
+
+  it('9.31 · senza rete non scrive niente', async () => {
+    const store = new ConServer();
+    const repo = await giornoUno(store);
+    store.offline = true;
+    await expect(repo.fissaStatiMancanti()).rejects.toThrow('offline');
+    expect(await store.all('exerciseStates')).toEqual([]);
+    store.offline = false;
+    expect(await repo.fissaStatiMancanti()).toBe(1);
+  });
+});

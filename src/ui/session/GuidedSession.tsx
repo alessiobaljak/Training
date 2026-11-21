@@ -21,6 +21,7 @@ import {
   setTempoRespected,
   setVariant,
   statesToSave,
+  statiDaFissare,
   suggestedSetValue,
   syncStatesFromLog,
   titleAtLevel,
@@ -471,7 +472,7 @@ const PARTENZA_SEC = 5;
 
 export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) {
   const state = useSessionDraft(sessionId);
-  const { program, draft, week, states, update, confirmExercise } = state;
+  const { program, draft, week, states, update, confirmExercise, confirmed } = state;
 
   const plan = useMemo(
     () => buildGuidedPlan(program, week, states),
@@ -567,6 +568,15 @@ export function GuidedSession({ sessionId }: { readonly sessionId: SessionId }) 
     for (const d of tolte) {
       confirmExercise(d.stato, false);
       void repository.recordDecision(d.record, d.stato);
+    }
+    /* R9c (B16): un esercizio fatto e mai salvato si fissa, così nessun test lo alza da solo. */
+    const giaScritti = new Set([
+      ...confirmed,
+      ...statesToSave(syncStatesFromLog(draft, states), scelte.accepted).map((x) => x.exercise),
+      ...tolti,
+    ]);
+    for (const fisso of statiDaFissare([draft], giaScritti, (slug) => states.get(slug))) {
+      confirmExercise(fisso);
     }
     update((session) => closeSession(session, new Date().toISOString()));
     navigate({ name: 'home' });

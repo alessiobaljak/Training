@@ -752,3 +752,13 @@ describe('pesoIniziale — da che peso parte la serie (A18, R14d)', () => {
     expect(pesoIniziale(false, 0, 0)).toBe(0);
   });
 });
+
+describe('R9c · statiDaFissare', () => {
+  it('9.27 · alla chiusura un esercizio fatto e mai salvato si fissa, anche se niente è cambiato', async () => {
+    const { statiDaFissare } = await import('./draft.ts');
+    const seduta = loggedSession('2026-03-03', 1, [loggedExercise('push-up', sets([12, 12, 12]), { blockCode: 'A2' })]);
+    const calcolato = { exercise: 'push-up', level: 2 as const, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 };
+    expect(statiDaFissare([seduta], new Set(), () => calcolato)).toEqual([calcolato]);
+    expect(statiDaFissare([seduta], new Set(['push-up']), () => calcolato)).toEqual([]);
+  });
+});

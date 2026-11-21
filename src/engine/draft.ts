@@ -565,3 +565,33 @@ export function sessionDecisions(
   }
   return { decided, accepted, toEvaluate };
 }
+
+/**
+ * R9c (R-17, B16): gli stati da fissare perché nessun test alzi un gradino da
+ * solo.
+ *
+ * Uno stato mai salvato si ricalcola dagli ultimi test, e la sincronizzazione
+ * salva solo gli stati che cambiano. Un esercizio fatto sempre allo stesso
+ * gradino non aveva mai uno stato salvato: un ritest migliore lo alzava di
+ * uno o due gradini, senza le regole di salita (R5, R7). Qui si salva lo
+ * stato di ogni esercizio fatto e mai salvato, uguale a quello che l'app
+ * mostra: da lì in poi si sale solo con le leve.
+ */
+export function statiDaFissare(
+  sessions: readonly LoggedSession[],
+  salvati: ReadonlySet<ExerciseSlug>,
+  calcolato: (slug: ExerciseSlug) => ExerciseState | undefined,
+): ExerciseState[] {
+  const fatti = new Set<ExerciseSlug>();
+  for (const session of sessions) {
+    for (const voce of session.exercises) {
+      if (voce.sets.length > 0 && findExercise(voce.exercise) !== undefined) fatti.add(voce.exercise);
+    }
+  }
+  return [...fatti]
+    .filter((slug) => !salvati.has(slug))
+    .flatMap((slug) => {
+      const stato = calcolato(slug);
+      return stato === undefined ? [] : [stato];
+    });
+}

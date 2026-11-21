@@ -3,6 +3,7 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  getDocsFromServer,
   onSnapshot,
   setDoc,
   writeBatch,
@@ -125,6 +126,12 @@ export class FirestoreStore implements DocumentStore {
 
   async all<T>(table: TableName): Promise<T[]> {
     return [...(await this.rows(table)).values()] as T[];
+  }
+
+  /** Senza rete fallisce: chi la usa non scrive niente e riprova dopo. */
+  async allFromServer<T>(table: TableName): Promise<T[]> {
+    const snapshot = await getDocsFromServer(this.ref(table));
+    return snapshot.docs.map((entry) => entry.data()) as T[];
   }
 
   /*

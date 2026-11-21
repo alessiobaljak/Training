@@ -39,7 +39,36 @@ export async function attachUser(uid: string): Promise<MigrationReport | null> {
    */
   void takeSnapshotIfDue(repository, todayIso()).catch(() => undefined);
 
+  void fissaStatiUnaVolta(uid);
+
   return report;
+}
+
+/*
+ * R9c (B16): gli esercizi già fatti e mai salvati ricevono lo stato che l'app
+ * mostra oggi, così un ritest migliore non ne alza il gradino da solo. Una
+ * volta per account su ogni dispositivo, dopo l'eventuale migrazione dei dati
+ * locali. Senza rete non scrive niente e ci riprova all'apertura dopo.
+ */
+const CHIAVE_STATI_FISSATI = 'shadow.r9c.stati-fissati.';
+
+async function fissaStatiUnaVolta(uid: string): Promise<void> {
+  const chiave = CHIAVE_STATI_FISSATI + uid;
+  try {
+    if (localStorage.getItem(chiave) === '1') return;
+  } catch {
+    /* Senza localStorage si rifà a ogni apertura: è idempotente. */
+  }
+  try {
+    await repository.fissaStatiMancanti();
+  } catch {
+    return;
+  }
+  try {
+    localStorage.setItem(chiave, '1');
+  } catch {
+    /* Come sopra. */
+  }
 }
 
 export function detachUser(): void {

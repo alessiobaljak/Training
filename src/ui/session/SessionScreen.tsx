@@ -15,6 +15,7 @@ import {
   suggestedSetValue,
   upsertLoggedSet,
   statesToSave,
+  statiDaFissare,
   sessionDecisions,
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
@@ -139,6 +140,15 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
     for (const d of tolte) {
       confirmExercise(d.stato, false);
       void repository.recordDecision(d.record, d.stato);
+    }
+    /* R9c (B16): un esercizio fatto e mai salvato si fissa, così nessun test lo alza da solo. */
+    const giaScritti = new Set([
+      ...confirmed,
+      ...statesToSave(syncStatesFromLog(draft, states), scelte.accepted).map((x) => x.exercise),
+      ...tolti,
+    ]);
+    for (const fisso of statiDaFissare([draft], giaScritti, (slug) => states.get(slug))) {
+      confirmExercise(fisso);
     }
     update((session) => closeSession(session, new Date().toISOString()));
     goHome();

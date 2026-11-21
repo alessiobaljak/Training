@@ -18,6 +18,14 @@ export interface DocumentStore {
   get<T>(table: TableName, id: string): Promise<T | undefined>;
   getMany<T>(table: TableName, ids: readonly string[]): Promise<(T | undefined)[]>;
   all<T>(table: TableName): Promise<T[]>;
+  /**
+   * La tabella come la vede il server, oppure un errore se il server non
+   * risponde. Ce l'ha solo il magazzino con una copia remota: la copia locale
+   * di un dispositivo rimasto indietro non vede gli stati salvati altrove, e
+   * chi scrive senza che l'utente lo chieda (R9c) non deve fidarsi solo di
+   * quella.
+   */
+  allFromServer?<T>(table: TableName): Promise<T[]>;
   put<T>(table: TableName, doc: T): Promise<void>;
   putMany<T>(table: TableName, docs: readonly T[]): Promise<void>;
   /**
