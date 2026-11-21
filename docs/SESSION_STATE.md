@@ -69,6 +69,24 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 8. Bundle ID per TestFlight (in sospeso).
 
 ## Decisioni prese
+- **2026-11-21, Alessio:**
+  - **B6:** ha sbarra, anelli, TRX, corde, elastici, kettlebell da 8, 12, 20
+    e 24 kg e tutti i macchinari classici da palestra. B6 vale solo per il
+    rilascio pubblico (come B1-B4).
+  - **B8:** gli omini (figure SVG a bastoncino) vanno rifatti: «non voglio gli
+    omini», trovare un'altra strada con Claude Design. Segnalato da lui: il
+    rematore inverso TRX mostra un rematore alla sbarra (collegamento
+    sbagliato in `exercise-art.ts`), e nessun controllo lo aveva visto.
+  - **B9:** dead hang «30 secondi o finché reggi, ma minimo 30 se ce la fai».
+  - **B10:** la finitura del circuito 4 deve restare coerente con gli altri
+    circuiti (nessun passaggio fra i giri diverso dagli altri).
+  - **M4:** dopo una pausa di 3 settimane l'app propone prima il ritest
+    (D-18 sì: può far scendere, mai salire). D-17 non risposta: si applica la
+    raccomandazione (a), le settimane slittano della durata della pausa.
+  - «Poi lo storico di progressi, diario e misure cancella tutto»: richiesta
+    di azzeramento dei dati. L'app ha già Impostazioni → «Azzera tutto»
+    (conferma scritta CANCELLA, backup prima): lo fa Alessio, la sessione non
+    ha accesso ai suoi dati di produzione.
 - **2026-11-12, Alessio: soglie approvate.** Tutto ciò che in
   `quality/GRID.md` era «proposto» a quella data: le soglie dei criteri
   C1-C8, la regola di esito (GO solo con Bloccanti = 0 e Alti = 0 su L), le
