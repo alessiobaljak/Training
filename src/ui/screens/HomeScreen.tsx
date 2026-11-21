@@ -486,7 +486,8 @@ export function HomeScreen() {
                         <Button
                           variant="secondary"
                           onClick={() => {
-                            void repository.saveSession({ ...entry, status: 'completed' });
+                            /* R9c (B16): archiviare fissa gli stati, come chiudere dal player. */
+                            void repository.archiviaSeduta(entry);
                           }}
                         >
                           Archivia

@@ -8,6 +8,7 @@ import { testResultPerSide, testResultSingle } from '../engine/ranges.ts';
 import { getExercise } from '../data/exercises.ts';
 import { loggedExercise, sets } from '../engine/__fixtures.ts';
 import { WEEK_ZERO_TESTS } from '../data/tests.ts';
+import { CIRCUIT_SESSIONS } from '../data/circuit.ts';
 import type { LoggedSession, TestResult } from '../types/index.ts';
 
 /** Nove test dello stesso giorno: il giro che sblocca il programma. */
@@ -432,7 +433,7 @@ describe('R9c (B16) · un test nuovo non alza il gradino di un esercizio già fa
     return repo;
   }
 
-  it('9.29 · uno stato salvato da un altro dispositivo e non ancora arrivato qui non si sovrascrive', async () => {
+  it('9.32 · uno stato salvato da un altro dispositivo e non ancora arrivato qui non si sovrascrive', async () => {
     const store = new ConServer();
     const repo = await giornoUno(store);
     const altrove = { ...(await repo.getExerciseState('push-up')), level: 1 };
@@ -441,7 +442,7 @@ describe('R9c (B16) · un test nuovo non alza il gradino di un esercizio già fa
     expect(await store.get('exerciseStates', 'push-up')).toBeUndefined();
   });
 
-  it('9.30 · una scrittura di questo dispositivo non ancora partita conta come salvata', async () => {
+  it('9.33 · una scrittura di questo dispositivo non ancora partita conta come salvata', async () => {
     const store = new ConServer();
     const repo = await giornoUno(store);
     /* Seduta e test sono già sul server; lo stato è partito solo qui. */
@@ -453,7 +454,7 @@ describe('R9c (B16) · un test nuovo non alza il gradino di un esercizio già fa
     expect(await store.get('exerciseStates', 'push-up')).toEqual(qui);
   });
 
-  it('9.31 · senza rete non scrive niente', async () => {
+  it('9.34 · senza rete non scrive niente', async () => {
     const store = new ConServer();
     const repo = await giornoUno(store);
     store.offline = true;
@@ -461,5 +462,84 @@ describe('R9c (B16) · un test nuovo non alza il gradino di un esercizio già fa
     expect(await store.all('exerciseStates')).toEqual([]);
     store.offline = false;
     expect(await repo.fissaStatiMancanti()).toBe(1);
+  });
+
+  it('9.35 · «Archivia» dalla Home fissa gli stati come la chiusura dal player (B16)', async () => {
+    const repo = new ShadowRepository(new MemoryStore());
+    await repo.saveTestResult(testResultSingle('push-up', '2026-03-01', 0, 10));
+    const prima = (await repo.getExerciseState('push-up')).level;
+    const aperta = { ...sedutaPush('s1', '2026-03-03', prima as 1 | 2), status: 'in-progress' as const };
+    await repo.saveSession(aperta);
+    expect(await repo.archiviaSeduta(aperta)).toBe(1);
+    expect((await repo.listSessions()).map((s) => s.status)).toEqual(['completed']);
+    await repo.saveTestResult(testResultSingle('push-up', '2026-04-11', 6, 30));
+    expect((await repo.getExerciseState('push-up')).level).toBe(prima);
+  });
+
+  it('9.36 · una migrazione arrivata dopo il ritest fissa il gradino con cui ci si è allenati', async () => {
+    const repo = new ShadowRepository(new MemoryStore());
+    await repo.saveTestResult(testResultSingle('push-up', '2026-03-01', 0, 10));
+    const prima = (await repo.getExerciseState('push-up')).level;
+    await repo.saveSession(sedutaPush('s1', '2026-03-03', prima as 1 | 2));
+    await repo.saveTestResult(testResultSingle('push-up', '2026-04-11', 6, 30));
+    /* Il ritest è già arrivato: con i test di oggi il gradino sarebbe più alto. */
+    expect((await repo.getExerciseState('push-up')).level ?? 0).toBeGreaterThan(prima ?? 0);
+    expect(await repo.fissaStatiMancanti()).toBe(1);
+    expect((await repo.getExerciseState('push-up')).level).toBe(prima);
+  });
+
+  it('9.29 · proprietà: dopo un test nessun esercizio già fatto ha un gradino più alto di prima', async () => {
+    /*
+     * Sequenze casuali di test e di sedute chiuse sugli esercizi che un test
+     * decide. La chiusura fa quello che fanno il player e «Archivia»: fissa lo
+     * stato degli esercizi fatti e mai salvati. Senza R9b niente scende da
+     * solo, e niente deve salire.
+     */
+    let seme = 20261121;
+    const caso = (n: number): number => {
+      seme = (seme * 1103515245 + 12345) % 2147483648;
+      return seme % n;
+    };
+    const singoli = WEEK_ZERO_TESTS.filter((t) => !t.perSide);
+    const esercizi = [...new Set(CIRCUIT_SESSIONS.flatMap((s) => s.blocks).filter((b) => b.excludeFromReview !== true).map((b) => b.exercise))];
+    let salite = 0;
+    let prove = 0;
+    for (let storia = 0; storia < 60; storia += 1) {
+      const repo = new ShadowRepository(new MemoryStore());
+      for (const t of singoli) await repo.saveTestResult(testResultSingle(t.id, '2026-03-01', 0, caso(40)));
+      const fatti = new Set<string>();
+      for (let passo = 0; passo < 12; passo += 1) {
+        const giorno = `2026-${String(3 + Math.floor(passo / 4)).padStart(2, '0')}-${String(2 + (passo % 4) * 7).padStart(2, '0')}`;
+        if (caso(3) === 0) {
+          const prima = new Map<string, number | null>();
+          for (const slug of fatti) prima.set(slug, (await repo.getExerciseState(slug)).level);
+          const t = singoli[caso(singoli.length)];
+          if (t === undefined) continue;
+          await repo.saveTestResult(testResultSingle(t.id, giorno, 1 + passo, caso(40)));
+          for (const [slug, livello] of prima) {
+            prove += 1;
+            if (((await repo.getExerciseState(slug)).level ?? 0) > (livello ?? 0)) salite += 1;
+          }
+        } else {
+          const slug = esercizi[caso(esercizi.length)];
+          if (slug === undefined) continue;
+          const livello = (await repo.getExerciseState(slug)).level;
+          const seduta: LoggedSession = {
+            id: `s-${String(storia)}-${String(passo)}`,
+            date: giorno,
+            week: 1 + passo,
+            sessionId: 'circuito-1',
+            status: 'in-progress',
+            exercises: [{ ...loggedExercise(slug, sets([8, 8, 8])), level: livello }],
+            note: null,
+          };
+          await repo.saveSession(seduta);
+          await repo.archiviaSeduta(seduta);
+          fatti.add(slug);
+        }
+      }
+    }
+    expect(prove).toBeGreaterThan(100);
+    expect(salite).toBe(0);
   });
 });

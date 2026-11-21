@@ -53,6 +53,14 @@ async function ovunque<T>(store: DocumentStore, table: TableName): Promise<T[]> 
   return [...unione.values()];
 }
 
+/** I test più recenti fino a quel giorno compreso: quelli con cui l'app calcolava il gradino. */
+function testAllaData(
+  risultati: readonly StoredTestResult[],
+  data: string,
+): ReadonlyMap<TestId, TestResult> {
+  return latestTestResults(risultati.filter((risultato) => risultato.date <= data));
+}
+
 function now(): string {
   return new Date().toISOString();
 }
@@ -304,6 +312,10 @@ export class ShadowRepository {
    * un altro dispositivo e non ancora arrivato qui non va sovrascritto, e una
    * scrittura di questo dispositivo non ancora partita nemmeno. Senza rete la
    * lettura dal server fallisce, e non si scrive niente.
+   *
+   * Lo stato si calcola con i test che c'erano il giorno dell'ultima seduta
+   * con quell'esercizio, non con quelli di oggi: se la migrazione arriva tardi,
+   * dopo un ritest, non deve fissare un gradino che il ritest ha già alzato.
    */
   async fissaStatiMancanti(): Promise<number> {
     const store = this.store;
@@ -312,11 +324,34 @@ export class ShadowRepository {
       ovunque<ExerciseState>(store, 'exerciseStates'),
       ovunque<StoredTestResult>(store, 'testResults'),
     ]);
-    const tests = latestTestResults(risultati);
     const daFissare = statiDaFissare(
       sessioni.filter((session) => session.status === 'completed'),
       new Set(salvati.map((stato) => stato.exercise)),
-      (slug) => initialExerciseState(getExercise(slug), tests),
+      (slug, data) => initialExerciseState(getExercise(slug), testAllaData(risultati, data)),
+    );
+    for (const stato of daFissare) await store.put('exerciseStates', stato);
+    return daFissare.length;
+  }
+
+  /**
+   * «Archivia» dalla Home: la seduta rimasta aperta si chiude così com'è, e
+   * come alla chiusura dal player (R9c punto 1) ogni esercizio fatto e mai
+   * salvato riceve il suo stato. Prima si chiudeva e basta, e un ritest
+   * migliore alzava quegli esercizi da solo (B16). Legge la copia locale,
+   * come la chiusura dal player: è una scelta dell'utente su questa seduta,
+   * e non deve aspettare la rete.
+   */
+  async archiviaSeduta(session: LoggedSession): Promise<number> {
+    const store = this.store;
+    await this.saveSession({ ...session, status: 'completed' });
+    const [salvati, risultati] = await Promise.all([
+      store.all<ExerciseState>('exerciseStates'),
+      store.all<StoredTestResult>('testResults'),
+    ]);
+    const daFissare = statiDaFissare(
+      [session],
+      new Set(salvati.map((stato) => stato.exercise)),
+      (slug, data) => initialExerciseState(getExercise(slug), testAllaData(risultati, data)),
     );
     for (const stato of daFissare) await store.put('exerciseStates', stato);
     return daFissare.length;

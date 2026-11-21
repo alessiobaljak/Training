@@ -576,22 +576,28 @@ export function sessionDecisions(
  * uno o due gradini, senza le regole di salita (R5, R7). Qui si salva lo
  * stato di ogni esercizio fatto e mai salvato, uguale a quello che l'app
  * mostra: da lì in poi si sale solo con le leve.
+ *
+ * `calcolato` riceve anche la data dell'ultima seduta in cui l'esercizio è
+ * stato fatto: lo stato giusto è quello con cui ci si è allenati, non quello
+ * che darebbe un test arrivato dopo.
  */
 export function statiDaFissare(
   sessions: readonly LoggedSession[],
   salvati: ReadonlySet<ExerciseSlug>,
-  calcolato: (slug: ExerciseSlug) => ExerciseState | undefined,
+  calcolato: (slug: ExerciseSlug, ultimaSeduta: string) => ExerciseState | undefined,
 ): ExerciseState[] {
-  const fatti = new Set<ExerciseSlug>();
+  const fatti = new Map<ExerciseSlug, string>();
   for (const session of sessions) {
     for (const voce of session.exercises) {
-      if (voce.sets.length > 0 && findExercise(voce.exercise) !== undefined) fatti.add(voce.exercise);
+      if (voce.sets.length === 0 || findExercise(voce.exercise) === undefined) continue;
+      const prima = fatti.get(voce.exercise);
+      if (prima === undefined || session.date > prima) fatti.set(voce.exercise, session.date);
     }
   }
   return [...fatti]
-    .filter((slug) => !salvati.has(slug))
-    .flatMap((slug) => {
-      const stato = calcolato(slug);
+    .filter(([slug]) => !salvati.has(slug))
+    .flatMap(([slug, data]) => {
+      const stato = calcolato(slug, data);
       return stato === undefined ? [] : [stato];
     });
 }
