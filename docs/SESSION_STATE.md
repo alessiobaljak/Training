@@ -74,6 +74,7 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 8. Bundle ID per TestFlight (in sospeso).
 
 ## Decisioni prese
+- **2026-11-21, risposte di Alessio:** D-Q3 = (a), il dead hang va bene così; figure: «parti tu dal testo», cioè generazione a design time da solo testo con un modello Apache-2.0, ognuna approvata da lui; rematore inverso della Seduta 2 agli anelli.
 - **Comunicazione (Alessio, 2026-11-21):** niente aggiornamenti passo per passo. Si scrive solo alla fine, con il risultato e le domande, in modo conciso.
 - **2026-11-21, Alessio:**
   - **B6:** ha sbarra, anelli, TRX, corde, elastici, kettlebell da 8, 12, 20
