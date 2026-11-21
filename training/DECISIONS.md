@@ -25,7 +25,10 @@ quelle che spettano ad Alessio e bloccano il lavoro.
 | D-21 | **Alessio, 2026-11-20: (a)** a fine seduta nessuna leva in salita nella settimana prima dello scarico. In produzione `e30cdc6`. **M20 residuo** (scelta in W4 eseguita in scarico): accettato come costo, nessuna regola. | PROGRESSION §11, ADVICE §7 |
 | D-22 | **Alessio, 2026-11-20: (a)** tetto 55′, R19: oltre, niente tempo né pausa, niente tagli. In produzione a fine seduta `e30cdc6`. **D5 accettata**: la variante dell'hip thrust può portare il circuito 4 a circa 59′. | PROGRAM_RULES §5, rapporto 2026-11-21 |
 | D-23 | **Alessio, 2026-11-20: (a)** gradino cambiato a mano ⇒ tempo e pausa alla scheda. In produzione `e30cdc6`. | `draft.ts`, PROGRESSION §11 |
-| D-19 b | **Alessio, 2026-11-20**: manubri 3-10 kg a passi di 1, poi 12, 14, …, 24. ⇒ `MANUBRI_KG`, manubrio successivo esatto; R14d resta `B` (prudenza, rapporto 2026-11-21 §1). Aperto: goblet, stacco rumeno, estensione tricipiti con manubri o kettlebell? | PROGRESSION §10 |
+| D-19 b | **Alessio, 2026-11-20**: manubri 3-10 kg a passi di 1, poi 12, 14, …, 24. ⇒ `MANUBRI_KG`, manubrio successivo esatto; R14d resta `B` (prudenza, rapporto 2026-11-21 §1). **Chiusa 2026-11-21b** (deciso da me su mandato di Alessio): goblet, stacco rumeno, estensione tricipiti con i manubri, in `LEVA_MANUBRIO` (T-34). | PROGRESSION §10 |
+| D-17 | **2026-11-21**: Alessio non ha risposto; applicata la (a), dichiarata, come R22: dopo `D0` le settimane senza sedute non contano; data di inizio e `week` passati mai toccati; aderenza di calendario. | PROGRAM_RULES §8, rapporto 11-21b |
+| D-18 | **Alessio, 2026-11-21: sì** («se mi fermo per 3 settimane l'app propone prima D18»). Il ritest viene **prima** delle sedute ridotte (R9a rev.); da me esteso, in direzione prudente, a ogni test dopo la settimana 0 (6, 12, a piacere): solo discesa (R9b), mai salita (R9c). | PROGRAM_RULES §8 |
+| P-13 | **Alessio, 2026-11-21**: B9 «30 secondi o finché reggi, ma minimo 30 se ce la fai» (R21); B10 «coerente con le altre» (R20); B6 chiuso per uso personale: sbarra, anelli, TRX, corde, elastici, kettlebell 8/12/20/24, manubri D-19 b, macchinari da palestra (B6 resta per il pubblico). | rapporto 11-21b |
 | D-16 | **Decisa da Alessio il 2026-11-15** (alternativa): per un verdetto della revisione contano le ultime 2 sedute chiuse dell'esercizio allo stesso gradino e carico, entrambe negli ultimi 14 giorni, non la settimana di calendario. S4 non si allenta (≥ 2 sedute, ≥ 3 serie vere). Finestra ancorata alla fine della settimana rivista. training-quality: lettura di S4 OK (2026-11-15), riserva L15 ⇒ R12. | PROGRESS_REVIEW §6, rapporto `reports/2026-11-15-training.md` |
 
 ## Da decidere — spettano ad Alessio
@@ -45,18 +48,6 @@ né soglie per loro, e dichiararli supportati senza averle sarebbe falso.
 **D-3 · Livello dell'atleta.** Si introduce il livello globale di METHOD §9
 (principiante/intermedio/avanzato con mediana dei gradini), usato **solo** per
 decidere cosa l'app ha diritto di proporre? Senza, il limite L8 non è esprimibile.
-
-**D-17 · Settimana del programma dopo una pausa (M6).** Il numero di settimana
-è di calendario: chi si ferma 3 settimane in settimana 3 rientra in settimana 6,
-e lo scarico di calendario cade sulle sedute già ridotte di R9 (si dimezza una
-volta sola: lo scarico vero va perso). Sposti la data di inizio della durata
-della pausa, o resta il calendario? *Da D-16 (2026-11-15)*: se sposti la data,
-R8 legge la finestra sulle date e «chi compare» su `session.week`: va deciso
-anche se il `week` delle sedute passate si riscrive, o resta quello di allora.
-
-**D-18 · R9b, effetto del ritest.** Il ritest di rientro può proporre di
-**scendere** di gradino (mai salire) dove R1 dice che il massimale non regge il
-range. Lo vuoi? E lo stesso ai ritest di settimana 6 e 12 (chiuderebbe M16)?
 
 **D-5 · Questionario di idoneità.** PAR-Q+ nella sua forma standard, o una
 versione corta a sette domande? E: resta saltabile per te, con la scelta

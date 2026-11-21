@@ -195,12 +195,15 @@ contiene esercizi fuori perimetro. Nel nucleo di sicurezza.
 solo su ≥ 2 sedute e ≥ 3 serie vere: le ultime 2, stesso stato, nei 14 giorni
 (R8, D-16). (S5) Zavorra solo a variante esaurita e mai sotto 8 trazioni o 10
 dip misurati (R6). (S6) Dopo **≥ 14 giorni** senza sedute chiuse: 4 sedute (≥ 7
-giorni) a giri dimezzati, nessun aumento, ritest proposto (R9). Si scende sempre.
+giorni) a giri dimezzati, nessun aumento, ritest proposto prima (R9). Si scende sempre.
+Limiti 1.5 (proposta 11-21b): un test dopo la settimana 0 non alza mai un gradino, può solo
+proporre di scendere (R9b, R9c); nel giorno di un test la Home non propone la seduta.
 Dettaglio: PROGRESSION_RULES §9, PROGRESS_REVIEW §6, PROGRAM_RULES §8.
 S2 su 7 giorni mobili (R13); D-4 (a) decisa: un aumento di qualunque leva ogni 7
 giorni. 1.4: l'aumento conta dal giorno in cui si esegue (R15; D-20 a, b decise il
 2026-11-20); una data dopo oggi ferma come oggi (L23). Rev. 11-21 (proposta): manubri = successivo dell'elenco dichiarato (D-19 b, ≤ 2 kg; test: nessun salto > 2,5).
-**Stato oggi** (`e30cdc6`): S1-S5 in codice, S2 su 7 giorni dall'esecuzione, L23; S6 no (R9).
+**Stato oggi** (`6cbb759`): S1-S5 in codice, S2 su 7 giorni dall'esecuzione, L23; S6 no (R9).
+Rischi aperti: R-16 (il ritest riscrive la data di inizio), R-17 (un ritest alza gli stati virtuali).
 **Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre
 barriere aperte (rapporto 2026-11-15), 4d con controlli positivi, più un
 caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni
@@ -272,11 +275,10 @@ immediatamente dopo una stazione di stabilizzazione del tronco prescritta a
 RIR 0-1, `—` o portata a cedimento: in mezzo c'è almeno una transizione
 dichiarata di **15"**. Stato: **PROPOSTA 2026-11-12**, da approvare.
 **Dove.** `src/data/circuit.ts` (dato), `buildGuidedPlan` (passo `rest`).
-**Oggi.** Violata in tutte e quattro le sedute alla giunzione B → F (A8). R2
-la soddisfa senza cambiare esercizi né ordine.
-**Verifica.** Test sui dati: in ogni piano guidato, tra l'ultimo passo `work`
-del gruppo B e il primo del gruppo F c'è un passo di 15". Nel nucleo di
-sicurezza se Alessio approva (9 casi).
+**Oggi.** Giunzione B → F: R2, in codice. Giro della finitura: violata nel circuito 4
+(plank con tocco di spalla → slam, B10); R20 (11-21b) mette 15″ fra i giri in tutti e 4.
+**Verifica.** Test sui dati: in ogni piano guidato, fra due `work` consecutivi di
+blocchi diversi c'è un passo ≥ 15", salvo verso Z (prova 20.5). Nucleo: caso 4h.
 
 ---
 

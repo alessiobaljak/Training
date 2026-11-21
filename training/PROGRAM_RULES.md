@@ -2,6 +2,7 @@
 
 Versione **programmi 1.0 — PROPOSTA del 2026-11-08, non approvata.**
 Aggiunte del 2026-11-12, `[PROPOSTA, programmi 2.0]`: R1 (§3), R2 (§2), R4 (§3).
+`[PROPOSTA, programmi 2.4 — 2026-11-21]`: R20 (§2), R21 (§4), R9a rev., R9b, R9c, R22 (§8).
 Programma attivo: `src/data/circuit.ts` (4 circuiti). Archiviato: `src/data/program.ts`.
 
 ## 1. Il programma non si genera: si sceglie
@@ -25,7 +26,7 @@ regola** (vincolo di Alessio, 2026-11-12). Recuperi trans./giro/blocco:
 |---|---|---|---|
 | A1-A3 tri-set 1 | 3 | 35" / 45" / 90" | 20" / 30" / 60" |
 | B1-B3 tri-set 2, braccia e vita | 3 | 20" / 30" / **giunzione** | 15" / 20-25" / **giunzione** |
-| F1-F4 finitura metabolica | 2 | 15" / 0" / 0" | 15" / 0" / 0" |
+| F1-F4 finitura metabolica | 2 | 15" / 15" (R20) / 0" | 15" / 15" (R20) / 0" |
 | Z1-Z3 decompressione | 1 | 0" | 0" |
 
 **R2 — Giunzione Tri-set 2 → finitura** `[PROPOSTA, programmi 1.1]`. Oggi 0":
@@ -36,6 +37,11 @@ tutte e quattro le sedute** — è la transizione della finitura, non una pausa 
 blocco. Non cambia esercizi né ordine; costa 15" a seduta (la più lunga ≈ 39:28).
 Soddisfa BOUNDARIES L14. Lo scambio di stazioni (I2 di training-quality) cambia
 l'ordine: è una domanda per Alessio, non una regola (rapporto 2026-11-12).
+
+**R20 — Giro della finitura** `[PROPOSTA, programmi 2.4 — 2026-11-21, chiude B10]`. Con
+recupero 0 fra due stazioni diverse, il passo è la transizione del blocco d'arrivo (Z
+esclusa). Fra un giro e l'altro della finitura: 15″ `transizione`, nei 4 circuiti. Durate
+38:40, 36:55, 36:18, 39:43 (+15″ a seduta piena). S9 ovunque. Prove 20.x: rapporto 11-21b.
 
 Regole di ordinamento **per blocchi futuri** (la trascrizione ne viola due,
 dichiarate e lasciate ad Alessio):
@@ -90,7 +96,8 @@ Si valuta in ordine; la prima riga che si applica decide.
    sui secondi. `M ≥ soglia` ⇒ `Lt`; altrimenti ⇒ `giù(Lt)`.
 
 Mai sopra `Lt`, mai sopra `P`. Un solo gradino eseguibile sotto `Lt`: se non
-basta, la prima settimana lo dice (`scendi-di-livello`, PROGRESSION §5).
+basta, la prima settimana lo dice (`scendi-di-livello`, PROGRESSION §5). Dopo ogni
+ritest R1 vale solo in discesa, con R9b; R9c (§8) toglie la salita degli stati virtuali.
 
 Esiti sul circuito:
 
@@ -165,6 +172,9 @@ inverted-row-trx, pike-push-up, bulgarian-split-squat, hollow-hold.
   Stesso numero per countdown, «Deve durare almeno», anteprima, riepilogo del
   circuito, stima (trazioni +2″/+2″: 30 → 54). Prove 18.x: rapporto 2026-11-18.
 - Recupero: quattro livelli, §2.
+- **R21 — Z1 dead hang** `[PROPOSTA, programmi 2.4 — 2026-11-21, chiude B9]`: bersaglio
+  30″ o finché la presa regge, mai oltre. Il player scrive il tempo vero («Ho mollato»,
+  «Hai tenuto fino al segnale?»), mai 30 da solo (`recordActual`). Fuori dalla revisione.
 
 ## 5. Durata massima della seduta — R19 `[programmi 2.3: IN CODICE e30cdc6 a fine seduta · rev. 2026-11-21 PROPOSTA]`
 
@@ -174,7 +184,7 @@ estimatedSeconds(buildGuidedPlan(C, 1, σ))`, settimana piena, riscaldamento com
 - Fine seduta (L25): σ′ = stati della chiusura di S senza scelte (sync, R14) + passo + proposte dei blocchi sopra che allungano.
 - Revisione (M22): R10a (2)-(3) con stati della revisione + passo + `sali-di-livello` che allungano; oltre ⇒ (4)-(7).
 - Oltre il tetto: variante e carico con R5-R7, R13, Z3-Z4. **Niente tagli** a serie, ripetizioni, recuperi, transizioni, finitura (proposta 11-08 ritirata).
-- Variante mai fermata (D5, 2026-11-20): hip thrust al 3, per lato ⇒ circuito 4 ≈ 59′. Massimi 46, 48, 49, 59′.
+- Variante mai fermata (D5, 2026-11-20): hip thrust al 3, per lato ⇒ circuito 4 ≈ 59′. Massimi con R20: 46:40, 51:58, 49:30, 59:15.
 - Nota del circuito 4: `DEVIAZIONI_NOTA` (L26). Testi e prove: rapporto 2026-11-21.
 
 ## 6. Sostituzioni quando manca un attrezzo
@@ -213,7 +223,7 @@ box o panca non ha nessuna via.
 - Nessuna immagine generata a runtime: solo `src/assets/`.
 - Nessun numero di questo file nasce da un testo scritto dall'atleta.
 
-## 8. R9 — Rientro dopo una pausa `[PROPOSTA, programmi 2.1 — 2026-11-14]`
+## 8. R9 — Rientro dopo una pausa `[PROPOSTA, programmi 2.1 — 2026-11-14 · rev. 2.4 2026-11-21]`
 
 Attua S6 (approvata il 2026-11-12), chiude **M4** (scenario S3 di quality,
 `05`). Notazione e R5: PROGRESSION_RULES §9. Oggi `rotation.ts` calcola
@@ -248,49 +258,34 @@ ordine `(date, id)`), `TestResult`.
 **Fine**: alla prima seduta che `rientro` dice piena, cioè dopo **4 sedute
 chiuse dall'ancora e non prima del giorno A+7**. Più lunga di una settimana solo
 per chi si allena meno di 4 volte in 7 giorni: più prudente, non meno.
-**Rotazione**: invariata. La prossima resta `sessionAfter(ultima chiusa)`; con 4
-ridotte in ordine, ogni circuito ne ha una. Il numero di settimana resta di
-calendario (M6, DECISIONS D-17).
+**Rotazione**: invariata (`sessionAfter(ultima chiusa)`). Settimana: R22, sotto.
 
-**R9a — Ritest proposto.** Scheda in Home visibile ⇔ esiste un'ancora `A` con
-≥ 2 sedute chiuse da `A`; nessuna seduta piena chiusa dopo `A`; nessun
-`TestResult` con `date > inizioPausa`; nessuna seduta chiusa con data `oggi` (un
-massimale dopo una seduta misura la fatica). Test: quelli richiesti da R4. Non
-blocca niente; senza test sparisce alla prima seduta piena. In settimana 6 o 12
-un ritest vale per entrambi i banner.
-**R9b — Effetto del ritest (separabile, DECISIONS D-18).** Per gli esercizi in
-cui R1 arriva alla riga 8, con `M` del ritest: `0 < M < soglia` e `L > giù(Lt)`
-⇒ proposta `riparti-dal-test` L → `giù(Lt)`, bonus a 0; `M = 0` ⇒ verso il
-primo gradino eseguibile, se L è sopra; `M ≥ soglia` ⇒ niente. **Mai una
-salita.** Decisione `rientro-<A.date>:<slug>`. Senza R9b la scheda non dice che
-i gradini si ricontrollano (M16).
+`[rev. programmi 2.4 — 2026-11-21, PROPOSTA]` Testi, prove 9.12-9.31 e 22.x: rapporto
+`reports/2026-11-21-training-b9-b10-m4.md` §3.
+**R9a rev. — Prima i test** (Alessio, 2026-11-21). Scheda «Prima i test di rientro» in
+cima alla Home ⇔ `rientro(oggi)` ridotta; nessun `TestResult` con `date > inizioPausa`;
+nessuna seduta chiusa oggi; nessuna decisione `rientro-<inizioPausa>:test` («Salta i
+test»). Non blocca. Test: R4 punto 1, 7. Saltati: niente R9b, gradini di prima, ridotte
+ed E5 uguali. **Giorno di test** (ogni giro): la Home non propone la seduta.
+**R9b — D-18 sì, per ogni `TestResult` con `week ≥ 1`** (rientro, 6, 12, a piacere).
+Esercizi con R1 riga 8: `0 < M < soglia` e `L > giù(Lt)` ⇒ `riparti-dal-test` L →
+`giù(Lt)`; `M = 0` ⇒ primo eseguibile, se L è sopra; altrimenti niente. **Mai una
+salita.** `stateAfter` con bonus 0 e carico 0 (S5). Id `ritest-<data>:<slug>`; la supera
+un risultato più recente dello stesso test. È una discesa: niente cancelli, niente R13.
+**R9c — Nessun test alza un gradino** (R-17). Alla chiusura, ogni esercizio registrato
+senza stato salvato lo salva, anche uguale; al primo avvio dopo il rilascio si salvano
+gli stati mostrati. Mai eseguiti: R1 con i test recenti. R1 «dopo ogni ritest» = R9b.
+**R22 — Settimana del programma** (D-17 a, dichiarata). Dopo `D0 = SETTIMANE_DAL` (data
+del rilascio) una settimana di calendario senza sedute chiuse non conta, quella in corso
+sì; fino a D0 vale il calendario. `fine(W)` = domenica dell'ultima settimana di calendario
+con quel numero. Rientro ⇒ `settimana(P) + 1`. `programStartDate` e `week` passati mai
+toccati. L'aderenza resta di calendario.
 
 *Casi limite.* Tempo null: non serve. perSide: si dimezzano i giri, i lati
 restano due. Blocchi esclusi: la finitura scende a 1 giro, la decompressione
 resta. Solo eccentrici: nessun effetto. Scarico: una riduzione sola. Ritest
 appena fatto: la scheda sparisce, la riduzione resta (il volume è tolleranza,
-non capacità). Decisione registrata: nelle ridotte non ci sono leve. Seduta in
-corso o abbandonata: non interrompe la pausa e non conta fra le 4. Bozza: si
-giudica su `draft.date`.
+non capacità). Nelle ridotte non ci sono leve. Seduta in corso o abbandonata:
+non interrompe la pausa e non conta fra le 4. Bozza: si giudica su `draft.date`.
 
-Base: ultima chiusa `circuito-2` il 2026-03-02.
-
-| # | ingresso | atteso |
-|---|---|---|
-| 9.1 | oggi 03-15 (13 giorni) | piena, nessuna scheda |
-| 9.2 | oggi 03-16 (14) | ridotta 1 di 4, `circuito-3`; giri 2 / 2 / 1 / 1; 19 passi |
-| 9.3 | chiuse 03-16, 03-18, 03-20, 03-21 | tutte ridotte |
-| 9.4 | 5ª il 03-23 | piena |
-| 9.5 | una al giorno dal 03-16 al 03-20 | 5 ridotte; la 6ª il 03-23 piena |
-| 9.6 | 03-16 poi 03-29 (13) | 03-29 ridotta 2 di 4 |
-| 9.7 | 03-16 poi 03-31 (15) | nuova ancora, ridotta 1 di 4 |
-| 9.8 | rientro in settimana 6 | 3→2, 2→1, una volta |
-| 9.9 | bozza del 03-05 mai chiusa, oggi 03-16 | ridotta |
-| 9.10 | fine di una ridotta, 11-11-11, sì | nessuna leva, testo rientro |
-| 9.11 | revisione con voci da ridotte, tutte sopra | nessun aumento; tutte sotto: discesa |
-| 9.12 | chiuse 03-16 e 03-18, oggi 03-19 | scheda ritest visibile |
-| 9.13 | 9.12 più una seduta chiusa il 03-19 | scheda non visibile quel giorno |
-| 9.14 | test il 03-19 | scheda via; il 03-20 resta ridotta |
-| 9.15 | nessun test, 5ª seduta (piena) chiusa | scheda via |
-| 9.16 | prima seduta in assoluto | piena |
-| 9.17 | R9b trazioni: L=3 M=5 · L=3 M=9 · L=5 M=9 · L=1 M=5 | 3→1 · niente · niente · niente |
+Prove 9.1-9.11 e 9.16 (base: ultima chiusa `circuito-2` il 2026-03-02): `ARCHIVE.md`.

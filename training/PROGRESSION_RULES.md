@@ -1,6 +1,6 @@
 # PROGRESSION_RULES.md — soglie di progressione
 
-**In produzione `e30cdc6`: progressione 4.0** — R5-R7 §9, R10 R13 §10, R14b R15 R17 §11, R19 a fine seduta (PROGRAM_RULES §5), D-21 a, D-23 a; R8 R11 R12 R16 in PROGRESS_REVIEW §6. Rilascio B (R14a/c/e, R14d) in corso. **PROPOSTA progressione 4.1 (rev. 2026-11-21): D-19 b, R19 in revisione, R17c.** R9 no. Motore: `engine/progression.ts`, `review.ts`, `loading.ts`.
+**In produzione `6cbb759` (rilascio C): progressione 4.1** — R5-R7 §9, R10 R13 §10, R14 R15 R17 §11, D-19 b, R19 a fine seduta e in revisione (PROGRAM_RULES §5), D-21 a, D-23 a; R8 R11 R12 R16 in PROGRESS_REVIEW §6. R9 no. **PROPOSTA progressione 4.2 (2026-11-21b): R9b, R9c, L30 (a), L32, `LEVA_MANUBRIO` + goblet, stacco rumeno, estensione tricipiti** (rapporto `2026-11-21-training-b9-b10-m4.md`). Motore: `engine/progression.ts`, `review.ts`, `loading.ts`.
 
 Ogni soglia è un numero, non un giudizio; `[PROPOSTA]` = la regola oggi non c'è.
 
@@ -206,9 +206,9 @@ prima leva disponibile fra tempo e pausa, o nessuna.
 
 ### R9 — Rientro dopo una pausa (S6 · chiude M4 · scenario S3)
 In **PROGRAM_RULES §8**: dopo ≥ 14 giorni senza sedute chiuse, 4 sedute (≥ 7
-giorni) a giri dimezzati, tutte le stazioni, nessun aumento (R5 E5), ritest.
-
-Ordine seguito: R8 → R5 → R6 → R7 (fatto, `a747e09`); R9 (con E5) resta da fare.
+giorni) a giri dimezzati, tutte le stazioni, nessun aumento (R5 E5), ritest **prima**
+(R9a rev.). Un test dopo la settimana 0 può solo far scendere (R9b, D-18 sì) e non alza
+nessun gradino da solo (R9c); settimana del programma: R22. Resta da fare (T-31…T-33).
 
 ## 10. R10, R13 — A17 e D-4 `[progressione 3.0 — 2026-11-16, in produzione `fe85203`]`
 
@@ -235,7 +235,8 @@ Altrimenti `rimandati` `leva` (`decaduta`). Le sedute non registrano i bonus.
 ripetizioni il manubrio successivo è la leva 5, stessa funzione in revisione e
 a fine seduta: cancello R5, tempo e pausa esauriti, settimana ≥ 3, R13;
 bonus a 0; `loadKg = N` = successivo **esatto** di `MANUBRI_KG` (D-19 b, rev. 11-21; prima
-`L + 2,5` come tetto). Mai scritto, fuori elenco, cima ⇒ niente leva. Kettlebell fuori (> S2).
+`L + 2,5` come tetto). Mai scritto, fuori elenco, cima ⇒ niente leva. Kettlebell fuori (> S2:
+8, 12, 20, 24 ⇒ +4/+8 kg, confermato 11-21b). Goblet, stacco rumeno, estensione tricipiti: manubri, dentro (T-34).
 Registro perso ⇒ R10b fail-open: scrittura atomica (L22 aperto).
 
 ### R13 — Un aumento per esercizio ogni 7 giorni (D-4, S2)
@@ -294,4 +295,5 @@ R13, con il testo della regola che la fissa (fine seduta; revisione R10a 1, 2-3,
 il suo motivo; (4) tempo o pausa fermi per R19 ⇒ testo «tetto»; (5) cima ⇒ «leve finite» con i kg; (6) «leve finite».
 
 ### Ordine di implementazione
-A e T-17…T-23 in produzione (`e30cdc6`). B: T-15 → T-16 (testo 11-21) → T-24. Poi T-25 → T-26 → T-27. R9 dopo.
+A, B, C (T-15…T-27) in produzione (`6cbb759`). Poi, rapporto 11-21b: T-28 (R-16) → T-29, T-30 → T-31 → T-32 → T-33; T-34…T-36 liberi.
+L30 (a): «(6) fuori elenco» = esercizio `inherent` fuori da `LEVA_MANUBRIO` ⇒ `tetto`; in `LEVA_MANUBRIO` peso mai scritto o fuori elenco ⇒ `manubrio` anche col tetto.

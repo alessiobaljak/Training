@@ -5,16 +5,29 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## In produzione oggi
 
-**`e30cdc6` (2026-11-20)**: rilascio A di progressione 4.0, progressi 3.1, consigli
-4.0, programmi 2.2-2.3, limiti 1.4 (R18, R16, R17, R15, R14b; A19) **+ rev. 2026-11-20**
-(L23, L24, M21, 17.2) **+ D-21 a, D-22 a (R19 a fine seduta), D-23 a**. Prima: `0f3f191`
-(rilascio A), `fe85203` (3.0), `a747e09` (R5-R8). Non ancora: R9, rilascio B (R14a/c/d/e,
-in corso). Il resto è il codice trascritto con `[IN CODICE]` nei file di metodo.
+**`6cbb759` (rilascio C, 2026-11-21)**: progressione 4.1, consigli 4.1, programmi 2.3 rev.,
+limiti 1.4 rev. (B: R14a/c/d/e, D-19 b; C: M22, L25, L26, B14). Prima: `e30cdc6` (4.0 + rev.
+11-20 + D-21…D-23), `0f3f191`, `fe85203`, `a747e09`. Non ancora: R9. Il resto è il codice
+trascritto con `[IN CODICE]` nei file di metodo.
 
 ## Voci aperte
 
+### programmi 2.4 · progressione 4.2 · consigli 4.2 · progressi 3.2 · limiti 1.5 (2026-11-21b)
+- **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-21-training-b9-b10-m4.md`, T-28…T-36).
+- **Cosa.** R20 giro della finitura 15″ nei 4 circuiti (B10); R21 Z1 bersaglio 30″ o finché
+  regge, tempo vero (B9); R9a rev. test prima del rientro, R9b solo discesa su ogni test dopo
+  la settimana 0 (D-18), R9c nessun test alza un gradino, giorno di test senza seduta; R22
+  settimane senza sedute non contano (D-17 a); R-16 ritest senza riscrivere la data; kettlebell
+  fuori dalla leva (confermato), goblet, stacco rumeno, estensione con i manubri; L27-L32.
+- **Perché.** Risposte di Alessio del 2026-11-21 (B9, B10, M4, B6 personale); quality
+  `f7f945d` (B9, B10, M4 Bloccanti; L30-L32) e `0d85597` (L27-L29); R-16 e R-17 letti nel codice.
+- **Limiti.** Nessuno allentato. Stringono: R9b, R9c, giorno di test, R22 (scarico, ritest,
+  zavorra dopo settimane di lavoro), R20 (+15″, R19 un passo prima). Major: campo
+  `recordActual`, costante `SETTIMANE_DAL`, `DEVIAZIONI_VARIANTE`, migrazione degli stati (R9c).
+- **Esito training-quality.** Non ancora valutato.
+
 ### progressione 4.1 · consigli 4.1 · programmi 2.3 rev. · limiti 1.4 rev. (2026-11-21)
-- **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-21-training.md`, T-24…T-27).
+- **Stato.** In produzione `6cbb759` (T-24 nel B, T-25…T-27 nel C; `reports/2026-11-21-training.md`).
 - **Cosa.** D-19 b: manubrio successivo esatto da `MANUBRI_KG` (minor: soglia), niente leva con
   peso mai scritto, fuori elenco o in cima; R14d resta `B`. M22: R19 anche in revisione, R10a
   (2)-(3), motivi `tetto` e `manubrio`; R17c punti 3-5. L25: σ′ = stati della chiusura + proposte
@@ -22,7 +35,8 @@ in corso). Il resto è il codice trascritto con `[IN CODICE]` nei file di metodo
 - **Perché.** Decisioni di Alessio del 2026-11-20 (D-19 b, D5, M20 residuo); quality 2026-11-20
   `221b2e8` (M22 Medio, L25 e L26 Bassi).
 - **Limiti.** Nessuno allentato: passo massimo 2 kg (era un tetto di 2,5), σ′ più stretto.
-- **Esito training-quality.** Non ancora valutato.
+- **Esito training-quality.** GO al push di C (`f7f945d`): M22, L25, L26, B14 chiusi; nuovi
+  L30-L32 (Bassi), presi nel giro 2026-11-21b.
 
 ### progressione 4.0 · progressi 3.1 · consigli 4.0 · programmi 2.2 · limiti 1.4
 - **Data.** 2026-11-18, rev. 2026-11-20. **Stato.** Rilascio A e rev. 2026-11-20 in

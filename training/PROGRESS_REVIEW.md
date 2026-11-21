@@ -243,8 +243,10 @@ giorni la seduta esce dalla finestra; le ridotte le ferma R5 E5. Ritest: un
 test non è una seduta. Due sedute nello stesso giorno: contano 1 (R12). Seduta
 chiusa tardi con data in W: entra alla prossima apertura. In corso e
 abbandonate: fuori (8.7, 8.8). `programStartDate` assente: nessuna finestra,
-nessun verdetto. Data e `week` in disaccordo (solo se cambia la data di inizio,
-D-17): `week` decide chi compare, la data la finestra.
+nessun verdetto. Con R22 (D-17 a, progressi 3.2, PROPOSTA 11-21b) `week` è la settimana
+del programma (dopo `D0` le settimane senza sedute non contano) e `fine(W)` è la domenica
+dell'ultima settimana di calendario con quel numero: `week` decide chi compare, `fine(W)`
+la finestra. L'aderenza resta di calendario (prova 22.10, rapporto 11-21b).
 
 Base: inizio programma **2026-03-02** (W1 03-02→03-08, W2 →03-15, W3 →03-22,
 W6 04-06→04-12 scarico, W7 →04-19); `weekEnd = fine(W)`, `today = fine(W) + 1`

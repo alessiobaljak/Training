@@ -11,20 +11,21 @@ W-19…W-22 (R5-R8) chiusi in codice, in produzione `a747e09`: `ARCHIVE.md`.
 
 | id | cosa | dove | chi |
 |---|---|---|---|
-| W-23 | R9 rientro, R9a ritest, R9b separabile (M4) | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts` (motore), `HomeScreen.tsx` | sessione principale |
+| W-46 | **T-28** R-16: il riepilogo di un ritest non scrive più `programStartDate` (rapporto 11-21b) — **per primo** | `OnboardingScreen.tsx` | sessione principale |
+| W-23 | R9 rientro con R9a rev. «prima i test» (T-32), R9b + R9c + giorno di test + testi dei ritest (T-33), R22 settimane (T-31) — M4, R-17, D-04, M16 | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts`, `repository.ts`, `HomeScreen`, `OnboardingScreen` | sessione principale |
+| W-47 | **T-29** R20 giro della finitura (B10) · **T-30** R21 Z1 dead hang (B9) | `engine/circuit.ts`, `GuidedSession`, `SessionSummary`, `CircuitOverview`, `types/program.ts` | sessione principale |
 
 W-24…W-31 (giro 2026-11-16, R10-R13): in produzione `fe85203`, `ARCHIVE.md`.
 
 ## Rilascio B e dopo (spec: rapporti 2026-11-18, 2026-11-20, 2026-11-21)
 
-W-32…W-36, W-39…W-42 in produzione (`e30cdc6`): `ARCHIVE.md`. Ordine: W-37 → W-43 →
-W-44. Attesi dai rapporti, non dal codice.
+W-32…W-37, W-39…W-44 in produzione (`6cbb759`, rilascio C; W-37, W-43, W-44 da
+chiudere in `ARCHIVE.md` dopo conferma di quality). Attesi dai rapporti, non dal codice.
 
 | id | cosa | dove | gravità (quality) |
 |---|---|---|---|
-| W-37 | R14a/c/e + record `lapsed` (T-15), poi R14d peso proposto `B` con il testo 11-21 (T-16; `SessionScreen` se apre circuiti) | `types`, `draft.ts`, `decadenza.ts`, `review.ts`, `backup.ts`, `GuidedSession`, `SessionScreen` | M18 Medio, L2, R-7 |
-| W-43 | T-24: D-19 b, manubrio successivo esatto da `MANUBRI_KG`, testi, R17c 3 e 5 (D19.x) | `method.ts`, `progression.ts`, `review.ts`, `decadenza.ts` | R-7 alla fonte |
-| W-44 | T-25 R19 in revisione (M22.x), T-26 σ′ (L25.x), T-27 nota + `DEVIAZIONI_NOTA` (L26.x) | `review.ts`, `progression.ts`, `SessionSummary`, `circuit.ts`, `deviations.ts` | M22 Medio, L25, L26 Bassi |
+| W-48 | **T-34** `LEVA_MANUBRIO` + goblet, stacco rumeno, estensione tricipiti; `DEVIAZIONI_VARIANTE` (S1 B2, S2 A2); consiglio dello swing tecnico senza il 16 | `method.ts`, `circuit.ts`, `deviations.ts` | — |
+| W-49 | **T-35** L27, L28, L29, L30 (a), L31 · **T-36** L32 testi di `range-da-rifare` a range fisso | `SessionSummary`, `decadenza.ts`, `review.ts` | Bassi |
 
 ## Bloccanti per l'uso pubblico
 
@@ -40,7 +41,7 @@ W-44. Attesi dai rapporti, non dal codice.
 
 | id | cosa | dove |
 |---|---|---|
-| D-04 | Deload e ritest importati dal programma archiviato; `RETEST_BANNER` promette un ricalcolo impossibile nei circuiti | `src/engine/schedule.ts`, `src/data/program.ts` |
+| D-04 | Deload e ritest importati dal programma archiviato; `RETEST_BANNER` promette un ricalcolo impossibile nei circuiti. Testo: T-33 (rapporto 11-21b); l'importazione resta (D-10) | `src/engine/schedule.ts`, `src/data/program.ts` |
 | W-03 | Regola di sostituzione per attrezzo mancante (PROGRAM_RULES §6): oggi 5 blocchi su 48 hanno un'alternativa, tutti e cinque nella finitura | `src/data/circuit.ts` |
 | W-16 | R3 volume: una funzione sola, F e Z fuori, fasce per gruppo, Progressi fatte/previste/fascia (A7, M10) | `metrics.ts`, `ProgressScreen.tsx` |
 | W-17 | R4 test richiesti calcolati (7), «non eseguito» al posto di 0 | `tests.ts`, `OnboardingScreen.tsx` |
@@ -66,3 +67,4 @@ W-44. Attesi dai rapporti, non dal codice.
 | W-10 | Il titolo di `aggiungi-peso` dice «passa al manubrio successivo» anche sulla kettlebell (salti di 4 kg). **Assorbito da W-26** (R10c-0); con R10c-1 kettlebell fuori dall'elenco |
 | W-11 | `SESSIONS_PER_WEEK` in `ProgressScreen.tsx` è corretto (4) ma il commento sopra dice «sei»: denominatore dell'aderenza, vale la pena che il commento non menta |
 | W-13 | Il riscaldamento non è saltabile dall'app quando la seduta ha un blocco a RIR 0-1 o una stazione balistica (METHOD §7) |
+| W-50 | Per quality: `scendi-di-livello` tiene `loadKg` (dal 6 con zavorra al 5 con zavorra, S5); prudente togliere prima la zavorra. Hip thrust e bulgaro al gradino 6: +2,5 kg non si fa con le kettlebell (residuo B6) |

@@ -173,10 +173,9 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   propone: a fine seduta rispondi alla domanda sul tempo prescritto.»
 - `sali-di-livello` e `aggiungi-peso` perdono `cautelaTempo`: con R5 non nascono
   più senza tempo confermato. La cautela del 30-40% resta.
-- `riparti-dal-test` (R9b) · leva `variant`, «Applica» / «Lascia com'è». Titolo
-  «Riparti dal livello <g>: <nome>». Evidenza «Test di rientro: <M> su <test>.
-  Sotto <soglia> il livello <L> non regge il range del blocco.» Cambio «Livello
-  <L> → <g>. Tempo e pause tornano a quelli della scheda.»
+- `riparti-dal-test` (R9b, D-18 sì) · leva `variant`, «Applica» / «Lascia com'è», su ogni
+  test con `week ≥ 1`. Titolo, evidenza («<Fonte>: <M><u> al test <test>, al livello <Lt>…»),
+  cambio e cautela: **rapporto 2026-11-21-training-b9-b10-m4 §3** (consigli 4.2).
 
 **Revisione — elenchi senza verdetto.**
 - `pocheProve` (rev. 2026-11-15): «Troppo pochi numeri per giudicare:
@@ -288,12 +287,12 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   `tetto` e `manubrio` (rev. 11-21, M22): testi esatti nel rapporto 2026-11-21 §1-§2.
 
 **Rientro (R9) — Home e player.**
-- Prima della seduta: «Sono passati <g> giorni dall'ultima seduta. Le prossime
-  <4> sedute sono ridotte: stessi esercizi, stesso ordine, <2> giri invece di
-  <3> nei tri-set e <1> invece di <2> nella finitura. Niente aumenti finché non
-  torni al volume pieno.» (giri letti dal piano, non scritti a mano).
-- Etichetta: «Rientro · seduta <k> di <4>».
-- Ritest (R9a): «Dopo la pausa rifai i test dei massimali, in un giorno senza
-  seduta, con 4-5 minuti fra un test e l'altro.» Con R9b: «Servono a controllare
-  che i gradini siano ancora quelli giusti.» Senza R9b: «I risultati restano
-  nello storico dei test.» Mai «l'app ricalcola» (M16).
+- Prima della seduta: «Sono passati <g> giorni dall'ultima seduta.[ Riprendi dalla
+  settimana <W>: le settimane senza sedute non contano.] Le prossime <4> sedute sono
+  ridotte: stessi esercizi, stesso ordine, <2> giri invece di <3> nei tri-set e <1>
+  invece di <2> nella finitura. Niente aumenti finché non torni al volume pieno.»
+  (giri letti dal piano; la parentesi solo con R22 attiva). Etichetta «Rientro · seduta <k> di <4>».
+- **Consigli 4.2 (2026-11-21b, PROPOSTA)**, testi esatti nel rapporto
+  `2026-11-21-training-b9-b10-m4.md`: scheda «Prima i test di rientro» (R9a rev.), conferma
+  del salto, giorno di test, settimane 6/12 e `RETEST_BANNER` (via «l'app ricalcola», M16,
+  D-04), esiti e riepilogo dei ritest, Progressi (R22), Z1 (R21), transizione di R20, L29, L32.

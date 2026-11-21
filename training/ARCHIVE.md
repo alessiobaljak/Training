@@ -5,7 +5,8 @@ Riepilogo: al 2026-11-14 quattro voci del BACKLOG escono dal file principale
 (R5-R8 in produzione, `a747e09`) e le tabelle di prova di R5-R7. Al 2026-11-18
 escono i casi limite di R5-R7 e W-24…W-31 (R10-R13 in produzione, `fe85203`). Al
 2026-11-20 escono W-32…W-36 (rilascio A di R14-R18 in produzione, `0f3f191`). Al
-2026-11-21 escono W-39…W-42, W-12 e W-38 (rev. 11-20, D-21, D-22, D-23 in `e30cdc6`).
+2026-11-21 escono W-39…W-42, W-12 e W-38 (rev. 11-20, D-21, D-22, D-23 in `e30cdc6`), poi
+W-37, W-43, W-44 (rilasci B e C in `6cbb759`) e la tabella 9.x di R9 (rapporto 11-21b).
 
 | id | cosa era | esito | data |
 |---|---|---|---|
@@ -20,6 +21,7 @@ escono i casi limite di R5-R7 e W-24…W-31 (R10-R13 in produzione, `fe85203`). 
 | W-24…W-31 | Giro 2026-11-16: R12, registro + scrittura atomica, R10a/R10c-0, R10b, R11, R13 (D-4 a), R10c-1 (D-19 sì) | **in codice** (`cf7588a`), GO quality 2026-11-16 (A17, M17, L15, B12 chiusi), in produzione `fe85203`. Resti: M18, L18-L22, L17 → giro 2026-11-18 (W-32…W-37) | 2026-11-18 |
 | W-39…W-42, W-12, W-38 | T-17 L23, T-18 L24, T-19 M21, T-20 17.2, T-21 E4 prima dello scarico (D-21 a), T-22 R19 tetto 55′ a fine seduta (D-22 a), T-23 gradino a mano (D-23 a) | **in produzione** `e30cdc6`; quality 2026-11-20 (`221b2e8`): L23, L24, M21, M19 chiusi; M20 residuo accettato da Alessio; nuovi M22, L25, L26 → W-44 | 2026-11-21 |
 | W-32…W-36 | Rilascio A del giro 2026-11-18: R18 minimo con i bonus, R16, R17, R15 (data dell'esecuzione, D-20 a e b), R14b | **in codice** (`4edf751`, + A19 `0f3f191`), GO quality 2026-11-20 (L18-L21 e B13 chiusi), in produzione `0f3f191`. Resti: L23, L24, M19, M20, M21 → W-38…W-42 | 2026-11-20 |
+| W-37, W-43, W-44 | Rilascio B (T-15 R14a/c/e, T-16 R14d, T-24 D-19 b) e C (T-25 M22, T-26 σ′ L25, T-27 nota L26) | **in produzione** `6cbb759`; quality `f7f945d`: GO al push di C, M22, L25, L26 e B14 chiusi; nuovi L30-L32 (con L27-L29 di `0d85597`) → W-49 | 2026-11-21 |
 
 ## Casi limite di R5, R6, R7 (spostati da PROGRESSION_RULES §9 il 2026-11-18)
 
@@ -102,3 +104,24 @@ chiuse W1 03-02 e 03-05, W2 03-09 e 03-12, W3 03-16 e 03-19.
 | 7.10 | solo stati di R1, nessuna seduta | nessuna salita |
 | 7.11 | voci 2, 2, 3, 2 (03-02, 03-05, 03-09, 03-12), stato 2, oggi 03-20 | inizio 03-12, dal 03-26; revisione W2: `pocheProve` |
 | 7.12 | ultima al 2 il 03-02, rientro il 03-20 | R7 vera, R9 blocca le ridotte; in revisione `pocheProve` |
+
+## Tabella di prova di R9 (spostata da PROGRAM_RULES §8 il 2026-11-21)
+
+Valide 9.1-9.11 e 9.16. Le 9.12-9.15 e la 9.17 sono sostituite da 9.12-9.31 del
+rapporto `reports/2026-11-21-training-b9-b10-m4.md` (R9a rev., R9b, R9c).
+Base: ultima chiusa `circuito-2` il 2026-03-02.
+
+| # | ingresso | atteso |
+|---|---|---|
+| 9.1 | oggi 03-15 (13 giorni) | piena, nessuna scheda |
+| 9.2 | oggi 03-16 (14) | ridotta 1 di 4, `circuito-3`; giri 2 / 2 / 1 / 1; 19 passi |
+| 9.3 | chiuse 03-16, 03-18, 03-20, 03-21 | tutte ridotte |
+| 9.4 | 5ª il 03-23 | piena |
+| 9.5 | una al giorno dal 03-16 al 03-20 | 5 ridotte; la 6ª il 03-23 piena |
+| 9.6 | 03-16 poi 03-29 (13) | 03-29 ridotta 2 di 4 |
+| 9.7 | 03-16 poi 03-31 (15) | nuova ancora, ridotta 1 di 4 |
+| 9.8 | rientro in settimana 6 | 3→2, 2→1, una volta |
+| 9.9 | bozza del 03-05 mai chiusa, oggi 03-16 | ridotta |
+| 9.10 | fine di una ridotta, 11-11-11, sì | nessuna leva, testo rientro |
+| 9.11 | revisione con voci da ridotte, tutte sopra | nessun aumento; tutte sotto: discesa |
+| 9.16 | prima seduta in assoluto | piena |
