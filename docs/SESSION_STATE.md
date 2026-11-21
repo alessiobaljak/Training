@@ -3,10 +3,10 @@
 Aggiornato: 2026-11-20 · branch `claude/calisthenics-pwa-offline-kor52w`
 
 ## Compito in corso
-**2026-11-21, dopo il rilascio F.** Tutto il lavoro della giornata è in produzione (rilasci D, E, F).
-- Aperti: D-Q3 (S7 su Z1, decisione di Alessio; se non risponde vale la (a)); B6, B8, M4; B1-B4 solo per il rilascio pubblico; A10, A16.
-- Da fare (designer, nell'ordine): T-31 R22, T-32 R9 rientro, resto di T-33 (giorno di test, testi dei ritest, M16), T-34 attrezzatura, T-35, T-36. Media lead: allineare `media/LIBRARY.md` (righe 19 e 182-183) alla figura tolta. Bassi nuovi: L40, L41, L42, L43.
-- Non coperti nel browser: riepilogo del giro di test con le proposte R9b, «Lascia com'è», «Applica» su scendi-di-livello con zavorra.
+**2026-11-21, dopo il rilascio G.**
+- In locale: L42 (il selettore del gradino azzera tempo, pausa e zavorra), da far passare da quality e dal gate.
+- Pilota delle figure generate (Qwen-Image, Space `mcp-tools/Qwen-Image`): due prove dello swing scartate (pannello sinistro frontale), poi la quota ZeroGPU gratuita dell'account HF di Alessio si è esaurita. Con la quota gratuita escono 2-3 immagini al giorno: serve la sua decisione (HF PRO, 40 min al giorno, oppure un provider a pagamento, oppure aspettare).
+- Aperti: B6, B8, M4; B1-B4 solo per il pubblico; A10, A16; Bassi L44, L45. Il designer deve le schede dei gradini 1, 3, 4, 5, 6 della scala agli anelli.
 
 **Revisione totale** chiesta da Alessio: design, esperienza d'uso, grafiche,
 tracciamento, suggerimenti, immagini. Da `03c7395` in poi, tutti i commit con
@@ -198,7 +198,8 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: **rilascio F**, `22f3d31` (2026-11-21): R9c completo (B16), R9b (B17), B18, figura del rematore TRX a piedi rialzati tolta. training-quality GO su `644bd8c` (nucleo v14 3 · 3 · 2), release-gate L GO per regressioni (rapporto `release/reports/2026-11-21c-claude-calisthenics-pwa-offline-kor52w.md`); ricetta di quality nel browser (23) A-D come attese. **Punto di ritorno: `4d06a4b`**: `firestore.rules` e `src/types` identici, `src/db` solo in aggiunta; il codice vecchio legge stati e record `ritest-…` senza contarli come aumenti (provato dal gate).
+- in produzione: **rilascio G**, `e8c0556` (2026-11-21, codice di `9d7b20f`): T-39 (chiude B19, Bloccante che era in produzione), T-38 R23 (zavorra a 0 a ogni cambio di gradino), T-37 rematore della Seduta 2 agli anelli con le figure TRX della scala tolte, T-41. training-quality GO (nucleo v15 4 · 2 · 2), release-gate L GO per regressioni (rapporto `release/reports/2026-11-21d-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `22f3d31`**: tipi, regole e slug invariati.
+- Prima: **rilascio F**, `22f3d31` (2026-11-21): R9c completo (B16), R9b (B17), B18, figura del rematore TRX a piedi rialzati tolta. training-quality GO su `644bd8c` (nucleo v14 3 · 3 · 2), release-gate L GO per regressioni (rapporto `release/reports/2026-11-21c-claude-calisthenics-pwa-offline-kor52w.md`); ricetta di quality nel browser (23) A-D come attese. **Punto di ritorno: `4d06a4b`**: `firestore.rules` e `src/types` identici, `src/db` solo in aggiunta; il codice vecchio legge stati e record `ritest-…` senza contarli come aumenti (provato dal gate).
 - Prima: **rilascio E**, `4d06a4b` (2026-11-21): T-29 R20 (`64180fa`, B10 chiuso) e T-30 R21 (`4d06a4b`, B9 ridotto). training-quality GO, release-gate L GO per regressioni, nucleo v13 (rapporto `release/reports/2026-11-21b-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `85d1dd8`**: diff su `firestore.rules`, `src/db`, `src/firebase` vuoto; `src/types` aggiunge solo `recordActual` opzionale.
 - Prima: **rilascio D**, `85d1dd8` (2026-11-21): figure (`50793fd`, il rematore inverso TRX mostra il TRX, 19 collegamenti sbagliati tolti) e T-28 (`c8964ff`, un ritest non riscrive la data di inizio). training-quality GO su entrambi, release-gate L GO per regressioni con nucleo v13 (rapporto `release/reports/2026-11-21-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `96a90c2`**: diff su `src/types`, `src/db`, `firestore.rules` vuoto.
 - Il primo gate L su questo rilascio è stato fermato dalla sessione principale: girava mentre nel working tree c'erano modifiche non committate (R9c). Rifatto da zero su un worktree pulito.
