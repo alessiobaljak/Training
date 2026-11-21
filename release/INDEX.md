@@ -1,6 +1,7 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-21, claude/calisthenics-pwa-offline-kor52w, 85d1dd8, L.
-Esito: GO per regressioni vs 96a90c2; nucleo v13 2 PASS, 4 FALLITI (B6,B8,B9/B17,B10/B16), 2 NON COPERTI (1, 8), uguale a prod salvo 4m chiuso; verify (929 test), build, smoke, offline verdi. Rapporto reports/2026-11-21-claude-calisthenics-pwa-offline-kor52w.md.
+Ultimo rilascio: 2026-11-21b, claude/calisthenics-pwa-offline-kor52w, 4d06a4b, L.
+Esito: GO per regressioni vs 85d1dd8; nucleo v13 2 PASS, 4 FALLITI, 2 NON COPERTI, uguale a prod salvo 4h superato; verify (939 test), build, smoke (20.8, R21), offline verdi. Rapporto reports/2026-11-21b-claude-calisthenics-pwa-offline-kor52w.md.
+- 2026-11-21b: persone fittizie, UAT, rollback Vercel NON eseguiti da me. D-Q3 (2c) aperta.
 - 2026-11-21: persone fittizie, UAT, rollback Vercel, ritest-data e immagine TRX in browser NON eseguiti da me.
 - 2026-11-20d: persone fittizie, UAT, rollback Vercel, percorso browser R14 NON eseguiti. B14 chiuso nei circuiti.
 Problemi aperti:
@@ -21,5 +22,4 @@ File:
 - reports/AAAA-MM-GG-<branch>.md: rapporti completi.
 Comando nucleo: node --experimental-strip-types quality/scripts/safety-core.mts
 Ordine: verify, nucleo, build, smoke, POI offline (mai insieme).
-
-Tempi (L, 2026-11-21): verify 14 s, build 9 s, nucleo 2x <2 s, smoke 3m13, offline 38 s. Nucleo: copia script v13 con symlink src/media/firestore.rules per tree.
+Tempi (L, 2026-11-21b): verify 11 s, build 7 s, nucleo 2x <2 s, smoke 5m46, offline 37 s. Nucleo: git archive in cartelle mie + script v13 (69d8c32) copiato; firestore.rules sta alla radice, nessun symlink serve.
