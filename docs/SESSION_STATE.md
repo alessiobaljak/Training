@@ -4,11 +4,11 @@ Aggiornato: 2026-11-20 · branch `claude/calisthenics-pwa-offline-kor52w`
 
 ## Compito in corso
 **2026-11-21, dopo il rilascio D.** In locale, non pubblicati, in quest'ordine:
-- `64180fa` T-29 R20 e `4d06a4b` T-30 R21: training-quality in corso su `4d06a4b`, poi gate L. Sono il **rilascio E**, che non contiene R9c.
-- `7863e31` R9c (era `704dbfa`), `69d8c32` NO-GO di training-quality (B16 ridotto, B17 nuovo, B18), `cc95fac` R9c completato («Archivia», test alla data della seduta, 9.29), `7b28b13` B18.
-- **D-Q2:** quality chiede ad Alessio se pubblicare R9c senza R9b (b) oppure aspettare R9b (a). La settimana di Alessio non è nota alla sessione, quindi si va con la (a), la prudente: R9c esce con R9b. R9b (T-33, criteri 9.19-9.25) è in lavorazione.
-- Trovato dopo il gate: `rematore-inverso-trx-piedi-rialzati` (sedute archiviate dello Shadow) mostra `rings-inverted-row`, cioè anelli e piedi a terra, lo stesso accoppiamento che il commento di `exercise-art.ts` scarta. Era così anche in produzione prima, quindi non è una regressione. Correzione prudente nel rilascio E.
-- Lezione: un agente che usa l'emulatore (anche con uno script suo nel browser) e uno smoke della sessione principale non devono mai girare insieme. Due smoke di T-30 sono falliti per questo.
+- **Rilascio E** = `64180fa` T-29 R20 (B10 chiuso) e `4d06a4b` T-30 R21 (B9 ridotto). training-quality GO (`quality/reports/2026-11-21-quality-4d06a4b.md`); release-gate L in corso sul worktree `t2930`.
+- Poi: `7863e31` R9c (era `704dbfa`), `cc95fac` R9c completato («Archivia», test alla data della seduta, 9.29), `7b28b13` B18, `3b548e4` figura del rematore TRX a piedi rialzati tolta (foto agli anelli, piedi a terra; il media lead l'aveva segnata l'8/11), `93cf066` R9b (B17), `644bd8c` smoke R9b nel browser. training-quality in corso su `644bd8c`.
+- **D-Q2:** la settimana di Alessio non è nota alla sessione; si è scelta la (a): R9c esce solo insieme a R9b.
+- **D-Q3 (nuova, per Alessio):** Z1 al gradino 2 per chi regge meno di 30″ (S7). (a) R21 basta; (b) raccomandata da quality: Z1 al gradino 1 sotto il bersaglio; (c) S7 non vale sui blocchi esclusi.
+- Lezione: un agente che usa l'emulatore, anche con un suo script nel browser, e uno smoke della sessione principale non girano mai insieme. Due smoke di T-30 sono falliti per questo. Gli agenti misurano su copie `git archive`, mai sul tree principale.
 
 **Revisione totale** chiesta da Alessio: design, esperienza d'uso, grafiche,
 tracciamento, suggerimenti, immagini. Da `03c7395` in poi, tutti i commit con
