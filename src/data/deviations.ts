@@ -363,7 +363,7 @@ export const DEVIAZIONI_NOTA: readonly DeviazioneNota[] = [
     scheda: 'È la più corta delle quattro. I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
     app: 'I minuti di margine sono il posto giusto per 2 serie opzionali di alzate laterali (12-18, RIR 0-1, 30" tra le due), in coda al Tri-set B.',
     motivo:
-      'Nell’app la seduta più corta è la 3 (36:03 contro 36:40 a tempo e pausa della scheda): la frase della scheda non è più vera.',
+      'Nell’app la seduta più corta è la 3 (36:18 contro 36:55 a tempo e pausa della scheda): la frase della scheda non è più vera.',
   },
   {
     sessione: 'circuito-4',

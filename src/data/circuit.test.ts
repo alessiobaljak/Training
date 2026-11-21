@@ -543,4 +543,18 @@ describe('L26 · le note delle sedute', () => {
     expect(corta?.id).toBe('circuito-3');
     expect(findCircuitSession('circuito-2')?.note ?? '').not.toContain('più corta');
   });
+
+  it('20.9 · il motivo della deviazione del circuito 2 dice le durate vere, transizione fra i giri compresa', () => {
+    /* Prima diceva 36:03 contro 36:40: R20 le ha allungate di 15″, e un numero scritto a mano resta indietro. */
+    const mmss = (secondi: number): string =>
+      `${String(Math.floor(secondi / 60))}:${String(secondi % 60).padStart(2, '0')}`;
+    const durata = (id: string): number => {
+      const sessione = findCircuitSession(id);
+      if (sessione === undefined) throw new Error(id);
+      return estimatedSeconds(buildGuidedPlan(sessione, 1));
+    };
+    const motivo = DEVIAZIONI_NOTA.find((d) => d.sessione === 'circuito-2')?.motivo ?? '';
+    expect(motivo).toContain(`${mmss(durata('circuito-3'))} contro ${mmss(durata('circuito-2'))}`);
+    expect(motivo).toContain('36:18 contro 36:55');
+  });
 });

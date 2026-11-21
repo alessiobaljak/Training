@@ -399,8 +399,11 @@ interface RestShape {
 /**
  * Il recupero che sta tra due serie consecutive del piano.
  *
- * `null` quando non ce n'è: tra due giri della finitura metabolica, dove si
- * passa da una stazione all'altra e si ricomincia senza fermarsi.
+ * `null` quando non ce n'è: verso la decompressione e dentro, dove la
+ * transizione zero è dichiarata nel dato, e fra due serie dello stesso
+ * esercizio senza recupero scritto. Fra due stazioni diverse c'è sempre un
+ * passo (R20): dove il recupero scritto è zero, è la transizione del blocco
+ * d'arrivo.
  */
 function restBetween(
   step: SessionStep,
@@ -447,7 +450,30 @@ function restBetween(
     };
   }
 
-  if (step.rest.kind === 'none' || step.rest.seconds <= 0) return null;
+  if (step.rest.kind === 'none' || step.rest.seconds <= 0) {
+    /*
+     * R20 (B10): alla fine di un giro della finitura il recupero di giro è
+     * zero, e il player passava dall'ultima stazione alla prima senza nessun
+     * passo, mentre fra tutte le altre stazioni ce ne sono 15. È lo stesso
+     * caso della giunzione di blocco (R2): recupero zero, quindi la
+     * transizione del blocco d'arrivo. Resta una transizione, non un recupero
+     * di giro: la finitura è una catena continua, e «Qui recuperi davvero»
+     * per 15 secondi sarebbe falso.
+     */
+    if (next.blockCode === step.blockCode) return null;
+    const arrivo = session.blocks.find((entry) => entry.code === next.blockCode);
+    const transizione = arrivo?.rest.kind === 'superset' ? arrivo.rest.transitionMinSec : 0;
+    if (transizione <= 0) return null;
+    return {
+      tier: 'transizione',
+      seconds: transizione,
+      maxSeconds: transizione,
+      hint:
+        step.rest.kind === 'round' && step.round !== null
+          ? `Giro ${String(step.round)} finito. Posa l’attrezzo e prepara la prima stazione.`
+          : 'Solo il tempo di spostarti. Non è un recupero.',
+    };
+  }
   return {
     tier: tierOf(step),
     seconds: step.rest.seconds,

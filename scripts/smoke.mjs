@@ -2110,6 +2110,11 @@ try {
                 console.log(
                   `A19: Seduta 2 in Home ${String(badgePrima)}′ → ${String(badgeDopo)}′ con +2″/+2″; panoramica ${String(minutiPanoramica)}′.`,
                 );
+                /* 20.8 (R20): la finitura ha la transizione anche fra un giro e l'altro, e la panoramica lo dice. */
+                check(
+                  testoPanoramica.includes('tra le stazioni e fra i giri 15″'),
+                  `20.8: nella panoramica la finitura deve dire «tra le stazioni e fra i giri 15″». Legge «${/tra le stazioni[^\n]*/.exec(testoPanoramica)?.[0] ?? '(niente)'}».`,
+                );
                 for (const originale of bonusOriginali) {
                   await updateInEmulator(originale.name, {
                     eccentricBonusSeconds: originale.eccentrica,

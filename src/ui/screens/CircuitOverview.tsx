@@ -233,8 +233,14 @@ export function CircuitOverview({ sessionId }: { readonly sessionId: SessionId }
                 <Badge>{primo.sets === 1 ? '1 giro' : `${String(primo.sets)} giri`}</Badge>
                 {rest.kind === 'superset' ? (
                   <>
+                    {/* R20: con zero fra i giri, la transizione vale anche fra un giro e l'altro. */}
                     {rest.transitionMinSec > 0 ? (
-                      <Badge tone="neutral">tra le stazioni {rest.transitionMinSec}″</Badge>
+                      <Badge tone="neutral">
+                        {rest.roundRestSec === 0 && primo.sets > 1
+                          ? 'tra le stazioni e fra i giri'
+                          : 'tra le stazioni'}{' '}
+                        {rest.transitionMinSec}″
+                      </Badge>
                     ) : null}
                     {rest.roundRestSec > 0 ? (
                       <Badge tone="accent">tra i giri {rest.roundRestSec}″</Badge>

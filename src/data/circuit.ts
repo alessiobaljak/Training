@@ -111,7 +111,11 @@ const volumeBraccia = (giro: number): RestPrescription => ({
   blockRestSec: 0,
 });
 
-/** Finitura: 15" tra le stazioni, zero tra i giri. */
+/**
+ * Finitura: 15" tra le stazioni, nessun recupero tra i giri. Fra un giro e
+ * l'altro resta la transizione di 15" (R20): la catena è continua, ma
+ * l'attrezzo si posa e si riprende come fra due stazioni qualsiasi.
+ */
 const FINITURA: RestPrescription = {
   kind: 'superset',
   transitionMinSec: 15,

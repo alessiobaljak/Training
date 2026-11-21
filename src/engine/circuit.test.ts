@@ -211,29 +211,24 @@ describe('buildGuidedPlan — la sequenza della seduta', () => {
     }
   });
 
-  it('non mette nessun recupero tra i giri della finitura', () => {
+  it('20.2 · fra un giro e l’altro della finitura c’è la transizione, non un recupero (R20)', () => {
     /*
-     * La finitura è l'unico blocco in cui si ricomincia senza fermarsi: 15"
-     * per spostarsi tra le stazioni e nient'altro. Un recupero di giro qui
-     * annullerebbe lo scopo del blocco.
+     * La finitura è una catena continua: 15" per spostarsi tra le stazioni,
+     * anche quando ricomincia il giro. Prima fra l'ultima stazione e la prima
+     * non c'era nessun passo: posare il kettlebell e ripartire nello stesso
+     * istante. Un recupero di giro («Qui recuperi davvero») annullerebbe lo
+     * scopo del blocco; una transizione no.
      */
-    const indici = plan
-      .map((step, i) => ({ step, i }))
-      .filter(({ step }) => step.kind === 'work' && step.group === 'F');
-    /*
-     * L'ultima stazione del primo giro, qualunque sia il suo codice: la
-     * finitura ne ha quattro, e cercare «F3» a mano voleva dire che il test
-     * passava anche quando il blocco cambiava numero di stazioni.
-     */
-    const primoGiro = indici.filter(
-      ({ step }) => step.kind === 'work' && step.step.setIndex === 1,
-    );
-    expect(primoGiro.length).toBeGreaterThan(1);
-    const ultimoDelPrimoGiro = primoGiro.at(-1);
-    expect(ultimoDelPrimoGiro).toBeDefined();
-    const dopo = plan[(ultimoDelPrimoGiro?.i ?? 0) + 1];
-    /* Subito la prima stazione del giro seguente, senza recupero in mezzo. */
-    expect(dopo?.kind).toBe('work');
+    const dopo = dopoIlPrimoGiro(plan);
+    expect(dopo.rest).toMatchObject({
+      kind: 'rest',
+      tier: 'transizione',
+      seconds: 15,
+      maxSeconds: 15,
+      hint: 'Giro 1 finito. Posa l’attrezzo e prepara la prima stazione.',
+    });
+    expect(dopo.poi).toMatchObject({ kind: 'work', group: 'F' });
+    expect(dopo.poi?.kind === 'work' ? dopo.poi.step.setIndex : null).toBe(2);
   });
 
   it('apre il giro di prova in un passo per ogni esercizio del blocco', () => {
@@ -272,6 +267,75 @@ describe('buildGuidedPlan — la sequenza della seduta', () => {
 
   it('dà a ogni passo un identificativo diverso', () => {
     expect(new Set(plan.map((step) => step.id)).size).toBe(plan.length);
+  });
+});
+
+/**
+ * Il passo dopo l'ultima stazione del primo giro della finitura, e quello
+ * dopo ancora. L'ultima stazione si cerca per posizione, non per codice: la
+ * finitura ne ha quattro, e cercare «F4» a mano voleva dire che il test
+ * passava anche quando il blocco cambiava numero di stazioni.
+ */
+function dopoIlPrimoGiro(plan: readonly GuidedStep[]): { rest: GuidedStep | undefined; poi: GuidedStep | undefined } {
+  const primoGiro = plan
+    .map((step, i) => ({ step, i }))
+    .filter(({ step }) => step.kind === 'work' && step.group === 'F' && step.step.setIndex === 1);
+  const ultimo = primoGiro.at(-1);
+  if (primoGiro.length < 2 || ultimo === undefined) throw new Error('Finitura senza un primo giro.');
+  return { rest: plan[ultimo.i + 1], poi: plan[ultimo.i + 2] };
+}
+
+describe('R20 · la transizione fra i giri della finitura (B10)', () => {
+  const settimanaPiena = CIRCUIT_SESSIONS.map((sessione) => buildGuidedPlan(sessione, 1));
+
+  it('20.1 · a settimana piena e bonus zero ogni seduta cresce di 15″', () => {
+    expect(settimanaPiena.map((plan) => estimatedSeconds(plan))).toEqual([2320, 2215, 2178, 2383]);
+  });
+
+  it('20.2 e 20.3 · lo stesso passo, con lo stesso testo, in tutti e quattro i circuiti', () => {
+    for (const [i, plan] of settimanaPiena.entries()) {
+      const id = CIRCUIT_SESSIONS[i]?.id ?? String(i);
+      const dopo = dopoIlPrimoGiro(plan);
+      expect(dopo.rest, id).toMatchObject({
+        kind: 'rest',
+        tier: 'transizione',
+        seconds: 15,
+        hint: 'Giro 1 finito. Posa l’attrezzo e prepara la prima stazione.',
+      });
+      expect(dopo.rest?.kind === 'rest' ? dopo.rest.nextLabel : '', id).toMatch(/giro 2 di 2/);
+      expect(dopo.poi?.kind === 'work' ? dopo.poi.step.setIndex : null, id).toBe(2);
+    }
+  });
+
+  it('20.4 · in scarico la finitura ha un giro solo: nessun passo nuovo, durata invariata', () => {
+    const scarico = CIRCUIT_SESSIONS.map((sessione) => buildGuidedPlan(sessione, 6));
+    expect(scarico.map((plan) => estimatedSeconds(plan))).toEqual([1635, 1565, 1543, 1678]);
+    for (const plan of scarico) {
+      expect(plan.some((step) => step.kind === 'rest' && step.hint.startsWith('Giro '))).toBe(false);
+    }
+  });
+
+  it('20.5 · fra due stazioni diverse c’è sempre un passo di almeno 15″, salvo verso la decompressione', () => {
+    for (const sessione of CIRCUIT_SESSIONS) {
+      for (const week of [1, 6]) {
+        const plan = buildGuidedPlan(sessione, week);
+        const lavori = plan
+          .map((step, i) => ({ step, i }))
+          .filter((x): x is { step: Extract<GuidedStep, { kind: 'work' }>; i: number } => x.step.kind === 'work');
+        for (const [k, corrente] of lavori.entries()) {
+          const prossimo = lavori[k + 1];
+          if (prossimo === undefined) continue;
+          if (prossimo.step.blockCode === corrente.step.blockCode) continue;
+          if (prossimo.step.group === 'Z') continue;
+          const inMezzo = plan.slice(corrente.i + 1, prossimo.i);
+          const recupero = inMezzo.reduce((tot, step) => tot + (step.kind === 'rest' ? step.seconds : 0), 0);
+          expect(
+            recupero,
+            `${sessione.id} settimana ${String(week)}: ${corrente.step.blockCode} → ${prossimo.step.blockCode}`,
+          ).toBeGreaterThanOrEqual(15);
+        }
+      }
+    }
   });
 });
 
