@@ -320,11 +320,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
     label: 'TRX Row',
     frames: ['trx-row-start.webp', 'trx-row-peak.webp'],
   },
-  'rematore-inverso-trx-piedi-rialzati': {
-    source: 'rings-inverted-row',
-    label: 'Rings Inverted Row',
-    frames: ['rings-inverted-row-start.webp', 'rings-inverted-row-peak.webp'],
-  },
   'push-up': {
     source: 'push-up',
     label: 'Push-Up',
@@ -472,5 +467,6 @@ export const FIGURE_SENZA_IMMAGINE: ReadonlyMap<string, string> = new Map([
   ['curl-manubri-supino', 'Disegna una barra unica, si legge come bilanciere.'],
   /* Verifica di training-quality su 50793fd (M23, M24). */
   ['rematore-trx-monobraccio', 'Il disegno è quello del gradino 6, con i piedi sul rialzo; l’esercizio è al gradino 5.'],
+  ['rematore-inverso-trx-piedi-rialzati', 'La foto è agli anelli con i piedi a terra; l’esercizio è al TRX con i piedi rialzati (media, 2026-11-08).'],
   ['shrimp-squat-o-skater-squat', 'È lo stesso disegno dello skater squat, senza la mano sul piede dietro.'],
 ]);
