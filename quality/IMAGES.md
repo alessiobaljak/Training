@@ -14,6 +14,24 @@ Render conservati in `quality/reports/immagini/`.
 Verifiche più vecchie (2026-11-08, 2026-11-09b): testo integrale in
 `ARCHIVE.md`.
 
+## 2026-11-21 · correzione delle figure `50793fd` (audit attrezzo del media lead)
+
+Foglio 4 × 230 px: `reports/immagini/2026-11-21-figure-1.png`. Nessun ingrandimento
+(il dubbio sul monobraccio l'ha chiuso l'hash). **Foto RepDB: nessuna guardata, termine 5**
+(io sono un modello generativo): restano NON COPERTE per il loro aspetto.
+- `exercises-repdb/trx-row` su `rematore-inverso-trx`: **NON COPERTO**. Verificati senza
+  guardare fonte «TRX Row», gradino proprio 2 «TRX a 45°», cue «maniglie», file, ordine.
+- `exercises/rematore-trx-monobraccio.svg`: **SCARTATA** (1, 2). Identica a
+  `steps/horizontal-pull-l6.svg` (piedi rialzati); l'esercizio è al gradino 5. M23.
+- `exercises/bulgarian-split-squat.svg`: attrezzo e archetipo giusti (panca, nessun
+  carico); non inoltrabile (checklist del media lead assente, M7, domanda 2).
+- `exercises/dip-panche-piedi-rialzati.svg`: due panche, talloni sulla seconda; non inoltrabile.
+- Muro presente in `handstand-l2/l3/l4`, `verticale-al-muro`, `vertical-push-l3/l4` (solo
+  il punto 3 della richiesta). `vertical-push-l3/l4` hanno E1 58° come `l5`: «da rifare».
+- Duplicati per hash (titolo escluso): `shrimp-squat-o-skater-squat.svg` = `single-leg-squat-l4/l5/l6`
+  (M24); `vertical-push-l2` = `pike-pushup-piedi-rialzati.svg`; `vertical-push-l3..l6` =
+  `negative-hspu…svg`; `dip-panche.svg` = `dip-l1`; i 6 `hang` = `dead-hang.svg`.
+
 ## 2026-11-12b · nessuna figura nuova, stato delle dieci
 
 `src/assets/` identico da `47c7f6d` a `90b8b81`: nessuna figura da guardare,

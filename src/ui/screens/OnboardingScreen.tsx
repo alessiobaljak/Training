@@ -5,7 +5,7 @@ import { testResultPerSide, testResultSingle } from '../../engine/ranges.ts';
 import { testOutcomes } from '../../engine/progression.ts';
 import { titleAtLevel } from '../../engine/draft.ts';
 import { addDays, formatDayLong, formatDayShort, startOfWeek, todayIso } from '../../engine/dates.ts';
-import { programWeek } from '../../engine/schedule.ts';
+import { chiusuraDelGiro, programWeek } from '../../engine/schedule.ts';
 import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
 import { useSettings, useTestRounds } from '../hooks/useData.ts';
@@ -361,6 +361,8 @@ export function OnboardingScreen() {
   const thisMonday = startOfWeek(roundDate);
   const chosenStart = startsThisWeek ? thisMonday : nextMonday;
   const missing = currentRound?.missing ?? WEEK_ZERO_TESTS.map((test) => test.id);
+  /* R-16: un ritest non riscrive la data di inizio del programma. */
+  const chiusura = chiusuraDelGiro(settings.programStartDate ?? null, missing.length, chosenStart);
 
   return (
     <Screen
@@ -371,14 +373,18 @@ export function OnboardingScreen() {
           <Button
             full
             size="xl"
-            disabled={missing.length > 0}
+            disabled={!chiusura.attivo}
             onClick={() => {
-              void repository.setProgramStartDate(chosenStart).then(() => {
+              if (chiusura.dataDaScrivere === null) {
+                navigate({ name: 'home' });
+                return;
+              }
+              void repository.setProgramStartDate(chiusura.dataDaScrivere).then(() => {
                 navigate({ name: 'home' });
               });
             }}
           >
-            {missing.length > 0 ? `Mancano ${String(missing.length)} test` : 'Conferma e vai alla Home'}
+            {chiusura.etichetta}
           </Button>
         </div>
       }
@@ -421,6 +427,8 @@ export function OnboardingScreen() {
           );
         })}
 
+        {!chiusura.chiediInizio ? null : (
+        <>
         <SectionTitle>Quando parte il programma</SectionTitle>
         <Card>
           <p className="text-sm">
@@ -435,6 +443,8 @@ export function OnboardingScreen() {
             </Button>
           </div>
         </Card>
+        </>
+        )}
       </div>
     </Screen>
   );

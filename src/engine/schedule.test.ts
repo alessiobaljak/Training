@@ -116,3 +116,27 @@ describe('weekEndDate (R8)', () => {
     }
   });
 });
+
+describe('R-16 · un ritest non riscrive la data di inizio (T-28)', () => {
+  it('22.11 · con la data impostata: «Salva e torna alla Home», sempre attivo, nessuna data da scrivere', async () => {
+    const { chiusuraDelGiro } = await import('./schedule.ts');
+    expect(chiusuraDelGiro('2026-09-14', 0, '2026-11-23')).toEqual({
+      etichetta: 'Salva e torna alla Home',
+      attivo: true,
+      dataDaScrivere: null,
+      chiediInizio: false,
+    });
+    expect(chiusuraDelGiro('2026-09-14', 3, '2026-11-23').attivo).toBe(true);
+  });
+
+  it('il primo giro, senza data: la data scelta, e si chiude solo con tutti i test', async () => {
+    const { chiusuraDelGiro } = await import('./schedule.ts');
+    expect(chiusuraDelGiro(null, 2, '2026-11-23')).toEqual({
+      etichetta: 'Mancano 2 test',
+      attivo: false,
+      dataDaScrivere: '2026-11-23',
+      chiediInizio: true,
+    });
+    expect(chiusuraDelGiro(null, 0, '2026-11-23').etichetta).toBe('Conferma e vai alla Home');
+  });
+});

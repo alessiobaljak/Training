@@ -470,4 +470,7 @@ export const FIGURE_SENZA_IMMAGINE: ReadonlyMap<string, string> = new Map([
   ['estensione-tricipiti-sopra-testa', 'Disegna una barra, non il kettlebell tenuto per le corna.'],
   ['stacco-rumeno-manubri', 'Disegna una barra unica, si legge come bilanciere.'],
   ['curl-manubri-supino', 'Disegna una barra unica, si legge come bilanciere.'],
+  /* Verifica di training-quality su 50793fd (M23, M24). */
+  ['rematore-trx-monobraccio', 'Il disegno è quello del gradino 6, con i piedi sul rialzo; l’esercizio è al gradino 5.'],
+  ['shrimp-squat-o-skater-squat', 'È lo stesso disegno dello skater squat, senza la mano sul piede dietro.'],
 ]);

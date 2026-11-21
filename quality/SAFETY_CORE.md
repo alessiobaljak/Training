@@ -81,6 +81,9 @@ testo nel codice nuovo: `DEVIAZIONI_NOTA` è testo dell'app). B14 è chiuso nei
 circuiti (`18`: 0 su 61.410 voci pesate); il residuo sulle sedute archiviate (L31)
 non entra nel nucleo finché training-designer non decide.
 
+**2026-11-21 (`50793fd`, solo figure):** stesso conteggio, identico su `96a90c2`. Caso 6
+non peggiora: 261 file nel bundle (265), 0 approvati, 0 non registrati; 6a verificato.
+
 Esiti precedenti: `ARCHIVE-2.md`.
 
 ---
@@ -186,7 +189,7 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 
 ## Caso 6 — Nessuna immagine fuori dalla libreria approvata, nessuna generata a runtime
 **Stato oggi: FALLITO** (era NON COPERTO) — 6a verificato, 6b eseguito su
-`media/LIBRARY.md`: **265 file nel bundle, 0 approvati**, 0 non registrati
+`media/LIBRARY.md`: **261 file nel bundle (2026-11-21), 0 approvati**, 0 non registrati
 (B8). Il testo sotto su 6b è quello della v4, tenuto per la storia.
 
 - **6a — nessuna generazione a runtime: VERIFICATO.** Le figure entrano con
@@ -277,3 +280,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-20b | v9 | 2 | 4 | 2 | training-quality (commit `221b2e8`, rilascio B1; 4e fuori dalla settimana 5 per D-21; caso 4 solo 4h; su `001de30` anche S2) |
 | 2026-11-20c | v10 | 2 | 4 | 2 | training-quality (commit `0d85597`, rilascio B2; 4j R-7 nuovo; caso 4 solo 4h; su `e30cdc6` anche 4j ×2) |
 | 2026-11-20d | v11 | 2 | 4 | 2 | training-quality (commit `f7f945d`, rilascio C; 4k R-14 nuovo; caso 4 solo 4h; su `fb560e7` 4k non misura) |
+| 2026-11-21 | v11 | 2 | 4 | 2 | training-quality (commit `50793fd`, solo figure; caso 6: 261 file, 0 approvati; identico su `96a90c2` con 265) |

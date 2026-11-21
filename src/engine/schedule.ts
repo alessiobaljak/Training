@@ -78,3 +78,28 @@ export function weekEndDate(startDate: string, week: number): string {
 export function isRetestDue(week: number, weekday: WeekdayIndex): boolean {
   return RETEST_WEEKS.includes(week) && weekday >= 6;
 }
+
+/**
+ * Come si chiude un giro di test (R-16, T-28).
+ *
+ * Il primo giro, a programma non ancora partito, fissa la data di inizio.
+ * Un ritest no: prima «Conferma e vai alla Home» riscriveva la data al
+ * lunedì dopo, e un ritest di settimana 6 riportava il programma alla
+ * settimana 1, con gli id della revisione ripetuti — una decisione di sei
+ * settimane prima poteva nascondere un verdetto nuovo, anche una discesa.
+ */
+export function chiusuraDelGiro(
+  dataDiInizio: string | null,
+  testMancanti: number,
+  inizioScelto: string,
+): { readonly etichetta: string; readonly attivo: boolean; readonly dataDaScrivere: string | null; readonly chiediInizio: boolean } {
+  if (dataDiInizio !== null) {
+    return { etichetta: 'Salva e torna alla Home', attivo: true, dataDaScrivere: null, chiediInizio: false };
+  }
+  return {
+    etichetta: testMancanti > 0 ? `Mancano ${String(testMancanti)} test` : 'Conferma e vai alla Home',
+    attivo: testMancanti === 0,
+    dataDaScrivere: inizioScelto,
+    chiediInizio: true,
+  };
+}

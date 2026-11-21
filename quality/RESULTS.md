@@ -8,6 +8,7 @@ regola che si è mossa.
 
 | Data | Regole / catalogo | Set | C1 Sic. | C2 Rim. | C3 Fed. | C4 Coer. | C5 Pers. | C6 Concr. | C7 Progr. | C8 Dur. | Bloc. | Alti | Medi | Bassi | Nucleo | Rapporto |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 2026-11-21 | `50793fd` (head locale non pushato, incrementale su `96a90c2` in produzione): solo figure (`exercise-art.ts`, `ExerciseArt.tsx`, 4 webp tolti), regole e catalogo invariati · verifica tecnica contro `media/reports/2026-11-21-media.md` | PERSONAS v1, SCENARIOS v1 | = | = | = | = | = | = | = | = (C1-C8 non rimisurati: nessuna regola cambiata) | **5** + 4ᵖ | 2 | 14 | 25 | 2 PASS / 4 FALLITI / 2 NON COPERTI (v11; caso 6: 261 file, 0 approvati) | `quality/reports/2026-11-21-quality-50793fd.md` |
 | 2026-11-20d | `f7f945d` (head locale non pushato, incrementale su `fb560e7` in produzione): rilascio C (T-27 L26, T-26 L25, T-25 M22, B14), progressione 4.1, consigli 4.1, programmi 2.3 rev. 11-21, limiti 1.4 rev. 11-21 · catalogo 72 · circuito 52 blocchi · griglia v3 | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | **67% (2/3)** (M22, B14 chiusi) | 71% (5/7); v4 **75%** | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4); D5 100% con la nota nuova | **5** + 4ᵖ | 2 | 12 | 21 | 2 PASS / 4 FALLITI / 2 NON COPERTI (**v11**) | `quality/reports/2026-11-20-quality-f7f945d.md` |
 | 2026-11-20c | `0d85597` (head locale non pushato, incrementale su `e30cdc6` in produzione): rilascio B2 (T-15 R14a/c/e + `lapsed`, T-16 rev. R14d, T-24 D-19 b; `d5f72e2` solo CSS), progressione 4.1, consigli 4.1, limiti 1.4 rev. 11-21 · catalogo 72 · circuito 52 blocchi · griglia v3 | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | 33% (1/3) (A19 chiuso; M22, B14) | 71% (5/7); v4 63% | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) (D5 80%) | **6** + 4ᵖ (B14 nuovo, preesistente) | 2 | 13 | 20 | 2 PASS / 4 FALLITI / 2 NON COPERTI (**v10**, caso 4 solo 4h) | `quality/reports/2026-11-20-quality-0d85597.md` |
 | 2026-11-20b | `221b2e8` (head locale non pushato, incrementale su `59daf79` = `0f3f191` in produzione): rilascio B1 (L23, L24, M21, 17.2, D-21 a, D-22 a / R19, D-23 a), progressione 4.0 rev., consigli 4.0 rev., progressi 3.1 rev., limiti 1.4 rev. · catalogo 72 · circuito 52 blocchi · griglia v3 | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | 33% (1/3) (A19 non eseguito, M22) | 71% (5/7) | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) (D5 proposta: 80%, circuito-4 fino a 59′ con la variante) | **5** + 4ᵖ | 3 | 14 | 19 | 2 PASS / 4 FALLITI / 2 NON COPERTI (**v9**, caso 4 solo 4h) | `quality/reports/2026-11-20-quality-221b2e8.md` |
@@ -24,6 +25,14 @@ Soglie **approvate da Alessio il 2026-11-12** (GRID.md v3): C1 100 · C2 100 ·
 C3 100 · C4 ≥90 · C5 ≥80 · C6 ≥90 · C7 100 · C8 100; GO solo con Bloccanti = 0
 e Alti = 0 su L. ᵖ = blocca solo il rilascio pubblico (B1-B4, decisione del
 2026-11-12; C2 è fatto solo di loro).
+
+Verifica figure del 2026-11-21 (commit `50793fd`, incrementale su `96a90c2`): **GO per il
+push** (nessun Bloccante o Alto nuovo o peggiorato); app ancora NO-GO. `19-figure` (nuovo):
+264 posizioni esercizio × gradino, 35 cambiano; 27 → nessuna figura, 6 → figura proposta,
+**2 sbagliata → sbagliata (M23)**, 0 giusta → sbagliata; 0 chiavi orfane, 0 collisioni.
+Positivo su `96a90c2`: le 35 mostrano le figure dell'audit (sbarra, verticale libera,
+elastico…). Foto `trx-row` NON COPERTA (termine 5: non guardata). Nuovi M23, M24, L33-L36.
+verify (927) da me; smoke, offline dalla sessione principale (per me NON COPERTI).
 
 Misura del 2026-11-20d (commit `f7f945d`, incrementale su `fb560e7`): **GO per
 il push del rilascio C** (nessun Bloccante o Alto introdotto o peggiorato; B14
@@ -111,6 +120,12 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; dal 2026-11-12 al 2026-11-2
 | L30 | Basso | **Col tetto, revisione e riepilogo discordano sul peso mai scritto o fuori elenco.** Revisione `alMassimo` «tetto» («non ci sono altre leve. Si resta così finché la seduta non torna sotto i 55 minuti…»), riepilogo R17c (3) («12,5 kg non è fra i tuoi manubri: scrivi nel player il peso…»). M22.P (iii) 113 nei mondi (78 mai scritto, 35 fuori elenco); F M22.6r. Nessun numero sale. §2 ambiguo: «(6) inherent fuori elenco». Nuovo nel rilascio C | `18` M22.6r, A2 | `review.ts` R10a (6) col tetto | 2026-11-20d |
 | L31 | Basso | Residuo di B14: la calibrazione «Aggiungi 2,5 kg» resta sulle sedute archiviate (`kind: 'strength'`), senza cancelli; ci si arriva solo da `#/seduta/<id>` o riprendendo una bozza archiviata di oggi. Latente | `18` B14.2 | `loading.ts` `calibrazioneDaMostrare`, `router.ts` | 2026-11-20d |
 | L32 | Basso | Con B14 nei circuiti sparisce anche «troppo pesante, togli 2,5 kg» (media ≤ 4), e nessuna regola lo sostituisce (M3). Per gli esercizi senza scala la revisione sotto il minimo dice «il range viene dal test, e va rifatto quello» anche sui range fissi dei manubri (testo preesistente). Nuovo nel rilascio C | `18` B14.2 | `SessionSummary.tsx`, `review.ts` `range-da-rifare` | 2026-11-20d |
+| M23 | Medio | **Il monobraccio mostra il gradino 6.** Da `50793fd` `rematore-trx-monobraccio` (gradino proprio 5, «una maniglia sola», piedi a terra) ricade su `exercises/rematore-trx-monobraccio.svg`, identica per hash a `steps/horizontal-pull-l6.svg` «piedi rialzati». Prima: foto a due mani. Solo Libreria. Ipotesi: in `FIGURE_SENZA_IMMAGINE` | `19` | `exercise-art.ts`, `src/assets/exercises/` | 2026-11-21 |
+| M24 | Medio | Shrimp squat disegnato come skater: `exercises/shrimp-squat-o-skater-squat.svg` = `single-leg-squat-l5` (nascosto in `50793fd` per questo) = `l4`. Preesistente, solo Libreria; LIBRARY lo dà «da verificare» | `19`, hash | `src/assets/exercises/` | 2026-11-21 |
+| L33 | Basso | `dip-panche` «Dip tra due panche» mostra `bench-dips` (una panca) al gradino 1: la stessa foto nascosta su `dip-l1` col motivo «il dip è tra due panche». Domanda 4 del media lead | `19` | `exercise-art.ts` | 2026-11-21 |
+| L34 | Basso | `single-leg-squat-l2` (Shrimp squat al gradino 2) mostra la foto del bulgaro con due manubri, tolta al bulgaro nel circuito. Domande 2 e 6 | `19` | `REPDB_STEP_ART` | 2026-11-21 |
+| L35 | Basso | `media/LIBRARY.md` non segue `50793fd`: manca `rematore-inverso-trx` → `trx-row`, restano 9 mappature tolte e 4 file cancellati, le 17 voci senza figura non hanno stato (exercise-media-lead) | — | `media/LIBRARY.md` | 2026-11-21 |
+| L36 | Basso | Figura assente per scelta: quadrato bianco vuoto nella panoramica (`CircuitOverview.tsx:68`), Card vuota nella scheda (`ExerciseScreen.tsx:66`); `hasExerciseArt` ignora la lista (oggi non usata) | — | UI | 2026-11-21 |
 
 ## Voci chiuse (ultime 10)
 
@@ -131,10 +146,10 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; dal 2026-11-12 al 2026-11-2
 
 | Data | Immagine | Esito | Punti con PROBLEMA | Dettaglio |
 |---|---|---|---|---|
-| 2026-11-12 | `exercises/hip-thrust-panca-bilaterale.svg` | nessun problema, **non inoltrabile**: manca la verifica di `exercise-media-lead`, scheda incompleta (M7) | — | `IMAGES.md` |
-| 2026-11-12 | `exercises/hip-thrust-monopodalico.svg` | nessun problema, non inoltrabile; l'app mostra la foto RepDB (archetipo sbagliato) | — | `IMAGES.md` |
-| 2026-11-12 | `steps/hip-thrust-l1.svg` | nessun problema, non inoltrabile; l'app mostra la foto RepDB | — (nota sulla spec §4.21) | `IMAGES.md` |
-| 2026-11-12 | `steps/hip-thrust-l2.svg` | nessun problema, non inoltrabile | — | `IMAGES.md` |
+| 2026-11-21 | `exercises-repdb/trx-row` su `rematore-inverso-trx` | **NON COPERTO** (termine 5: non guardata); fonte, gradino, file e ordine verificati | — | `IMAGES.md` |
+| 2026-11-21 | `exercises/rematore-trx-monobraccio.svg` | **SCARTATA** (= `horizontal-pull-l6`, piedi rialzati; M23) | 1 · 2 | `IMAGES.md` |
+| 2026-11-21 | `exercises/bulgarian-split-squat.svg` | attrezzo e archetipo giusti, **non inoltrabile** (manca la checklist del media lead, M7, domanda 2) | — | `IMAGES.md` |
+| 2026-11-21 | `exercises/dip-panche-piedi-rialzati.svg` | due panche giuste, **non inoltrabile** (manca la checklist del media lead, M7) | — | `IMAGES.md` |
 | 2026-11-12 | `steps/hip-thrust-l3.svg` | nessun problema, non inoltrabile; l'app mostra la foto RepDB | — | `IMAGES.md` |
 | 2026-11-12 | `steps/hip-thrust-l6.svg` | nessun problema, non inoltrabile | — (nota sul punto 5) | `IMAGES.md` |
 | 2026-11-12 | `exercises/circonduzioni-spalle.svg` | **SCARTATA** | 3 anatomia | `IMAGES.md` |
@@ -146,6 +161,7 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; dal 2026-11-12 al 2026-11-2
 
 | Metrica | Esito | Script |
 |---|---|---|
+| Figura visibile per esercizio × gradino (264 posizioni), `50793fd` contro `96a90c2` | 35 cambiate: 27 → nessuna, 6 → proposta, 2 sbagliata → sbagliata (M23); 0 orfane, 0 collisioni; positivo: in produzione le 35 mostrano le figure dell'audit | `19-figure.mts` |
 | Rilascio C dal testo della specifica 2026-11-21 §2-§4, commit `f7f945d` | F 219/222 (M22.6r = L30; NC b.8, L26.2s); A 0; A2 144 = L30; M22.7 0 su 218.147; C3/C3R come l'app: σ′ = §3 su 63.343, L25.P1 0 su 8.129, M22.P 0 su 1.801, R-14 0 su 137; B14 0 su 61.410. Su `fb560e7`: F 13, σ′ 154, L25.P1 12, M22.P 38, B14 51.443 | `18-c.mts` |
 | Nucleo v11 (4k, R-14: revisione con la durata) | `f7f945d`: solo S9; `fb560e7`: S9 + 4k non misura (durata assente) | `safety-core.mts` v11 |
 | B2 dal testo delle specifiche 11-18 (R14, rev. 11-20) e 11-21 §1 (D-19 b), commit `0d85597` | F 197/198 (R19.R = M22); A 0 su 259.782; B 0; D19.P 0 su 437; simulazioni con la chiusura dell'app: M18 0, predicato R14 = testo, revisioni = riferimento su 18.430; P14 5.288 tolte, 0 differenze, 55 testi muti (L29); sync = testo su 20.000; B14 37.196. Su `e30cdc6`: F 37, A 302, D19.P 582, M18 7, sync 200 | `17-b2.mts` |
@@ -155,4 +171,3 @@ Note delle misure fino al 2026-11-09b: `ARCHIVE.md`; dal 2026-11-12 al 2026-11-2
 | R14b, R15, R16, R17, R18 dal testo della specifica 2026-11-18 + D-20, commit `4edf751` | F 106 righe su 107 = atteso (Q5 = M18 resta aperto); A 0 differenze su 259.782 esiti; B 1 (L23); C + C2 800 atleti: 13.P, S1, E7 0, R13 di fine seduta = riferimento; R14b 226 proposte tolte, 0 allo stato; R-6 durate. Su `001de30`: F 41, A 64, E7 36, 237 leve fuori stato | `15-r14-r18.mts` |
 | Nucleo v8 (4e sul carico sollevato) contro `001de30` | S2 il 03-30 + S9: la fixture nuova discrimina; su `4edf751` solo S9 | `safety-core.mts` v8 |
 | R10-R13, riferimento scritto dal testo di R10-R13, commit `cf7588a` | **coincide**: 259.782 esiti su 80.000 revisioni (categoria, motivo, stato dopo, `sessionsCounted`, `setsCounted`); 52/52 righe della specifica; 0 violazioni S3/S4/S5/E4/R10a/R10b/R10c/R12/R13/10.P/R11; 400 atleti simulati: 13.P 0, S1 0, S2 0. Su `a747e09`: 45.672 differenze, 6.273 violazioni, 13.P 2.889, S2 739 | `14-r10-r13.mts` |
-| Nucleo v7 (4e su 7 giorni, 4b R10a) contro `a747e09` | S2 ×2 (+5 kg in 3 giorni, +5 kg nello stesso giorno), R10a, S9: le fixture nuove discriminano; su `cf7588a` solo S9 | `safety-core.mts` v7 (copia con `git archive`) |
