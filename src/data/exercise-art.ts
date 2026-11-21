@@ -438,7 +438,11 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
  */
 export const FIGURE_SENZA_IMMAGINE: ReadonlyMap<string, string> = new Map([
   ['vertical-pull-l1', 'La foto mostra l’elastico; la nota della seduta dice piede sul box.'],
-  ['horizontal-pull-l3', 'Il TRX orizzontale si disegnava con lo stesso angolo dei gradini 1 e 2.'],
+  ['horizontal-pull-l3', 'Il disegno ha una cinghia sola a ~35°; il gradino è agli anelli e orizzontale (T-37).'],
+  ['horizontal-pull-l2', 'Il disegno ha una cinghia sola (il TRX) a ~35°; il gradino è agli anelli a 45° (T-37).'],
+  ['horizontal-pull-l4', 'Il disegno ha una cinghia sola (il TRX) con il rialzo; la scala è agli anelli (T-37).'],
+  ['horizontal-pull-l5', 'Il disegno ha una cinghia sola a ~35°; il gradino è agli anelli e la sua scheda non c’è ancora (T-37).'],
+  ['horizontal-pull-l6', 'Il disegno ha una cinghia sola (il TRX) con il rialzo; la scheda del gradino non c’è ancora (T-37).'],
   ['vertical-push-l5', 'La foto è una verticale libera su parallette, senza muro.'],
   ['dip-l1', 'Una panca sola: il dip è tra due panche.'],
   ['hang-l1', 'Mancano i piedi a terra.'],
@@ -458,6 +462,6 @@ export const FIGURE_SENZA_IMMAGINE: ReadonlyMap<string, string> = new Map([
   ['rematore-trx-monobraccio', 'Il disegno è quello del gradino 6, con i piedi sul rialzo; l’esercizio è al gradino 5.'],
   ['rematore-inverso-trx', 'La foto mostra il TRX; l’esercizio è agli anelli (T-37, 2026-11-21).'],
   ['horizontal-pull-l1', 'La foto è alla sbarra; il gradino 1 è agli anelli a 60° (T-37, 2026-11-21).'],
-  ['rematore-inverso-trx-piedi-rialzati', 'La foto è agli anelli con i piedi a terra; l’esercizio è al TRX con i piedi rialzati (media, 2026-11-08).'],
+  ['rematore-inverso-trx-piedi-rialzati', 'La foto ha i piedi a terra; l’esercizio è a piedi rialzati.'],
   ['shrimp-squat-o-skater-squat', 'È lo stesso disegno dello skater squat, senza la mano sul piede dietro.'],
 ]);

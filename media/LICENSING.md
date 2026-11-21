@@ -2,7 +2,7 @@
 
 L'app diventerà pubblica. Una fonte senza uso commerciale chiaro non si usa.
 
-## 1. RepDB — 85 file `.webp` in `src/assets/exercises-repdb/` (erano 91; 6 tolti il 2026-11-21 perché senza usi)
+## 1. RepDB — 81 file `.webp` in `src/assets/exercises-repdb/` (erano 91; 6 tolti il 2026-11-21 perché senza usi, poi `trx-row` e `inverted-row` in `db2544e`, T-37)
 
 - **Testo verificato alla fonte**: https://repdb.co/license/ — «RepDB License
   (v1.2)», scaricata e letta il **2026-11-08**. Esistono due livelli

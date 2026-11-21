@@ -19,7 +19,7 @@ export const CASES = [
   { value: 10, parte: /Trazioni prona presa media/ },
   { value: 12, parte: /Dip alle parallele/ },
   { value: 30, parte: /push-up/i },
-  { value: 18, parte: /Rematore inverso TRX/ },
+  { value: 18, parte: /Rematore inverso/ },
   { value: 8, parte: /Pike push-up/ },
   { value: 15, parte: /Bulgarian split squat/ },
   /* Il nordic non è in nessuna seduta: lo dice, invece di inventare un gradino. */

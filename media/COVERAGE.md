@@ -1,6 +1,6 @@
 # COVERAGE.md — copertura della libreria
 
-Aggiornato al **2026-11-21, sera** (`88da16a`): registro allineato al codice dopo `50793fd`, `c8964ff`, `3b548e4` (R12); fonte 3 aperta (rapporto `reports/2026-11-21-media-generate.md`). Mattina: controllo dell'attrezzo sui 4 circuiti (`reports/2026-11-21-media.md`).
+Aggiornato al **2026-11-21, sera** (`db2544e`, T-37: il rematore passa agli anelli, rapporto `reports/2026-11-21-media-anelli.md`). Prima (`88da16a`): registro allineato al codice dopo `50793fd`, `c8964ff`, `3b548e4` (R12); fonte 3 aperta (rapporto `reports/2026-11-21-media-generate.md`). Mattina: controllo dell'attrezzo sui 4 circuiti (`reports/2026-11-21-media.md`).
 Numeri contati sul repo, non stimati.
 
 ## 1. Conti
@@ -8,18 +8,18 @@ Numeri contati sul repo, non stimati.
 |---|---|---|
 | esercizi in anagrafica | **72** | erano 56: +16 con il commit `f63c9f1` |
 | esercizi con figura schematica | 72 | una per slug, nessuna mancante |
-| esercizi con foto RepDB | **26** | erano 32: 6 voci tolte dalla sessione principale il 2026-11-21 (R11), 1 rimappata (`rematore-inverso-trx` → `trx-row`) |
-| esercizi che vedono **solo** la figura generata | **38** | più **8 senza nessuna immagine** (`FIGURE_SENZA_IMMAGINE`) |
-| gradini nelle scale | 102 | 35 con foto, 55 con la sola figura, 12 senza nessuna immagine |
-| file RepDB nel repo | **85** | erano 91: 6 file tolti perché senza usi (termine 3); tutti gli 85 usati |
+| esercizi con foto RepDB | **25** | erano 32: 6 voci tolte il 2026-11-21 (R11); `rematore-inverso-trx` rimappato a `trx-row`, poi senza foto da `db2544e` (T-37, anelli) |
+| esercizi che vedono **solo** la figura generata | **38** | più **9 senza nessuna immagine** (`FIGURE_SENZA_IMMAGINE`) |
+| gradini nelle scale | 102 | 34 con foto, 55 con la sola figura, 13 senza nessuna immagine (`horizontal-pull-l1` da `db2544e`). **Da togliere ancora: `horizontal-pull-l2`, `l4`, `l5`, `l6`** (rig TRX, rapporto 2026-11-21-media-anelli) → 51 e 17 |
+| file RepDB nel repo | **81** | erano 91: 6 file tolti perché senza usi (termine 3), poi `trx-row` e `inverted-row` in `db2544e`; tutti gli 81 usati |
 | file SVG nel repo | **174** | 72 esercizi + 102 gradini |
 | registrate in LIBRARY.md | 309 | 174 figure + 135 righe RepDB (+2 `trx-row` per `rematore-inverso-trx`) |
-| stato in LIBRARY.md | 25 verificate · 36 da rifare · 206 da verificare · **42 ritirate** | zero approvate; le 42 ritirate sono immagini che l'app non mostra più (R12) |
+| stato in LIBRARY.md | 25 verificate · 40 da rifare · 196 da verificare · **48 ritirate** | zero approvate; le 48 ritirate sono immagini che l'app non mostra più (R12) |
 | con freccia dentro l'immagine | **0** | erano 10 (non 11: `curl-panca-inclinata` era un falso positivo), §4.1 chiusa |
 | con difetto anatomico **misurato** (GENERATOR_SPEC §4.2, E1–E3) | **14** | 7 esercizi + 7 gradini; più 3 figure giuste a cui manca solo `sh` |
 | con un segmento sotto l'80% del suo omologo | 120 su 174 | segnale da guardare, non scarto (§4.25) |
 
-**Esercizi senza immagine: 8, gradini: 12** — per scelta (`FIGURE_SENZA_IMMAGINE`, 20 chiavi: meglio niente che un'immagine sbagliata). **Immagini orfane: nessuna.** Entrambe le
+**Esercizi senza immagine: 9, gradini: 13** — per scelta (`FIGURE_SENZA_IMMAGINE`, 22 chiavi: meglio niente che un'immagine sbagliata). **Immagini orfane: nessuna.** Entrambe le
 cose sono tenute ferme da `src/data/art.test.ts`, non dalla buona volontà.
 
 ## 2. Dove si concentra il rischio
@@ -84,7 +84,7 @@ come storia; la colonna «esito» dice cosa è stato fatto.
 | `hip-thrust-monopodalico` | `single-leg-glute-bridge` (spalle **a terra**) | «spalle su panca», cue 1 «scapole appoggiate sul bordo della panca» | la figura generata ha la panca ed è **verificata** dal 2026-11-12: **ritirare la foto**, la figura è pronta a sostituirla |
 | `dip-panche-piedi-rialzati` | `bench-dips` (piedi **a terra**) | «talloni su una seconda panca» | la figura generata ha il rialzo: **ritirare la foto** — **applicato in `50793fd`** |
 | `rematore-inverso-trx-piedi-rialzati` | `rings-inverted-row` (anelli, piedi **a terra**) | TRX, «piedi su un rialzo, corpo orizzontale» | la figura generata ha il rialzo: **ritirare la foto**. È lo stesso motivo per cui `exercise-art.ts` aveva già scartato questa foto per il gradino `horizontal-pull-l4` — **applicato in `3b548e4`, file tolti** |
-| `rematore-inverso-trx` (2026-11-21) | `inverted-row` (**sbarra**) | TRX, «maniglie a larghezza spalle», gradino 2 «TRX a 45°» | **rimappare a `trx-row`**; se il designer conferma la nota «agli anelli» di circuito-2 A3, `rings-inverted-row` — **applicato in `50793fd` (`trx-row`); la nota «agli anelli» è ancora aperta (rapporto 2026-11-21-media-generate, punto 5)** |
+| `rematore-inverso-trx` (2026-11-21) | `inverted-row` (**sbarra**) | TRX, «maniglie a larghezza spalle», gradino 2 «TRX a 45°» | **rimappare a `trx-row`**; se il designer conferma la nota «agli anelli» di circuito-2 A3, `rings-inverted-row` — **applicato in `50793fd` (`trx-row`). Poi T-37 (anelli): `trx-row` tolta in `db2544e`, nessuna immagine; `rings-inverted-row` verificata e scartata per l1, l2 e l3 (rapporto 2026-11-21-media-anelli)** |
 | `pike-pushup-piedi-rialzati` (2026-11-21) | `pike-push-ups` (piedi **a terra**) | «piedi su un rialzo» | ritirare dalla voce (resta su `vertical-push-l1`); la SVG ha il rialzo ma è da rifare (§4.2) — **applicato in `50793fd`: nessuna immagine** |
 | `bulgarian-split-squat` (2026-11-21) | `bulgarian-split-squat` (**manubri ai fianchi**) | nota circuito-1 A2: kettlebell in rack, «meglio di due manubri ai fianchi» | **decisione del designer**: nota o immagine; la SVG ha la panca e nessun carico — **applicato in `50793fd`: foto tolta dalla voce, resta la SVG** |
 | `vertical-pull-l1` (2026-11-21) | `band-assisted-pull-ups` (**elastico**) | nota circuito-1 A1 al gradino 1: «un piede appoggiato sul box» | **decisione del designer**; la SVG non mostra nessuna assistenza — **applicato in `50793fd`: nessuna immagine, file tolti** |
@@ -92,6 +92,7 @@ come storia; la colonna «esito» dice cosa è stato fatto.
 | `vertical-push-l5` (2026-11-21) | `handstand-push-ups` (**parallette, nessun muro**) | «HSPU al muro complete» | ritirare; la SVG ha il muro ma è da rifare (§4.2). Stessa foto su `negative-hspu-muro-o-pike-pushup`, fuori dai circuiti — **applicato in `50793fd`: nessuna immagine, file tolti** |
 | `horizontal-pull-l3` (2026-11-21) | `trx-row` (TRX a **~45°**) | «Rematore TRX orizzontale» | spostare la foto su `rematore-inverso-trx`; la SVG `l3` è identica a `l1`/`l2` (stesso angolo) — **applicato in `50793fd`: nessuna immagine** |
 | `rematore-trx-monobraccio` (2026-11-21, fuori circuiti) | `trx-row` (**due mani**) | «una maniglia sola» | ritirare; la SVG di ripiego ha i piedi sul rialzo, da verificare — **applicato in `c8964ff`: nessuna immagine** |
+| scala `horizontal-pull` (T-37, 2026-11-21) | l1 `inverted-row` (**sbarra**); l2, l4, l5, l6 SVG `row` (**rig TRX**: ancoraggio e cinghia unici, nessun anello); l3 già senza | «una scala, un attrezzo»: tutti i gradini agli anelli | l1 **applicato in `db2544e`**; **l2, l4, l5, l6 da mettere in `FIGURE_SENZA_IMMAGINE`** (i titoli rigenerati dicono «anelli», il disegno no) |
 | `face-pull-elastico` | `trx-face-pull` (**cinghie**) | «elastico fissato all'altezza del viso» | la figura generata ha l'elastico. RepDB non ha un face pull con elastico: **decisione di Alessio** (tenere la foto con l'attrezzo diverso, o passare alla figura) |
 
 ## 5. Debiti aperti
@@ -108,8 +109,9 @@ come storia; la colonna «esito» dice cosa è stato fatto.
   squat, dove è il punto intermedio a essere sbagliato (STYLE_GUIDE §3).
 
 ## 6. Fonte 3 — foto generate da testo (dal 2026-11-21)
-**Da coprire per primi: i 32 esercizi delle 4 sedute attive senza foto**
-(contati su `CIRCUIT_SESSIONS` e `REPDB_ART`, 39 esercizi distinti, 7 con foto):
+**Da coprire per primi: i 33 esercizi delle 4 sedute attive senza foto**
+(contati su `CIRCUIT_SESSIONS` e `REPDB_ART`, 39 esercizi distinti, 6 con foto; il 33° è
+`rematore-inverso-trx`*, senza foto da `db2544e`, scheda §5.5 del designer):
 `bulgarian-split-squat`, `curl-martello-manubri`, `estensione-tricipiti-sopra-testa`*,
 `suitcase-carry`, `kb-swing`, `corda-battaglia-onde-alternate`, `step-rapidi-box`,
 `corda-battaglia-slam`, `apertura-anche`, `respirazione-360`,

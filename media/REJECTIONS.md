@@ -120,7 +120,10 @@ somiglia, l'esercizio no.
 parallette senza muro · `dip-l1` «tra due panche» → una panca ·
 `dip-panche-piedi-rialzati` → piedi a terra · `bulgarian-split-squat` → due
 manubri ai fianchi contro la nota del blocco (kettlebell in rack) ·
-`vertical-pull-l1` → elastico contro la nota «piede sul box».
+`vertical-pull-l1` → elastico contro la nota «piede sul box». T-37 (2026-11-21):
+`horizontal-pull-l1` → sbarra, `rematore-inverso-trx` → TRX, scala agli anelli;
+`rings-inverted-row` → attrezzo giusto, ma corpo a ~35° (nessun gradino: 60°, 45°,
+orizzontale) e gomiti stretti contro «gomiti larghi».
 **Correzione**: prima di legare una foto, cinque domande con risposta scritta
 nella voce: attrezzo, una o due mani, una o due gambe, appoggi (piedi a terra
 o rialzati, muro), inclinazione. Si confronta con nome, cue **e nota del
@@ -128,6 +131,9 @@ blocco** (`variantNote` in `circuit.ts`), che l'utente legge accanto
 all'immagine. Una risposta diversa ⇒ niente foto.
 **Come si trova prima**: elenco delle voci di `exercise-art.ts` con le cinque
 risposte accanto; ogni voce nuova o spostata ripassa le cinque domande.
+L'inclinazione si **misura** (caviglia-spalla sull'immagine): in vista di tre
+quarti l'angolo apparente è più ripido del vero, quindi una misura apparente
+già sotto soglia basta a scartare.
 
 ## R10 — Il corpo sospeso sopra l'appoggio (2 pose, 5 file; nuovo 2026-11-18)
 **Sintomo**: una posa sdraiata in cui nessun punto del tronco tocca il
@@ -152,3 +158,18 @@ giorno dell'audit): 22 righe RepDB tolte dalle voci, 20 SVG nascoste da
 `node --experimental-strip-types media/scripts/library-drift.mts`. Nessuna
 riga stampata = allineato. Le foto generate (fonte 3) entreranno nello
 stesso controllo quando il codice avrà la loro tabella.
+
+## R13 — Il titolo cambia, il disegno no (5 file; nuovo 2026-11-21)
+**Sintomo**: un esercizio o un gradino cambia attrezzo o angolo nel nome;
+`npm run svg` rigenera `<title>` e `aria-label`, ma la geometria viene
+dall'archetipo e resta quella di prima. La figura ora *dichiara* l'attrezzo
+nuovo: il testo alternativo dice il vero, il disegno no.
+**Casi**: `db2544e` (T-37): `horizontal-pull-l1` «anelli a 60 gradi», `l2` «anelli
+a 45 gradi», `l3`, `l5` «monobraccio agli anelli», `rematore-inverso-trx`: tutti
+`row` (ancoraggio e cinghia unici = TRX), corpo a ~35°, diff solo nel titolo.
+`l2` e `l5` restano visibili in app.
+**Correzione**: un cambio di attrezzo nel nome manda la figura in
+`FIGURE_SENZA_IMMAGINE` finché l'archetipo non cambia (regola: archetipo nuovo
+quando cambiano gesto o attrezzo).
+**Come si trova prima**: dopo `npm run svg`, un `git diff` di uno SVG che tocca
+solo `<title>`/`aria-label` e nel nome cambia l'attrezzo è un segnale rosso.

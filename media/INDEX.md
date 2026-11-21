@@ -1,15 +1,13 @@
 # INDEX.md — memoria di `exercise-media-lead`
 
-**Stato al 2026-11-21 sera** (`88da16a`). 72 esercizi: 26 con foto RepDB, 38
-con la sola SVG, 8 senza immagine. 85 foto RepDB, 174 SVG, **0 foto
-generate**. LIBRARY 309 righe: 25 verificate, 36 da rifare, 206 da
-verificare, 42 ritirate, **zero approvate**. 32 esercizi delle sedute attive
-senza foto (COVERAGE §6).
+**Stato al 2026-11-21 sera** (`db2544e`, T-37). 72 esercizi: 25 con foto, 38 solo SVG,
+9 senza. 81 foto RepDB, 174 SVG, **0 generate**. LIBRARY 309: 25 verificate, 40 da
+rifare, 196 da verificare, 48 ritirate, **0 approvate**. 33 delle sedute attive senza foto (COVERAGE §6).
 
-**Oggi**: fonte 3 aperta (decisione di Alessio: foto da solo testo, approvate
-da lui; «non voglio gli omini»). Registro riallineato al codice (R12).
+**Oggi**: fonte 3 aperta (Alessio: foto da solo testo; «non voglio gli omini»). T-37:
+`rings-inverted-row` scartata per ogni gradino; `horizontal-pull-l2`, `l4`, `l5`, `l6` (SVG `row` = TRX) da togliere (R13).
 
-**Fonti.** RepDB (85 `.webp`); SVG solo dove non c'è altro; **fonte 3**:
+**Fonti.** RepDB (81 `.webp`); SVG solo dove non c'è altro; **fonte 3**:
 `Qwen/Qwen-Image` @ `75e0b4b` via Space `mcp-tools/Qwen-Image` @ `bce5b19` (§3.5, S1–S4).
 
 **Decisioni chiave.**
@@ -29,12 +27,13 @@ da lui; «non voglio gli omini»). Registro riallineato al codice (R12).
 - `REVIEW_CHECKLIST.md` — 8 punti, scarto, foglio di contatto, misure; **§5 G0–G11** per le foto generate.
 - `LIBRARY.md` — una riga per immagine (309), con `grep`; formato delle righe «generata AI» in testa. Unico oltre le 300.
 - `COVERAGE.md` — conti, rischio, archetipi, foto RepDB non corrispondenti (10 su 12 applicate), debiti, §6 i 32 da generare.
-- `REJECTIONS.md` — R1–R12. `GENERATOR_SPEC.md` — SVG, congelato (300 righe). `STYLE_TRIALS.md` — prove SVG, superate dal rifiuto.
+- `REJECTIONS.md` — R1–R13. `GENERATOR_SPEC.md` — SVG, congelato (300 righe). `STYLE_TRIALS.md` — prove SVG, superate dal rifiuto.
 - `prompts/` — un file per esercizio: prompt eseguito, parametri, esecuzioni. Pilota in bozza: kb-swing, corda-battaglia-slam, apertura-anche, respirazione-360.
-- `scripts/` — `contact-sheet.mjs` (anche webp), `pose-audit.mjs`, `library-drift.mts`. `reports/` — 11-08 … 11-21, 11-21-media-generate.
+- `scripts/` — `contact-sheet.mjs` (anche webp), `pose-audit.mjs`, `library-drift.mts`. `reports/` — 11-08 … 11-21, 11-21-media-generate, 11-21-media-anelli.
+  STYLE_GUIDE riga 10 conta ancora 85 foto: da correggere in un'invocazione di stile.
 
 **Prossima invocazione**: schede del designer per il pilota → prompt
 riempiti → file del pilota in `media/pilot/` → G0–G11. In attesa: Alessio su
 modello, fotogramma 1 come ingresso, soggetto, foto o illustrazione, RepDB da
 tenere; designer su swing a 2 fotogrammi, apertura anche (affondo o couch),
-A3 agli anelli (scheda nuova?), `hammer-curl` per il curl a martello.
+schede dei gradini `horizontal-pull` 1, 3-6, `hammer-curl` per il curl a martello.

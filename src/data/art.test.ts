@@ -189,6 +189,8 @@ describe('figure senza immagine, per scelta (audit 2026-11-21)', () => {
     expect(REPDB_STEP_ART['horizontal-pull-l1']).toBeUndefined();
     expect(FIGURE_SENZA_IMMAGINE.has('rematore-inverso-trx')).toBe(true);
     expect(FIGURE_SENZA_IMMAGINE.has('horizontal-pull-l1')).toBe(true);
+    /* I disegni della scala hanno una cinghia sola, cioè il TRX: nessuno si mostra finché non c'è una figura agli anelli. */
+    for (const l of [2, 3, 4, 5, 6]) expect(FIGURE_SENZA_IMMAGINE.has(`horizontal-pull-l${String(l)}`), String(l)).toBe(true);
   });
 
   it('la verticale libera non compare dove la scheda chiede il muro', () => {
