@@ -21,11 +21,12 @@ const SCALE_NAMES: Readonly<Record<MotorPattern, readonly [string, string, strin
       'Trazioni zavorrate',
     ],
     'horizontal-pull': [
-      'Rematore inverso piedi a terra',
-      'Rematore TRX a 45°',
-      'Rematore TRX orizzontale',
+      /* T-37: una scala, un attrezzo. La Seduta 2 è agli anelli; l'1 dice l'angolo. */
+      'Rematore agli anelli a 60°',
+      'Rematore agli anelli a 45°',
+      'Rematore agli anelli orizzontale',
       'Piedi rialzati + pausa 1"',
-      'Rematore monobraccio TRX',
+      'Rematore monobraccio agli anelli',
       // Scostamento voluto dalla scheda, che qui scrive "Rematore inverso
       // zavorrato". Il foglio Zavorra non elenca i rematori tra gli esercizi
       // zavorrabili, quindi quel gradino sarebbe stato irraggiungibile. Al suo

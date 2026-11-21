@@ -114,7 +114,8 @@ const EXERCISE_LIST = [
   /* ---------------------------------------------------------------------- */
   {
     slug: 'rematore-inverso-trx',
-    name: 'Rematore inverso TRX',
+    /* T-37: agli anelli dal 2026-11-21. Il nome non dice l'attrezzo: vale anche per le sedute già fatte al TRX. */
+    name: 'Rematore inverso',
     pattern: 'horizontal-pull',
     defaultLevel: 2,
     primaryMuscles: ['dorsali'],
@@ -122,17 +123,17 @@ const EXERCISE_LIST = [
     measurement: 'reps',
     loadPolicy: 'forbidden',
     cues: [
-      'Maniglie a larghezza spalle, corpo teso in linea dalle caviglie alla testa.',
-      'L’inclinazione decide la difficoltà: più orizzontale sei, più è dura.',
-      'Tira portando i gomiti indietro lungo il busto e avvicinando le scapole.',
+      'Agli anelli, un po’ più larghi delle spalle, presa prona: palmi rivolti verso i piedi. Corpo teso in linea dalle caviglie alla testa, talloni a terra.',
+      'L’inclinazione decide la difficoltà: più orizzontale sei, più è dura. A braccia distese le cinghie stanno verticali.',
+      'Tira con i gomiti larghi, a metà fra i fianchi e la linea delle spalle, e stringi le scapole. Gli anelli non si allargano e non oscillano.',
       'Errore tipico: bacino che cede verso il basso, che scarica il lavoro sulle braccia.',
-      'Ripetizione valida: maniglie all’altezza delle costole basse, ritorno a braccia distese senza perdere la linea.',
+      'Ripetizione valida: anelli all’altezza del petto con le scapole strette, ritorno a braccia distese senza perdere la linea.',
     ],
-    videoQuery: 'trx inverted row proper form tutorial',
+    videoQuery: 'wide grip ring row proper form tutorial',
   },
   {
     slug: 'rematore-inverso-trx-piedi-rialzati',
-    name: 'Rematore inverso TRX piedi rialzati',
+    name: 'Rematore inverso piedi rialzati',
     pattern: 'horizontal-pull',
     defaultLevel: 4,
     primaryMuscles: ['dorsali'],
@@ -142,7 +143,7 @@ const EXERCISE_LIST = [
     cues: [
       'Piedi su un rialzo all’altezza delle anche o più: il corpo resta orizzontale.',
       'Glutei contratti e costole basse per tutta la serie, niente bacino che affonda.',
-      'Pausa di 1" con le maniglie alle costole, scapole strette.',
+      'Pausa di 1" con le mani alle costole, scapole strette.',
       'Errore tipico: scrollare le spalle verso le orecchie invece di retrarre le scapole.',
       'Ripetizione valida: pausa in chiusura rispettata, discesa controllata fino a braccia distese.',
     ],
@@ -150,7 +151,7 @@ const EXERCISE_LIST = [
   },
   {
     slug: 'rematore-trx-monobraccio',
-    name: 'Rematore TRX monobraccio',
+    name: 'Rematore inverso monobraccio',
     pattern: 'horizontal-pull',
     defaultLevel: 5,
     primaryMuscles: ['dorsali'],
@@ -158,13 +159,13 @@ const EXERCISE_LIST = [
     measurement: 'reps',
     loadPolicy: 'forbidden',
     cues: [
-      'Una maniglia sola, piedi leggermente più larghi per stabilizzare.',
+      'Una presa sola, piedi leggermente più larghi per stabilizzare.',
       'Il busto non deve ruotare: la spalla libera resta alla stessa altezza dell’altra.',
       'Tira il gomito indietro lungo il fianco, non verso l’esterno.',
       'Errore tipico: aprire il busto verso il lato che tira, trasformando l’esercizio in una torsione.',
       'Ripetizione valida: spalle parallele al pavimento dall’inizio alla fine, braccio disteso a ogni ritorno.',
     ],
-    videoQuery: 'single arm trx row proper form tutorial',
+    videoQuery: 'single arm inverted row proper form tutorial',
   },
 
   /* ---------------------------------------------------------------------- */
@@ -1439,7 +1440,7 @@ const EXERCISE_LIST = [
       'Respira lento e resta: non molleggiare.',
       'Metà tempo per lato. Serve a chiudere la seduta, non a guadagnare range.',
     ],
-    videoQuery: 'couch stretch hip flexor opener cool down',
+    videoQuery: 'half kneeling hip flexor stretch tutorial',
   },
   {
     slug: 'respirazione-360',

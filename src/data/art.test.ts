@@ -184,8 +184,11 @@ describe('figure senza immagine, per scelta (audit 2026-11-21)', () => {
     }
   });
 
-  it('il rematore inverso TRX mostra il TRX, non la sbarra', () => {
-    expect(REPDB_ART['rematore-inverso-trx']?.source).toBe('trx-row');
+  it('37.8 · il rematore è agli anelli: nessuna foto con il TRX o la sbarra, finché il media lead non ne verifica una', () => {
+    expect(REPDB_ART['rematore-inverso-trx']).toBeUndefined();
+    expect(REPDB_STEP_ART['horizontal-pull-l1']).toBeUndefined();
+    expect(FIGURE_SENZA_IMMAGINE.has('rematore-inverso-trx')).toBe(true);
+    expect(FIGURE_SENZA_IMMAGINE.has('horizontal-pull-l1')).toBe(true);
   });
 
   it('la verticale libera non compare dove la scheda chiede il muro', () => {

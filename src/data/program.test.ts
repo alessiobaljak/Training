@@ -346,11 +346,13 @@ describe('deviazioni dichiarate', () => {
   it('ogni deviazione riguarda un esercizio che la scheda nomina davvero', () => {
     // Una voce che non corrisponde a niente è una deviazione vecchia rimasta
     // lì: da quel momento la lista racconta una storia che non esiste più.
-    const nomiDaScheda = new Set(
-      [UPPER_A, LOWER_A, ZONA_2, UPPER_B, LOWER_B, SHADOW].flatMap((rows) =>
+    const nomiDaScheda = new Set([
+      ...[UPPER_A, LOWER_A, ZONA_2, UPPER_B, LOWER_B, SHADOW].flatMap((rows) =>
         rows.map((row) => row[1]),
       ),
-    );
+      /* La tabella dei test della scheda (trascritta in tests.test.ts) e la Seduta 2 del circuito (T-37). */
+      'Rematore inverso TRX',
+    ]);
     for (const deviazione of DEVIAZIONI) {
       expect(nomiDaScheda.has(deviazione.scheda), deviazione.scheda).toBe(true);
     }

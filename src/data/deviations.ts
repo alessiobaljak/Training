@@ -27,6 +27,24 @@ export interface Deviazione {
 
 export const DEVIAZIONI: readonly Deviazione[] = [
   {
+    scheda: 'Rematore inverso TRX',
+    app: 'Rematore inverso',
+    motivo:
+      'Alessio, 2026-11-21: il rematore della Seduta 2 si fa agli anelli, come dice la nota della scheda («Agli anelli e con la presa larga»). Il nome non dice l’attrezzo perché vale anche per le sedute già fatte al TRX: l’attrezzo lo dicono il gradino, la nota e i cue.',
+  },
+  {
+    scheda: 'Rematore inverso TRX piedi rialzati',
+    app: 'Rematore inverso piedi rialzati',
+    motivo:
+      'La scala della trazione orizzontale è passata agli anelli (2026-11-21). Il nome perde «TRX» perché il diario mostra le sedute dello Shadow fatte al TRX.',
+  },
+  {
+    scheda: 'Rematore TRX monobraccio',
+    app: 'Rematore inverso monobraccio',
+    motivo:
+      'La scala della trazione orizzontale è passata agli anelli (2026-11-21). Il nome perde «TRX» perché il diario mostra le sedute dello Shadow fatte al TRX.',
+  },
+  {
     scheda: 'Alzate laterali con elastico',
     app: 'Alzate laterali con manubri',
     motivo:
@@ -212,6 +230,38 @@ export interface DeviazioneGradino {
 }
 
 export const DEVIAZIONI_GRADINO: readonly DeviazioneGradino[] = [
+  {
+    schema: 'horizontal-pull',
+    livello: 1,
+    scheda: 'Rematore inverso piedi a terra',
+    app: 'Rematore agli anelli a 60°',
+    motivo:
+      'Una scala, un attrezzo: le figure dei gradini sono della scala, e la Seduta 2 è agli anelli. Il gradino 1 dice l’angolo, perché «piedi a terra» vale anche per il 2 e il 3.',
+  },
+  {
+    schema: 'horizontal-pull',
+    livello: 2,
+    scheda: 'Rematore TRX a 45°',
+    app: 'Rematore agli anelli a 45°',
+    motivo:
+      'Una scala, un attrezzo: le figure dei gradini sono della scala, e la Seduta 2 è agli anelli. Il gradino 1 dice l’angolo, perché «piedi a terra» vale anche per il 2 e il 3.',
+  },
+  {
+    schema: 'horizontal-pull',
+    livello: 3,
+    scheda: 'Rematore TRX orizzontale',
+    app: 'Rematore agli anelli orizzontale',
+    motivo:
+      'Una scala, un attrezzo: le figure dei gradini sono della scala, e la Seduta 2 è agli anelli. Il gradino 1 dice l’angolo, perché «piedi a terra» vale anche per il 2 e il 3.',
+  },
+  {
+    schema: 'horizontal-pull',
+    livello: 5,
+    scheda: 'Rematore monobraccio TRX',
+    app: 'Rematore monobraccio agli anelli',
+    motivo:
+      'Una scala, un attrezzo: le figure dei gradini sono della scala, e la Seduta 2 è agli anelli. Il gradino 1 dice l’angolo, perché «piedi a terra» vale anche per il 2 e il 3.',
+  },
   {
     schema: 'vertical-pull',
     livello: 1,

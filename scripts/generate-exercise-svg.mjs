@@ -833,7 +833,7 @@ const EXERCISES = {
   'chin-up-presa-supina-stretta': ['hang-pull', {}, 'Chin-up presa stretta: braccia distese, poi mento sopra la sbarra'],
   'chin-up-presa-supina': ['hang-pull', {}, 'Chin-up: braccia distese, poi mento sopra la sbarra'],
   'dead-hang': ['hang-hold', {}, 'Dead hang: sospensione a braccia distese'],
-  'rematore-inverso-trx': ['row', {}, 'Rematore inverso: braccia distese, poi maniglie alle costole'],
+  'rematore-inverso-trx': ['row', {}, 'Rematore inverso agli anelli: braccia distese, poi anelli al petto'],
   'rematore-inverso-trx-piedi-rialzati': ['row', { elevated: true }, 'Rematore piedi rialzati: corpo orizzontale, tirata alle costole'],
   'rematore-trx-monobraccio': ['row', { elevated: true, oneArm: true }, 'Rematore monobraccio: gomito al fianco'],
   'push-up': ['pushup', {}, 'Push-up: braccia distese, poi petto vicino a terra'],
@@ -933,11 +933,11 @@ const STEPS = {
   'vertical-pull-l6': ['hang-pull', {}, 'Trazioni zavorrate'],
 
   /* Trazione orizzontale: cambiano l inclinazione, i piedi e le braccia. */
-  'horizontal-pull-l1': ['row', {}, 'Rematore inverso con i piedi a terra'],
-  'horizontal-pull-l2': ['row', {}, 'Rematore TRX a 45 gradi'],
-  'horizontal-pull-l3': ['row', {}, 'Rematore TRX orizzontale'],
+  'horizontal-pull-l1': ['row', {}, 'Rematore agli anelli a 60 gradi'],
+  'horizontal-pull-l2': ['row', {}, 'Rematore agli anelli a 45 gradi'],
+  'horizontal-pull-l3': ['row', {}, 'Rematore agli anelli orizzontale'],
   'horizontal-pull-l4': ['row', { elevated: true }, 'Rematore con i piedi rialzati e pausa'],
-  'horizontal-pull-l5': ['row', { oneArm: true }, 'Rematore monobraccio'],
+  'horizontal-pull-l5': ['row', { oneArm: true }, 'Rematore monobraccio agli anelli'],
   'horizontal-pull-l6': ['row', { elevated: true, oneArm: true }, 'Rematore monobraccio con i piedi rialzati'],
 
   /* Spinta orizzontale: cambiano appoggio, piedi e larghezza delle mani. */

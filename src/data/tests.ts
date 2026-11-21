@@ -51,11 +51,13 @@ const TEST_LIST = [
   {
     id: 'inverted-row-trx',
     order: 4,
-    label: 'Rematore inverso TRX',
+    /* T-37: l'id resta, perché i risultati sono salvati con quello; il test si fa agli anelli. */
+    label: 'Rematore inverso',
     exercise: 'rematore-inverso-trx',
     measurement: 'reps',
     plannedSets: 3,
     perSide: false,
+    note: 'Agli anelli a 45°, con la presa larga della seduta. Conta solo le ripetizioni con il corpo in linea e gli anelli al petto.',
   },
   {
     id: 'pike-push-up',
@@ -134,7 +136,7 @@ export interface TestBaseline {
  *
  * Ogni test misura una variante precisa: il test dei push-up è «Push-up a
  * terra», gradino 2 della spinta orizzontale; quello del rematore è «Rematore
- * TRX a 45°», gradino 2 della trazione orizzontale. Ventiquattro push-up a
+ * agli anelli a 45°», gradino 2 della trazione orizzontale. Ventiquattro push-up a
  * terra dicono quanto vali su quel gradino e niente sugli archer push-up, che
  * sono il gradino 5 e hanno una tecnica diversa.
  *

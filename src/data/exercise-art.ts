@@ -196,11 +196,6 @@ export const REPDB_STEP_ART: Readonly<Record<string, RepDbFrames>> = {
     label: 'Pull-Up',
     frames: ['pull-up-start.webp', 'pull-up-peak.webp'],
   },
-  'horizontal-pull-l1': {
-    source: 'inverted-row',
-    label: 'Inverted Row',
-    frames: ['inverted-row-start.webp', 'inverted-row-peak.webp'],
-  },
   'horizontal-push-l2': {
     source: 'push-up',
     label: 'Push-Up',
@@ -313,12 +308,6 @@ export const REPDB_ART: Partial<Record<ExerciseSlug, RepDbFrames>> = {
     source: 'close-grip-pull-ups',
     label: 'Close-Grip Pull-Ups',
     frames: ['close-grip-pull-ups-start.webp', 'close-grip-pull-ups-peak.webp'],
-  },
-  /* Al TRX, a due maniglie: prima mostrava il rematore alla sbarra (Alessio, 2026-11-21). */
-  'rematore-inverso-trx': {
-    source: 'trx-row',
-    label: 'TRX Row',
-    frames: ['trx-row-start.webp', 'trx-row-peak.webp'],
   },
   'push-up': {
     source: 'push-up',
@@ -467,6 +456,8 @@ export const FIGURE_SENZA_IMMAGINE: ReadonlyMap<string, string> = new Map([
   ['curl-manubri-supino', 'Disegna una barra unica, si legge come bilanciere.'],
   /* Verifica di training-quality su 50793fd (M23, M24). */
   ['rematore-trx-monobraccio', 'Il disegno è quello del gradino 6, con i piedi sul rialzo; l’esercizio è al gradino 5.'],
+  ['rematore-inverso-trx', 'La foto mostra il TRX; l’esercizio è agli anelli (T-37, 2026-11-21).'],
+  ['horizontal-pull-l1', 'La foto è alla sbarra; il gradino 1 è agli anelli a 60° (T-37, 2026-11-21).'],
   ['rematore-inverso-trx-piedi-rialzati', 'La foto è agli anelli con i piedi a terra; l’esercizio è al TRX con i piedi rialzati (media, 2026-11-08).'],
   ['shrimp-squat-o-skater-squat', 'È lo stesso disegno dello skater squat, senza la mano sul piede dietro.'],
 ]);

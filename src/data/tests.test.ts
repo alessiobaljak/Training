@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TEST_REST_SECONDS, WEEK_ZERO_TESTS, getTest } from './tests.ts';
 import { getExercise } from './exercises.ts';
+import { applicaDeviazione } from './deviations.ts';
 
 /** Seconda trascrizione, indipendente, della tabella dei test della Settimana 0. */
 const EXPECTED: ReadonlyArray<
@@ -27,7 +28,8 @@ describe('tests.ts — i 9 test della Settimana 0', () => {
     const actual = WEEK_ZERO_TESTS.map(
       (t) => [t.label, t.plannedSets, t.measurement, t.perSide] as const,
     );
-    expect(actual).toEqual(EXPECTED);
+    /* Un'etichetta cambiata rispetto alla scheda passa solo da una deviazione dichiarata (T-37). */
+    expect(actual).toEqual(EXPECTED.map(([label, ...resto]) => [applicaDeviazione(label), ...resto]));
   });
 
   it('ha id unici e punta a esercizi esistenti', () => {
