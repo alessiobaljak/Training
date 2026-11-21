@@ -1,4 +1,5 @@
 import { statiDaFissare } from '../engine/draft.ts';
+import { proposteDeiRitest, type PropostaRitest } from '../engine/ritest.ts';
 import { getExercise } from '../data/exercises.ts';
 import { initialExerciseState } from '../engine/progression.ts';
 import { latestCompleteRound, latestTestResults, openRound, testRounds } from '../engine/ranges.ts';
@@ -494,6 +495,47 @@ export class ShadowRepository {
       ...(state === null ? [] : [{ table: 'exerciseStates' as const, doc: state }]),
       { table: 'suggestions' as const, doc: record },
     ]);
+  }
+
+  /**
+   * R9b: le discese che gli ultimi test propongono e che non sono ancora
+   * state decise. Lo stato è quello di oggi, con R9c.
+   */
+  async proposteRitest(): Promise<PropostaRitest[]> {
+    const [tests, stati, decisioni] = await Promise.all([
+      this.latestTests(),
+      this.listExerciseStates(),
+      this.listSuggestions(),
+    ]);
+    const salvati = new Map(stati.map((stato) => [stato.exercise, stato]));
+    return proposteDeiRitest(
+      tests,
+      (slug) => salvati.get(slug) ?? initialExerciseState(getExercise(slug), tests),
+      new Set(decisioni.map((record) => record.id)),
+    );
+  }
+
+  /**
+   * R9b: «Applica» scrive lo stato più basso e la traccia insieme; «Lascia
+   * com'è» solo la traccia. È una discesa: non passa dai cancelli e R13 non
+   * la conta, perché R13 conta solo gli aumenti.
+   */
+  async decidiRitest(proposta: PropostaRitest, accettata: boolean, oggi: string): Promise<void> {
+    const { verdict } = proposta;
+    await this.recordDecision(
+      {
+        id: proposta.id,
+        date: oggi,
+        sessionLogId: proposta.id,
+        exercise: verdict.exercise,
+        blockCode: 'ritest',
+        lever: verdict.lever,
+        decision: accettata ? 'accepted' : 'postponed',
+        stateBefore: verdict.stateBefore,
+        stateAfter: accettata ? verdict.stateAfter : verdict.stateBefore,
+      },
+      accettata ? verdict.stateAfter : null,
+    );
   }
 
   async listSuggestions(slug?: ExerciseSlug): Promise<SuggestionRecord[]> {

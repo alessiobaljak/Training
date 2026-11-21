@@ -89,6 +89,59 @@ function firstExecutableLevel(pattern: MotorPattern): LevelIndex {
   return adjacentLevel(pattern, 1, 1, true) ?? 1;
 }
 
+/** Cosa usa la riga 8 di R1 per un esercizio: la lettura che R9b rifà dopo un ritest. */
+export interface RigaOtto {
+  readonly pattern: MotorPattern;
+  readonly testId: TestId;
+  /** `Lt`: il gradino a cui si esegue il test. */
+  readonly livelloTest: LevelIndex;
+  /** La soglia del blocco più esigente. */
+  readonly soglia: number;
+  /** `giù(Lt)`: dove R1 fa partire chi sta sotto la soglia. */
+  readonly giu: LevelIndex;
+  readonly primo: LevelIndex;
+  /** Il blocco più esigente e dove sta, per esempio «Seduta 1 · A1». */
+  readonly blocco: ProgramBlock;
+  readonly dove: string;
+}
+
+/**
+ * Le stesse condizioni di `startingLevel`, righe 1-7: `null` quando R1 decide
+ * prima della riga 8, e lì un test non sposta niente. Il test di coerenza in
+ * `ritest.test.ts` le confronta con `startingLevel` su tutto il catalogo.
+ */
+export function rigaOtto(exercise: Exercise): RigaOtto | null {
+  const prescritto = exercise.defaultLevel;
+  if (exercise.pattern === null || prescritto === null) return null;
+  const pattern = exercise.pattern;
+  const blocchi = activeBlocksFor(exercise.slug);
+  if (blocchi.length === 0 || blocchi.every((block) => block.excludeFromReview === true)) return null;
+  const prova = testBaseline(pattern);
+  if (prova === null || prescritto < prova.level || prova.measurement !== exercise.measurement) return null;
+  let migliore: { blocco: ProgramBlock; dove: string; soglia: number } | null = null;
+  for (const session of CIRCUIT_SESSIONS) {
+    for (const block of session.blocks) {
+      if (block.exercise !== exercise.slug || block.excludeFromReview === true) continue;
+      const soglia = thresholdFor(block);
+      if (soglia === null) continue;
+      if (migliore === null || soglia > migliore.soglia) {
+        migliore = { blocco: block, dove: `${session.name} · ${block.code}`, soglia };
+      }
+    }
+  }
+  if (migliore === null) return null;
+  return {
+    pattern,
+    testId: prova.testId,
+    livelloTest: prova.level,
+    soglia: migliore.soglia,
+    giu: adjacentLevel(pattern, prova.level, -1, true) ?? firstExecutableLevel(pattern),
+    primo: firstExecutableLevel(pattern),
+    blocco: migliore.blocco,
+    dove: migliore.dove,
+  };
+}
+
 /**
  * Il gradino da cui si parte (PROGRAM_RULES R1, chiude B5).
  *

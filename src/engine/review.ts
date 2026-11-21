@@ -71,7 +71,9 @@ export type WeeklyVerdictKind =
   /** Massimo chiuso con un «no» sul tempo: si rifà al tempo giusto (R5). */
   | 'rifai-al-tempo-giusto'
   /** Massimo chiuso senza risposta sul tempo: niente sale (R5). */
-  | 'rispondi-sul-tempo';
+  | 'rispondi-sul-tempo'
+  /** R9b: un ritest dice che il gradino di oggi è troppo alto. Solo in discesa. */
+  | 'riparti-dal-test';
 
 export interface WeeklyVerdict {
   readonly exercise: ExerciseSlug;

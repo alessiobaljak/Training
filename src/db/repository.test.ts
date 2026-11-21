@@ -543,3 +543,53 @@ describe('R9c (B16) · un test nuovo non alza il gradino di un esercizio già fa
     expect(salite).toBe(0);
   });
 });
+
+describe('R9b · le proposte di un ritest nel repository', () => {
+  const TRAZIONI = 'trazioni-prona-presa-media';
+  const sedutaTrazioni = (date: string, level: 1 | 2 | 3): LoggedSession => ({
+    id: `t-${date}`,
+    date,
+    week: 1,
+    sessionId: 'circuito-1',
+    status: 'completed',
+    exercises: [{ ...loggedExercise(TRAZIONI, sets([7, 7, 7]), { blockCode: 'A1' }), level }],
+    note: null,
+  });
+
+  async function conRitest(): Promise<ShadowRepository> {
+    const repo = new ShadowRepository(new MemoryStore());
+    await repo.saveTestResult(testResultSingle('pull-up', '2026-03-01', 0, 10));
+    expect((await repo.getExerciseState(TRAZIONI)).level).toBe(3);
+    await repo.saveSession(sedutaTrazioni('2026-03-03', 3));
+    await repo.fissaStatiMancanti();
+    await repo.saveTestResult(testResultSingle('pull-up', '2026-04-11', 6, 5));
+    return repo;
+  }
+
+  it('9.23 · «Applica» su 3 → 1: stato {1, e0, p0, 0 kg} e traccia accettata con la leva variante', async () => {
+    const repo = await conRitest();
+    const [proposta] = (await repo.proposteRitest()).filter((p) => p.verdict.exercise === TRAZIONI);
+    expect(proposta?.id).toBe('ritest-2026-04-11:trazioni-prona-presa-media');
+    if (proposta === undefined) return;
+    await repo.decidiRitest(proposta, true, '2026-04-11');
+    expect(await repo.getExerciseState(TRAZIONI)).toEqual(
+      expect.objectContaining({ level: 1, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, loadKg: 0 }),
+    );
+    const [record] = await repo.listSuggestions(TRAZIONI);
+    expect(record).toEqual(
+      expect.objectContaining({ id: proposta.id, decision: 'accepted', lever: 'variant', blockCode: 'ritest' }),
+    );
+    expect((await repo.proposteRitest()).map((p) => p.verdict.exercise)).not.toContain(TRAZIONI);
+  });
+
+  it('9.24 · «Lascia com’è»: stato invariato, traccia rimandata, la proposta non torna', async () => {
+    const repo = await conRitest();
+    const [proposta] = (await repo.proposteRitest()).filter((p) => p.verdict.exercise === TRAZIONI);
+    if (proposta === undefined) throw new Error('nessuna proposta');
+    await repo.decidiRitest(proposta, false, '2026-04-11');
+    expect((await repo.getExerciseState(TRAZIONI)).level).toBe(3);
+    expect((await repo.listSuggestions(TRAZIONI))[0]?.decision).toBe('postponed');
+    expect((await repo.proposteRitest()).map((p) => p.verdict.exercise)).not.toContain(TRAZIONI);
+  });
+});
+

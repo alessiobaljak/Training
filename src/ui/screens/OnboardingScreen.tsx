@@ -1,18 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { WEEK_ZERO_TESTS, TEST_PROTOCOL_NOTE, TEST_REST_SECONDS } from '../../data/tests.ts';
 import { getExercise } from '../../data/exercises.ts';
+import { CIRCUIT_SESSIONS } from '../../data/circuit.ts';
 import { testResultPerSide, testResultSingle } from '../../engine/ranges.ts';
-import { testOutcomes } from '../../engine/progression.ts';
+import { initialExerciseState, rigaOtto, testOutcomes } from '../../engine/progression.ts';
+import { testoEsitoRitest } from '../../engine/ritest.ts';
 import { titleAtLevel } from '../../engine/draft.ts';
 import { addDays, formatDayLong, formatDayShort, startOfWeek, todayIso } from '../../engine/dates.ts';
 import { chiusuraDelGiro, programWeek } from '../../engine/schedule.ts';
 import { repository } from '../../db/repository.ts';
 import { navigate } from '../router.ts';
-import { useSettings, useTestRounds } from '../hooks/useData.ts';
+import { useExerciseStates, useLatestTests, useProposteRitest, useSettings, useTestRounds } from '../hooks/useData.ts';
+import { ProposteRitest } from '../components/ProposteRitest.tsx';
 import { Badge, Button, Card, CueList, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
 import { NumberStepper } from '../components/NumberStepper.tsx';
 import { CountdownPanel, StopwatchField } from '../components/TimerFields.tsx';
-import type { TestDefinition, TestId, TestResult } from '../../types/index.ts';
+import type { ExerciseSlug, ExerciseState, TestDefinition, TestId, TestResult } from '../../types/index.ts';
 import type { TestRound } from '../../engine/ranges.ts';
 
 /**
@@ -53,6 +56,10 @@ function effectiveValue(test: TestDefinition, draft: Draft): number {
 export function OnboardingScreen() {
   const rounds = useTestRounds();
   const settings = useSettings();
+  /* R9b: a un ritest il test non dice più da dove parti, ma se un gradino va abbassato. */
+  const proposte = useProposteRitest();
+  const stati = useExerciseStates();
+  const ultimi = useLatestTests();
 
   const [step, setStep] = useState<Step>({ kind: 'intro' });
   const [roundDate, setRoundDate] = useState<string>(() => todayIso());
@@ -100,6 +107,11 @@ export function OnboardingScreen() {
       </Screen>
     );
   }
+
+  const ritest = week >= 1;
+  const statoDi = (slug: ExerciseSlug): ExerciseState =>
+    stati?.find((stato) => stato.exercise === slug) ??
+    initialExerciseState(getExercise(slug), ultimi ?? new Map());
 
   const saveTest = async (test: TestDefinition, draft: Draft): Promise<void> => {
     const result = test.perSide
@@ -316,9 +328,13 @@ export function OnboardingScreen() {
           )}
 
           <Card tone={value > 0 && esiti.length > 0 ? 'accent' : 'muted'}>
-            <p className="text-sm text-dim">Da dove parti</p>
+            <p className="text-sm text-dim">{ritest ? 'Cosa dice il ritest' : 'Da dove parti'}</p>
             <div data-testid="partenza" className="mt-1">
-              {esiti.length === 0 ? (
+              {ritest && value > 0 && testoEsitoRitest(testResultSingle(test.id, roundDate, week, value), statoDi) !== null ? (
+                <p className="text-base leading-snug font-semibold">
+                  {testoEsitoRitest(testResultSingle(test.id, roundDate, week, value), statoDi)}
+                </p>
+              ) : esiti.length === 0 ? (
                 <p className="text-sm leading-relaxed">
                   Questo test non decide niente nelle quattro sedute: nessuna lo usa. Resta per
                   confrontare i progressi al ritest.
@@ -408,6 +424,8 @@ export function OnboardingScreen() {
                     {result === undefined
                       ? 'Non ancora fatto'
                       : (() => {
+                          const lettura = ritest ? testoEsitoRitest(result, statoDi) : null;
+                          if (lettura !== null) return lettura;
                           const esiti = testOutcomes(test.id, result);
                           const massimale = `${String(result.value)}${unit === 'seconds' ? '″' : ''}`;
                           if (esiti.length === 0) return `${massimale} · non usato nelle sedute`;
@@ -429,6 +447,31 @@ export function OnboardingScreen() {
             </Card>
           );
         })}
+
+        {!ritest ? null : (() => {
+          /* R9b: le proposte di questo giro, e i test che non si possono controllare. */
+          const diQuesto = (proposte ?? []).filter((proposta) => proposta.data === roundDate);
+          const senza = WEEK_ZERO_TESTS.filter(
+            (test) =>
+              missing.includes(test.id) &&
+              CIRCUIT_SESSIONS.some((s) => s.blocks.some((b) => rigaOtto(getExercise(b.exercise))?.testId === test.id)),
+          ).map((test) => test.label);
+          return (
+            <>
+              <SectionTitle>Gradini</SectionTitle>
+              {diQuesto.length === 0 ? (
+                <Notice>Nessun gradino da abbassare.</Notice>
+              ) : (
+                <ProposteRitest proposte={diQuesto} />
+              )}
+              {senza.length === 0 ? null : (
+                <p className="text-sm leading-relaxed text-dim">
+                  Senza risultato, nessun controllo su: {senza.join(', ')}.
+                </p>
+              )}
+            </>
+          );
+        })()}
 
         {!chiusura.chiediInizio ? null : (
         <>

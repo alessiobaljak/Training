@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ACTIVE_SESSIONS, findAnySession } from '../../data/sessions.ts';
 import { findCircuitSession, isCircuitSessionId } from '../../data/circuit.ts';
+import { delGiorno } from '../../engine/ritest.ts';
 import { daysBetween, formatDayLong, formatDayShort, formatDaysAgo, plural, todayIso } from '../../engine/dates.ts';
 import { buildGuidedPlan, estimatedSeconds, durataDellaSedutaDi } from '../../engine/circuit.ts';
 import { IN_A_ROW_WARNING, rotationState } from '../../engine/rotation.ts';
@@ -20,6 +21,7 @@ import {
   useSessions,
   useSettings,
   useSuggestions,
+  useProposteRitest,
 } from '../hooks/useData.ts';
 import { useSnapshots } from '../hooks/useSnapshots.ts';
 import { Badge, Button, Card, Notice, Screen, SectionTitle } from '../components/primitives.tsx';
@@ -74,6 +76,7 @@ export function HomeScreen() {
   const latestTests = useLatestTests();
   const suggestions = useSuggestions();
   const snapshots = useSnapshots();
+  const proposteRitest = useProposteRitest();
   const [daEliminare, setDaEliminare] = useState<string | null>(null);
 
   const today = todayIso();
@@ -263,6 +266,23 @@ export function HomeScreen() {
             {weekState.isDeload ? <Badge tone="warn">Scarico</Badge> : null}
             {weekState.isRetestWeek ? <Badge tone="good">Ritest</Badge> : null}
           </div>
+        ) : null}
+
+        {/* R9b: le discese proposte da un ritest e non ancora decise. */}
+        {proposteRitest !== undefined && proposteRitest.length > 0 ? (
+          <Card tone="warn">
+            <p className="text-sm font-semibold">
+              Dai test {delGiorno(proposteRitest.map((p) => p.data).sort().at(-1) ?? todayIso())}:{' '}
+              {proposteRitest.length === 1
+                ? '1 gradino da decidere.'
+                : `${String(proposteRitest.length)} gradini da decidere.`}
+            </p>
+            <div className="mt-3">
+              <Button full onClick={() => { navigate({ name: 'ritest' }); }}>
+                Decidi
+              </Button>
+            </div>
+          </Card>
         ) : null}
 
         {daDecidere.length > 0 ? (

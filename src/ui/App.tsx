@@ -14,6 +14,7 @@ import { CircuitOverview } from './screens/CircuitOverview.tsx';
 import { getAnySession } from '../data/sessions.ts';
 import type { SessionId } from '../types/index.ts';
 import { SettingsScreen } from './screens/SettingsScreen.tsx';
+import { RitestScreen } from './screens/RitestScreen.tsx';
 import {
   ConfigMissingScreen,
   LoadingGate,
@@ -66,6 +67,7 @@ export function App() {
         {route.name === 'home' ? <HomeScreen /> : null}
         {route.name === 'onboarding' ? <OnboardingScreen /> : null}
         {route.name === 'settings' ? <SettingsScreen /> : null}
+        {route.name === 'ritest' ? <RitestScreen /> : null}
         {/*
           `key` sulla seduta: passando da una seduta all'altra il player deve
           ripartire da zero. Senza, React riusa lo stesso componente cambiando

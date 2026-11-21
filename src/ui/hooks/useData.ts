@@ -2,6 +2,7 @@ import { repository } from '../../db/repository.ts';
 import { useStoreQuery } from './useStoreQuery.ts';
 import type { AppSettings, SuggestionRecord } from '../../db/db.ts';
 import type { TestRound } from '../../engine/ranges.ts';
+import type { PropostaRitest } from '../../engine/ritest.ts';
 import type { SessionMove } from '../../engine/calendar.ts';
 import type {
   ExerciseSlug,
@@ -29,6 +30,11 @@ export function useSettings(): AppSettings | undefined {
 
 export function useIsOnboarded(): boolean | undefined {
   return useStoreQuery(() => repository.isOnboarded(), []);
+}
+
+/** R9b: le discese proposte dagli ultimi test e non ancora decise. */
+export function useProposteRitest(): PropostaRitest[] | undefined {
+  return useStoreQuery(() => repository.proposteRitest(), []);
 }
 
 export function useTestRounds(): TestRound[] | undefined {
