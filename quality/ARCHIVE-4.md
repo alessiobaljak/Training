@@ -176,3 +176,43 @@ tutti e due, push-up 1 → 2 (**B16**), 7 esercizi su 39 esposti. Nucleo v12 (4l
 ### Ricalcolo
 
 | R9c e domanda 4 sul codice, `704dbfa` contro `c8964ff` | A: `scendi-di-livello` 6 → 5 con 5 kg (S5), su tutti e due. B (9.29, 1500 storie, 4664 test): 0 salite e 0 discese con la chiusura dell'app; 1047 e 329 con quella di prima. C: ritest M=1, 0 su 7 scendono (7 su 7 prima) | `22-r9c.mts` |
+
+### Dal nucleo (SAFETY_CORE.md), spostato il 2026-11-21h
+
+#### Esito del 2026-11-21f (v15, `9d7b20f`): 4 PASS · 2 FALLITI · 2 NON COPERTI
+
+Copie `git archive`, mai dal tree principale. **Caso 2 PASS** (2c-Z: 4 Z1, sei condizioni vere, la 6 dal sorgente;
+positivi 5/5; 2c minima 0 casi; 2d 42/42). **Caso 4 PASS** (4l a-d, 4n, 4o i-vi). Casi 3, 6 FALLITI (B6; B8: 255 file,
+0 approvati); 1 e 8 NON COPERTI; 5 e 7 PASS. **`22f3d31` (produzione) con la v15: 3 · 3 · 2**: caso 2 PASS (B9 si
+chiude per decisione), caso 4 FALLITO per 4l (d) ×2 (B19) e 4o (iii)-(vi) ×7 (L14, chiusura). **`85d1dd8`** (prima di
+R21): 2 · 4 · 2, 2c minima su 4 Z1 (il positivo vero di 2c). La v14 su `9d7b20f` e `22f3d31`: 3 · 3 · 2.
+
+### Spostati da RESULTS.md il 2026-11-21h
+
+#### Voce aperta chiusa il 2026-11-21h (testo dell'ultima versione aperta)
+
+| B20 | Bloccante (preesistente in produzione `9c62f84`) | Dopo un cambio di gradino che porta la zavorra a 0 (`scendi-di-livello`, R9b, `sali-di-livello`, leva `variant`, selettore) il campo Peso riparte dalla volta scorsa dello stesso blocco, registrata al gradino di prima: trazioni `{5, 0 kg}` dopo il 6 a 5 kg ⇒ campo 5 kg; serie lasciate così ⇒ chiusura `{5, 5 kg}`, e da lì 5 kg proposti sotto il 6 a ogni seduta (S5, R6; limiti 1.6 R23: «sotto il 6 nessun kg prescritto dall'app»). Nello stesso giro di `SessionScreen` già dopo il selettore (27.12-27.13). Il testo del cambio dice «la zavorra si toglie» e il campo dice 5 kg | `27` 27.12-27.13, 27.16-27.20; nucleo v16 4o (viii) ×2 | `engine/draft.ts` `pesoIniziale` (usato da `GuidedSession.tsx` ~1089) e `ui/session/SessionScreen.tsx` (`kgDalloStato > 0 ? kgDalloStato : kgDalLog`): la volta scorsa vale a qualunque gradino (`lastLoggedByBlock` non lo guarda; l'etichetta sì, A11) | 2026-11-21g |
+
+#### Paragrafo di misura
+
+Misura del 2026-11-21c (commit `704dbfa`, R9c): **NO-GO** per la regola approvata (B17 esteso
+da questo commit); decisione D-Q2 per Alessio. **B16 ridotto, non chiuso**: chiusure del player e
+storia fissate (4l v13 superato; `23` nel browser: push-up `[1,0,0,0]` alla chiusura, ritest 16 ⇒
+resta), ma «Archivia» dalla Home non scrive nessuno stato (4n; `23`: bulgaro 1 → 2). **B17**: dopo
+un test peggiore nessun esercizio fatto scende e non c'è proposta (R9b assente): 2d 14/14 (7 su
+`c8964ff`), `22` C 7/7 restano (prima 7/7 scendevano), 9.29 casuale 0 salite e 0 discese su 4664
+test (1047 e 329 con la chiusura di prima). **B18** (domanda 4): `scendi-di-livello` 6 → 5 con 5 kg.
+Migrazione nel browser NON COPERTA (seconda esecuzione di `23` sovrapposta a uno smoke altrui).
+verify (936) da me; smoke e offline no.
+
+#### Voce chiusa
+
+| B10 | Bloccante | S9 violata: `circuito-4` F4 plank tocco spalla → F1 corda slam del giro 2 senza nessun passo (finitura 15" fra stazioni, 0 fra i giri) | 2026-11-21d (`4d06a4b`, non ancora rilasciato) | nucleo v13 4h superato (7 giunzioni tronco → balistico, tutte 15″; 0″ su `85d1dd8`); `24` 20.5: 0 eccezioni su 4.392 piani (settimane 1-18 × 61 stati), 3.660 sulla radice di prima; 20.2/20.3 testo e posizione dei 3.660 passi; durate +15 s (20.1, 20.7). Panoramica nel browser NON COPERTA (20.8) |
+
+#### Ricalcolo
+
+| R9c nel browser (build, emulatori, Chromium), `704dbfa` | chiusura dal player ⇒ push-up `[1,0,0,0]`; ritest push-up 16 ⇒ resta «Push-up su rialzo»; «Archivia» ⇒ nessuno stato, ritest ⇒ «Bulgarian split squat» (1 → 2). Bulgaro scritto a `[2,0,0,0]` dopo il ritest da uno scrittore non identificato (solo `fissaStatiMancanti` scrive così: domanda aperta). Migrazione nel ramo Firestore: NON COPERTA | `23-r9c-browser.mjs` |
+
+#### Ricalcolo
+
+| Nucleo v13 su `4d06a4b` e `85d1dd8` (copie `git archive`, v13 = `69d8c32`); `18` e `01` sulle due radici | nucleo 2 · 4 · 2 su tutte e due; caso 4: 4l ×2 + 4n su `4d06a4b`, 4h + 4l ×2 + 4n su `85d1dd8`. `18`: 217 OK e gli stessi 3 non OK, numeri +15″. `01`: piano +0,25′, volume uguale | `safety-core.mts` v13, `18-c.mts`, `01-durata-volume.mts` |

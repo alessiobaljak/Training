@@ -4,12 +4,13 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v16** · 2026-11-21g · misurata su `src/` al commit `3c4a8d7` (L42, selettore) e, al contrario, su
-`9c62f84` (produzione, `src/` = `9d7b20f`). **v16** = v15 + **4o (vii)** il selettore di `SessionScreen` (L42:
-handler letto in modo statico, `statoDopoCambioAMano` chiamata o `{ ...stato, level }` modellato) + **4o (viii)** il
-peso precompilato nella seduta dopo un cambio di gradino a 0 kg (player guidato e `SessionScreen`, volta scorsa al 6
-con 5 kg; B20). La v15 sulle stesse radici: 4 · 2 · 2 (vii e viii non esistevano: un controllo nuovo non è un PASS
-che si è rotto). Teste della v14 e della v15: `ARCHIVE-4.md`.
+Versione: **v17** · 2026-11-21h · misurata su `src/` al commit `bcb9e5e` (B20) e, al contrario, su `9c62f84`
+(produzione). **v17** = v16 + 4j e **4o (viii)** riconoscono anche la composizione del peso con `kgDellaVoltaScorsa`
+(B20; sorgente letto senza commenti né spazi) e la modellano chiamando la funzione; **4o (viii)** ha un positivo in
+più: allo stesso gradino, al 6, la volta scorsa arriva al campo (5 kg). La v16 su `bcb9e5e` dice «composizione non
+riconosciuta: controllo da riscrivere» (4j, 4o viii): è un modello da aggiornare, non un FALLITO da contare. **Non
+committata**: è nel file di lavoro `quality/scripts/safety-core.mts`. v16 = v15 + 4o (vii) selettore + 4o (viii)
+peso dopo un cambio (2026-11-21g). Teste della v14 e della v15: `ARCHIVE-4.md`.
 
 ## Come si esegue
 
@@ -34,15 +35,6 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-21f (v15, `9d7b20f`): 4 PASS · 2 FALLITI · 2 NON COPERTI
-
-Copie `git archive`, mai dal tree principale. **Caso 2 PASS** (2c-Z: 4 Z1, sei condizioni vere, la 6 dal sorgente;
-positivi 5/5; 2c minima 0 casi; 2d 42/42). **Caso 4 PASS** (4l a-d, 4n, 4o i-vi). Casi 3, 6 FALLITI (B6; B8: 255 file,
-0 approvati); 1 e 8 NON COPERTI; 5 e 7 PASS. **`22f3d31` (produzione) con la v15: 3 · 3 · 2**: caso 2 PASS (B9 si
-chiude per decisione), caso 4 FALLITO per 4l (d) ×2 (B19) e 4o (iii)-(vi) ×7 (L14, chiusura). **`85d1dd8`** (prima di
-R21): 2 · 4 · 2, 2c minima su 4 Z1 (il positivo vero di 2c). La v14 su `9d7b20f` e `22f3d31`: 3 · 3 · 2.
-
-
 ## Esito del 2026-11-21g (v16, `3c4a8d7`): 3 PASS · 3 FALLITI · 2 NON COPERTI
 
 Copie `git archive` di `3c4a8d7` e `9c62f84`, mai dal tree principale. **v15 per intero: 4 · 2 · 2 su tutte e due**
@@ -50,6 +42,14 @@ Copie `git archive` di `3c4a8d7` e `9c62f84`, mai dal tree principale. **v15 per
 precompilato dalla volta scorsa dopo un cambio a 0 kg: player guidato e `SessionScreen`, campo 5 kg, chiusura
 `{5, 5 kg}`); su `9c62f84` in più **4o (vii) ×4** (selettore: 5 kg e +2″/+2″ tenuti). Casi 1-3 e 5-8 identici fra v15
 e v16 e fra le due radici (3: B6; 6: 255 file, 0 approvati). verify su `3c4a8d7`: 985 test, 43 file, verdi.
+
+## Esito del 2026-11-21h (v17, `bcb9e5e`): 4 PASS · 2 FALLITI · 2 NON COPERTI
+
+Copie `git archive` di `bcb9e5e` e `9c62f84`. **v16 per intero su `bcb9e5e`: 3 · 3 · 2**, caso 4 FALLITO solo per
+«composizione non riconosciuta» in 4j e 4o (viii) (modello da aggiornare); su `9c62f84` identica alla misura g.
+**v17: `bcb9e5e` 4 · 2 · 2 (caso 4 PASS); `9c62f84` 3 · 3 · 2, uscita identica byte per byte alla v16** (vii ×4,
+viii ×2). Positivi su copie mutate di `bcb9e5e`: guardia tolta (`return kg`) ⇒ viii ×2; guardia che azzera sempre
+⇒ il positivo v17 «la fixture non misura». Casi 1-3 e 5-8 identici. verify su `bcb9e5e`: 986 test, 43 file, verdi.
 ---
 
 ## Caso 1 — Dolore dichiarato gestito con un rimando
@@ -134,7 +134,7 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi: FALLITO** con la v16 su `3c4a8d7` e su `9c62f84` (produzione), 2026-11-21g: 4o (viii) ×2 (B20); su `9c62f84` anche 4o (vii) ×4. Con la v15 PASS su tutte e due (4l a-d, 4n, 4o i-vi). Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
+**Stato oggi: PASS** con la v17 su `bcb9e5e`, 2026-11-21h (4j, 4l a-d, 4n, 4o i-viii). **FALLITO** su `9c62f84` (produzione): 4o (vii) ×4, (viii) ×2. Con la v16 su `bcb9e5e` FALLITO per «controllo da riscrivere» (4j, 4o viii). Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
 4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10), 4j (R-7, v10), **4k (R-14, v11)**. La revisione
 riceve il registro: vuoto salvo 4c (salite accettate) e 4e (zavorra accettata). Inizio programma 2026-03-02; revisione della settimana W
 con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
@@ -160,6 +160,7 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 4l (d) (T-39, **v15**) | trazioni mai salvate, test 03-01 M=4 (→ 1), ritest M=9 il 04-11, giorno dell'ultima seduta, prima o dopo di lei; «Archivia» o migrazione. Controllo 9.37: test d'ingresso M=8 e prima seduta il 03-01, test prima | ritest dopo: fissato 1; ritest prima: fissato ≤ il gradino della seduta; 9.37: 3 | **corretto** su `9d7b20f` (1, 1; prima: 1 ≤ 3, L44). **FALLITO** su `22f3d31`: dopo la seduta fissato **3** con la seduta all'1, nelle due vie (B19) |
 | 4o (R23, **v15**) | (iii) trazioni 3 → 4 e (iv) 5 → 6 con 5 kg, prima seduta al gradino il 03-02, 9-9-9 il 03-11 e il 03-18, test 12, revisione W3; (v) fine seduta trazioni al 3 con 5 kg, tempo e pausa al massimo, 9-9-9; (vi) chiusura: stato `{6, 5 kg, +2″/+2″}`, gradino scritto 5 a 5 kg (`syncStatesFromLog`); ogni controllo anche a 0 kg | 0 kg e la clausola («si toglie» al 4, «riparte da zero» al 6); leva variante `{4, 0 kg}` e la clausola; chiusura `{5, 0, 0, 0}`; a 0 kg nessun testo sulla zavorra. Verdetto o leva diversi ⇒ la fixture non misura. Il `VariantPicker` è in (vii), da v16 | **corretto** su `9d7b20f`. Su `22f3d31`: 5 kg tenuti e testi muti (7 violazioni, L14) |
 | 4o (vii, viii) (L42, B20, **v16**) | (vii) handler del `VariantPicker` di `SessionScreen` (statico): trazioni `{6, 5 kg, +2″/+2″}` → 5, `{6, 0 kg, +2″/+2″}` → 5, `{3, 5 kg}` → 4, `{5, 5 kg}` → 6; stesso gradino e solo etichetta. (viii) stato `{5, 0 kg}` dopo un cambio, la volta scorsa `circuito-1/A1` al 6 con 5 kg (`lastLoggedByBlock`, `suggestedSetValue`); peso come lo compongono il player guidato (`pesoIniziale`) e `SessionScreen` (`kgDalloStato > 0 ? … : kgDalLog`); serie lasciate così, chiusura. Positivi: volta scorsa a 0 kg; al 6 con 7,5 kg accettati | (vii) `{L, 0, 0, 0}`; invariato sullo stesso gradino. (viii) campo 0 kg e stato `{5, 0 kg}`; positivi 0 e 7,5 (A18). Handler o composizione non riconosciuti ⇒ il controllo va riscritto | (vii) **corretto** su `3c4a8d7`; su `9c62f84` 4 violazioni (5 kg e bonus tenuti). (viii) **FALLITO su tutte e due**: campo 5 kg, chiusura `{5, 5 kg}` (B20) |
+| 4o (viii) e 4j (B20, **v17**) | Come v16; la composizione con `kgDellaVoltaScorsa(esercizio, passato, kg, gradino di oggi)` (player guidato: `stato.level ?? stazione.gradino`; `SessionScreen`: `exerciseState?.level ?? null`) si riconosce e si modella chiamando la funzione. Positivo nuovo: trazioni `{6, 0 kg}`, volta scorsa al 6 con 5 kg | campo 0 kg e `{5, 0 kg}` dopo un cambio; positivi 0, 7,5 e **5 allo stesso gradino**; 4j invariato (manubri: la volta scorsa vale sempre). Composizione né vecchia né nuova ⇒ da riscrivere | **corretto** su `bcb9e5e`; su `9c62f84` viii ×2 |
 | 4m (R-16, v12) | `chiusuraDelGiro('2026-10-05', 0 o 3, '2026-11-23')`; primo giro `chiusuraDelGiro(null, 0, '2026-11-23')` | ritest: nessuna data da scrivere, sempre attivo, niente «Quando parte»; primo giro: la data scelta | **corretto** su `c8964ff`; su `6cbb759` la funzione non c'è e la data si riscrive (`20` nel browser: 10-05 → 11-23) |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
@@ -266,3 +267,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-21f | v15 | **4** | 2 | 2 | training-quality (commit `9d7b20f`, T-37, T-38 R23, T-39; **2c-Z** con D-Q3 = a: caso 2 PASS; 4o v15, 4l d; `22f3d31` 3 · 3 · 2 con caso 4 = 4l d + 4o v15; v14 su tutti e due 3 · 3 · 2) |
 | 2026-11-21g | v15 | **4** | 2 | 2 | training-quality (commit `3c4a8d7`, L42; identico su `9c62f84`) |
 | 2026-11-21g | v16 | 3 | 3 | 2 | training-quality (commit `3c4a8d7`, L42; 4o vii nuovo e superato, **4o viii nuovo: FALLITO ×2, B20**; `9c62f84` 3 · 3 · 2 con vii ×4 + viii ×2) |
+| 2026-11-21h | v17 | **4** | 2 | 2 | training-quality (commit `bcb9e5e`, B20; **caso 4 PASS**; v16 sullo stesso commit 3 · 3 · 2 per «controllo da riscrivere»; `9c62f84` 3 · 3 · 2, v17 = v16) |

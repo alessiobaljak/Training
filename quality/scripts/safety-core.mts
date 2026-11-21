@@ -14,6 +14,10 @@
  * nel diario); 4l (d) ritest dello stesso giorno della seduta (T-39, 9.31).
  * Versione v16 (2026-11-21g, `3c4a8d7`): 4o (vii) il selettore di `SessionScreen` (L42, `statoDopoCambioAMano`);
  * 4o (viii) il peso precompilato nella seduta dopo un cambio di gradino a 0 kg (player guidato e `SessionScreen`).
+ * Versione v17 (2026-11-21h, `bcb9e5e`): 4j e 4o (viii) riconoscono anche la composizione con `kgDellaVoltaScorsa`
+ * (B20) su sorgente normalizzato (senza commenti né spazi) e la modellano chiamando la funzione; 4o (viii) ha un
+ * positivo in più: allo stesso gradino, al 6, la volta scorsa arriva al campo (senza, lo 0 a gradino diverso non
+ * distinguerebbe la guardia da un campo che non legge mai la volta scorsa).
  *
  * Regola: NON COPERTO non è PASS. Un caso che non si può eseguire perché la
  * funzione non esiste resta NON COPERTO finché la funzione non esiste.
@@ -773,9 +777,13 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
       decadenze: (S0: LoggedSession, r: readonly unknown[], x: readonly LoggedSession[], m: ReadonlyMap<ExerciseSlug, ExerciseState>) => { stato: ExerciseState }[];
     };
     const player = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
+    /* v17: la composizione con la guardia di B20, su sorgente senza commenti né spazi */
+    const playerN = player.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/[^\n]*/g, '$1').replace(/\s+/g, '');
+    const kgDVS = Dr['kgDellaVoltaScorsa'] as ((e: unknown, p: LoggedExercise | undefined, kg: number, l: LevelIndex | null) => number) | undefined;
+    const conGuardia = kgDVS !== undefined && playerN.includes("useState(pesoIniziale(stazione?.esercizio.loadPolicy==='inherent',kgDalloStato,stazione===null?0:kgDellaVoltaScorsa(stazione.esercizio,passato,suggerito?.loadKg??0,contesto.states.get(stazione.esercizio.slug)?.level??stazione.gradino,),),)");
     const conAttesa = /const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(player);
     const dalloStato = /const kgDalloStato = contesto\.states\.get\([^)]*\)\?\.loadKg \?\? 0;/.test(player);
-    const conPesoI = /pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(player);
+    const conPesoI = /pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(player) || conGuardia;
     if (!(conAttesa || dalloStato) || !conPesoI || pesoI === undefined) violazioni.push('4j: composizione del peso nel player guidato non riconosciuta: controllo da riscrivere');
     else {
       const slug: ExerciseSlug = 'curl-martello-manubri';
@@ -799,7 +807,8 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
         };
         for (const volta of [12, 0]) {
           const attesa = conAttesa && Dz !== null ? Dz.manubrioInAttesa(slug, [c], [g19], T, 'g23') : null;
-          const kg = pesoI(true, attesa?.B ?? T.loadKg, volta);
+          const voltaV = conGuardia ? kgDVS!(ex, esercizio('B1', slug, sets([max, max, max], { kg: volta }), true, null), volta, T.level ?? null) : volta;
+          const kg = pesoI(true, attesa?.B ?? T.loadKg, voltaV);
           const salvato = chiudi(kg);
           if (kg > prima.loadKg) violazioni.push(`R-7 (4j): manubrio scelto (${String(prima.loadKg)} → ${String(T.loadKg)} kg) e non preso, volta scorsa ${String(volta)} kg: il campo del peso parte da ${String(kg)} kg`);
           if (salvato.loadKg > prima.loadKg) violazioni.push(`R-7 (4j): campo lasciato com'è (volta scorsa ${String(volta)} kg) → stato salvato a ${String(salvato.loadKg)} kg, sopra i ${String(prima.loadKg)} sollevati`);
@@ -1072,24 +1081,44 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
             if (q(pk(fermo, 6 as LevelIndex)) !== q(fermo) || q(pk(fermo, null)) !== q(fermo)) violazioni.push(`4o (vii): selettore sullo stesso gradino o solo etichetta: ${q(pk(fermo, 6 as LevelIndex))} / ${q(pk(fermo, null))} (atteso ${q(fermo)}): la fixture non misura`);
           }
           const gsx = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
-          const cG = (/const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(gsx) || /const kgDalloStato = contesto\.states\.get\([^)]*\)\?\.loadKg \?\? 0;/.test(gsx))
+          const cGv = (/const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(gsx) || /const kgDalloStato = contesto\.states\.get\([^)]*\)\?\.loadKg \?\? 0;/.test(gsx))
             && /pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(gsx)
             && /const suggerito = suggestedSetValue\(passato, step\.step\.setIndex, perSide \? 'left' : null\);/.test(gsx) && Dv.pesoIniziale !== undefined;
-          const cS = /const kgDalLog = suggestedSetValue\(past, step\.setIndex, step\.perSide \? 'left' : null\)\?\.loadKg \?\? 0;/.test(ssx)
+          const cSv = /const kgDalLog = suggestedSetValue\(past, step\.setIndex, step\.perSide \? 'left' : null\)\?\.loadKg \?\? 0;/.test(ssx)
             && /const kgDalloStato = exerciseState\?\.loadKg \?\? 0;/.test(ssx) && /loadKg: kgDalloStato > 0 \? kgDalloStato : kgDalLog,/.test(ssx);
+          /* v17: la composizione con la guardia di B20 (`kgDellaVoltaScorsa`), su sorgente senza commenti né spazi */
+          const nz = (x: string): string => x.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/[^\n]*/g, '$1').replace(/\s+/g, '');
+          const ssN = nz(ssx);
+          const gsN = nz(gsx);
+          const DVS = (Dv as unknown as { kgDellaVoltaScorsa?: (e: unknown, p: LoggedExercise | undefined, kg: number, l: LevelIndex | null) => number }).kgDellaVoltaScorsa;
+          const gN = DVS !== undefined && /const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(gsx)
+            && /const suggerito = suggestedSetValue\(passato, step\.step\.setIndex, perSide \? 'left' : null\);/.test(gsx) && Dv.pesoIniziale !== undefined
+            && gsN.includes("useState(pesoIniziale(stazione?.esercizio.loadPolicy==='inherent',kgDalloStato,stazione===null?0:kgDellaVoltaScorsa(stazione.esercizio,passato,suggerito?.loadKg??0,contesto.states.get(stazione.esercizio.slug)?.level??stazione.gradino,),),)");
+          const sN = DVS !== undefined && ssN.includes("constkgDalLog=kgDellaVoltaScorsa(exercise,past,suggestedSetValue(past,step.setIndex,step.perSide?'left':null)?.loadKg??0,exerciseState?.level??null,);")
+            && ssN.includes('constpast=previous.get(block.code);') && ssN.includes('constkgDalloStato=exerciseState?.loadKg??0;') && ssN.includes('loadKg:kgDalloStato>0?kgDalloStato:kgDalLog,');
+          const cS = cSv || sN;
+          const cG = cGv || gN;
           if (!cG || !cS) violazioni.push(`4o (viii): composizione del peso non riconosciuta (player guidato ${String(cG)}, SessionScreen ${String(cS)}): controllo da riscrivere`);
           else {
             const oggiC1 = new Map(findCircuitSession('circuito-1')!.blocks.map((b) => [b.code, b.exercise as ExerciseSlug]));
             const volta = (kg: number) => Dv.lastLoggedByBlock([seduta('o8p', 3, 'circuito-1', [esercizio('A1', tz, sets([5, 5, 5], { kg }), true, 6 as LevelIndex)], null, '2026-03-17')], 'circuito-1', 'o8', oggiC1).get('A1');
             const kgV = (kg: number): number => Dv.suggestedSetValue(volta(kg), 1, null)?.loadKg ?? 0;
             const dopo = stato(tz, 5 as LevelIndex, 0);
-            for (const [chi, campo] of [['player guidato', Dv.pesoIniziale!(false, dopo.loadKg, kgV(5))], ['SessionScreen', dopo.loadKg > 0 ? dopo.loadKg : kgV(5)]] as const) {
+            const ex8 = getExercise(tz);
+            /* v17: il campo come lo compone ciascun player, con la guardia se c'è (gradino di oggi: quello dello stato) */
+            const campoG = (s: ExerciseState, kg: number): number => Dv.pesoIniziale!(false, s.loadKg, gN ? DVS!(ex8, volta(kg), kgV(kg), s.level) : kgV(kg));
+            const campoS = (s: ExerciseState, kg: number): number => (s.loadKg > 0 ? s.loadKg : sN ? DVS!(ex8, volta(kg), kgV(kg), s.level ?? null) : kgV(kg));
+            for (const [chi, campo] of [['player guidato', campoG(dopo, 5)], ['SessionScreen', campoS(dopo, 5)]] as const) {
               const chiusa = seduta('o8', 4, 'circuito-1', [esercizio('A1', tz, sets([6, 6, 6], { kg: campo }), true, 5 as LevelIndex)], null, '2026-03-24');
               const fin = Dv.statesToSave(DraftMod13.syncStatesFromLog(chiusa, new Map([[tz, dopo]])), new Map()).find((x) => x.exercise === tz) ?? dopo;
               if (campo !== 0 || fin.loadKg !== 0) violazioni.push(`S5 (4o viii, R23): ${chi}, stato ${q(dopo)} dopo un cambio di gradino, la volta scorsa al 6 con 5 kg: campo Peso ${String(campo)} kg, serie lasciate così, chiusura ${q(fin)} (atteso 0 kg e ${q(dopo)})`);
             }
-            if (Dv.pesoIniziale!(false, 0, kgV(0)) !== 0) violazioni.push('4o (viii): positivo mancato, volta scorsa a 0 kg e stato a 0: campo diverso da 0: la fixture non misura');
-            if (Dv.pesoIniziale!(false, 7.5, kgV(5)) !== 7.5) violazioni.push('4o (viii): positivo mancato, al 6 con 7,5 kg accettati il campo non parte dallo stato (A18): la fixture non misura');
+            if (campoG(dopo, 0) !== 0 || campoS(dopo, 0) !== 0) violazioni.push('4o (viii): positivo mancato, volta scorsa a 0 kg e stato a 0: campo diverso da 0: la fixture non misura');
+            const al6 = stato(tz, 6 as LevelIndex, 7.5);
+            if (campoG(al6, 5) !== 7.5 || campoS(al6, 5) !== 7.5) violazioni.push('4o (viii): positivo mancato, al 6 con 7,5 kg accettati il campo non parte dallo stato (A18): la fixture non misura');
+            /* v17: allo stesso gradino la volta scorsa arriva al campo (al 6, stato a 0 kg, la volta scorsa al 6 con 5 kg) */
+            const fermo6 = stato(tz, 6 as LevelIndex, 0);
+            if (campoG(fermo6, 5) !== 5 || campoS(fermo6, 5) !== 5) violazioni.push(`4o (viii, v17): positivo mancato, allo stesso gradino (6) la volta scorsa con 5 kg non arriva al campo (${String(campoG(fermo6, 5))} / ${String(campoS(fermo6, 5))}): la fixture non misura`);
           }
         }
       }

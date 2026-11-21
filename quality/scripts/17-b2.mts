@@ -1331,7 +1331,12 @@ console.log('--- B2 · D-19 (b) ---');
     const kgP = (prec: number) => (PI === undefined ? NaN : PI(true, ma?.B ?? 14, prec));
     const { readFileSync } = await import('node:fs');
     const gs = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
-    const composto = /const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(gs) && /pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(gs);
+    /* 2026-11-21h (`bcb9e5e`, B20): anche la composizione con `kgDellaVoltaScorsa`, che sui manubri rende la volta scorsa invariata */
+    const gsN = gs.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"])\/\/[^\n]*/g, '$1').replace(/\s+/g, '');
+    const kgDVS = (await import('../../src/engine/draft.ts') as Record<string, unknown>)['kgDellaVoltaScorsa'] as ((e: unknown, p: unknown, kg: number, l: null) => number) | undefined;
+    const guardia = kgDVS !== undefined && kgDVS(getExercise(CU), undefined, 12, null) === 12
+      && gsN.includes("useState(pesoIniziale(stazione?.esercizio.loadPolicy==='inherent',kgDalloStato,stazione===null?0:kgDellaVoltaScorsa(stazione.esercizio,passato,suggerito?.loadKg??0,contesto.states.get(stazione.esercizio.slug)?.level??stazione.gradino,),),)");
+    const composto = /const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(gs) && (/pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(gs) || guardia);
     const testo19 = 'Manubrio scelto: 14 kg. Il peso parte da 12 kg, quello di prima: se prendi quello da 14 kg, scrivilo in ogni serie. Se resti a 12 kg la scelta si toglie e tempo e pausa tornano come prima.';
     rigaF(ma?.B === 12 && ma.testo === testo19 && kgP(12) === 12 && kgP(0) === 12 && composto, 'D19.19', `in attesa 12 → 14: B ${String(ma?.B)} · peso con la volta scorsa a 12: ${String(kgP(12))}, senza volta scorsa: ${String(kgP(0))} · composizione in GuidedSession: ${String(composto)} · «${String(ma?.testo)}»`);
     const cz = RI('cz20', '2026-03-23', st(TR, 6, 2.5, 2, 2), st(TR, 6, 5, 2, 2), 'revisione-3:trazioni');
