@@ -62,6 +62,9 @@ passo della singola proposta. S4 con R12 (date diverse) ha chiuso la riserva L15
 nucleo 4h, `24` 20.5 su ogni giunzione di 4.392 piani). **S7 sulla decompressione** (B9): R21 toglie
 la dose sopra il misurato, non il gradino (con 8" R1 riga 8 darebbe l'1); la lettura proposta dal
 designer non è accettata da training-quality senza Alessio: **D-Q3**.
+**Al 2026-11-21f (`9d7b20f`): S7 su Z1 rispettata nella lettura D-Q3 = a di Alessio** (R21 rev.: sui blocchi
+`recordActual` «nessuna dose sopra il misurato», sei condizioni; nucleo v15 2c-Z, B9 chiuso). **S1/S3 col ritest dello
+stesso giorno** (B19, chiuso da T-39) e **S5 in salita** (R23, L14 chiuso) rispettate.
 Al 2026-11-15 (`ff42dfb`, R5-R8) rispettate anche **S1, S3, S4, S5** (A4, A2, M1, A3 chiusi:
 `12`, `13`, nucleo 4 v6). Restano violate S6 (M4, R9 rimandata) e S9 (B10).
 Al 2026-11-12 (`90b8b81`) rispettate: S2, S10. Violate: S1, S3, S4, S5, S6,

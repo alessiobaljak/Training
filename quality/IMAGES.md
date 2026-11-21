@@ -14,6 +14,29 @@ Render conservati in `quality/reports/immagini/`.
 Verifiche più vecchie (2026-11-08, 2026-11-09b): testo integrale in
 `ARCHIVE.md`.
 
+## 2026-11-21f · figure tolte in `db2544e` e `9d7b20f` (scala `horizontal-pull` agli anelli, T-37)
+
+Solo rimozioni, nessuna figura nuova. Foto RepDB **non guardate (termine 5)**: giudicate da fonte ed etichetta di
+`exercise-art.ts` a `22f3d31`. SVG lette nella geometria del sorgente (`scratchpad/q9d/tools/svgrow.py`: cinghie,
+anelli, angolo caviglia-spalla dei due pannelli), senza browser. Schede: designer 2026-11-21c §2 e §5.5.
+- `exercises-repdb/trx-row-start/peak` su `rematore-inverso-trx` (gradino 2, S2 A3 e test): **SCARTATA** (1 attrezzo):
+  fonte «TRX Row», la seduta è agli anelli. Archetipo (rematore inverso a due braccia) giusto.
+- `exercises-repdb/inverted-row-start/peak` su `horizontal-pull-l1`: **SCARTATA** (1 attrezzo, 2 archetipo del
+  gradino): «Inverted Row» alla sbarra (fonte; il media lead la descrive così), il gradino è agli anelli a 60°.
+- `steps/horizontal-pull-l2.svg`: **SCARTATA** (1, 4): una cinghia sola su un ancoraggio a T, nessun anello; corpo a
+  36° alla partenza (scheda §5.5: 40-50°), 45° all'arrivo. `l4` (rialzo, 6° → 18°), `l5` (un braccio, 36°), `l6` (un
+  braccio, rialzo): **SCARTATE** (1 attrezzo); `l5` e `l6` senza scheda. `l3` (già nascosta): stesso disegno di `l1` e
+  `l2`, non orizzontale; resta scartata, il motivo nuovo è giusto. `exercises/rematore-inverso-trx.svg`: stesso
+  disegno di `l2`, nascosta.
+- **Rimozione verificata.** `19`: su 264 posizioni cambiano le 15 della famiglia (rematore e due varianti
+  archiviate), tutte → «NESSUNA (lista)»; le 21 posizioni della famiglia sono senza figura; nessun'altra
+  posizione cambia; 0 chiavi orfane, 0 collisioni. RepDB 85 → 81 file, 0 riferimenti mancanti, 0 senza uso. Caso 6:
+  255 file, 0 approvati.
+- **L45**: le SVG nascoste hanno ora titolo e `aria-label` «agli anelli» (l1 «a 60 gradi», l2 «a 45 gradi», l3
+  «orizzontale», l5 «monobraccio agli anelli», l'esercizio «anelli al petto») su un disegno con la cinghia del TRX.
+  **L35**: `library-drift` dà 4 righe (l2, l4, l5, l6 «da rifare», nascoste).
+- Esito: nessuna IDONEA (nessuna immagine nuova); 7 chiavi su 7 tolte a ragione.
+
 ## 2026-11-21e · figura tolta in `3b548e4` (`rematore-inverso-trx-piedi-rialzati`)
 
 Nessun foglio: è una foto RepDB, **non guardata (termine 5)**. Verifica senza immagini (`19` sulle due radici,

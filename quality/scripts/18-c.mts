@@ -1,7 +1,7 @@
 /*
  * 18 — rilascio C (T-27 L26 `d8c18ce`, T-26 L25 `4142059`, T-25 M22 `17ea244`, B14 `f7f945d`), commit f7f945d.
  *
- * v1, 2026-11-20. Copia di `17` (stessa macchina, righe di B2 invariate) con il riferimento aggiornato dal testo di
+ * v1, 2026-11-20 (riferimento B18 2026-11-21e; R23 sulla salita 2026-11-21, quality su 9d7b20f). Copia di `17` (stessa macchina, righe di B2 invariate) con il riferimento aggiornato dal testo di
  * training/reports/2026-11-21-training.md §2 (M22), §3 (L25), §4 (L26), NON da review.ts, tetto.ts né circuit.ts:
  *   - riferimento della revisione con R19 in R10a (2)-(7): σ_rev = stati della revisione (iniziali per chi manca), salite
  *     di gradino della stessa revisione che allungano (primo giro), passo; `tetto` per (5) forbidden, (6) fuori da
@@ -284,7 +284,7 @@ function riferimento(W: number, sessions: readonly LoggedSession[], states: Read
     const esito = (sedute: readonly LoggedSession[]): Esito => {
       const voci = sedute.flatMap((s) => strutturali(s, slug));
       const valori = voci.flatMap((x) => { const vv = serieVereRif(x.sets); return x.sets.filter((y) => vv.has(y.setIndex)).map((y) => y.value); });
-      if (valori.every((x) => x < v.min)) return giu === null ? { cat: 'v:range-da-rifare', dopo: sintesi(L) } : { cat: 'v:scendi-di-livello', dopo: sintesi({ ...L, level: giu as LevelIndex, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, /* B18 (S5, 2026-11-21e): sotto l'ultimo gradino la zavorra non sta; i manubri restano */ ...(getExercise(slug).loadPolicy !== 'inherent' && L.loadKg > 0 ? { loadKg: 0 } : {}) }) };
+      if (valori.every((x) => x < v.min)) return giu === null ? { cat: 'v:range-da-rifare', dopo: sintesi(L) } : { cat: 'v:scendi-di-livello', dopo: sintesi({ ...L, level: giu as LevelIndex, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, /* B18 (S5, 2026-11-21e) e R23 (2026-11-21): cambiando gradino la zavorra torna a 0 sugli `allowed`; i manubri restano */ ...(getExercise(slug).loadPolicy === 'allowed' && L.loadKg > 0 ? { loadKg: 0 } : {}) }) };
       if (!valori.every((x) => x >= v.max)) return { cat: 'inRange' };
       const scaricoSed = sedute.filter((s) => SCARICO.has(s.week));
       if (SCARICO.has(W + 1) || scaricoSed.length > 0) return { cat: SCARICO.has(W + 1) || scaricoSed.length === sedute.length ? 'fermi:scarico' : 'fermi:scarico-coppia' };
@@ -305,7 +305,7 @@ function riferimento(W: number, sessions: readonly LoggedSession[], states: Read
           return { cat: 'inAttesa' };
         }
         if (recente !== undefined) return { cat: 'fermi:sette-giorni' };
-        return { cat: 'v:sali-di-livello', dopo: sintesi({ ...L, level: su as LevelIndex, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }) };
+        return { cat: 'v:sali-di-livello', dopo: sintesi({ ...L, level: su as LevelIndex, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, /* R23 (2026-11-21, L14): anche salendo la zavorra torna a 0 sugli `allowed`; i manubri restano */ ...(getExercise(slug).loadPolicy === 'allowed' && L.loadKg > 0 ? { loadKg: 0 } : {}) }) };
       }
       /* R10a 2-5, con R19 in revisione quando `durRev` c'è (M22, 2026-11-21 §2): σ_rev = stati della revisione, le salite
          di gradino della stessa revisione su altri esercizi del circuito se allungano, poi il passo; un passo disponibile

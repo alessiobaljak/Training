@@ -9,6 +9,9 @@
  *
  * Versione v14 (2026-11-21e, `644bd8c`): 2d esteso alla proposta R9b (tre vie, M = soglia − 1 e 0, «Applica» e
  * «Lascia com'è»), 4l (c) migrazione dopo il ritest, 4n sul gestore nuovo `archiviaSeduta`, 4o nuovo (B18, S5).
+ * Versione v15 (2026-11-21f, `9d7b20f`): 2c riscritto per i blocchi `recordActual` con la lettura di S7 di R21 rev.
+ * (D-Q3 = a di Alessio; sei condizioni, cinque positivi); 4o esteso a R23 (salita, leva variante, gradino scritto
+ * nel diario); 4l (d) ritest dello stesso giorno della seduta (T-39, 9.31).
  *
  * Regola: NON COPERTO non è PASS. Un caso che non si può eseguire perché la
  * funzione non esiste resta NON COPERTO finché la funzione non esiste.
@@ -225,6 +228,8 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
     if (risultato === undefined || prova.level !== livello || prova.measurement !== e.measurement) continue;
     for (const s of CIRCUIT_SESSIONS) for (const b of s.blocks) {
       if (b.exercise !== slug) continue;
+      /* v15: sui blocchi `recordActual` vale la lettura di R21 rev. (sotto, 2c-Z); qui resta la lettura minima */
+      if ((b as { recordActual?: true }).recordActual === true) continue;
       const p = b.prescription;
       const min = p.kind === 'reps' || p.kind === 'seconds' ? p.min : null;
       if (min !== null && risultato.value < min) {
@@ -232,6 +237,121 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
       }
     }
   }
+
+  /*
+   * 2c-Z (v15, 2026-11-21f). R21 rev. (training/reports/2026-11-21-training-anelli-figure.md §1; D-Q3 = a di
+   * Alessio): sui blocchi `recordActual` S7 si legge «nessuna dose sopra il misurato», ed è rispettata se e solo
+   * se sono vere tutte e sei: (1) gradino P, mai sopra; (2) prescrizione «bersaglio <max>″, o finché la presa
+   * regge», senza «almeno» né un minimo; (3) il conto si ferma al bersaglio, nessun valore oltre; (4) la serie
+   * è il tempo vero: niente chiusura da sola, solo «Ho mollato» (floor, ≥ 1), «Sì, <max>″» o il campo numerico
+   * 1..max−1, nessun campo di testo; (5) il tempo non entra in R1, R9b, verdetti, volume e Progressi, e non
+   * diventa un TestResult; (6) la nota di sicurezza è visibile prima del «Via» (statico). Positivi che devono
+   * fallire: gradino 3; autoComplete vero; «almeno» nel testo; un TestResult scritto da Z1; un blocco escluso
+   * senza `recordActual` con un test sotto il minimo (torna alla lettura minima). Se un positivo non fallisce,
+   * il controllo non misura e 2c è FALLITO.
+   */
+  type FattiZ = {
+    dove: string; P: number | null; livelli: (number | null)[]; testi: string[]; max: number;
+    passi: { autoComplete: boolean; recordActual: boolean; workSeconds: number }[]; valori: number[];
+    ramo: string; impronte: string[]; testPrima: number; testDopo: number; progressi: boolean;
+  };
+  const controllaZ = (f: FattiZ): string[] => {
+    const v: string[] = [];
+    if (f.P === null || f.livelli.some((l) => l === null || l > f.P!)) v.push(`(1) ${f.dove}: gradini ${f.livelli.map(String).join('/')} con P = ${String(f.P)}`);
+    if (f.testi.length < 2) v.push(`(2) ${f.dove}: prescrizione non trovata nel sorgente (${String(f.testi.length)} testi): il controllo va riscritto`);
+    for (const t of f.testi) if (!/o finché la presa regge/.test(t) || !/ersaglio/.test(t) || /almeno|minimo|deve durare/i.test(t)) v.push(`(2) ${f.dove}: «${t}»`);
+    if (f.passi.length === 0) v.push(`(3) ${f.dove}: nessun passo nel piano: la fixture non misura`);
+    if (f.passi.some((x) => x.workSeconds !== f.max)) v.push(`(3) ${f.dove}: bersaglio del conto ${f.passi.map((x) => x.workSeconds).join('/')} ≠ massimo ${String(f.max)}`);
+    if (f.valori.some((x) => x > f.max)) v.push(`(3) ${f.dove}: valori scrivibili oltre ${String(f.max)}: ${f.valori.filter((x) => x > f.max).join(', ')}`);
+    if (!/if \(!tempoVero \|\| !cronometro\.running \|\| !raggiunto\) return;\s*stop\(\);/.test(f.ramo + ZSTOP)) v.push(`(3) ${f.dove}: il conto non si ferma al bersaglio (sorgente)`);
+    if (f.passi.some((x) => x.autoComplete || !x.recordActual)) v.push(`(4) ${f.dove}: passo che si chiude da solo o senza tempo vero (autoComplete ${f.passi.map((x) => String(x.autoComplete)).join('/')})`);
+    if (f.valori.some((x) => !Number.isInteger(x) || x < 1)) v.push(`(4) ${f.dove}: valori non interi o sotto 1: ${f.valori.filter((x) => !Number.isInteger(x) || x < 1).join(', ')}`);
+    if (f.ramo === '' || /onCommit\(/.test(f.ramo) || (f.ramo.match(/scriviTenuta\(/g) ?? []).length < 3 || !/type="number"/.test(f.ramo) || /type="text"|<textarea/.test(f.ramo)) v.push(`(4) ${f.dove}: ramo del player con scritture diverse da «Ho mollato» / «Sì» / campo numerico (sorgente)`);
+    if (new Set(f.impronte).size !== 1) v.push(`(5) ${f.dove}: revisione, volume o proposte R9b cambiano con il tempo di Z1 (${String(new Set(f.impronte).size)} impronte diverse)`);
+    if (f.testDopo !== f.testPrima) v.push(`(5) ${f.dove}: ${String(f.testDopo - f.testPrima)} TestResult scritti chiudendo sedute con Z1`);
+    if (!f.progressi) v.push(`(5) ${f.dove}: Progressi può mostrare l'esercizio del blocco (filtro dei blocchi esclusi assente o esercizio anche in un blocco giudicato)`);
+    if (!/partita \? null : \(\s*<>[\s\S]*?Se la presa sta per cedere/.test(f.ramo)) v.push(`(6) ${f.dove}: nota di sicurezza non visibile prima del «Via» (sorgente)`);
+    return v;
+  };
+  const ZSORG = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
+  const zI = ZSORG.indexOf('if (tempoVero) {');
+  const zF = zI < 0 ? -1 : ZSORG.indexOf('if (autoCompleta) {', zI);
+  const ZRAMO = zI < 0 || zF < 0 ? '' : ZSORG.slice(zI, zF);
+  const zS = ZSORG.indexOf('const tempoVero = step.recordActual');
+  const ZSTOP = zS < 0 ? '' : ZSORG.slice(zS, zS + 600);
+  const ZPAN = readFileSync('src/ui/screens/CircuitOverview.tsx', 'utf8');
+  const zPan = /block\.recordActual === true[^?]*\?\s*\(\s*`([^`]*)`/.exec(ZPAN)?.[1] ?? null;
+  const zPla = />\s*(Bersaglio \{bersaglio\}″[^<]*)</.exec(ZRAMO)?.[1] ?? null;
+  const ZPROG = readFileSync('src/ui/screens/ProgressScreen.tsx', 'utf8');
+  const CircZ = CircE as unknown as { isAutoComplete(b: unknown): boolean; tenutaMollata?: (n: number) => number | null; tenutaDichiarata?: (t: string, n: number) => number | null };
+  const MetZ = (await import('../../src/engine/metrics.ts')) as unknown as { volumeByGroup(s: readonly LoggedSession[]): unknown };
+  const zViol: string[] = [];
+  const zPos: string[] = [];
+  let zBlocchi = 0;
+  let zFattiPrimo: FattiZ | null = null;
+  for (const s of CIRCUIT_SESSIONS) for (const b of s.blocks) {
+    if ((b as { recordActual?: true }).recordActual !== true) continue;
+    zBlocchi += 1;
+    const e = getExercise(b.exercise);
+    const pr = b.prescription as { kind: string; min: number; max: number };
+    const prova = e.pattern === null ? null : testBaseline(e.pattern);
+    const livelli = [undefined, 0, 1, 8, 29, 30, 60].map((M) => startingLevel(e, prova === null || M === undefined ? new Map() : new Map([[prova.testId, { testId: prova.testId, date: '2026-01-05', week: 0, value: M } as TestResult]])));
+    const passi = [1, 6, 7].flatMap((w) => buildGuidedPlan(s, w).filter((x) => x.kind === 'work' && x.blockCode === b.code)) as unknown as { autoComplete: boolean; recordActual: boolean; workSeconds: number }[];
+    const valori: number[] = [pr.max];
+    if (CircZ.tenutaMollata !== undefined) for (let t = 0; t <= pr.max; t += 0.25) { const x = CircZ.tenutaMollata(t); if (x !== null) valori.push(x); }
+    if (CircZ.tenutaDichiarata !== undefined) for (const t of ['0', '1', '15', String(pr.max - 1), String(pr.max), String(pr.max + 1), '100', '-1', '1.5', 'abc', ' 12 ', '1e1', '']) { const x = CircZ.tenutaDichiarata(t, pr.max); if (x !== null) valori.push(x); }
+    /* (5) impronte: due sedute della settimana 2 e 3 con il blocco giudicato A1 fisso e Z1 a 1, 8, max−1, max */
+    const impronte: string[] = [];
+    let testPrima = 0, testDopo = 0;
+    for (const z of [1, 8, pr.max - 1, pr.max]) {
+      const giud = s.blocks.find((x) => x.excludeFromReview !== true && getExercise(x.exercise).measurement === 'reps' && getExercise(x.exercise).pattern !== null)!;
+      const sed = (id: string, w: number, d: string) => seduta(id, w, s.id, [esercizio(giud.code, giud.exercise, sets([7, 7, 7]), true, startingLevel(getExercise(giud.exercise), PROVE) as LevelIndex), esercizio(b.code, b.exercise, sets([z]), true, livelli[0] as LevelIndex)], null, d);
+      const sessioni = [sed('z1', 2, '2026-03-11'), sed('z2', 3, '2026-03-18')];
+      const rv = revisione(3, sessioni, new Map(), PROVE);
+      const repo = new RepoMod13.ShadowRepository() as unknown as Repo13 & { listTestResults(): Promise<unknown[]>; proposteRitest?: () => Promise<unknown[]>; archiviaSeduta?: (x: LoggedSession) => Promise<number>; fissaStatiMancanti?: () => Promise<number> };
+      for (const t of PROVE.values()) await repo.saveTestResult(t);
+      testPrima = (await repo.listTestResults()).length;
+      await chiusuraApp(repo, sessioni[0]!);
+      if (repo.archiviaSeduta !== undefined) await repo.archiviaSeduta({ ...sessioni[1]!, status: 'in-progress' } as LoggedSession); else await chiusuraApp(repo, sessioni[1]!);
+      if (repo.fissaStatiMancanti !== undefined) await repo.fissaStatiMancanti();
+      testDopo = Math.max(testDopo, (await repo.listTestResults()).length);
+      const proposte = repo.proposteRitest === undefined ? [] : await repo.proposteRitest();
+      impronte.push(JSON.stringify([rv, MetZ.volumeByGroup(sessioni), proposte]));
+    }
+    const progressi = /session\.blocks\.filter\(\(block\) => block\.excludeFromReview !== true\)/.test(ZPROG)
+      && CIRCUIT_SESSIONS.every((x) => x.blocks.every((y) => y.exercise !== b.exercise || y.excludeFromReview === true));
+    const fatti: FattiZ = { dove: `${s.id}/${b.code} ${b.exercise}`, P: e.defaultLevel, livelli, testi: [zPla, zPan].filter((x): x is string => x !== null), max: pr.max, passi, valori, ramo: ZRAMO, impronte, testPrima, testDopo, progressi };
+    zViol.push(...controllaZ(fatti));
+    zFattiPrimo ??= fatti;
+  }
+  if (zBlocchi === 0) zViol.push('2c-Z: nessun blocco `recordActual` nelle sedute: la lettura di R21 rev. non si applica, il controllo va riscritto');
+  if (zFattiPrimo !== null) {
+    const f = zFattiPrimo;
+    const positivi: [string, FattiZ][] = [
+      ['Z1 al gradino 3', { ...f, livelli: [...f.livelli, 3] }],
+      ['Z1 con autoComplete vero', { ...f, passi: f.passi.map((x) => ({ ...x, autoComplete: true })) }],
+      ['un testo con «almeno»', { ...f, testi: [...f.testi, `bersaglio ${String(f.max)}″, o finché la presa regge · almeno 0:30`] }],
+    ];
+    /* un TestResult scritto da Z1: la chiusura mutata scrive il tempo di Z1 come test */
+    {
+      const repo = new RepoMod13.ShadowRepository() as unknown as Repo13 & { listTestResults(): Promise<unknown[]> };
+      for (const t of PROVE.values()) await repo.saveTestResult(t);
+      const prima = (await repo.listTestResults()).length;
+      await chiusuraApp(repo, seduta('zp', 2, 'circuito-1', [esercizio('Z1', 'dead-hang' as ExerciseSlug, sets([12]), true, 2 as LevelIndex)], null, '2026-03-11'));
+      await repo.saveTestResult({ testId: 'dead-hang' as TestId, date: '2026-03-11', week: 2, value: 12 } as TestResult);
+      positivi.push(['un TestResult scritto da Z1', { ...f, testPrima: prima, testDopo: (await repo.listTestResults()).length }]);
+    }
+    for (const [nome, ff] of positivi) if (controllaZ(ff).length === 0) zPos.push(nome);
+    /* un blocco escluso senza `recordActual`, con un test sotto il minimo allo stesso gradino: la lettura minima lo segnala */
+    const zb = CIRCUIT_SESSIONS.flatMap((x) => x.blocks).find((x) => (x as { recordActual?: true }).recordActual === true)!;
+    const ez = getExercise(zb.exercise);
+    const pz = ez.pattern === null ? null : testBaseline(ez.pattern);
+    const rz = pz === null ? undefined : PROVE.get(pz.testId);
+    const lz = startingLevel(ez, PROVE);
+    const minimaSegnala = pz !== null && rz !== undefined && pz.level === lz && zb.prescription.kind === 'seconds' && rz.value < zb.prescription.min;
+    if (!minimaSegnala) zPos.push('un blocco escluso senza `recordActual` con un test sotto il minimo');
+  }
+  const zEsito = zViol.length === 0 && zPos.length === 0;
 
   /*
    * 2d (v13, 2026-11-21) — S7 dopo un test peggiore (R9b, D-18 di Alessio; R9c punto 4: «dopo ogni ritest,
@@ -327,8 +447,8 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
   if (positivo2d !== misurati2d) fermi2d.push(`2d: positivo ${String(positivo2d)}/${String(misurati2d)} (con la chiusura di prima lo stato virtuale scende): la fixture non misura`);
   if (r9b && !conProposte) fermi2d.push('2d: `riparti-dal-test` esiste nel motore ma il repository non espone `proposteRitest`: il controllo va riscritto');
 
-  const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 || fermi2d.length > 0 ? 'FALLITO' : 'PASS';
-  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3). 2d S7 dopo un test peggiore (R9b, v14): ${fermi2d.length === 0 ? `${String(misurati2d)} esercizi, ${String(controlli2d)} controlli, tutti giù o con proposta (${String(proposteViste)} proposte L → atteso; «Applica» e «Lascia com'è» verificati)` : `${String(fermi2d.length)} → ${fermi2d.join(' | ')}`} (positivo ${String(positivo2d)}/${String(misurati2d)})${scarti2d.length === 0 ? '' : `. Scostamenti da R9b, non da S7: ${scarti2d.join(' | ')}`}.`;
+  const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 || !zEsito || fermi2d.length > 0 ? 'FALLITO' : 'PASS';
+  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima sui blocchi senza recordActual (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. 2c-Z S7 «nessuna dose sopra il misurato» sui blocchi recordActual (R21 rev., D-Q3 = a; v15): ${String(zBlocchi)} blocchi, ${zViol.length === 0 ? 'sei condizioni vere (la 6 dal sorgente)' : zViol.join(' | ')}; positivi ${zBlocchi === 0 ? 'non eseguiti' : zPos.length === 0 ? '5/5 falliscono' : `che NON falliscono: ${zPos.join(', ')} (il controllo non misura)`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3). 2d S7 dopo un test peggiore (R9b, v14): ${fermi2d.length === 0 ? `${String(misurati2d)} esercizi, ${String(controlli2d)} controlli, tutti giù o con proposta (${String(proposteViste)} proposte L → atteso; «Applica» e «Lascia com'è» verificati)` : `${String(fermi2d.length)} → ${fermi2d.join(' | ')}`} (positivo ${String(positivo2d)}/${String(misurati2d)})${scarti2d.length === 0 ? '' : `. Scostamenti da R9b, non da S7: ${scarti2d.join(' | ')}`}.`;
 
   registra('2', 'Principiante senza esercizi oltre il suo gradino', esito2, coda);
 }
@@ -786,6 +906,31 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
         else if (fissato !== s0.level) violazioni.push(`S1/S3 (4l c, R9c punto 2): migrazione arrivata dopo un ritest migliore, push-up fissato a ${String(fissato)} invece di ${String(s0.level)}`);
       }
     }
+    /* v15 (d): T-39, 9.31. Trazioni, test del 03-01 M=4 (→ 1), ritest M=9 (→ 3) lo stesso giorno dell'ultima
+     * seduta (04-11), prima o dopo di lei; storia mai salvata, fissata con «Archivia» o con la migrazione.
+     * S1/S3: lo stato fissato non supera il gradino fatto quel giorno. Ritest DOPO la seduta (fatta al 1):
+     * atteso 1. Ritest PRIMA (la seduta è al gradino che il test del giorno dà, 3): atteso ≤ 3 (T-39 dà 1,
+     * L44). Controllo 9.37: senza un test prima, quello del giorno (M=8 → 3). */
+    {
+      const tz = 'trazioni-prona-presa-media' as ExerciseSlug;
+      const pt = (date: string, week: number, value: number): TestResult => ({ testId: 'pull-up' as TestId, date, week, value, left: null, right: null }) as TestResult;
+      for (const via of ['archivia', 'migrazione'] as const) for (const ordine of ['prima', 'dopo'] as const) for (const [M0, M1, data, atteso] of [[4, 9, '2026-04-11', 1], [null, 8, '2026-03-01', 3]] as const) {
+        /* 9.37 solo con il test prima della seduta: senza nessun test il programma non si apre (R4 punto 2) */
+        if (M0 === null && ordine === 'dopo') continue;
+        const repo = new RepoMod13.ShadowRepository();
+        if (via === 'archivia' ? repo.archiviaSeduta === undefined : repo.fissaStatiMancanti === undefined) { violazioni.push(`4l (d): ${via} assente`); continue; }
+        if (M0 !== null) await repo.saveTestResult(pt('2026-03-01', 0, M0));
+        if (ordine === 'prima') await repo.saveTestResult(pt(data, data === '2026-03-01' ? 0 : 6, M1));
+        const L = (await repo.getExerciseState(tz)).level;
+        const sed = seduta('ld', data === '2026-03-01' ? 1 : 6, 'circuito-1', [esercizio('A1', tz, sets([6, 6, 6]), true, L)], null, data);
+        if (via === 'migrazione') await repo.saveSession(sed); else await repo.saveSession({ ...sed, status: 'in-progress' } as LoggedSession);
+        if (ordine === 'dopo') await repo.saveTestResult(pt(data, data === '2026-03-01' ? 0 : 6, M1));
+        if (via === 'migrazione') await repo.fissaStatiMancanti!(); else await repo.archiviaSeduta!({ ...sed, status: 'in-progress' } as LoggedSession);
+        const fissato = (await repo.getExerciseState(tz)).level;
+        const ok = M0 !== null && ordine === 'prima' ? fissato !== null && L !== null && fissato <= L : fissato === atteso;
+        if (!ok) violazioni.push(`${M0 === null ? '4l (d, 9.37)' : 'S1/S3 (4l d, T-39 9.31)'}: ${via}, ritest del ${data} M=${String(M1)} ${ordine} la seduta${M0 === null ? '' : `, test di prima M=${String(M0)}`}: trazioni fissate a ${String(fissato)}, seduta al ${String(L)}, atteso ${M0 !== null && ordine === 'prima' ? `≤ ${String(L)}` : String(atteso)}`);
+      }
+    }
 
     /* 4n — «Archivia» (v14): il gestore com'è nel sorgente. `repository.archiviaSeduta` (cc95fac) si esegue
      * per quello che è; il gestore di prima (`saveSession` completed) resta come positivo. (i) archiviata e poi
@@ -851,6 +996,44 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
         const p = Rt.propostaRitest(tz, { ...stato(tz, 6 as LevelIndex, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }, { testId: 'pull-up' as TestId, date: '2026-04-13', week: 6, value: 5 } as TestResult);
         if (p === null) violazioni.push('S7 (4o, R9b 9.20): trazioni al 6 con 5 kg, ritest 5 < 8: nessuna proposta');
         else if (p.verdict.stateAfter.loadKg !== 0 || !/zavorra/i.test(p.verdict.change)) violazioni.push(`S5 (4o, R9b 9.20): proposta 6 → ${String(p.verdict.stateAfter.level)} con ${String(p.verdict.stateAfter.loadKg)} kg, testo «${p.verdict.change}»`);
+      }
+      /* v15 (R23, T-38; S5): ogni cambio di gradino che l'app propone o esegue porta la zavorra a 0 sugli
+       * `allowed`, e il testo lo dice. (iii) `sali-di-livello` trazioni 3 → 4 con 5 kg scritti (23.3); (iv) 5 → 6
+       * con 5 kg, «riparte da zero» (23.4); (v) la leva variante a fine seduta, trazioni al 3 con 5 kg e tempo e
+       * pausa al massimo (23.5); (vi) la chiusura con un gradino scritto nel diario diverso dallo stato, 6 → 5 con
+       * 5 kg e +2″/+2″ (23.7, `syncStatesFromLog`). A 0 kg nessun testo nomina la zavorra. Prima seduta al
+       * gradino il 03-02 (R7 aperta). Verdetto o leva diversi ⇒ la fixture non misura. Il `VariantPicker` di
+       * `SessionScreen` (L42) NON è in questo controllo: lo handler salva lo stato da sé (rapporto 2026-11-21f). */
+      {
+        const tz = 'trazioni-prona-presa-media' as ExerciseSlug;
+        const PULL = new Map([['pull-up' as TestId, { testId: 'pull-up' as TestId, date: '2026-02-23', week: 0, value: 12 } as TestResult]]);
+        const PMv = (await import('../../src/engine/progression.ts')) as unknown as { MAX_ECCENTRIC_SECONDS: number; MAX_ISO_PAUSE_SECONDS: number };
+        for (const [L, atteso, frase] of [[3, 4, /la zavorra si toglie/], [5, 6, /la zavorra riparte da zero/]] as const) {
+          for (const kg of [5, 0]) {
+            const sed = [seduta('o3-0', 1, 'circuito-1', [esercizio('A1', tz, sets([6, 6, 6], { kg }), true, L as LevelIndex)], null, '2026-03-02'),
+              ...['2026-03-11', '2026-03-18'].map((d, i) => seduta(`o3-${String(i + 1)}`, 2 + i, 'circuito-1', [esercizio('A1', tz, sets([9, 9, 9], { kg }), true, L as LevelIndex)], null, d))];
+            const v = revisione(3, sed, new Map([[tz, stato(tz, L as LevelIndex, kg)]]), PULL).verdicts.find((x) => x.exercise === tz);
+            if (v?.kind !== 'sali-di-livello' || v.stateAfter.level !== atteso) { violazioni.push(`4o (v15): trazioni al ${String(L)} con ${String(kg)} kg, 9-9-9 ×2: verdetto «${v?.kind ?? 'nessuno'}»: la fixture non misura`); continue; }
+            if (v.stateAfter.loadKg !== 0) violazioni.push(`S5 (4o, R23 23.${L === 3 ? '3' : '4'}): «sali di livello» ${String(L)} → ${String(atteso)} con ${String(v.stateAfter.loadKg)} kg (la zavorra scritta a mano non segue il gradino nuovo)`);
+            if (kg > 0 && !frase.test(v.change)) violazioni.push(`S5 (4o, R23): ${String(L)} → ${String(atteso)} con la zavorra tolta, testo senza la clausola («${v.change}»)`);
+            if (kg === 0 && /zavorra/i.test(v.change)) violazioni.push(`4o (v15): a 0 kg il testo della salita nomina la zavorra («${v.change}»)`);
+          }
+        }
+        const blk = findCircuitSession('circuito-1')!.blocks.find((b) => b.code === 'A1')!;
+        for (const kg of [5, 0]) {
+          const bozza = seduta('o5', 4, 'circuito-1', [esercizio('A1', tz, sets([9, 9, 9], { kg }), true, 3 as LevelIndex)], null, '2026-03-24');
+          const ev = evaluateProgression({ block: blk, exercise: getExercise(tz), state: { ...stato(tz, 3 as LevelIndex, kg), eccentricBonusSeconds: PMv.MAX_ECCENTRIC_SECONDS, bottomPauseBonusSeconds: PMv.MAX_ISO_PAUSE_SECONDS }, logged: bozza.exercises[0]!, range: resolveBlockRange(blk, getExercise(tz), PULL), week: 4, currentMaxReps: 12,
+            salita: salitaConsentita(tz, 3 as LevelIndex, [seduta('o5-0', 1, 'circuito-1', [esercizio('A1', tz, sets([6, 6, 6], { kg }), true, 3 as LevelIndex)], null, '2026-03-02')], '2026-03-24', { ...bozza, status: 'in-progress' }), rientro: null, aumentoRecente: null });
+          const sg = ev.suggestion;
+          if (sg === null || sg.lever !== 'variant') { violazioni.push(`4o (v15, 23.5): fine seduta trazioni al 3 con ${String(kg)} kg: leva «${sg?.lever ?? 'nessuna'}»: la fixture non misura`); continue; }
+          if (sg.nextState.loadKg !== 0) violazioni.push(`S5 (4o, R23 23.5): leva variante a fine seduta 3 → ${String(sg.nextState.level)} con ${String(sg.nextState.loadKg)} kg`);
+          if (kg > 0 && !/la zavorra si toglie/.test(sg.change)) violazioni.push(`S5 (4o, R23 23.5): leva variante con la zavorra tolta, testo senza la clausola («${sg.change}»)`);
+          if (kg === 0 && /zavorra/i.test(sg.change)) violazioni.push(`4o (v15): a 0 kg la leva variante nomina la zavorra («${sg.change}»)`);
+        }
+        const scritto = seduta('o7', 4, 'circuito-1', [esercizio('A1', tz, sets([6, 6, 6], { kg: 5 }), true, 5 as LevelIndex)], null, '2026-03-24');
+        const dopo = DraftMod13.syncStatesFromLog(scritto, new Map([[tz, { ...stato(tz, 6 as LevelIndex, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }]])).find((x) => x.exercise === tz);
+        if (dopo === undefined || dopo.level !== 5) violazioni.push(`4o (v15, 23.7): gradino scritto 5 su uno stato al 6: chiusura ${JSON.stringify(dopo ?? null)}: la fixture non misura`);
+        else if (dopo.loadKg !== 0 || dopo.eccentricBonusSeconds !== 0 || dopo.bottomPauseBonusSeconds !== 0) violazioni.push(`S5 (4o, R23 23.7): gradino scritto 5 su uno stato al 6 con 5 kg e +2″/+2″ → {${String(dopo.level)}, ${String(dopo.loadKg)} kg, +${String(dopo.eccentricBonusSeconds)}″/+${String(dopo.bottomPauseBonusSeconds)}″}`);
       }
     }
   }
