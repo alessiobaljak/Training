@@ -14,6 +14,23 @@ Render conservati in `quality/reports/immagini/`.
 Verifiche più vecchie (2026-11-08, 2026-11-09b): testo integrale in
 `ARCHIVE.md`.
 
+## 2026-11-21e · figura tolta in `3b548e4` (`rematore-inverso-trx-piedi-rialzati`)
+
+Nessun foglio: è una foto RepDB, **non guardata (termine 5)**. Verifica senza immagini (`19` sulle due radici,
+hash, sorgente, registri).
+- `exercises-repdb/rings-inverted-row-start.webp` e `-peak.webp` su `rematore-inverso-trx-piedi-rialzati`:
+  **SCARTATA** (1 attrezzo, 2 archetipo). Fonte RepDB «Rings Inverted Row»: anelli, l'esercizio è al TRX
+  (scheda: «Piedi su un rialzo… il corpo resta orizzontale», gradino proprio 4). «Piedi a terra» viene dal
+  media lead (2026-11-08): per me NON COPERTO, ma l'attrezzo basta a scartarla.
+- **Rimozione verificata.** `19`: cambiano solo le 2 posizioni dell'esercizio (livello nullo e 4), da
+  «FOTO rings-inverted-row» a «NESSUNA (lista)»; le altre 262 identiche; i gradini 1-6 restano quelli della
+  scala. Nessun altro riferimento ai due file in `src/`, nessun duplicato per hash; bundle 261 → 259.
+- Cosa vede l'atleta: nessuna figura (`ExerciseArt` restituisce `null`, non la SVG generata). L'esercizio non
+  è nei circuiti (solo programma archiviato e Libreria): lì vale L36 (Card vuota).
+- Per exercise-media-lead: `LIBRARY.md` righe 182-183 puntano a file cancellati; la riga 19 dà «da verificare»
+  alla SVG `exercises/rematore-inverso-trx-piedi-rialzati.svg`, che il commit dice rifiutata da Alessio e che
+  resta nel bundle senza essere mostrata (L35).
+
 ## 2026-11-21 · correzione delle figure `50793fd` (audit attrezzo del media lead)
 
 Foglio 4 × 230 px: `reports/immagini/2026-11-21-figure-1.png`. Nessun ingrandimento

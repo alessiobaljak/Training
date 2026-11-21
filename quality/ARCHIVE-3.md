@@ -153,3 +153,61 @@ L24, M21, M19. verify (880) eseguito da me; smoke, offline no (sessione principa
 |---|---|---|
 | B2 dal testo delle specifiche 11-18 (R14, rev. 11-20) e 11-21 §1 (D-19 b), commit `0d85597` | F 197/198 (R19.R = M22); A 0 su 259.782; B 0; D19.P 0 su 437; simulazioni con la chiusura dell'app: M18 0, predicato R14 = testo, revisioni = riferimento su 18.430; P14 5.288 tolte, 0 differenze, 55 testi muti (L29); sync = testo su 20.000; B14 37.196. Su `e30cdc6`: F 37, A 302, D19.P 582, M18 7, sync 200 | `17-b2.mts` |
 | Nucleo v10 (4j, R-7) | `0d85597`: solo S9; `e30cdc6`: S9 + 4j ×2 (campo e stato a 14,5 con la volta scorsa a 0) | `safety-core.mts` v10 |
+
+## SAFETY_CORE.md, spostato il 2026-11-21e
+
+### Testa della v13
+
+Versione: **v13** · 2026-11-21c · misurato su `src/` al commit `704dbfa` (R9c, B16) e, al
+contrario, su `c8964ff`. **v13**: 4l rifatto sulla chiusura vera (`chiusuraApp` = `chiudi` e
+`saveAndExit` dal `704dbfa`, con lettura del sorgente dei due gestori) e sulla migrazione
+(`fissaStatiMancanti`); **4n** nuovo, «Archivia» dalla Home (R9c punto 1); **2d** nuovo, S7 dopo un
+test peggiore (R9b; R9c punto 4). La v12 di 4l modellava la chiusura di prima: sul `704dbfa` non
+poteva passare per costruzione. Testa della v12: `ARCHIVE-3.md`.
+
+### Esito del 2026-11-21c (v13, `704dbfa`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+
+Conteggio invariato. **4l superato** (chiusura come l'app e migrazione: push-up resta 1; i due
+gestori chiamano `statiDaFissare`). Caso 4 fallisce per **4h** (S9, B10) e **4n** (B16 residuo:
+«Archivia», push-up 1 → 2). Caso 2 fallisce per 2c (B9) e **2d** (B17: 14 su 14, sette esercizi
+× due vie, nessuno scende dopo un test peggiore; positivo 7/7). Su `c8964ff`: 4h, 4l, 4n; 2d 7
+(solo la via «stato salvato»). Casi 3, 6 FALLITI (B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.
+
+Esiti precedenti: `ARCHIVE-3.md`, `ARCHIVE-2.md`.
+
+## RESULTS.md, spostato il 2026-11-21e
+
+### Riga di misura
+
+| 2026-11-15 | `ff42dfb` (head locale non pushato; `2c9d822` R5-R7 a fine seduta, `ff42dfb` R8 e R5-R7 in revisione; B11/A15 da `79d2cb0`) · catalogo 72 · circuito 52 blocchi · soglie approvate, griglia v3, S4 nella lettura D-16 | PERSONAS v1, SCENARIOS v1 | **29% (2/7)** | 0% (0/4)ᵖ | **67% (2/3)** | **71% (5/7)** | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) | **5** + 4ᵖ | 3 | 12 | 17 | 2 PASS / 4 FALLITI / 2 NON COPERTI (caso 4 solo per 4h) | `quality/reports/2026-11-15-quality.md` |
+
+### Nota di misura
+
+Misura del 2026-11-20c (commit `0d85597`, incrementale su `e30cdc6`): **GO per
+il push di B2** (nessun Bloccante o Alto introdotto o peggiorato); app ancora NO-GO.
+`17` (nuovo): F 198 righe, 197 come atteso (R19.R = M22); 14.1-14.17, 15.12, b.8,
+D19.1-D19.20 OK (D19.21 non applicabile); A 0 su 259.782 col riferimento D-19 b +
+R14c; B 0; D19.P 0 su 145 + 292; simulazioni con la chiusura dell'app: M18 0,
+predicato R14 = testo, 13.P/S1/E7 0, revisioni = riferimento su 18.430; P14 5.288
+scelte tolte, 0 differenze, 55 testi che tacciono un azzeramento (L29); sync =
+testo su 20.000. Positivo su `e30cdc6`: F 37 diverse, A 302, D19.P 294 + 288, M18
+7, sync 200, nucleo 4j ×2. Chiusi M18, L2, L22, A19. Nuovi **B14** (calibrazione,
+preesistente: 37.196 «Aggiungi 2,5 kg» su 46.064 voci pesate, identico in
+produzione), L27, L28, L29. verify (908), smoke, offline eseguiti da me in sequenza.
+
+
+### Voci chiuse
+
+| L25 | Basso | σ′ senza la variante, la sincronizzazione e le decadenze | 2026-11-20d (`4142059`) | `18` L25.1-L25.5; σ′ = §3 su 63.343 leve (154 in produzione); L25.P1 0 su 8.129 passi (12 in produzione) |
+| L26 | Basso | Nota del circuito 4 senza il 59, deviazione non dichiarata | 2026-11-20d (`d8c18ce`) | `18` L26.1-L26.4: note = `f63c9f1` + `DEVIAZIONI_NOTA` (git show), 59:07 costruito, 59:15 teorico. Contro la scheda originale: NON COPERTO (L26.2s) |
+| M18 | Medio | Manubrio accettato e non scritto: tempo e pausa persi senza cambiare peso | 2026-11-20c (`0d85597`) | `17` 14.1, 14.6, 14.9, 14.11, D19.18, Q5 con la chiusura dell'app `{12, +2, +2}`; M18 nelle simulazioni 0 (7 su `e30cdc6`); smoke eseguito da me: record `lapsed` e stato `[null,1,1,8]` dall'emulatore |
+| A19 | Alto | Durata in Home senza gli stati | 2026-11-20c | `npm run smoke` eseguito da me su `0d85597`: «A19: Seduta 2 in Home 38′ → 41′ con +2″/+2″; panoramica 41′» (due `check`) |
+
+### Verifica immagine
+
+| 2026-11-12 | `exercises/estensione-tricipiti-sopra-testa.svg` | **SCARTATA** | 1 · 3 · 4 | `IMAGES.md` |
+
+### Ricalcoli
+
+| Rilascio C dal testo della specifica 2026-11-21 §2-§4, commit `f7f945d` | F 219/222 (M22.6r = L30; NC b.8, L26.2s); A 0; A2 144 = L30; M22.7 0 su 218.147; C3/C3R come l'app: σ′ = §3 su 63.343, L25.P1 0 su 8.129, M22.P 0 su 1.801, R-14 0 su 137; B14 0 su 61.410. Su `fb560e7`: F 13, σ′ 154, L25.P1 12, M22.P 38, B14 51.443 | `18-c.mts` |
+| Nucleo v11 (4k, R-14: revisione con la durata) | `f7f945d`: solo S9; `fb560e7`: S9 + 4k non misura (durata assente) | `safety-core.mts` v11 |

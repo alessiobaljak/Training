@@ -7,6 +7,9 @@
  * Uscita: una riga per caso, `PASS` / `FALLITO` / `NON COPERTO`, poi il
  * riepilogo. Codice di uscita 1 se almeno un caso è FALLITO o NON COPERTO.
  *
+ * Versione v14 (2026-11-21e, `644bd8c`): 2d esteso alla proposta R9b (tre vie, M = soglia − 1 e 0, «Applica» e
+ * «Lascia com'è»), 4l (c) migrazione dopo il ritest, 4n sul gestore nuovo `archiviaSeduta`, 4o nuovo (B18, S5).
+ *
  * Regola: NON COPERTO non è PASS. Un caso che non si può eseguire perché la
  * funzione non esiste resta NON COPERTO finché la funzione non esiste.
  */
@@ -81,7 +84,15 @@ function fileTesto(dir: string, ext: string[]): string[] {
  * legge il sorgente dei due gestori: se la chiamata manca, la composizione modellata non è quella dell'app. */
 type Repo13 = { saveTestResult(r: TestResult): Promise<unknown>; getExerciseState(s: ExerciseSlug): Promise<ExerciseState>;
   saveExerciseState(s: ExerciseState): Promise<unknown>; saveSession(s: LoggedSession): Promise<unknown>;
-  getConfirmedStates(s: readonly ExerciseSlug[]): Promise<ReadonlySet<ExerciseSlug>>; fissaStatiMancanti?: () => Promise<number> };
+  getConfirmedStates(s: readonly ExerciseSlug[]): Promise<ReadonlySet<ExerciseSlug>>; fissaStatiMancanti?: () => Promise<number>;
+  /* v14 (2026-11-21e, `644bd8c`): «Archivia» (cc95fac) e R9b (93cf066). Opzionali: assenti sui commit di prima. */
+  archiviaSeduta?: (s: LoggedSession) => Promise<number>;
+  proposteRitest?: () => Promise<Proposta14[]>;
+  decidiRitest?: (p: Proposta14, accettata: boolean, oggi: string) => Promise<void>;
+  listSuggestions(slug?: ExerciseSlug): Promise<{ id: string; decision: string; lever: string }[]>;
+  getSession?: (id: string) => Promise<LoggedSession | undefined> };
+type Proposta14 = { id: string; testId: TestId; data: string; verdict: { exercise: ExerciseSlug; kind: string; lever: string; change: string;
+  stateBefore: ExerciseState; stateAfter: ExerciseState } };
 const RepoMod13 = (await import('../../src/db/repository.ts')) as unknown as { ShadowRepository: new () => Repo13 };
 const DraftMod13 = (await import('../../src/engine/draft.ts')) as unknown as {
   syncStatesFromLog(s: LoggedSession, m: ReadonlyMap<ExerciseSlug, ExerciseState>): ExerciseState[];
@@ -230,10 +241,19 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
    * lo stato salvato prima della seduta (com'è per ogni esercizio già cambiato una volta) e la sola chiusura.
    * Positivo: con la chiusura di prima e lo stato mai salvato il gradino scende (R1 sullo stato virtuale).
    */
+  /* v14 (2026-11-21e): con R9b (`93cf066`) il controllo si estende alla proposta, come diceva la v13.
+   * Per ogni esercizio e per tre vie (stato salvato prima della seduta; sola chiusura come l'app; storia
+   * chiusa come prima e migrazione arrivata DOPO il ritest, cc95fac), con M = soglia − 1 (→ giù(Lt)) e M = 0
+   * (→ primo gradino): S7 è rispettata se il gradino è già ≤ atteso, oppure se esiste una proposta
+   * `riparti-dal-test` L → atteso (mai più alta, mai una salita, 0 kg, tempo e pausa a 0). Poi «Applica»
+   * porta allo stato atteso e la proposta sparisce; «Lascia com'è» lascia il gradino e la proposta sparisce.
+   * Discriminazione: con M = soglia nessuna proposta. Positivo: chiusura di prima, stato virtuale, scende. */
   let r9b = false;
   for (const f of fileTesto('src/engine', ['.ts'])) if (readFileSync(f, 'utf8').includes("'riparti-dal-test'")) r9b = true;
+  const conProposte = typeof (RepoMod13.ShadowRepository.prototype as Partial<Repo13>).proposteRitest === 'function';
   const fermi2d: string[] = [];
-  let positivo2d = 0, misurati2d = 0;
+  const scarti2d: string[] = [];
+  let positivo2d = 0, misurati2d = 0, controlli2d = 0, proposteViste = 0;
   for (const slug of [...prescritti].sort()) {
     const e = getExercise(slug);
     const P = e.defaultLevel;
@@ -250,29 +270,65 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
     const b0 = B[0]!;
     const sid = CIRCUIT_SESSIONS.find((x) => x.blocks.includes(b0))!.id;
     const min = b0.prescription.kind === 'reps' || b0.prescription.kind === 'seconds' ? b0.prescription.min : 5;
-    const giro = async (salvaPrima: boolean, conR9c: boolean): Promise<[number | null, number | null]> => {
+    type Via = 'stato salvato' | 'sola chiusura' | 'migrazione dopo il ritest';
+    const giro = async (via: Via | 'prima', M: number, decisione: 'nessuna' | 'applica' | 'lascia' = 'nessuna') => {
       const repo = new RepoMod13.ShadowRepository();
       await repo.saveTestResult({ testId: t.testId, date: '2026-03-02', week: 0, value: soglia } as TestResult);
       const s0 = await repo.getExerciseState(slug);
-      if (salvaPrima) await repo.saveExerciseState(s0);
-      await chiusuraApp(repo, seduta('2d-1', 1, sid as LoggedSession['sessionId'], [esercizio(b0.code, slug, sets([min, min]), true, s0.level)]), conR9c);
-      await repo.saveTestResult({ testId: t.testId, date: '2026-04-13', week: 6, value: soglia - 1 } as TestResult);
-      return [s0.level, (await repo.getExerciseState(slug)).level];
+      if (via === 'stato salvato') await repo.saveExerciseState(s0);
+      await chiusuraApp(repo, seduta('2d-1', 1, sid as LoggedSession['sessionId'], [esercizio(b0.code, slug, sets([min, min]), true, s0.level)]), via === 'stato salvato' || via === 'sola chiusura');
+      await repo.saveTestResult({ testId: t.testId, date: '2026-04-13', week: 6, value: M } as TestResult);
+      if (via === 'migrazione dopo il ritest') { if (repo.fissaStatiMancanti === undefined) return null; await repo.fissaStatiMancanti(); }
+      const l1 = (await repo.getExerciseState(slug)).level;
+      const proposte = repo.proposteRitest === undefined ? [] : await repo.proposteRitest();
+      const mie = proposte.filter((x) => x.verdict.exercise === slug);
+      let dopo: ExerciseState | null = null, rimaste = -1, record: { decision: string } | null = null;
+      if (decisione !== 'nessuna' && mie[0] !== undefined && repo.decidiRitest !== undefined) {
+        await repo.decidiRitest(mie[0], decisione === 'applica', '2026-04-14');
+        dopo = await repo.getExerciseState(slug);
+        rimaste = (await repo.proposteRitest!()).filter((x) => x.verdict.exercise === slug).length;
+        record = (await repo.listSuggestions(slug)).find((x) => x.id === mie[0]!.id) ?? null;
+      }
+      return { l0: s0.level, l1, mie, altre: proposte.filter((x) => x.verdict.exercise !== slug), dopo, rimaste, record };
     };
     misurati2d += 1;
-    const [p0, p1] = await giro(false, false);
-    if (p0 === t.level && p1 === atteso) positivo2d += 1;
-    for (const [via, salvaPrima] of [['stato salvato', true], ['sola chiusura', false]] as const) {
-      const [l0, l1] = await giro(salvaPrima, true);
-      if (l0 !== t.level) { fermi2d.push(`${slug}: la partenza non è Lt (${String(l0)} invece di ${String(t.level)}): la fixture non misura`); continue; }
-      if ((l1 ?? 0) > atteso && !r9b) fermi2d.push(`${slug} (${via}): ritest ${t.testId} = ${String(soglia - 1)} < soglia ${String(soglia)}, resta ${String(l1)}, R9b vuole ${String(atteso)} o una proposta, e nessuna proposta esiste`);
+    const pos = await giro('prima', soglia - 1);
+    if (pos !== null && pos.l0 === t.level && pos.l1 === atteso) positivo2d += 1;
+    for (const [M, att, nomeM] of [[soglia - 1, atteso, `${String(soglia - 1)} < soglia ${String(soglia)}`], [0, primo(e.pattern), '0']] as const) {
+      if (att >= t.level) continue;
+      for (const via of ['stato salvato', 'sola chiusura', 'migrazione dopo il ritest'] as const) {
+        const g = await giro(via, M);
+        if (g === null) { scarti2d.push(`${slug} (${via}): \`fissaStatiMancanti\` assente, via non misurata`); continue; }
+        controlli2d += 1;
+        if (g.l0 !== t.level) { fermi2d.push(`${slug}: la partenza non è Lt (${String(g.l0)} invece di ${String(t.level)}): la fixture non misura`); continue; }
+        if (g.altre.length > 0) scarti2d.push(`${slug} (${via}, M=${nomeM}): proposte anche su ${g.altre.map((x) => x.verdict.exercise).join(', ')}`);
+        if ((g.l1 ?? 0) <= att) { if (g.l1 !== g.l0 && via !== 'migrazione dopo il ritest') scarti2d.push(`${slug} (${via}, M=${nomeM}): sceso da solo ${String(g.l0)} → ${String(g.l1)} (R9b: si scende solo con «Applica»)`); continue; }
+        const p = g.mie.find((x) => x.verdict.kind === 'riparti-dal-test');
+        if (p === undefined) { fermi2d.push(`${slug} (${via}): ritest ${t.testId} = ${nomeM}, resta ${String(g.l1)}, R9b vuole ${String(att)} o una proposta, ${conProposte ? 'e la proposta non c’è' : 'e nessuna proposta esiste'}`); continue; }
+        proposteViste += 1;
+        const a = p.verdict.stateAfter, b = p.verdict.stateBefore;
+        if ((a.level ?? 0) > att) fermi2d.push(`${slug} (${via}, M=${nomeM}): proposta ${String(b.level)} → ${String(a.level)}, sopra il gradino compatibile ${String(att)}`);
+        else if ((a.level ?? 0) < att) scarti2d.push(`${slug} (${via}, M=${nomeM}): proposta ${String(b.level)} → ${String(a.level)}, sotto ${String(att)} di R9b`);
+        if ((a.level ?? 0) >= (b.level ?? 0)) fermi2d.push(`${slug} (${via}, M=${nomeM}): la proposta non scende (${String(b.level)} → ${String(a.level)})`);
+        if (b.level !== g.l1) scarti2d.push(`${slug} (${via}): stato prima della proposta ${String(b.level)} ≠ stato dell'app ${String(g.l1)}`);
+        if (a.loadKg !== 0 || a.eccentricBonusSeconds !== 0 || a.bottomPauseBonusSeconds !== 0) fermi2d.push(`${slug} (${via}, M=${nomeM}): stato dopo ${JSON.stringify(a)} (S5 / R9b: 0 kg, tempo e pausa della scheda)`);
+        if (p.verdict.lever !== 'variant' || p.id !== `ritest-2026-04-13:${slug}`) scarti2d.push(`${slug}: leva ${p.verdict.lever}, id ${p.id}`);
+        if (via !== 'sola chiusura') continue;
+        const ap = await giro(via, M, 'applica');
+        if (ap === null || ap.dopo === null || ap.dopo.level !== att || ap.dopo.loadKg !== 0 || ap.rimaste !== 0 || ap.record?.decision !== 'accepted') fermi2d.push(`${slug} (M=${nomeM}): «Applica» → stato ${JSON.stringify(ap?.dopo ?? null)}, proposte rimaste ${String(ap?.rimaste)}, registro ${String(ap?.record?.decision)} (atteso gradino ${String(att)}, 0 kg, nessuna proposta, accepted)`);
+        const la = await giro(via, M, 'lascia');
+        if (la === null || la.dopo === null || la.dopo.level !== g.l1 || la.rimaste !== 0 || la.record?.decision !== 'postponed') scarti2d.push(`${slug} (M=${nomeM}): «Lascia com'è» → stato ${String(la?.dopo?.level)}, proposte rimaste ${String(la?.rimaste)}, registro ${String(la?.record?.decision)}`);
+      }
     }
+    /* discriminazione: alla soglia nessuna proposta e nessuna discesa */
+    const ok = await giro('sola chiusura', soglia);
+    if (ok !== null && (ok.mie.length > 0 || ok.l1 !== ok.l0)) fermi2d.push(`${slug}: con M = soglia ${String(soglia)} proposta o discesa (${String(ok.l0)} → ${String(ok.l1)}, ${String(ok.mie.length)} proposte): la fixture non distingue`);
   }
   if (positivo2d !== misurati2d) fermi2d.push(`2d: positivo ${String(positivo2d)}/${String(misurati2d)} (con la chiusura di prima lo stato virtuale scende): la fixture non misura`);
-  if (r9b) fermi2d.push('2d: `riparti-dal-test` esiste nel motore: il controllo va esteso alla proposta (NON misurata qui)');
+  if (r9b && !conProposte) fermi2d.push('2d: `riparti-dal-test` esiste nel motore ma il repository non espone `proposteRitest`: il controllo va riscritto');
 
   const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 || fermi2d.length > 0 ? 'FALLITO' : 'PASS';
-  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3). 2d S7 dopo un test peggiore (R9b, v13): ${fermi2d.length === 0 ? `${String(misurati2d)} esercizi, tutti giù o con proposta` : `${String(fermi2d.length)} → ${fermi2d.join(' | ')}`} (positivo ${String(positivo2d)}/${String(misurati2d)}).`;
+  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3). 2d S7 dopo un test peggiore (R9b, v14): ${fermi2d.length === 0 ? `${String(misurati2d)} esercizi, ${String(controlli2d)} controlli, tutti giù o con proposta (${String(proposteViste)} proposte L → atteso; «Applica» e «Lascia com'è» verificati)` : `${String(fermi2d.length)} → ${fermi2d.join(' | ')}`} (positivo ${String(positivo2d)}/${String(misurati2d)})${scarti2d.length === 0 ? '' : `. Scostamenti da R9b, non da S7: ${scarti2d.join(' | ')}`}.`;
 
   registra('2', 'Principiante senza esercizi oltre il suo gradino', esito2, coda);
 }
@@ -714,25 +770,88 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
     const mig = await giro('migrazione');
     if (mig === null) violazioni.push('S1/S3 (4l, R-17, R9c punto 2): `fissaStatiMancanti` assente, la storia chiusa prima resta virtuale');
     else if (mig[0] !== mig[1]) violazioni.push(`S1/S3 (4l, R9c punto 2): dopo la migrazione push-up ${String(mig[0])} → ${String(mig[1])} dopo un ritest migliore`);
+    /* v14 (c): la migrazione arriva DOPO il ritest (la domanda aperta del 2026-11-21c; cc95fac). Atteso: lo
+     * stato fissato è quello del giorno dell'ultima seduta, non quello che il ritest ha già alzato. */
+    {
+      const repo = new RepoMod13.ShadowRepository();
+      await repo.saveTestResult(prova('2026-03-02', 0, 10));
+      const s0 = await repo.getExerciseState(pu);
+      for (let w = 1; w <= 6; w += 1) await chiusuraApp(repo, seduta(`lt-${String(w)}`, w, 'circuito-3', [esercizio('A2', pu, sets([12, 12]), null, s0.level)]), false);
+      await repo.saveTestResult(prova('2026-04-13', 6, 16));
+      const virtuale = (await repo.getExerciseState(pu)).level;
+      if (repo.fissaStatiMancanti !== undefined) {
+        await repo.fissaStatiMancanti();
+        const fissato = (await repo.getExerciseState(pu)).level;
+        if (virtuale === s0.level) violazioni.push(`4l (c): prima della migrazione il ritest non alza (${String(virtuale)}): la fixture non misura`);
+        else if (fissato !== s0.level) violazioni.push(`S1/S3 (4l c, R9c punto 2): migrazione arrivata dopo un ritest migliore, push-up fissato a ${String(fissato)} invece di ${String(s0.level)}`);
+      }
+    }
 
-    /* 4n — «Archivia» */
+    /* 4n — «Archivia» (v14): il gestore com'è nel sorgente. `repository.archiviaSeduta` (cc95fac) si esegue
+     * per quello che è; il gestore di prima (`saveSession` completed) resta come positivo. (i) archiviata e poi
+     * ritest migliore; (ii) ritest migliore fra l'apertura e l'archiviazione: lo stato fissato è quello del
+     * giorno della seduta. */
     const home = readFileSync('src/ui/screens/HomeScreen.tsx', 'utf8');
     const iA = home.search(/>\s*Archivia\s*<\/Button>/);
     const gestore = iA < 0 ? '' : home.slice(home.lastIndexOf('onClick', iA), iA);
     const noto = "void repository.saveSession({ ...entry, status: 'completed' });";
-    if (iA < 0) violazioni.push('4n: «Archivia» non trovato in HomeScreen: la fixture non misura');
-    else if (!gestore.includes(noto) || /statiDaFissare|fissaStati|syncStatesFromLog/.test(gestore)) {
-      violazioni.push('4n: il gestore di «Archivia» è cambiato: modello da aggiornare e da rimisurare nel browser (`23`)');
-    } else {
+    const vecchio = gestore.includes(noto) && !/statiDaFissare|fissaStati|syncStatesFromLog|archiviaSeduta/.test(gestore);
+    const nuovoG = /repository\.archiviaSeduta\(\s*entry\s*\)/.test(gestore) && !gestore.includes('saveSession(');
+    const giroN = async (modo: 'app' | 'prima', ritestPrima: boolean): Promise<[number | null, number | null, string]> => {
       const repo = new RepoMod13.ShadowRepository();
       await repo.saveTestResult(prova('2026-03-02', 0, 10));
       const s0 = await repo.getExerciseState(pu);
       const aperta = { ...seduta('n-1', 1, 'circuito-3', [esercizio('A2', pu, sets([12, 12]), null, s0.level)]), status: 'in-progress' } as LoggedSession;
       await repo.saveSession(aperta);
-      await repo.saveSession({ ...aperta, status: 'completed' });
-      await repo.saveTestResult(prova('2026-04-13', 6, 16));
-      const l1 = (await repo.getExerciseState(pu)).level;
-      if (l1 !== s0.level) violazioni.push(`S1/S3 (4n, R-17 per «Archivia»): seduta rimasta aperta e archiviata dalla Home, nessuno stato scritto; push-up ${String(s0.level)} → ${String(l1)} dopo un ritest migliore`);
+      if (ritestPrima) await repo.saveTestResult(prova('2026-04-13', 6, 16));
+      if (modo === 'app' && repo.archiviaSeduta !== undefined) await repo.archiviaSeduta(aperta);
+      else await repo.saveSession({ ...aperta, status: 'completed' });
+      if (!ritestPrima) await repo.saveTestResult(prova('2026-04-13', 6, 16));
+      const salvata = repo.getSession === undefined ? undefined : await repo.getSession('n-1');
+      return [s0.level, (await repo.getExerciseState(pu)).level, salvata?.status ?? '?'];
+    };
+    if (iA < 0) violazioni.push('4n: «Archivia» non trovato in HomeScreen: la fixture non misura');
+    else if (vecchio) {
+      const [a, b] = await giroN('prima', false);
+      if (a !== b) violazioni.push(`S1/S3 (4n, R-17 per «Archivia»): seduta rimasta aperta e archiviata dalla Home, nessuno stato scritto; push-up ${String(a)} → ${String(b)} dopo un ritest migliore`);
+    } else if (!nuovoG || (RepoMod13.ShadowRepository.prototype as Partial<Repo13>).archiviaSeduta === undefined) {
+      violazioni.push('4n: il gestore di «Archivia» non è né quello di prima né `repository.archiviaSeduta(entry)`: modello da aggiornare e da rimisurare nel browser (`23`)');
+    } else {
+      const pos = await giroN('prima', false);
+      if (pos[0] === pos[1]) violazioni.push(`4n: positivo mancato, il gestore di prima non sale (${String(pos[0])} → ${String(pos[1])}): la fixture non misura`);
+      for (const [ritestPrima, nome] of [[false, 'archiviata e poi ritest'], [true, 'ritest prima dell’archiviazione']] as const) {
+        const [a, b, st] = await giroN('app', ritestPrima);
+        if (a !== b) violazioni.push(`S1/S3 (4n, ${nome}): «Archivia» come l'app, push-up ${String(a)} → ${String(b)} dopo un ritest migliore`);
+        if (st !== 'completed' && st !== '?') violazioni.push(`4n (${nome}): seduta archiviata con stato «${st}»`);
+      }
+    }
+
+    /* 4o — B18 (S5, v14): scendendo di gradino la zavorra si toglie. `scendi-di-livello` dal 6 con 5 kg
+     * (tempo e pausa +2″), due sedute della settimana 2 da 3-3-3; trazioni e dip. Atteso: gradino 5, 0 kg, e il
+     * testo lo dice. Controllo: a 0 kg stesso verdetto, 0 kg, il testo non nomina la zavorra. R9b dal 6 con 5
+     * kg (9.20): 0 kg e lo stesso testo. Se il verdetto non è `scendi-di-livello` la fixture non misura. */
+    {
+      for (const [slug, testId, code, sid] of [['trazioni-prona-presa-media', 'pull-up', 'A1', 'circuito-1'], ['dip-parallele-anelli', 'dip', 'A3', 'circuito-1']] as const) {
+        for (const kg of [5, 0]) {
+          const st: ExerciseState = { ...stato(slug as ExerciseSlug, 6 as LevelIndex, kg), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
+          const coppia = [0, 2].map((d) => seduta(`o-${String(d)}`, 2, sid, [esercizio(code, slug as ExerciseSlug, sets([3, 3, 3], { kg }), true, 6 as LevelIndex)], null, piu('2026-03-11', d)));
+          const tests = new Map([[testId as TestId, { testId: testId as TestId, date: '2026-02-23', week: 0, value: 12 } as TestResult]]);
+          const v = revisione(2, coppia, new Map([[slug as ExerciseSlug, st]]), tests).verdicts.find((x) => x.exercise === slug);
+          if (v?.kind !== 'scendi-di-livello') { violazioni.push(`4o: ${slug} al 6 con ${String(kg)} kg, 3-3-3 ×2: verdetto «${v?.kind ?? 'nessuno'}»: la fixture non misura`); continue; }
+          const nomina = /zavorra/i.test(v.change);
+          if (v.stateAfter.loadKg !== 0) violazioni.push(`S5 (4o, B18): ${slug} «scendi di livello» 6 → ${String(v.stateAfter.level)} con ${String(v.stateAfter.loadKg)} kg (sotto l'ultimo gradino la zavorra non sta)`);
+          if (kg > 0 && !nomina) violazioni.push(`S5 (4o, B18): ${slug} 6 → ${String(v.stateAfter.level)}, la zavorra si toglie ma il testo non lo dice («${v.change}»)`);
+          if (kg === 0 && nomina) violazioni.push(`4o: ${slug} a 0 kg, il testo nomina la zavorra («${v.change}»)`);
+        }
+      }
+      let Rt: { propostaRitest?: (slug: ExerciseSlug, stato: ExerciseState, r: TestResult) => Proposta14 | null } = {};
+      try { Rt = (await import('../../src/engine/ritest.ts')) as typeof Rt; } catch { Rt = {}; }
+      if (Rt.propostaRitest !== undefined) {
+        const tz = 'trazioni-prona-presa-media' as ExerciseSlug;
+        const p = Rt.propostaRitest(tz, { ...stato(tz, 6 as LevelIndex, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }, { testId: 'pull-up' as TestId, date: '2026-04-13', week: 6, value: 5 } as TestResult);
+        if (p === null) violazioni.push('S7 (4o, R9b 9.20): trazioni al 6 con 5 kg, ritest 5 < 8: nessuna proposta');
+        else if (p.verdict.stateAfter.loadKg !== 0 || !/zavorra/i.test(p.verdict.change)) violazioni.push(`S5 (4o, R9b 9.20): proposta 6 → ${String(p.verdict.stateAfter.level)} con ${String(p.verdict.stateAfter.loadKg)} kg, testo «${p.verdict.change}»`);
+      }
     }
   }
 

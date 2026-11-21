@@ -1,6 +1,6 @@
 # Input non fidato — i campi in cui scrive l'atleta
 
-Aggiornato: 2026-11-21d (U15) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
+Aggiornato: 2026-11-21e (U16) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
 Script: `quality/scripts/04-input-non-fidato.mts`.
 
 ## I quattro campi di testo libero
@@ -213,6 +213,15 @@ fuori da 1-29 o diverso da quello scritto (`24` 21.6). La serie si scrive con `n
 non entra in nessun calcolo: revisione e volume identici con Z1 a 8, 12 e 30 (`24` 21.9);
 `syncStatesFromLog` legge solo gradino e peso. Il `Number()` del diff è sul campo numerico, non su
 una nota (regola 1 rispettata). Nucleo caso 7: PASS. Proprietà: tiene.
+
+## U16 — Verifica del 2026-11-21e (commit `644bd8c`, R9c completato, R9b, B18)
+
+`archiviaSeduta` legge di ogni voce solo `exercise`, `sets.length` e la data della seduta. R9b
+(`propostaRitest`, `proposteDeiRitest`, `testoEsitoRitest`) legge di un test solo `testId`, `date`, `week` e
+`value` (`TestResult` non ha campi di testo) e dello stato solo numeri; titolo, evidenza e cambio sono testi
+dell'app con le cifre calcolate. `ProposteRitest` e `RitestScreen` rendono testo React, nessun HTML. Nel diff
+nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse`, `.note` o `variantLabel`. B18 cambia solo
+`stateAfter.loadKg`. Nucleo v14 caso 7: PASS. Proprietà: tiene.
 
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o

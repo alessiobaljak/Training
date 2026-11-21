@@ -284,7 +284,7 @@ function riferimento(W: number, sessions: readonly LoggedSession[], states: Read
     const esito = (sedute: readonly LoggedSession[]): Esito => {
       const voci = sedute.flatMap((s) => strutturali(s, slug));
       const valori = voci.flatMap((x) => { const vv = serieVereRif(x.sets); return x.sets.filter((y) => vv.has(y.setIndex)).map((y) => y.value); });
-      if (valori.every((x) => x < v.min)) return giu === null ? { cat: 'v:range-da-rifare', dopo: sintesi(L) } : { cat: 'v:scendi-di-livello', dopo: sintesi({ ...L, level: giu as LevelIndex, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }) };
+      if (valori.every((x) => x < v.min)) return giu === null ? { cat: 'v:range-da-rifare', dopo: sintesi(L) } : { cat: 'v:scendi-di-livello', dopo: sintesi({ ...L, level: giu as LevelIndex, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0, /* B18 (S5, 2026-11-21e): sotto l'ultimo gradino la zavorra non sta; i manubri restano */ ...(getExercise(slug).loadPolicy !== 'inherent' && L.loadKg > 0 ? { loadKg: 0 } : {}) }) };
       if (!valori.every((x) => x >= v.max)) return { cat: 'inRange' };
       const scaricoSed = sedute.filter((s) => SCARICO.has(s.week));
       if (SCARICO.has(W + 1) || scaricoSed.length > 0) return { cat: SCARICO.has(W + 1) || scaricoSed.length === sedute.length ? 'fermi:scarico' : 'fermi:scarico-coppia' };

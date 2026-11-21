@@ -4,12 +4,13 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v13** · 2026-11-21c · misurato su `src/` al commit `704dbfa` (R9c, B16) e, al
-contrario, su `c8964ff`. **v13**: 4l rifatto sulla chiusura vera (`chiusuraApp` = `chiudi` e
-`saveAndExit` dal `704dbfa`, con lettura del sorgente dei due gestori) e sulla migrazione
-(`fissaStatiMancanti`); **4n** nuovo, «Archivia» dalla Home (R9c punto 1); **2d** nuovo, S7 dopo un
-test peggiore (R9b; R9c punto 4). La v12 di 4l modellava la chiusura di prima: sul `704dbfa` non
-poteva passare per costruzione. Testa della v12: `ARCHIVE-3.md`.
+Versione: **v14** · 2026-11-21e · misurata su `src/` al commit `644bd8c` (R9c completato, R9b, B18) e, al
+contrario, su `4d06a4b`, `7863e31` e `cc95fac`. **v14**: 2d esteso alla proposta R9b (tre vie: stato salvato,
+sola chiusura, migrazione arrivata dopo il ritest; M = soglia − 1 e M = 0; «Applica» e «Lascia com'è»; alla
+soglia nessuna proposta); 4l (c) migrazione dopo un ritest migliore; 4n sul gestore nuovo
+(`repository.archiviaSeduta`, con il gestore di prima come positivo, e un ritest fra apertura e archiviazione);
+**4o** nuovo (B18, S5: `scendi-di-livello` e R9b dal 6 con 5 kg). La v13 su `644bd8c` diceva da sola
+«modello da aggiornare» (4n) e «va esteso alla proposta» (2d). Testa della v13: `ARCHIVE-3.md`.
 
 ## Lettura dopo le decisioni del 2026-11-12
 
@@ -50,23 +51,22 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-21c (v13, `704dbfa`): 2 PASS · 4 FALLITI · 2 NON COPERTI
-
-Conteggio invariato. **4l superato** (chiusura come l'app e migrazione: push-up resta 1; i due
-gestori chiamano `statiDaFissare`). Caso 4 fallisce per **4h** (S9, B10) e **4n** (B16 residuo:
-«Archivia», push-up 1 → 2). Caso 2 fallisce per 2c (B9) e **2d** (B17: 14 su 14, sette esercizi
-× due vie, nessuno scende dopo un test peggiore; positivo 7/7). Su `c8964ff`: 4h, 4l, 4n; 2d 7
-(solo la via «stato salvato»). Casi 3, 6 FALLITI (B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS.
-
-Esiti precedenti: `ARCHIVE-3.md`, `ARCHIVE-2.md`.
-
 ## Esito del 2026-11-21d (v13, `4d06a4b`, R20 e R21, ramo **senza** R9c): 2 PASS · 4 FALLITI · 2 NON COPERTI
 
 Eseguito su copia `git archive` (v13 = `69d8c32`), mai dal tree principale. Rispetto a `85d1dd8`
 cambia solo **4h: superato** (7 giunzioni tronco → balistico, tutte 15″; prima `circuito-4` F4 → F1
 giro 2 a 0″). Caso 4 fallisce per 4l ×2 e 4n (R9c assente su questo ramo, come su `c8964ff`); caso 2
 per 2c (4 Z1: il dato resta 30-30, R21 cambia il player, non il minimo; D-Q3) e 2d 7. `64180fa`
-(solo R20) dà già questo esito. **`7863e31` (R9c ricollocato sopra) non è misurato.**
+(solo R20) dà già questo esito. Con la v14: stesso conteggio (caso 4: 4l ×2 + 4n + 4o; 2d 14).
+
+## Esito del 2026-11-21e (v14, `644bd8c`): 3 PASS · 3 FALLITI · 2 NON COPERTI
+
+Copie `git archive`, mai dal tree principale. **Caso 4 PASS** (14 + 3 controlli: 4l a, b, c; 4n i, ii col
+positivo; 4o ×4 e 9.20). Caso 2 FALLITO solo per **2c** (B9, D-Q3): **2d** 42 controlli, 42 proposte L →
+atteso, positivo 7/7, nessuna proposta alla soglia. Casi 3, 6 FALLITI (B6, B8; 6b: 259 file, 0 approvati);
+1 e 8 NON COPERTI; 5 e 7 PASS. La v13 su `644bd8c`: 2 · 4 · 2 (4n «gestore cambiato», 2d «va esteso»).
+`7863e31` (v14): 2 · 4 · 2, caso 4 = **4l (c)** (migrazione dopo il ritest: fissato a 2) + 4n + 4o, 2d 28.
+`cc95fac`: caso 4 = 4o, 2d 42. Browser (`23`, R9b nella Home): NON COPERTO.
 
 ---
 
@@ -114,14 +114,15 @@ rilascio pubblico (decisione del 2026-11-12): il caso si esegue lo stesso.
   o finché la presa regge», tempo vero, `recordActual`), ma il dato resta 30-30 al gradino 2: 2c
   FALLITO per lettura e per costruzione. Per R1 riga 8 (soglia 36") il gradino compatibile con 8" è
   l'1. Riscrivere 2c per `recordActual` è una decisione (**D-Q3**), non una correzione dello script.
-- **2d (v13, 2026-11-21c) — S7 dopo un test peggiore.** Per i 7 esercizi in cui R1 arriva alla
-  riga 8 (trazioni, dip, bulgaro, pike, rematore TRX, push-up, hollow): test di settimana 0 alla
-  soglia (→ Lt), una seduta chiusa a Lt come la chiude l'app, ritest di settimana 6 con M =
-  soglia − 1. Atteso (R9b, D-18; R9c punto 4): gradino ≤ giù(Lt) o una proposta
-  `riparti-dal-test`. Due vie: stato salvato prima, sola chiusura. Positivo: con la chiusura di
-  prima lo stato virtuale scende (7/7). **Misurato**: `704dbfa` 14 su 14 restano (B17); `c8964ff`
-  7 (solo «stato salvato»). Quando `riparti-dal-test` esiste nel motore il controllo lo dice e va
-  esteso alla proposta.
+- **2d (v13 → **v14** 2026-11-21e) — S7 dopo un test peggiore.** Per i 7 esercizi in cui R1 arriva alla
+  riga 8 (trazioni, dip, bulgaro, pike, rematore TRX, push-up, hollow): test di settimana 0 alla soglia (→ Lt),
+  una seduta a Lt, ritest di settimana 6. Tre vie: stato salvato prima; sola chiusura come l'app; storia chiusa
+  come prima e migrazione arrivata dopo il ritest. M = soglia − 1 (atteso giù(Lt)) e M = 0 (primo gradino).
+  Atteso (R9b, D-18; R9c punto 4): gradino ≤ atteso, oppure una proposta `riparti-dal-test` L → atteso, mai più
+  alta, mai una salita, 0 kg e tempo e pausa a 0; «Applica» → stato atteso e proposta sparita, registro
+  `accepted`; «Lascia com'è» → gradino invariato, `postponed`. Alla soglia: nessuna proposta (la fixture
+  distingue). Positivo: chiusura di prima, stato virtuale, scende (7/7). **Misurato**: `644bd8c` 42 controlli,
+  42 proposte giuste (B17 chiuso); `cc95fac` 42 restano; `7863e31` 28; `4d06a4b` 14 (via «stato salvato»).
 - **Se Alessio decide che S7 non vale per i blocchi esclusi** dalla revisione,
   2c va tolto e il caso diventa PASS: è una decisione, non una correzione
   dello script.
@@ -148,8 +149,7 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi: FALLITO.** Su `4d06a4b` (2026-11-21d, R20 e R21, senza R9c): 4l ×2 + 4n, **4h superato**. Su `704dbfa` (2026-11-21c, v13): 2 violazioni su 14
-controlli: 4h (S9, B10), 4n (S1/S3, B16 residuo, «Archivia»); 4l e 4m superati. Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
+**Stato oggi: PASS** su `644bd8c` (2026-11-21e, v14; non ancora rilasciato): 4l a-c, 4n, 4o superati. Su `4d06a4b`: 4l ×2 + 4n + 4o. Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
 4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10), 4j (R-7, v10), **4k (R-14, v11)**. La revisione
 riceve il registro: vuoto salvo 4c (salite accettate) e 4e (zavorra accettata). Inizio programma 2026-03-02; revisione della settimana W
 con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
@@ -169,8 +169,9 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 4i (S10) | (1) push-up `circuito-3/A2` gradino 2, 18-18-18 su 12-18, `tempoRespected=null`, R7 aperta; (2) controllo statico di `GuidedSession.tsx`, come 5 e 6a | (1) nessuna leva oltre le ripetizioni; (2) ogni `setTempoRespected` del player scrive `false` | **corretto**: nessuna leva; 1 scrittura, `false`. Se il player tornasse a scrivere «sì» da una misura, (2) fallisce e il controllo va riscritto come misura (`07`) |
 | 4j (R-7, v10) | curl a martello `circuito-1/B1`, `{12, +2″, +2″}`, massimo chiuso il 19 (sett. 4): la fine seduta propone il manubrio, accettato (registro, seduta del 19). Seduta del 23: peso come `PassoLavoro` (B del manubrio in attesa, se no lo stato; `pesoIniziale` con volta scorsa 12 e 0 kg), chiusura come `chiudi`; positivo: seduta scritta a T. Statico: composizione del peso in `GuidedSession` | campo ≤ 12 kg e stato salvato ≤ 12 kg in tutti e due i casi; positivo: stato = T. Composizione non riconosciuta ⇒ il controllo va riscritto | **corretto** su `0d85597`. Su `e30cdc6`: campo a 14,5 kg e stato 14,5 con la volta scorsa a 0 (R-7) |
 | 4k (R-14, v11) | circuito 4 a meno di 55′, stati casuali con seme fisso; military press `circuito-4/A3` `{10, +1″, 0}`, dip su panche `B2` al gradino 1 con tempo e pausa liberi, i passi di tempo e pausa di tutti e due oltre 55′; chiuse 03-02, 03-19, 03-26 al massimo, tempo sì; revisione W4 il 03-30 **con `durata: durataDellaSedutaDi`** | military press: `aggiungi-peso` 10 → 12, mai più di 2 kg; dip: nessuna zavorra, `alMassimo` «variante»; se la military press non arriva al manubrio la fixture non misura | **corretto** su `f7f945d`. Su `fb560e7` non misura: la revisione dice «tempo» |
-| 4l (R-17, v12 → **v13**) | repository vero (MemoryStore): test push-up M=10 il 03-02 (settimana 0), sei sedute chiuse al livello 1 con `chiusuraApp` (la chiusura dei due gestori), ritest M=16 il 04-13 (settimana 6). Statico: `chiudi` e `saveAndExit` chiamano `statiDaFissare` prima di `closeSession`. Migrazione: sei chiusure di prima, `fissaStatiMancanti`, ritest. Positivo: chiusura di prima senza migrazione | stesso livello nelle due vie; il positivo sale; gestore senza la chiamata ⇒ la fixture non misura | **corretto** su `704dbfa` (1 e 1; positivo 1 → 2). Su `c8964ff`: `statiDaFissare` e `fissaStatiMancanti` assenti, 1 → 2. Nel browser (`23`): chiusura dal player ⇒ stato `[1,0,0,0]`, ritest 16 ⇒ resta «Push-up su rialzo» |
-| 4n (R-17, **v13**) | seduta rimasta aperta con due serie di push-up al livello 1, archiviata come fa «Archivia» (`saveSession({ ...entry, status: 'completed' })`, letto dal sorgente di `HomeScreen`), ritest M=16 | stesso livello (R9c punto 1: anche questa è una chiusura); gestore cambiato ⇒ rimisurare nel browser | **FALLITO** su `704dbfa` e `c8964ff`: 1 → 2. Nel browser (`23`): bulgaro archiviato, nessuno stato, ritest ⇒ «Bulgarian split squat» (1 → 2) |
+| 4l (R-17, v12 → v13 → **v14**) | repository vero (MemoryStore): test push-up M=10 il 03-02 (settimana 0), sei sedute chiuse al livello 1 con `chiusuraApp` (la chiusura dei due gestori), ritest M=16 il 04-13 (settimana 6). Statico: `chiudi` e `saveAndExit` chiamano `statiDaFissare` prima di `closeSession`. (b) Migrazione: sei chiusure di prima, `fissaStatiMancanti`, ritest. **(c, v14)** sei chiusure di prima, ritest, **poi** la migrazione. Positivo: chiusura di prima senza migrazione | stesso livello in tutte le vie; il positivo sale; in (c) prima della migrazione il gradino virtuale è salito, se no la fixture non misura | **corretto** su `644bd8c` e `cc95fac` (1, 1, 1). Su `7863e31` (c) **fissato a 2** (la migrazione in ritardo congelava il gradino alzato). Su `4d06a4b`: funzioni assenti, 1 → 2. Nel browser (`23`, `704dbfa`): chiusura dal player ⇒ `[1,0,0,0]` |
+| 4n (R-17, v13 → **v14**) | seduta rimasta aperta con due serie di push-up al livello 1, archiviata come fa il gestore di «Archivia» letto da `HomeScreen` (`repository.archiviaSeduta(entry)` da `cc95fac`; il gestore di prima, `saveSession` completed, come positivo); (i) poi ritest M=16; (ii) ritest M=16 fra apertura e archiviazione | stesso livello in (i) e (ii) (R9c punto 1; stato del giorno della seduta); seduta `completed`; positivo sale; gestore diverso dai due noti ⇒ la fixture non misura | **corretto** su `644bd8c` e `cc95fac` (1 e 1; positivo 1 → 2). **FALLITO** su `7863e31` e `4d06a4b`: 1 → 2. Browser: NON COPERTO su `644bd8c` (su `704dbfa`: bulgaro 1 → 2) |
+| 4o (B18, S5, **v14**) | trazioni e dip al 6 con 5 kg e +2″/+2″, due sedute della settimana 2 da 3-3-3, test 12, revisione W2; controllo a 0 kg. R9b (9.20): trazioni al 6 con 5 kg, ritest 5 | `scendi-di-livello` 6 → 5 con 0 kg e il testo nomina la zavorra; a 0 kg il testo non la nomina; R9b 6 → 1, 0 kg, stesso testo. Verdetto diverso ⇒ la fixture non misura | **corretto** su `644bd8c`. Su `cc95fac`, `7863e31`, `4d06a4b`: 6 → 5 **con 5 kg**, testo muto (B18) |
 | 4m (R-16, v12) | `chiusuraDelGiro('2026-10-05', 0 o 3, '2026-11-23')`; primo giro `chiusuraDelGiro(null, 0, '2026-11-23')` | ritest: nessuna data da scrivere, sempre attivo, niente «Quando parte»; primo giro: la data scelta | **corretto** su `c8964ff`; su `6cbb759` la funzione non c'è e la data si riscrive (`20` nel browser: 10-05 → 11-23) |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
@@ -186,7 +187,7 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 
 ## Caso 6 — Nessuna immagine fuori dalla libreria approvata, nessuna generata a runtime
 **Stato oggi: FALLITO** (era NON COPERTO) — 6a verificato, 6b eseguito su
-`media/LIBRARY.md`: **261 file nel bundle (2026-11-21), 0 approvati**, 0 non registrati
+`media/LIBRARY.md`: **259 file nel bundle (2026-11-21e; 261 fino a `4d06a4b`), 0 approvati**, 0 non registrati
 (B8). Il testo sotto su 6b è quello della v4, tenuto per la storia.
 
 - **6a — nessuna generazione a runtime: VERIFICATO.** Le figure entrano con
@@ -277,3 +278,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-21b | v12 | 2 | 4 | 2 | training-quality (commit `c8964ff`, T-28 e figure; 4l R-17 e 4m R-16 nuovi; caso 4: 4h + 4l; su `6cbb759` 4h + 4l + 4m) |
 | 2026-11-21c | v13 | 2 | 4 | 2 | training-quality (commit `704dbfa`, R9c; 4l rifatto e superato; 4n e 2d nuovi; caso 4: 4h + 4n; caso 2: 2c + 2d; su `c8964ff` 4h + 4l + 4n, 2d 7) |
 | 2026-11-21d | v13 | 2 | 4 | 2 | training-quality (commit `4d06a4b`, R20 e R21, ramo senza R9c; **4h superato**; caso 4: 4l ×2 + 4n; caso 2: 2c + 2d 7; su `85d1dd8` 4h + 4l ×2 + 4n) |
+| 2026-11-21e | v14 | **3** | 3 | 2 | training-quality (commit `644bd8c`, R9c completato, R9b, B18; **caso 4 PASS**; caso 2 solo 2c; v13 sullo stesso commit 2 · 4 · 2 per costruzione; `7863e31` 4l c + 4n + 4o, 2d 28; `4d06a4b` 2 · 4 · 2) |
