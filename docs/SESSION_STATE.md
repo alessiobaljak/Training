@@ -3,12 +3,10 @@
 Aggiornato: 2026-11-20 · branch `claude/calisthenics-pwa-offline-kor52w`
 
 ## Compito in corso
-**2026-11-21, dopo il rilascio D.** In locale, non pubblicati, in quest'ordine:
-- **Rilascio E** (`4d06a4b`) in produzione: vedi «Produzione».
-- Poi: `7863e31` R9c (era `704dbfa`), `cc95fac` R9c completato («Archivia», test alla data della seduta, 9.29), `7b28b13` B18, `3b548e4` figura del rematore TRX a piedi rialzati tolta (foto agli anelli, piedi a terra; il media lead l'aveva segnata l'8/11), `93cf066` R9b (B17), `644bd8c` smoke R9b nel browser. training-quality in corso su `644bd8c`.
-- **D-Q2:** la settimana di Alessio non è nota alla sessione; si è scelta la (a): R9c esce solo insieme a R9b.
-- **D-Q3 (nuova, per Alessio):** Z1 al gradino 2 per chi regge meno di 30″ (S7). (a) R21 basta; (b) raccomandata da quality: Z1 al gradino 1 sotto il bersaglio; (c) S7 non vale sui blocchi esclusi.
-- Lezione: un agente che usa l'emulatore, anche con un suo script nel browser, e uno smoke della sessione principale non girano mai insieme. Due smoke di T-30 sono falliti per questo. Gli agenti misurano su copie `git archive`, mai sul tree principale.
+**2026-11-21, dopo il rilascio F.** Tutto il lavoro della giornata è in produzione (rilasci D, E, F).
+- Aperti: D-Q3 (S7 su Z1, decisione di Alessio; se non risponde vale la (a)); B6, B8, M4; B1-B4 solo per il rilascio pubblico; A10, A16.
+- Da fare (designer, nell'ordine): T-31 R22, T-32 R9 rientro, resto di T-33 (giorno di test, testi dei ritest, M16), T-34 attrezzatura, T-35, T-36. Media lead: allineare `media/LIBRARY.md` (righe 19 e 182-183) alla figura tolta. Bassi nuovi: L40, L41, L42, L43.
+- Non coperti nel browser: riepilogo del giro di test con le proposte R9b, «Lascia com'è», «Applica» su scendi-di-livello con zavorra.
 
 **Revisione totale** chiesta da Alessio: design, esperienza d'uso, grafiche,
 tracciamento, suggerimenti, immagini. Da `03c7395` in poi, tutti i commit con
@@ -199,7 +197,8 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: **rilascio E**, `4d06a4b` (2026-11-21): T-29 R20 (`64180fa`, B10 chiuso) e T-30 R21 (`4d06a4b`, B9 ridotto). training-quality GO, release-gate L GO per regressioni, nucleo v13 (rapporto `release/reports/2026-11-21b-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `85d1dd8`**: diff su `firestore.rules`, `src/db`, `src/firebase` vuoto; `src/types` aggiunge solo `recordActual` opzionale.
+- in produzione: **rilascio F**, `22f3d31` (2026-11-21): R9c completo (B16), R9b (B17), B18, figura del rematore TRX a piedi rialzati tolta. training-quality GO su `644bd8c` (nucleo v14 3 · 3 · 2), release-gate L GO per regressioni (rapporto `release/reports/2026-11-21c-claude-calisthenics-pwa-offline-kor52w.md`); ricetta di quality nel browser (23) A-D come attese. **Punto di ritorno: `4d06a4b`**: `firestore.rules` e `src/types` identici, `src/db` solo in aggiunta; il codice vecchio legge stati e record `ritest-…` senza contarli come aumenti (provato dal gate).
+- Prima: **rilascio E**, `4d06a4b` (2026-11-21): T-29 R20 (`64180fa`, B10 chiuso) e T-30 R21 (`4d06a4b`, B9 ridotto). training-quality GO, release-gate L GO per regressioni, nucleo v13 (rapporto `release/reports/2026-11-21b-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `85d1dd8`**: diff su `firestore.rules`, `src/db`, `src/firebase` vuoto; `src/types` aggiunge solo `recordActual` opzionale.
 - Prima: **rilascio D**, `85d1dd8` (2026-11-21): figure (`50793fd`, il rematore inverso TRX mostra il TRX, 19 collegamenti sbagliati tolti) e T-28 (`c8964ff`, un ritest non riscrive la data di inizio). training-quality GO su entrambi, release-gate L GO per regressioni con nucleo v13 (rapporto `release/reports/2026-11-21-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `96a90c2`**: diff su `src/types`, `src/db`, `firestore.rules` vuoto.
 - Il primo gate L su questo rilascio è stato fermato dalla sessione principale: girava mentre nel working tree c'erano modifiche non committate (R9c). Rifatto da zero su un worktree pulito.
 - Prima: **rilascio C**, versione finale del giro R14-R19 (`d8c18ce` L26, `4142059` L25, `17ea244` M22, `f7f945d` B14; 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v11). **Punto di ritorno: `fb560e7`** (B2): diff su `src/types`, `src/db`, `firestore.rules` vuoto. Prima: `e30cdc6` (B1), `59daf79` (A), `001de30`, `721fd42`.

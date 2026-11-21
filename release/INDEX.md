@@ -1,6 +1,7 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-21b, claude/calisthenics-pwa-offline-kor52w, 4d06a4b, L.
-Esito: GO per regressioni vs 85d1dd8; nucleo v13 2 PASS, 4 FALLITI, 2 NON COPERTI, uguale a prod salvo 4h superato; verify (939 test), build, smoke (20.8, R21), offline verdi. Rapporto reports/2026-11-21b-claude-calisthenics-pwa-offline-kor52w.md.
+Ultimo rilascio: 2026-11-21c, claude/calisthenics-pwa-offline-kor52w, 22f3d31 (codice 644bd8c), L. Prod precedente 4d06a4b.
+Esito: GO per regressioni vs 4d06a4b; nucleo v14 3 PASS, 3 FALLITI (2c, 3, 6), 2 NON COPERTI; verify (965 test), build, smoke (5m57), offline (37 s) verdi. Rapporto reports/2026-11-21c-claude-calisthenics-pwa-offline-kor52w.md.
+- 2026-11-21c: persone fittizie, UAT, rollback Vercel, giro di test con proposte, Lascia com'è, Applica con zavorra NON eseguiti in browser da me.
 - 2026-11-21b: persone fittizie, UAT, rollback Vercel NON eseguiti da me. D-Q3 (2c) aperta.
 - 2026-11-21: persone fittizie, UAT, rollback Vercel, ritest-data e immagine TRX in browser NON eseguiti da me.
 - 2026-11-20d: persone fittizie, UAT, rollback Vercel, percorso browser R14 NON eseguiti. B14 chiuso nei circuiti.
