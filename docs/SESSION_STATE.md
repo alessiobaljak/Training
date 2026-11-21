@@ -3,6 +3,13 @@
 Aggiornato: 2026-11-20 · branch `claude/calisthenics-pwa-offline-kor52w`
 
 ## Compito in corso
+**2026-11-21, dopo il rilascio D.** In locale, non pubblicati, in quest'ordine:
+- `64180fa` T-29 R20 e `4d06a4b` T-30 R21: training-quality in corso su `4d06a4b`, poi gate L. Sono il **rilascio E**, che non contiene R9c.
+- `7863e31` R9c (era `704dbfa`), `69d8c32` NO-GO di training-quality (B16 ridotto, B17 nuovo, B18), `cc95fac` R9c completato («Archivia», test alla data della seduta, 9.29), `7b28b13` B18.
+- **D-Q2:** quality chiede ad Alessio se pubblicare R9c senza R9b (b) oppure aspettare R9b (a). La settimana di Alessio non è nota alla sessione, quindi si va con la (a), la prudente: R9c esce con R9b. R9b (T-33, criteri 9.19-9.25) è in lavorazione.
+- Trovato dopo il gate: `rematore-inverso-trx-piedi-rialzati` (sedute archiviate dello Shadow) mostra `rings-inverted-row`, cioè anelli e piedi a terra, lo stesso accoppiamento che il commento di `exercise-art.ts` scarta. Era così anche in produzione prima, quindi non è una regressione. Correzione prudente nel rilascio E.
+- Lezione: un agente che usa l'emulatore (anche con uno script suo nel browser) e uno smoke della sessione principale non devono mai girare insieme. Due smoke di T-30 sono falliti per questo.
+
 **Revisione totale** chiesta da Alessio: design, esperienza d'uso, grafiche,
 tracciamento, suggerimenti, immagini. Da `03c7395` in poi, tutti i commit con
 verify, smoke e offline verdi.
@@ -191,7 +198,9 @@ degli altri progetti. Questa sessione gira ancora sul Default.
 ## Produzione
 Ogni push su questo ramo è un rilascio (Vercel, assegnazione automatica).
 Punto di ritorno, aggiornato a ogni push:
-- in produzione: **rilascio C**, versione finale del giro R14-R19 (`d8c18ce` L26, `4142059` L25, `17ea244` M22, `f7f945d` B14; 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v11). **Punto di ritorno: `fb560e7`** (B2): diff su `src/types`, `src/db`, `firestore.rules` vuoto. Prima: `e30cdc6` (B1), `59daf79` (A), `001de30`, `721fd42`.
+- in produzione: **rilascio D**, `85d1dd8` (2026-11-21): figure (`50793fd`, il rematore inverso TRX mostra il TRX, 19 collegamenti sbagliati tolti) e T-28 (`c8964ff`, un ritest non riscrive la data di inizio). training-quality GO su entrambi, release-gate L GO per regressioni con nucleo v13 (rapporto `release/reports/2026-11-21-claude-calisthenics-pwa-offline-kor52w.md`). **Punto di ritorno: `96a90c2`**: diff su `src/types`, `src/db`, `firestore.rules` vuoto.
+- Il primo gate L su questo rilascio è stato fermato dalla sessione principale: girava mentre nel working tree c'erano modifiche non committate (R9c). Rifatto da zero su un worktree pulito.
+- Prima: **rilascio C**, versione finale del giro R14-R19 (`d8c18ce` L26, `4142059` L25, `17ea244` M22, `f7f945d` B14; 2026-11-20; training-quality GO, release-gate GO per regressioni, nucleo v11). **Punto di ritorno: `fb560e7`** (B2): diff su `src/types`, `src/db`, `firestore.rules` vuoto. Prima: `e30cdc6` (B1), `59daf79` (A), `001de30`, `721fd42`.
 - **Limite del ritorno a `e30cdc6`:** il vecchio `backup.ts` rifiuta per intero un backup che contiene un record `lapsed`; uno senza si importa. La lettura dei `lapsed` già salvati da parte del vecchio codice non è provata.
 - `git diff e30cdc6..ebd3a34`: `firestore.rules` invariato; `src/db` e `src/types` aggiungono `lapsed` e `ref` (opzionale), `DATA_VERSION` invariato. Procedura in `docs/configurazione.md` §10, mai
   eseguita in produzione (il gate la segna NON VERIFICATA).
