@@ -589,6 +589,57 @@ function fileTesto(dir: string, ext: string[]): string[] {
     }
   }
 
+  /* 4l — R-17 (v12, 2026-11-21): un test non alza il gradino di uno stato mai salvato. Criterio 9.26 di
+   * training-designer: push-up dal test di settimana 0 (M=10 → livello di partenza), sei chiusure allo
+   * stesso livello col repository vero (MemoryStore) e `syncStatesFromLog`, ritest di settimana 6 con M=16.
+   * Atteso (S1, S3, R9c): stesso livello. Si sale solo dalle sedute, con R5 e R7. Positivo: lo stesso giro
+   * con lo stato salvato resta fermo, quindi la fixture discrimina. */
+  {
+    const Rp = (await import('../../src/db/repository.ts')) as unknown as { ShadowRepository: new () => {
+      saveTestResult(r: TestResult): Promise<unknown>; getExerciseState(s: ExerciseSlug): Promise<ExerciseState>;
+      saveExerciseState(s: ExerciseState): Promise<unknown>; } };
+    const Dr4 = (await import('../../src/engine/draft.ts')) as unknown as {
+      syncStatesFromLog(s: LoggedSession, m: ReadonlyMap<ExerciseSlug, ExerciseState>): ExerciseState[] };
+    const prova = (date: string, week: number, value: number): TestResult =>
+      ({ testId: 'push-up' as TestId, date, week, value, left: null, right: null }) as TestResult;
+    const giro = async (salvato: boolean): Promise<[number | null, number | null]> => {
+      const repo = new Rp.ShadowRepository();
+      await repo.saveTestResult(prova('2026-03-02', 0, 10));
+      const s0 = await repo.getExerciseState('push-up' as ExerciseSlug);
+      if (salvato) await repo.saveExerciseState(s0);
+      for (let w = 1; w <= 6; w += 1) {
+        const stato = await repo.getExerciseState('push-up' as ExerciseSlug);
+        const seduta = { id: `l-${String(w)}`, date: '2026-03-04', week: w, status: 'completed',
+          exercises: [{ exercise: 'push-up', blockCode: 'A2', level: s0.level, sets: sets([12, 12]) }] } as unknown as LoggedSession;
+        for (const c of Dr4.syncStatesFromLog(seduta, new Map([['push-up' as ExerciseSlug, stato]]))) await repo.saveExerciseState(c);
+      }
+      await repo.saveTestResult(prova('2026-04-13', 6, 16));
+      return [s0.level, (await repo.getExerciseState('push-up' as ExerciseSlug)).level];
+    };
+    const [l0, l1] = await giro(false);
+    const [c0, c1] = await giro(true);
+    if (c0 !== c1) violazioni.push(`4l: controllo con lo stato salvato ${String(c0)} → ${String(c1)}: la fixture non misura`);
+    if (l0 !== l1) violazioni.push(`S1/S3 (4l, R-17): push-up mai salvato, livello ${String(l0)} → ${String(l1)} dopo un ritest migliore, senza R5 né R7`);
+  }
+
+  /* 4m — R-16 (v12, 2026-11-21): un ritest non riscrive la data di inizio (T-28). Con la data riscritta la
+   * settimana torna a 0-1 e gli id `revisione-<W>:<slug>` si ripetono: un verdetto nuovo, anche una discesa,
+   * sparisce dietro una decisione vecchia. Qui la funzione pura; il collegamento nel browser lo misura `20`. */
+  {
+    const Sc = (await import('../../src/engine/schedule.ts')) as unknown as {
+      chiusuraDelGiro?: (d: string | null, m: number, s: string) => { attivo: boolean; dataDaScrivere: string | null; chiediInizio: boolean } };
+    if (Sc.chiusuraDelGiro === undefined) {
+      violazioni.push('4m (R-16): `chiusuraDelGiro` assente: il riepilogo di un ritest riscrive la data di inizio (misurato da `20` nel browser)');
+    } else {
+      for (const m of [0, 3]) {
+        const r = Sc.chiusuraDelGiro('2026-10-05', m, '2026-11-23');
+        if (r.dataDaScrivere !== null || !r.attivo || r.chiediInizio) violazioni.push(`4m (R-16): ritest con ${String(m)} test mancanti: ${JSON.stringify(r)}`);
+      }
+      const primo = Sc.chiusuraDelGiro(null, 0, '2026-11-23');
+      if (primo.dataDaScrivere !== '2026-11-23' || !primo.chiediInizio) violazioni.push(`4m: il primo giro non fissa più la data: ${JSON.stringify(primo)}`);
+    }
+  }
+
   registra('4', 'Progressione entro le soglie',
     violazioni.length === 0 ? 'PASS' : 'FALLITO',
     violazioni.length === 0 ? 'nessuna soglia superata' : `${String(violazioni.length)} soglie superate → ${violazioni.join(' | ')}`);

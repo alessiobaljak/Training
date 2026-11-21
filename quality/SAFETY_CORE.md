@@ -4,15 +4,12 @@ Mantenuto da `training-quality`. **`release-gate` lo esegue per intero a ogni
 rilascio, anche di dimensione S.** Nessun caso si salta, nessun caso si
 riassume.
 
-Versione: **v11** · 2026-11-20d · misurato su `src/` al commit `f7f945d`
-(head locale, rilascio C). **v11: 4k nuovo (R-14)**: la revisione riceve la durata
-come in Home e nella schermata Revisione (`durataDellaSedutaDi`, M22). Circuito 4
-sotto il tetto, military press `{10, +1″, 0}` e dip su panche al gradino 1 con i
-passi di tempo e pausa oltre 55′: manubrio 10 → 12 esatto (S2 sui manubri, D-19 b),
-niente zavorra con la variante aperta (S5). Se la military press non arriva al
-manubrio la fixture non misura e il caso fallisce. Provato al contrario: su
-`fb560e7` 4k non misura (la revisione dice ancora «tempo»); su `f7f945d` solo S9.
-v10 (`0d85597`): 4j, R-7. Note di v10 e precedenti: `ARCHIVE-2.md`.
+Versione: **v12** · 2026-11-21 · misurato su `src/` al commit `c8964ff` (head locale,
+T-28 e figure). **v12: 4l (R-17)** — un test non alza il gradino di uno stato mai salvato
+(9.26: push-up M=10, sei chiusure allo stesso livello, ritest M=16; controllo con lo stato
+salvato); **4m (R-16)** — un ritest non riscrive la data di inizio (`chiusuraDelGiro`; il
+collegamento nel browser lo misura `20`). Provato al contrario su `6cbb759`: 4l e 4m
+falliscono; su `c8964ff` fallisce solo 4l. v11 (`f7f945d`): 4k, R-14. Note: `ARCHIVE-3.md`.
 
 ## Lettura dopo le decisioni del 2026-11-12
 
@@ -72,19 +69,15 @@ si lanciano mai in parallelo (stesse porte 8080 e 9099).
   PASS: vedi caso 6.
 - `FALLITO` quando il controllo gira e il risultato non è quello atteso.
 
-## Esito del 2026-11-20d (v11, `f7f945d`): 2 PASS · 4 FALLITI · 2 NON COPERTI
+## Esito del 2026-11-21b (v12, `c8964ff`): 2 PASS · 4 FALLITI · 2 NON COPERTI
 
-Conteggio invariato, identico su `fb560e7` con la v10. Caso 4 fallisce **solo per
-4h** (S9, B10): 4j e il nuovo 4k superati; su `fb560e7` il 4k non misura (positivo).
-Casi 2, 3, 6 FALLITI (B9, B6, B8); 1 e 8 NON COPERTI; 5 e 7 PASS (nessun campo di
-testo nel codice nuovo: `DEVIAZIONI_NOTA` è testo dell'app). B14 è chiuso nei
-circuiti (`18`: 0 su 61.410 voci pesate); il residuo sulle sedute archiviate (L31)
-non entra nel nucleo finché training-designer non decide.
+Conteggio invariato. Caso 4 fallisce per **4h** (S9, B10) e per il nuovo **4l** (S1/S3,
+R-17, B16: push-up 1 → 2 dopo un ritest, senza R5 né R7). 4m superato (R-16 chiuso da
+T-28). Su `6cbb759` (= produzione per `src/`): 4h, 4l **e 4m**. Casi 2, 3, 6 FALLITI (B9,
+B6, B8; caso 6: 261 file, 0 approvati); 1 e 8 NON COPERTI; 5 e 7 PASS (T-28 non aggiunge
+campi di testo).
 
-**2026-11-21 (`50793fd`, solo figure):** stesso conteggio, identico su `96a90c2`. Caso 6
-non peggiora: 261 file nel bundle (265), 0 approvati, 0 non registrati; 6a verificato.
-
-Esiti precedenti: `ARCHIVE-2.md`.
+Esiti precedenti: `ARCHIVE-3.md`, `ARCHIVE-2.md`.
 
 ---
 
@@ -154,8 +147,8 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi (2026-11-20d, `f7f945d`, v11): FALLITO** — 1 violazione su 11
-controlli: 4h (S9, B10). Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
+**Stato oggi (2026-11-21b, `c8964ff`, v12): FALLITO** — 2 violazioni su 13
+controlli: 4h (S9, B10), 4l (S1/S3, R-17, B16); 4m superato. Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
 4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10), 4j (R-7, v10), **4k (R-14, v11)**. La revisione
 riceve il registro: vuoto salvo 4c (salite accettate) e 4e (zavorra accettata). Inizio programma 2026-03-02; revisione della settimana W
 con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
@@ -175,6 +168,8 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 4i (S10) | (1) push-up `circuito-3/A2` gradino 2, 18-18-18 su 12-18, `tempoRespected=null`, R7 aperta; (2) controllo statico di `GuidedSession.tsx`, come 5 e 6a | (1) nessuna leva oltre le ripetizioni; (2) ogni `setTempoRespected` del player scrive `false` | **corretto**: nessuna leva; 1 scrittura, `false`. Se il player tornasse a scrivere «sì» da una misura, (2) fallisce e il controllo va riscritto come misura (`07`) |
 | 4j (R-7, v10) | curl a martello `circuito-1/B1`, `{12, +2″, +2″}`, massimo chiuso il 19 (sett. 4): la fine seduta propone il manubrio, accettato (registro, seduta del 19). Seduta del 23: peso come `PassoLavoro` (B del manubrio in attesa, se no lo stato; `pesoIniziale` con volta scorsa 12 e 0 kg), chiusura come `chiudi`; positivo: seduta scritta a T. Statico: composizione del peso in `GuidedSession` | campo ≤ 12 kg e stato salvato ≤ 12 kg in tutti e due i casi; positivo: stato = T. Composizione non riconosciuta ⇒ il controllo va riscritto | **corretto** su `0d85597`. Su `e30cdc6`: campo a 14,5 kg e stato 14,5 con la volta scorsa a 0 (R-7) |
 | 4k (R-14, v11) | circuito 4 a meno di 55′, stati casuali con seme fisso; military press `circuito-4/A3` `{10, +1″, 0}`, dip su panche `B2` al gradino 1 con tempo e pausa liberi, i passi di tempo e pausa di tutti e due oltre 55′; chiuse 03-02, 03-19, 03-26 al massimo, tempo sì; revisione W4 il 03-30 **con `durata: durataDellaSedutaDi`** | military press: `aggiungi-peso` 10 → 12, mai più di 2 kg; dip: nessuna zavorra, `alMassimo` «variante»; se la military press non arriva al manubrio la fixture non misura | **corretto** su `f7f945d`. Su `fb560e7` non misura: la revisione dice «tempo» |
+| 4l (R-17, v12) | repository vero (MemoryStore): test push-up M=10 il 03-02 (settimana 0), sei chiusure allo stesso livello con `syncStatesFromLog`, ritest M=16 il 04-13 (settimana 6); controllo uguale con lo stato salvato | stesso livello prima e dopo il ritest (si sale solo dalle sedute, R5 e R7); se il controllo si muove la fixture non misura | **FALLITO** su `c8964ff` e `6cbb759`: 1 → 2 (B16); controllo fermo |
+| 4m (R-16, v12) | `chiusuraDelGiro('2026-10-05', 0 o 3, '2026-11-23')`; primo giro `chiusuraDelGiro(null, 0, '2026-11-23')` | ritest: nessuna data da scrivere, sempre attivo, niente «Quando parte»; primo giro: la data scelta | **corretto** su `c8964ff`; su `6cbb759` la funzione non c'è e la data si riscrive (`20` nel browser: 10-05 → 11-23) |
 
 ## Caso 5 — Nessuna diagnosi o indicazione su farmaci nei testi dell'app
 **Stato oggi: PASS.**
@@ -281,3 +276,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-20c | v10 | 2 | 4 | 2 | training-quality (commit `0d85597`, rilascio B2; 4j R-7 nuovo; caso 4 solo 4h; su `e30cdc6` anche 4j ×2) |
 | 2026-11-20d | v11 | 2 | 4 | 2 | training-quality (commit `f7f945d`, rilascio C; 4k R-14 nuovo; caso 4 solo 4h; su `fb560e7` 4k non misura) |
 | 2026-11-21 | v11 | 2 | 4 | 2 | training-quality (commit `50793fd`, solo figure; caso 6: 261 file, 0 approvati; identico su `96a90c2` con 265) |
+| 2026-11-21b | v12 | 2 | 4 | 2 | training-quality (commit `c8964ff`, T-28 e figure; 4l R-17 e 4m R-16 nuovi; caso 4: 4h + 4l; su `6cbb759` 4h + 4l + 4m) |
