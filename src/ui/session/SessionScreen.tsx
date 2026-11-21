@@ -17,6 +17,7 @@ import {
   statesToSave,
   statiDaFissare,
   statoDopoCambioAMano,
+  kgDellaVoltaScorsa,
   sessionDecisions,
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
@@ -279,7 +280,13 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
    * Lo zero resta la porta di servizio per lo storico vecchio, registrato
    * prima che lo stato venisse sincronizzato.
    */
-  const kgDalLog = suggestedSetValue(past, step.setIndex, step.perSide ? 'left' : null)?.loadKg ?? 0;
+  /* B20: i kg della volta scorsa solo se presi allo stesso gradino. */
+  const kgDalLog = kgDellaVoltaScorsa(
+    exercise,
+    past,
+    suggestedSetValue(past, step.setIndex, step.perSide ? 'left' : null)?.loadKg ?? 0,
+    exerciseState?.level ?? null,
+  );
   const kgDalloStato = exerciseState?.loadKg ?? 0;
   const suggestion = {
     value: suggestedSetValue(past, step.setIndex, null)?.value ?? 0,

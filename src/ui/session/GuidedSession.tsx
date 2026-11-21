@@ -22,6 +22,7 @@ import {
   setVariant,
   statesToSave,
   statiDaFissare,
+  kgDellaVoltaScorsa,
   suggestedSetValue,
   syncStatesFromLog,
   titleAtLevel,
@@ -1087,7 +1088,19 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
    * invece si aggiunge a passi esatti: lì vale lo stato.
    */
   const [kg, setKg] = useState(
-    pesoIniziale(stazione?.esercizio.loadPolicy === 'inherent', kgDalloStato, suggerito?.loadKg ?? 0),
+    pesoIniziale(
+      stazione?.esercizio.loadPolicy === 'inherent',
+      kgDalloStato,
+      /* B20: i kg della volta scorsa solo se presi allo stesso gradino. */
+      stazione === null
+        ? 0
+        : kgDellaVoltaScorsa(
+            stazione.esercizio,
+            passato,
+            suggerito?.loadKg ?? 0,
+            contesto.states.get(stazione.esercizio.slug)?.level ?? stazione.gradino,
+          ),
+    ),
   );
 
   /* La serie è cominciata: da qui in poi comanda la registrazione. */

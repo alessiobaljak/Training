@@ -22,6 +22,7 @@ import {
   suggestedSetValue,
   syncStatesFromLog,
   statoDopoCambioAMano,
+  kgDellaVoltaScorsa,
   upsertLoggedSet,
   variantLabelFor,
 } from './draft.ts';
@@ -430,6 +431,18 @@ describe('quello che scrivi torna nello stato', () => {
     const prima: ExerciseState = { ...stato('trazioni-prona-presa-media', 6, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
     expect(statoDopoCambioAMano(trazioni, prima, 5)).toEqual({ ...prima, level: 5, loadKg: 0, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 });
     expect(statoDopoCambioAMano(trazioni, prima, 6)).toBe(prima);
+  });
+
+  it('B20 · i kg della volta scorsa solo se registrati allo stesso gradino; i manubri sempre', () => {
+    const trazioni = getExercise('trazioni-prona-presa-media');
+    const al6 = { ...loggedExercise('trazioni-prona-presa-media', sets([4, 4, 4], 5), { blockCode: 'A1' }), level: 6 as LevelIndex };
+    expect(kgDellaVoltaScorsa(trazioni, al6, 5, 5)).toBe(0);
+    expect(kgDellaVoltaScorsa(trazioni, al6, 5, 6)).toBe(5);
+    expect(kgDellaVoltaScorsa(trazioni, undefined, 0, 5)).toBe(0);
+    const manubrio = getExercise('curl-martello-manubri');
+    expect(manubrio.loadPolicy).toBe('inherent');
+    const curl = { ...loggedExercise('curl-martello-manubri', sets([10, 10], 12), { blockCode: 'B1' }), level: null };
+    expect(kgDellaVoltaScorsa(manubrio, curl, 12, null)).toBe(12);
   });
 
   it('porta nello stato il carico davvero usato', () => {

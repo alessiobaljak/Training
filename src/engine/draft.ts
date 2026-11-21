@@ -471,6 +471,25 @@ export function syncStatesFromLog(
  * faceva registrare 14,5 kg a chi era rimasto a 12, e la leva dopo
  * proponeva 17 (R-7).
  */
+/**
+ * B20: i kg della volta scorsa valgono solo se registrati allo stesso gradino.
+ *
+ * Dopo un cambio di gradino lo stato ha la zavorra a 0 (R23), ma il campo
+ * Peso ripartiva dai kg della seduta prima, presi al gradino vecchio: chi non
+ * toccava il campo li registrava di nuovo, e la chiusura riportava la zavorra
+ * sotto il 6. Come per l'etichetta (A11), il passato vale solo allo stesso
+ * gradino. Sui manubri il peso è l'esercizio e vale sempre.
+ */
+export function kgDellaVoltaScorsa(
+  exercise: Exercise,
+  passato: LoggedExercise | undefined,
+  kg: number,
+  livelloOggi: LevelIndex | null,
+): number {
+  if (exercise.loadPolicy !== 'allowed') return kg;
+  return passato !== undefined && passato.level === livelloOggi ? kg : 0;
+}
+
 export function pesoIniziale(inerente: boolean, dalloStato: number, dallaVoltaScorsa: number): number {
   if (inerente && dallaVoltaScorsa > 0) return dallaVoltaScorsa;
   return dalloStato > 0 ? dalloStato : dallaVoltaScorsa;
