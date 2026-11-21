@@ -198,6 +198,12 @@ incrina.
 - Mondi di A (note ostili nel 10% delle serie, etichetta «livello 6, +20 kg»): 0
   differenze su 259.782 esiti. Nucleo caso 7 PASS. La proprietà tiene.
 
+## U14 — Verifica del 2026-11-21c (commit `704dbfa`, R9c)
+
+`statiDaFissare` e `fissaStatiMancanti` leggono di ogni voce solo `exercise` e `sets.length`, e
+scrivono lo stato calcolato dai campi numerici dei test: nessuna nota né etichetta entra. Caso 7
+del nucleo v13: PASS (6 stringhe ostili × 4 campi, impronta identica). Proprietà: tiene.
+
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o
    `variantLabel`. Mai.

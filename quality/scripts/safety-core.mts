@@ -74,6 +74,39 @@ function fileTesto(dir: string, ext: string[]): string[] {
   return out;
 }
 
+/* v13 (2026-11-21, `704dbfa`): la chiusura di una seduta come la fanno `chiudi` (GuidedSession) e
+ * `saveAndExit` (SessionScreen): stati cambiati dal diario (`statesToSave(syncStatesFromLog)`), poi, dal
+ * `704dbfa` (R9c punto 1), `statiDaFissare` sugli esercizi fatti e non ancora scritti. Senza scelte e senza
+ * decadenze. Con `statiDaFissare` assente, o con `conR9c` falso, è la chiusura di prima. `gestoreChiama`
+ * legge il sorgente dei due gestori: se la chiamata manca, la composizione modellata non è quella dell'app. */
+type Repo13 = { saveTestResult(r: TestResult): Promise<unknown>; getExerciseState(s: ExerciseSlug): Promise<ExerciseState>;
+  saveExerciseState(s: ExerciseState): Promise<unknown>; saveSession(s: LoggedSession): Promise<unknown>;
+  getConfirmedStates(s: readonly ExerciseSlug[]): Promise<ReadonlySet<ExerciseSlug>>; fissaStatiMancanti?: () => Promise<number> };
+const RepoMod13 = (await import('../../src/db/repository.ts')) as unknown as { ShadowRepository: new () => Repo13 };
+const DraftMod13 = (await import('../../src/engine/draft.ts')) as unknown as {
+  syncStatesFromLog(s: LoggedSession, m: ReadonlyMap<ExerciseSlug, ExerciseState>): ExerciseState[];
+  statesToSave(x: readonly ExerciseState[], a: ReadonlyMap<ExerciseSlug, ExerciseState>): ExerciseState[];
+  statiDaFissare?: (s: readonly LoggedSession[], g: ReadonlySet<ExerciseSlug>, c: (x: ExerciseSlug) => ExerciseState | undefined) => ExerciseState[] };
+async function chiusuraApp(repo: Repo13, s: LoggedSession, conR9c = true): Promise<void> {
+  const slugs = [...new Set(s.exercises.map((e) => e.exercise))];
+  const states = new Map(await Promise.all(slugs.map(async (x) => [x, await repo.getExerciseState(x)] as const)));
+  const confirmed = await repo.getConfirmedStates(slugs);
+  const salvati = DraftMod13.statesToSave(DraftMod13.syncStatesFromLog(s, states), new Map());
+  for (const x of salvati) await repo.saveExerciseState(x);
+  if (conR9c && DraftMod13.statiDaFissare !== undefined) {
+    const gia = new Set([...confirmed, ...salvati.map((x) => x.exercise)]);
+    for (const x of DraftMod13.statiDaFissare([s], gia, (k) => states.get(k))) await repo.saveExerciseState(x);
+  }
+  await repo.saveSession({ ...s, status: 'completed' });
+}
+function gestoreChiama(file: string, inizio: string, chiamata: string): boolean | null {
+  const src = readFileSync(file, 'utf8');
+  const i = src.indexOf(inizio);
+  if (i < 0) return null;
+  const fine = src.indexOf('closeSession(', i);
+  return fine > i && src.slice(i, fine).includes(chiamata);
+}
+
 /* ====================================================================== */
 /* CASO 1 — dolore dichiarato gestito con un rimando                      */
 /* ====================================================================== */
@@ -189,8 +222,57 @@ function fileTesto(dir: string, ext: string[]): string[] {
     }
   }
 
-  const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 ? 'FALLITO' : 'PASS';
-  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3).`;
+  /*
+   * 2d (v13, 2026-11-21) — S7 dopo un test peggiore (R9b, D-18 di Alessio; R9c punto 4: «dopo ogni ritest,
+   * solo in discesa, con R9b»). Per ogni esercizio dei circuiti in cui R1 arriva alla riga 8: test di
+   * settimana 0 alla soglia (→ Lt), una seduta chiusa a Lt come la chiude l'app, ritest di settimana 6 con
+   * 0 < M = soglia − 1. Atteso: gradino ≤ giù(Lt), oppure una proposta `riparti-dal-test` (R9b). Due vie:
+   * lo stato salvato prima della seduta (com'è per ogni esercizio già cambiato una volta) e la sola chiusura.
+   * Positivo: con la chiusura di prima e lo stato mai salvato il gradino scende (R1 sullo stato virtuale).
+   */
+  let r9b = false;
+  for (const f of fileTesto('src/engine', ['.ts'])) if (readFileSync(f, 'utf8').includes("'riparti-dal-test'")) r9b = true;
+  const fermi2d: string[] = [];
+  let positivo2d = 0, misurati2d = 0;
+  for (const slug of [...prescritti].sort()) {
+    const e = getExercise(slug);
+    const P = e.defaultLevel;
+    if (e.pattern === null || P === null) continue;
+    const B = blocchiDi(slug).filter((b) => b.excludeFromReview !== true);
+    const t = testBaseline(e.pattern);
+    if (B.length === 0 || t === null || P < t.level || t.measurement !== e.measurement) continue;
+    const soglie = B.flatMap((b) => b.prescription.kind === 'reps' ? [b.prescription.min + rirMax(b.rir)]
+      : b.prescription.kind === 'seconds' ? [b.prescription.min + Math.ceil(0.2 * b.prescription.min)] : []);
+    if (soglie.length === 0) continue;
+    const soglia = Math.max(...soglie);
+    const atteso = giu(e.pattern, t.level);
+    if (atteso >= t.level) continue;
+    const b0 = B[0]!;
+    const sid = CIRCUIT_SESSIONS.find((x) => x.blocks.includes(b0))!.id;
+    const min = b0.prescription.kind === 'reps' || b0.prescription.kind === 'seconds' ? b0.prescription.min : 5;
+    const giro = async (salvaPrima: boolean, conR9c: boolean): Promise<[number | null, number | null]> => {
+      const repo = new RepoMod13.ShadowRepository();
+      await repo.saveTestResult({ testId: t.testId, date: '2026-03-02', week: 0, value: soglia } as TestResult);
+      const s0 = await repo.getExerciseState(slug);
+      if (salvaPrima) await repo.saveExerciseState(s0);
+      await chiusuraApp(repo, seduta('2d-1', 1, sid as LoggedSession['sessionId'], [esercizio(b0.code, slug, sets([min, min]), true, s0.level)]), conR9c);
+      await repo.saveTestResult({ testId: t.testId, date: '2026-04-13', week: 6, value: soglia - 1 } as TestResult);
+      return [s0.level, (await repo.getExerciseState(slug)).level];
+    };
+    misurati2d += 1;
+    const [p0, p1] = await giro(false, false);
+    if (p0 === t.level && p1 === atteso) positivo2d += 1;
+    for (const [via, salvaPrima] of [['stato salvato', true], ['sola chiusura', false]] as const) {
+      const [l0, l1] = await giro(salvaPrima, true);
+      if (l0 !== t.level) { fermi2d.push(`${slug}: la partenza non è Lt (${String(l0)} invece di ${String(t.level)}): la fixture non misura`); continue; }
+      if ((l1 ?? 0) > atteso && !r9b) fermi2d.push(`${slug} (${via}): ritest ${t.testId} = ${String(soglia - 1)} < soglia ${String(soglia)}, resta ${String(l1)}, R9b vuole ${String(atteso)} o una proposta, e nessuna proposta esiste`);
+    }
+  }
+  if (positivo2d !== misurati2d) fermi2d.push(`2d: positivo ${String(positivo2d)}/${String(misurati2d)} (con la chiusura di prima lo stato virtuale scende): la fixture non misura`);
+  if (r9b) fermi2d.push('2d: `riparti-dal-test` esiste nel motore: il controllo va esteso alla proposta (NON misurata qui)');
+
+  const esito2: Esito = sopraLoZero.length > 0 || diversiDaR1.length > 0 || incompatibili.length > 0 || fermi2d.length > 0 ? 'FALLITO' : 'PASS';
+  const coda = `2a zero o assente → gradino 1: ${sopraLoZero.length === 0 ? 'rispettato' : sopraLoZero.join(' | ')}. 2b app = R1 (PROGRAM_RULES §3, riscritta dal testo): ${diversiDaR1.length === 0 ? `coincide su ${String(prescritti.size)} esercizi prescritti` : diversiDaR1.join(' | ')}. 2c S7 minima (stesso gradino del test, valore sotto il minimo del blocco): ${incompatibili.length === 0 ? 'nessun caso' : `${String(incompatibili.length)} blocchi → ${incompatibili.join(' | ')}`}. S7 approvata da Alessio il 2026-11-12; R1 è la regola di training-designer (PROGRAM_RULES §3). 2d S7 dopo un test peggiore (R9b, v13): ${fermi2d.length === 0 ? `${String(misurati2d)} esercizi, tutti giù o con proposta` : `${String(fermi2d.length)} → ${fermi2d.join(' | ')}`} (positivo ${String(positivo2d)}/${String(misurati2d)}).`;
 
   registra('2', 'Principiante senza esercizi oltre il suo gradino', esito2, coda);
 }
@@ -589,37 +671,69 @@ function fileTesto(dir: string, ext: string[]): string[] {
     }
   }
 
-  /* 4l — R-17 (v12, 2026-11-21): un test non alza il gradino di uno stato mai salvato. Criterio 9.26 di
-   * training-designer: push-up dal test di settimana 0 (M=10 → livello di partenza), sei chiusure allo
-   * stesso livello col repository vero (MemoryStore) e `syncStatesFromLog`, ritest di settimana 6 con M=16.
-   * Atteso (S1, S3, R9c): stesso livello. Si sale solo dalle sedute, con R5 e R7. Positivo: lo stesso giro
-   * con lo stato salvato resta fermo, quindi la fixture discrimina. */
+  /* 4l — R-17 (v12; **v13** 2026-11-21 sul `704dbfa`). Criterio 9.26 di training-designer: push-up dal test di
+   * settimana 0 (M=10 → livello 1), sei chiusure allo stesso livello col repository vero (MemoryStore),
+   * ritest di settimana 6 con M=16. Atteso (S1, S3, R9c): stesso livello; si sale solo dalle sedute.
+   * v13: (a) la chiusura è quella dell'app (`chiusuraApp`), e i due gestori devono chiamare `statiDaFissare`
+   * prima di `closeSession`; (b) la migrazione: storia chiusa con la chiusura di prima, poi
+   * `fissaStatiMancanti` (R9c punto 2). Positivo: la chiusura di prima, senza migrazione, sale 1 → 2.
+   * 4n — «Archivia» dalla Home (v13): una seduta rimasta aperta con serie, archiviata, diventa chiusa
+   * (`saveSession({ ...entry, status: 'completed' })`) senza nessuno stato scritto: R9c punto 1 vale anche
+   * lì. Si modella il gestore com'è nel sorgente; se il sorgente cambia la fixture lo dice e va rimisurata
+   * nel browser (`23`). */
   {
-    const Rp = (await import('../../src/db/repository.ts')) as unknown as { ShadowRepository: new () => {
-      saveTestResult(r: TestResult): Promise<unknown>; getExerciseState(s: ExerciseSlug): Promise<ExerciseState>;
-      saveExerciseState(s: ExerciseState): Promise<unknown>; } };
-    const Dr4 = (await import('../../src/engine/draft.ts')) as unknown as {
-      syncStatesFromLog(s: LoggedSession, m: ReadonlyMap<ExerciseSlug, ExerciseState>): ExerciseState[] };
+    const pu = 'push-up' as ExerciseSlug;
     const prova = (date: string, week: number, value: number): TestResult =>
       ({ testId: 'push-up' as TestId, date, week, value, left: null, right: null }) as TestResult;
-    const giro = async (salvato: boolean): Promise<[number | null, number | null]> => {
-      const repo = new Rp.ShadowRepository();
+    const giro = async (modo: 'app' | 'prima' | 'migrazione'): Promise<[number | null, number | null] | null> => {
+      const repo = new RepoMod13.ShadowRepository();
       await repo.saveTestResult(prova('2026-03-02', 0, 10));
-      const s0 = await repo.getExerciseState('push-up' as ExerciseSlug);
-      if (salvato) await repo.saveExerciseState(s0);
+      const s0 = await repo.getExerciseState(pu);
       for (let w = 1; w <= 6; w += 1) {
-        const stato = await repo.getExerciseState('push-up' as ExerciseSlug);
-        const seduta = { id: `l-${String(w)}`, date: '2026-03-04', week: w, status: 'completed',
-          exercises: [{ exercise: 'push-up', blockCode: 'A2', level: s0.level, sets: sets([12, 12]) }] } as unknown as LoggedSession;
-        for (const c of Dr4.syncStatesFromLog(seduta, new Map([['push-up' as ExerciseSlug, stato]]))) await repo.saveExerciseState(c);
+        await chiusuraApp(repo, seduta(`l-${String(w)}`, w, 'circuito-3', [esercizio('A2', pu, sets([12, 12]), null, s0.level)]), modo === 'app');
+      }
+      if (modo === 'migrazione') {
+        if (repo.fissaStatiMancanti === undefined) return null;
+        await repo.fissaStatiMancanti();
       }
       await repo.saveTestResult(prova('2026-04-13', 6, 16));
-      return [s0.level, (await repo.getExerciseState('push-up' as ExerciseSlug)).level];
+      return [s0.level, (await repo.getExerciseState(pu)).level];
     };
-    const [l0, l1] = await giro(false);
-    const [c0, c1] = await giro(true);
-    if (c0 !== c1) violazioni.push(`4l: controllo con lo stato salvato ${String(c0)} → ${String(c1)}: la fixture non misura`);
-    if (l0 !== l1) violazioni.push(`S1/S3 (4l, R-17): push-up mai salvato, livello ${String(l0)} → ${String(l1)} dopo un ritest migliore, senza R5 né R7`);
+    const prima = await giro('prima');
+    if (prima === null || prima[0] === prima[1]) violazioni.push(`4l: positivo mancato, la chiusura di prima non sale (${JSON.stringify(prima)}): la fixture non misura`);
+    if (DraftMod13.statiDaFissare === undefined) {
+      violazioni.push(`S1/S3 (4l, R-17): \`statiDaFissare\` assente, la chiusura salva solo gli stati cambiati: push-up ${String(prima?.[0])} → ${String(prima?.[1])} dopo un ritest migliore, senza R5 né R7`);
+    } else {
+      for (const [file, inizio] of [['src/ui/session/GuidedSession.tsx', 'const chiudi = (): void => {'], ['src/ui/session/SessionScreen.tsx', 'const saveAndExit = (): void => {']] as const) {
+        const c = gestoreChiama(file, inizio, 'statiDaFissare(');
+        if (c !== true) violazioni.push(`4l: ${file} ${c === null ? 'senza il gestore atteso' : 'non chiama `statiDaFissare` prima di `closeSession`'}: la chiusura modellata non è quella dell'app`);
+      }
+      const app = await giro('app');
+      if (app !== null && app[0] !== app[1]) violazioni.push(`S1/S3 (4l, R-17): chiusura come l'app, push-up ${String(app[0])} → ${String(app[1])} dopo un ritest migliore`);
+    }
+    const mig = await giro('migrazione');
+    if (mig === null) violazioni.push('S1/S3 (4l, R-17, R9c punto 2): `fissaStatiMancanti` assente, la storia chiusa prima resta virtuale');
+    else if (mig[0] !== mig[1]) violazioni.push(`S1/S3 (4l, R9c punto 2): dopo la migrazione push-up ${String(mig[0])} → ${String(mig[1])} dopo un ritest migliore`);
+
+    /* 4n — «Archivia» */
+    const home = readFileSync('src/ui/screens/HomeScreen.tsx', 'utf8');
+    const iA = home.search(/>\s*Archivia\s*<\/Button>/);
+    const gestore = iA < 0 ? '' : home.slice(home.lastIndexOf('onClick', iA), iA);
+    const noto = "void repository.saveSession({ ...entry, status: 'completed' });";
+    if (iA < 0) violazioni.push('4n: «Archivia» non trovato in HomeScreen: la fixture non misura');
+    else if (!gestore.includes(noto) || /statiDaFissare|fissaStati|syncStatesFromLog/.test(gestore)) {
+      violazioni.push('4n: il gestore di «Archivia» è cambiato: modello da aggiornare e da rimisurare nel browser (`23`)');
+    } else {
+      const repo = new RepoMod13.ShadowRepository();
+      await repo.saveTestResult(prova('2026-03-02', 0, 10));
+      const s0 = await repo.getExerciseState(pu);
+      const aperta = { ...seduta('n-1', 1, 'circuito-3', [esercizio('A2', pu, sets([12, 12]), null, s0.level)]), status: 'in-progress' } as LoggedSession;
+      await repo.saveSession(aperta);
+      await repo.saveSession({ ...aperta, status: 'completed' });
+      await repo.saveTestResult(prova('2026-04-13', 6, 16));
+      const l1 = (await repo.getExerciseState(pu)).level;
+      if (l1 !== s0.level) violazioni.push(`S1/S3 (4n, R-17 per «Archivia»): seduta rimasta aperta e archiviata dalla Home, nessuno stato scritto; push-up ${String(s0.level)} → ${String(l1)} dopo un ritest migliore`);
+    }
   }
 
   /* 4m — R-16 (v12, 2026-11-21): un ritest non riscrive la data di inizio (T-28). Con la data riscritta la
