@@ -292,7 +292,7 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   ridotte: stessi esercizi, stesso ordine, <2> giri invece di <3> nei tri-set e <1>
   invece di <2> nella finitura. Niente aumenti finché non torni al volume pieno.»
   (giri letti dal piano; la parentesi solo con R22 attiva). Etichetta «Rientro · seduta <k> di <4>».
-- **Consigli 4.2 (2026-11-21b, PROPOSTA)**, testi esatti nel rapporto
-  `2026-11-21-training-b9-b10-m4.md`: scheda «Prima i test di rientro» (R9a rev.), conferma
-  del salto, giorno di test, settimane 6/12 e `RETEST_BANNER` (via «l'app ricalcola», M16,
-  D-04), esiti e riepilogo dei ritest, Progressi (R22), Z1 (R21), transizione di R20, L29, L32.
+- **Consigli 4.2** (testi nel rapporto `2026-11-21-training-b9-b10-m4.md`; R9b, Z1 e R20 in produzione
+  `22f3d31`): ancora da fare «Prima i test di rientro», giorno di test, settimane 6/12 e `RETEST_BANNER`
+  (M16, D-04), Progressi (R22), L29, L32. **Consigli 4.3 (11-21c, PROPOSTA)**: clausola della zavorra di
+  R23 su ogni cambio di gradino (quattro testi), nomi del rematore: rapporto `2026-11-21-training-anelli-figure.md` §2-§3.

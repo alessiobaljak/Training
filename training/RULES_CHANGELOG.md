@@ -5,15 +5,30 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## In produzione oggi
 
-**`6cbb759` (rilascio C, 2026-11-21)**: progressione 4.1, consigli 4.1, programmi 2.3 rev.,
-limiti 1.4 rev. (B: R14a/c/d/e, D-19 b; C: M22, L25, L26, B14). Prima: `e30cdc6` (4.0 + rev.
-11-20 + D-21…D-23), `0f3f191`, `fe85203`, `a747e09`. Non ancora: R9. Il resto è il codice
-trascritto con `[IN CODICE]` nei file di metodo.
+**`22f3d31` (rilascio F, 2026-11-21)**: R9b, R9c, B18. Prima: E `4d06a4b` (R20, R21), D `85d1dd8`
+(figure, T-28), C `6cbb759` (progressione 4.1, consigli 4.1, programmi 2.3 rev., limiti 1.4 rev.),
+`e30cdc6`, `0f3f191`, `fe85203`, `a747e09`. Non ancora: R9, R22, resto di T-33, T-34…T-36. Il resto
+è il codice trascritto con `[IN CODICE]` nei file di metodo.
 
 ## Voci aperte
 
+### programmi 2.5 · progressione 4.3 · consigli 4.3 · limiti 1.6 (2026-11-21c)
+- **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-21-training-anelli-figure.md`, T-37…T-41).
+- **Cosa.** R21 rev.: S7 su `recordActual` = «nessuna dose sopra il misurato», sei condizioni; Z1
+  parte solo al «Via». Rematore S2 A3 agli anelli: stesso slug, nome senza attrezzo, scala
+  `horizontal-pull` agli anelli (gradini 1, 2, 3, 5 rinominati), test agli anelli a 45°, varianti
+  archiviate senza «TRX». R23: ogni cambio di gradino porta la zavorra a 0 (L43 a, L14, L42).
+  `testAllaData`: `<` con ripiego sullo stesso giorno. `videoQuery` dell'apertura delle anche.
+- **Perché.** Decisioni di Alessio del 2026-11-21 (D-Q3 a, anelli); quality `644bd8c` (domande 3 e
+  5, L42, L43) e `4d06a4b` (deviazione di Z1).
+- **Limiti.** Nessuno allentato: R23 e `testAllaData` stringono; D-Q3 (a) è una lettura decisa da
+  Alessio. Nessuna soglia cambiata, nessun campo nuovo, nessuna migrazione.
+- **Esito training-quality.** Non ancora valutato.
+
 ### programmi 2.4 · progressione 4.2 · consigli 4.2 · progressi 3.2 · limiti 1.5 (2026-11-21b)
-- **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-21-training-b9-b10-m4.md`, T-28…T-36).
+- **Stato.** In produzione in parte: T-28 (`85d1dd8`), T-29 R20 e T-30 R21 (`4d06a4b`), R9b, R9c,
+  B18 (`22f3d31`; B18 senza mia specifica, scritta poi come R23). Da fare: T-31, T-32, resto di
+  T-33, T-34…T-36 (`reports/2026-11-21-training-b9-b10-m4.md`).
 - **Cosa.** R20 giro della finitura 15″ nei 4 circuiti (B10); R21 Z1 bersaglio 30″ o finché
   regge, tempo vero (B9); R9a rev. test prima del rientro, R9b solo discesa su ogni test dopo
   la settimana 0 (D-18), R9c nessun test alza un gradino, giorno di test senza seduta; R22
@@ -24,7 +39,8 @@ trascritto con `[IN CODICE]` nei file di metodo.
 - **Limiti.** Nessuno allentato. Stringono: R9b, R9c, giorno di test, R22 (scarico, ritest,
   zavorra dopo settimane di lavoro), R20 (+15″, R19 un passo prima). Major: campo
   `recordActual`, costante `SETTIMANE_DAL`, `DEVIAZIONI_VARIANTE`, migrazione degli stati (R9c).
-- **Esito training-quality.** Non ancora valutato.
+- **Esito training-quality.** GO su `4d06a4b` (B10 chiuso, B9 ridotto → D-Q3) e su `644bd8c` (B16,
+  B17, B18 chiusi; L41-L43 nuovi, L43 → R23).
 
 ### progressione 4.1 · consigli 4.1 · programmi 2.3 rev. · limiti 1.4 rev. (2026-11-21)
 - **Stato.** In produzione `6cbb759` (T-24 nel B, T-25…T-27 nel C; `reports/2026-11-21-training.md`).

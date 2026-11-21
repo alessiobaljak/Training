@@ -11,9 +11,9 @@ W-19…W-22 (R5-R8) chiusi in codice, in produzione `a747e09`: `ARCHIVE.md`.
 
 | id | cosa | dove | chi |
 |---|---|---|---|
-| W-46 | **T-28** R-16: il riepilogo di un ritest non scrive più `programStartDate` (rapporto 11-21b) — **per primo** | `OnboardingScreen.tsx` | sessione principale |
-| W-23 | R9 rientro con R9a rev. «prima i test» (T-32), R9b + R9c + giorno di test + testi dei ritest (T-33), R22 settimane (T-31) — M4, R-17, D-04, M16 | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts`, `repository.ts`, `HomeScreen`, `OnboardingScreen` | sessione principale |
-| W-47 | **T-29** R20 giro della finitura (B10) · **T-30** R21 Z1 dead hang (B9) | `engine/circuit.ts`, `GuidedSession`, `SessionSummary`, `CircuitOverview`, `types/program.ts` | sessione principale |
+| W-23 | R9 rientro con R9a rev. «prima i test» (T-32), resto di T-33 (giorno di test, testi dei ritest, M16), R22 settimane (T-31) — M4, D-04, M16. R9b e R9c in produzione `22f3d31` | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts`, `HomeScreen`, `OnboardingScreen` | sessione principale |
+| W-51 | **T-37** rematore S2 A3 agli anelli: nomi, cue, gradini 1-2-3-5, test, deviazioni; figura TRX fuori nello stesso commit (rapporto 11-21c §2) | `exercises.ts`, `progressions.ts`, `tests.ts`, `deviations.ts`, `exercise-art.ts` | sessione principale + exercise-media-lead |
+| W-52 | **T-38** R23 zavorra a 0 a ogni cambio di gradino (L43, L14, L42) · **T-39** `testAllaData` `<` con ripiego · **T-40** prova 21.14 (Z1 al via) · **T-41** `videoQuery` apertura anche | `review.ts`, `ritest.ts`, `progression.ts`, `VariantPicker`, `repository.ts`, test | sessione principale |
 
 W-24…W-31 (giro 2026-11-16, R10-R13): in produzione `fe85203`, `ARCHIVE.md`.
 
@@ -32,10 +32,10 @@ chiudere in `ARCHIVE.md` dopo conferma di quality). Attesi dai rapporti, non dal
 | id | cosa | dove | chi |
 |---|---|---|---|
 | W-14 | R1 gradino di partenza (B5 di quality) + `eccentricOnly` + `variantNoteLevel` + nome gradino 1 trazione verticale — spec: rapporto 2026-11-12. In codice in gran parte (2026-11-14); il nome del gradino 1 è ancora «Trazioni assistite» | `progression.ts`, `progressions.ts`, `circuit.ts` | sessione principale |
-| W-15 | R2 transizione 15" B→F + L14 (A8 di quality) | `circuit.ts`, `circuit.test.ts` | sessione principale |
 | W-01 | Limiti L1, L2, L13, L11, L12 di BOUNDARIES.md: screening, dolore, sintomi gravi, minorenni, test di non-regressione sul testo dell'atleta | onboarding, player, settings | sessione principale |
 | W-45 | `MANUBRI_KG` diventa l'elenco dei manubri dell'atleta (attrezzatura dichiarata, L8, D-2); il motore lo riceve già come parametro | impostazioni, onboarding, `backup.ts` | sessione principale |
 | W-02 | Campi mancanti nella scheda esercizio: `equipment`, `minLevel`, `prerequisites`, `sites`, `contraindications`, `execution`, `commonErrors`, `frames` | `src/types/exercise.ts`, `src/data/exercises.ts` | training-designer + sessione principale |
+| W-53 | Schede delle figure generate: pilota fatto (rapporto 11-21c §5.1-5.5); poi `vertical-pull-l1`, `dip-l1`, `horizontal-pull-l1`…`l6`, poi i 31 di §5.6 in ordine. Prima, domande del media lead 2, 3, 4, 5 (b, c) e 6 del 2026-11-21 | rapporti, `exercise-art.ts` | training-designer → exercise-media-lead |
 
 ## Alti
 
@@ -67,4 +67,4 @@ chiudere in `ARCHIVE.md` dopo conferma di quality). Attesi dai rapporti, non dal
 | W-10 | Il titolo di `aggiungi-peso` dice «passa al manubrio successivo» anche sulla kettlebell (salti di 4 kg). **Assorbito da W-26** (R10c-0); con R10c-1 kettlebell fuori dall'elenco |
 | W-11 | `SESSIONS_PER_WEEK` in `ProgressScreen.tsx` è corretto (4) ma il commento sopra dice «sei»: denominatore dell'aderenza, vale la pena che il commento non menta |
 | W-13 | Il riscaldamento non è saltabile dall'app quando la seduta ha un blocco a RIR 0-1 o una stazione balistica (METHOD §7) |
-| W-50 | Per quality: `scendi-di-livello` tiene `loadKg` (dal 6 con zavorra al 5 con zavorra, S5); prudente togliere prima la zavorra. Hip thrust e bulgaro al gradino 6: +2,5 kg non si fa con le kettlebell (residuo B6) |
+| W-54 | Hip thrust e bulgaro al gradino 6: +2,5 kg non si fa con le kettlebell (residuo B6, da W-50) |

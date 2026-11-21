@@ -2,7 +2,8 @@
 
 Versione **programmi 1.0 — PROPOSTA del 2026-11-08, non approvata.**
 Aggiunte del 2026-11-12, `[PROPOSTA, programmi 2.0]`: R1 (§3), R2 (§2), R4 (§3).
-`[PROPOSTA, programmi 2.4 — 2026-11-21]`: R20 (§2), R21 (§4), R9a rev., R9b, R9c, R22 (§8).
+`[programmi 2.4]`: R20 (§2), R21 (§4), R9b, R9c (§8) in produzione `22f3d31`; R9a rev., R22 no.
+`[PROPOSTA 2.5 — 2026-11-21c]`: R21 rev. + S7 su Z1 (§4), rematore agli anelli (§3), `testAllaData` (§8).
 Programma attivo: `src/data/circuit.ts` (4 circuiti). Archiviato: `src/data/program.ts`.
 
 ## 1. Il programma non si genera: si sceglie
@@ -29,16 +30,11 @@ regola** (vincolo di Alessio, 2026-11-12). Recuperi trans./giro/blocco:
 | F1-F4 finitura metabolica | 2 | 15" / 15" (R20) / 0" | 15" / 15" (R20) / 0" |
 | Z1-Z3 decompressione | 1 | 0" | 0" |
 
-**R2 — Giunzione Tri-set 2 → finitura** `[PROPOSTA, programmi 1.1]`. Oggi 0":
-dall'ultima serie del gruppo B si entra nel primo passo di lavoro F senza
-nessun passo in mezzo (training-quality A8). Regola: **tra l'ultimo passo di
-lavoro del gruppo B e il primo del gruppo F c'è una transizione di 15", in
-tutte e quattro le sedute** — è la transizione della finitura, non una pausa di
-blocco. Non cambia esercizi né ordine; costa 15" a seduta (la più lunga ≈ 39:28).
-Soddisfa BOUNDARIES L14. Lo scambio di stazioni (I2 di training-quality) cambia
-l'ordine: è una domanda per Alessio, non una regola (rapporto 2026-11-12).
+**R2 — Giunzione Tri-set 2 → finitura** `[programmi 1.1, assorbita da R20]`: fra l'ultimo passo
+B e il primo F 15″ di transizione, nei 4 circuiti (A8, L14). In produzione: nucleo 4h su `4d06a4b`,
+ogni giunzione fra stazioni diverse ≥ 15″ salvo verso Z. Lo scambio di stazioni resta D-12.
 
-**R20 — Giro della finitura** `[PROPOSTA, programmi 2.4 — 2026-11-21, chiude B10]`. Con
+**R20 — Giro della finitura** `[programmi 2.4, in produzione `4d06a4b`, chiude B10]`. Con
 recupero 0 fra due stazioni diverse, il passo è la transizione del blocco d'arrivo (Z
 esclusa). Fra un giro e l'altro della finitura: 15″ `transizione`, nei 4 circuiti. Durate
 38:40, 36:55, 36:18, 39:43 (+15″ a seduta piena). S9 ovunque. Prove 20.x: rapporto 11-21b.
@@ -107,7 +103,7 @@ Esiti sul circuito:
 | S1 A2 | bulgarian | 2 | 2 | 10/lato | 2 | 1 | 1 |
 | S1 A3 | dip parallele | 3 | 3 | 8 | 3 | 1 | 1 |
 | S2 A1 | pike piedi rialzati | 2 | 2 | 8 | 2 | 1 | 1 |
-| S2 A3 | rematore TRX | 2 | 2 | 10 | 2 | 1 | 1 |
+| S2 A3 | rematore inverso (anelli, 2.5) | 2 | 2 | 10 | 2 | 1 | 1 |
 | S3 A2 | push-up | 2 | 2 | 14 | 2 | 1 | 1 |
 | S3 B3 | hollow hold | 3 | 3 | 36" | 3 | 2 | 1 |
 | S4 A1 | hip thrust panca | 2 | — | — | 2 (riga 3) | — | — |
@@ -172,9 +168,17 @@ inverted-row-trx, pike-push-up, bulgarian-split-squat, hollow-hold.
   Stesso numero per countdown, «Deve durare almeno», anteprima, riepilogo del
   circuito, stima (trazioni +2″/+2″: 30 → 54). Prove 18.x: rapporto 2026-11-18.
 - Recupero: quattro livelli, §2.
-- **R21 — Z1 dead hang** `[PROPOSTA, programmi 2.4 — 2026-11-21, chiude B9]`: bersaglio
-  30″ o finché la presa regge, mai oltre. Il player scrive il tempo vero («Ho mollato»,
-  «Hai tenuto fino al segnale?»), mai 30 da solo (`recordActual`). Fuori dalla revisione.
+- **R21 — Z1 dead hang** `[programmi 2.4, in produzione `4d06a4b` · rev. 2.5 PROPOSTA 11-21c]`:
+  bersaglio 30″ o finché la presa regge (fino al primo segno che si apre, non a cedere), mai
+  oltre. Il player scrive il tempo vero («Ho mollato», «Hai tenuto fino al segnale?»), mai 30 da
+  solo (`recordActual`). Fuori dalla revisione; gradino P = 2 (R1 riga 2). **Parte solo al «Via»**,
+  anche arrivandoci avanzando dalla finitura: nessuna regola di partenza automatica vale per
+  `recordActual` (deviazione accettata da quality su `4d06a4b`; prova 21.14, T-40).
+  **S7 su Z1** (D-Q3 a, Alessio 2026-11-21): sui blocchi `recordActual` S7 = «nessuna dose sopra
+  il misurato», rispettata ⇔ (1) gradino = P; (2) «bersaglio 30″, o finché la presa regge», senza
+  «almeno»; (3) conto fermo a 30; (4) tempo vero scritto, mai il bersaglio da solo; (5) fuori da R1,
+  R9b, verdetti, volume, record, Progressi, mai `TestResult`; (6) nota di sicurezza prima del via.
+  Altri blocchi: S7 invariata. B9 si chiude con 2c riscritto da quality (rapporto 11-21c §1).
 
 ## 5. Durata massima della seduta — R19 `[programmi 2.3: IN CODICE e30cdc6 a fine seduta · rev. 2026-11-21 PROPOSTA]`
 
@@ -275,6 +279,8 @@ un risultato più recente dello stesso test. È una discesa: niente cancelli, ni
 **R9c — Nessun test alza un gradino** (R-17). Alla chiusura, ogni esercizio registrato
 senza stato salvato lo salva, anche uguale; al primo avvio dopo il rilascio si salvano
 gli stati mostrati. Mai eseguiti: R1 con i test recenti. R1 «dopo ogni ritest» = R9b.
+Test per lo stato fissato (rev. 2.5, T-39): per ogni test l'ultimo con `date <` ultima seduta;
+se non c'è, quello dello stesso giorno (prove 9.30, 9.31, 9.37, 9.38; rapporto 11-21c §4).
 **R22 — Settimana del programma** (D-17 a, dichiarata). Dopo `D0 = SETTIMANE_DAL` (data
 del rilascio) una settimana di calendario senza sedute chiuse non conta, quella in corso
 sì; fino a D0 vale il calendario. `fine(W)` = domenica dell'ultima settimana di calendario

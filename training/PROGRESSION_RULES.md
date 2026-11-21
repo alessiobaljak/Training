@@ -1,6 +1,6 @@
 # PROGRESSION_RULES.md — soglie di progressione
 
-**In produzione `6cbb759` (rilascio C): progressione 4.1** — R5-R7 §9, R10 R13 §10, R14 R15 R17 §11, D-19 b, R19 a fine seduta e in revisione (PROGRAM_RULES §5), D-21 a, D-23 a; R8 R11 R12 R16 in PROGRESS_REVIEW §6. R9 no. **PROPOSTA progressione 4.2 (2026-11-21b): R9b, R9c, L30 (a), L32, `LEVA_MANUBRIO` + goblet, stacco rumeno, estensione tricipiti** (rapporto `2026-11-21-training-b9-b10-m4.md`). Motore: `engine/progression.ts`, `review.ts`, `loading.ts`.
+**In produzione `22f3d31` (rilascio F): progressione 4.1 + parte della 4.2** — R5-R7 §9, R10 R13 §10, R14 R15 R17 §11, D-19 b, R19 (PROGRAM_RULES §5), D-21 a, D-23 a, **R9b, R9c, B18**; R8 R11 R12 R16 in PROGRESS_REVIEW §6. Non ancora: R9, L30 (a), L32, `LEVA_MANUBRIO` + goblet, stacco rumeno, estensione tricipiti (T-32, T-34…T-36, rapporto `2026-11-21-training-b9-b10-m4.md`). **PROPOSTA 4.3 (2026-11-21c): R23** (§8, rapporto `2026-11-21-training-anelli-figure.md`). Motore: `engine/progression.ts`, `review.ts`, `ritest.ts`, `loading.ts`.
 
 Ogni soglia è un numero, non un giudizio; `[PROPOSTA]` = la regola oggi non c'è.
 
@@ -64,9 +64,9 @@ confrontabile. Con R5-R8 ogni aumento passa da R5, la salita da R7, il peso da R
 
 | verdetto | condizione | effetto accettando |
 |---|---|---|
-| `scendi-di-livello` | **tutte** le serie sotto il minimo, gradino > 1 | gradino −1, bonus tempo/pause a 0 |
+| `scendi-di-livello` | **tutte** le serie sotto il minimo, gradino > 1 | gradino −1, bonus tempo/pause e zavorra a 0 (B18, R23) |
 | `range-da-rifare` | tutte sotto il minimo e gradino 1 (o nessuna scala) | niente: si rifà il test |
-| `sali-di-livello` | **tutte** le serie sopra il massimo, gradino < 6 | gradino +1, bonus a 0 |
+| `sali-di-livello` | **tutte** le serie sopra il massimo, gradino < 6 | gradino +1, bonus e zavorra a 0 (R23) |
 | `aggiungi-peso` | tutte **≥** massimo e zavorra disponibile in settimana+1 | +2,5 kg |
 
 Se i numeri sono sparsi (una sotto, due sopra) **non succede niente**: è la
@@ -97,7 +97,10 @@ T1 sulle altre leve → **R13** (§10, D-4 a). In discesa non c'è tetto.
 
 - Tutte le serie sotto il minimo ⇒ gradino −1 (§5). È la direzione che il motore
   delle leve non ha mai avuto e va tenuta sempre raggiungibile a mano.
-- Zavorra: media ≤ 4 ripetizioni ⇒ −2,5 kg.
+- Zavorra fuori dai circuiti: media ≤ 4 ripetizioni ⇒ −2,5 kg (nei circuiti non si mostra, B14).
+- **R23** `[PROPOSTA 4.3 — 2026-11-21c]` (L43 = a, con L14 e L42): ogni cambio di gradino proposto o eseguito dall'app (`scendi-di-livello`, `sali-di-livello`, leva `variant`, `riparti-dal-test`, cambio a mano nel `VariantPicker`) porta a 0 tempo, pausa **e zavorra** (`allowed`); `inherent` invariato.
+  Clausola del «cambio», solo con kg > 0: «…; la zavorra si toglie: sotto l'ultimo gradino il programma non la usa.»; arrivo al 6 in salita: «…; la zavorra riparte da zero: all'ultimo gradino è il programma a proporla.»
+  Perché (a): S5 anche in salita; al 6 a 0 kg il gradino non è più il suo nome; nei circuiti nessuna leva di carico in discesa (B14). Prove 23.1-23.9, 23.P: rapporto 11-21c §3.
 - `[PROPOSTA]` Dolore dichiarato su un esercizio ⇒ l'esercizio esce dal
   programma, nessuna progressione proposta, nessuna riduzione «terapeutica»
   suggerita. Vedi BOUNDARIES L2 e L3.
@@ -205,10 +208,8 @@ prima leva disponibile fra tempo e pausa, o nessuna.
 *Casi limite* e tabella 7.1-7.12: `ARCHIVE.md`.
 
 ### R9 — Rientro dopo una pausa (S6 · chiude M4 · scenario S3)
-In **PROGRAM_RULES §8**: dopo ≥ 14 giorni senza sedute chiuse, 4 sedute (≥ 7
-giorni) a giri dimezzati, tutte le stazioni, nessun aumento (R5 E5), ritest **prima**
-(R9a rev.). Un test dopo la settimana 0 può solo far scendere (R9b, D-18 sì) e non alza
-nessun gradino da solo (R9c); settimana del programma: R22. Resta da fare (T-31…T-33).
+In **PROGRAM_RULES §8**: ≥ 14 giorni senza sedute ⇒ 4 sedute (≥ 7 giorni) a giri dimezzati, nessun aumento (R5 E5), ritest **prima** (R9a rev.), settimane R22: da fare (T-31, T-32).
+R9b (solo discesa, D-18) e R9c (nessun test alza un gradino) in produzione `22f3d31`; `testAllaData` rev.: T-39.
 
 ## 10. R10, R13 — A17 e D-4 `[progressione 3.0 — 2026-11-16, in produzione `fe85203`]`
 
@@ -254,8 +255,7 @@ Revisione: `fermi` `sette-giorni`. Date e spiegazioni del diario: **R15** (§11)
 
 ## 11. R14, R15, R17 — M18, L18, L19, L21 `[progressione 4.0 — 2026-11-18, rev. 2026-11-20]`
 
-Rilascio A (R15, R17, R14b) in produzione; rilascio B (R14a/c/d/e) in corso.
-Prove, motivazioni e testi: `reports/2026-11-18-training.md` + appendici `2026-11-20`, `2026-11-21`.
+In produzione dai rilasci A-C. Prove, motivazioni e testi: `reports/2026-11-18-training.md` + appendici `2026-11-20`, `2026-11-21`.
 **Notazione.** Scelta in salita `c` su `g` ∈ {carico, livello}: `accepted` con
 `stateAfter.g > stateBefore.g`; `B`, `T` i due valori (manubrio: `T` esatto, D-19 b; tetto solo nei record vecchi con `T` fuori elenco).
 `v_g(X)`: max `loadKg`, **max `level`** delle voci di `e` in X con serie (L24, rev.
@@ -295,5 +295,5 @@ R13, con il testo della regola che la fissa (fine seduta; revisione R10a 1, 2-3,
 il suo motivo; (4) tempo o pausa fermi per R19 ⇒ testo «tetto»; (5) cima ⇒ «leve finite» con i kg; (6) «leve finite».
 
 ### Ordine di implementazione
-A, B, C (T-15…T-27) in produzione (`6cbb759`). Poi, rapporto 11-21b: T-28 (R-16) → T-29, T-30 → T-31 → T-32 → T-33; T-34…T-36 liberi.
+A-F in produzione (`22f3d31`: fino a T-27, T-28, T-29, T-30, R9b, R9c, B18). Resta (11-21b): T-31 → T-32 → resto di T-33; T-34…T-36 liberi. Poi (11-21c): T-37 (con il media lead), T-38, T-39, T-40, T-41 liberi.
 L30 (a): «(6) fuori elenco» = esercizio `inherent` fuori da `LEVA_MANUBRIO` ⇒ `tetto`; in `LEVA_MANUBRIO` peso mai scritto o fuori elenco ⇒ `manubrio` anche col tetto.

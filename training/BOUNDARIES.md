@@ -196,14 +196,12 @@ solo su ≥ 2 sedute e ≥ 3 serie vere: le ultime 2, stesso stato, nei 14 giorn
 (R8, D-16). (S5) Zavorra solo a variante esaurita e mai sotto 8 trazioni o 10
 dip misurati (R6). (S6) Dopo **≥ 14 giorni** senza sedute chiuse: 4 sedute (≥ 7
 giorni) a giri dimezzati, nessun aumento, ritest proposto prima (R9). Si scende sempre.
-Limiti 1.5 (proposta 11-21b): un test dopo la settimana 0 non alza mai un gradino, può solo
-proporre di scendere (R9b, R9c); nel giorno di un test la Home non propone la seduta.
-Dettaglio: PROGRESSION_RULES §9, PROGRESS_REVIEW §6, PROGRAM_RULES §8.
-S2 su 7 giorni mobili (R13); D-4 (a) decisa: un aumento di qualunque leva ogni 7
-giorni. 1.4: l'aumento conta dal giorno in cui si esegue (R15; D-20 a, b decise il
-2026-11-20); una data dopo oggi ferma come oggi (L23). Rev. 11-21 (proposta): manubri = successivo dell'elenco dichiarato (D-19 b, ≤ 2 kg; test: nessun salto > 2,5).
-**Stato oggi** (`6cbb759`): S1-S5 in codice, S2 su 7 giorni dall'esecuzione, L23; S6 no (R9).
-Rischi aperti: R-16 (il ritest riscrive la data di inizio), R-17 (un ritest alza gli stati virtuali).
+Limiti 1.5: un test dopo la settimana 0 non alza mai un gradino, può solo proporre di scendere (R9b, R9c: in produzione `22f3d31`); nel giorno di un test la Home non propone la seduta (non ancora, T-33).
+**Limiti 1.6 (proposta 11-21c).** (S7 su Z1, D-Q3 a) sui blocchi `recordActual` «nessuna dose sopra il misurato»: gradino P, bersaglio con tetto, tempo vero, fuori da ogni regola (PROGRAM_RULES R21, sei condizioni).
+(R23) ogni cambio di gradino porta la zavorra a 0, in discesa, in salita e a mano: sotto il 6 nessun kg prescritto dall'app.
+S2 su 7 giorni mobili (R13, D-4 a); l'aumento conta dal giorno in cui si esegue (R15, D-20 a e b); una data dopo oggi ferma come oggi (L23); manubri = successivo dell'elenco dichiarato (D-19 b, ≤ 2 kg).
+**Stato oggi** (`22f3d31`): S1-S5 in codice, con R9b, R9c e B18; R-16 e R-17 chiusi (T-28, R9c); S6 no (R9, T-32).
+Dettaglio: PROGRESSION_RULES §8-§9, PROGRESS_REVIEW §6, PROGRAM_RULES §4 e §8.
 **Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre
 barriere aperte (rapporto 2026-11-15), 4d con controlli positivi, più un
 caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni

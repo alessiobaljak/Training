@@ -35,7 +35,7 @@ Valori ammessi: `corpo-libero`, `sbarra`, `anelli`, `trx`, `elastici`,
 Regola: l'elenco è **completo e necessario** — ciò che serve per eseguire
 l'esercizio come è descritto. Una panca usata come appoggio si dichiara.
 
-Oggi l'attrezzatura si deduce solo dal nome, e tre slug mentono: il metodo è
+Oggi l'attrezzatura si deduce solo dal nome, e tre slug mentono (sei con T-37): il metodo è
 stato cambiato (deviazioni dichiarate in `src/data/deviations.ts`) ma gli slug
 sono rimasti quelli vecchi.
 
@@ -44,6 +44,8 @@ sono rimasti quelli vecchi.
 | `alzate-laterali-elastico` | Alzate laterali con manubri | manubri |
 | `curl-elastico-presa-neutra` | Curl con manubri presa neutra | manubri |
 | `croci-elastico-o-pushup-presa-larga` | Croci con manubri | manubri + panca |
+| `rematore-inverso-trx` (T-37, 11-21c) | Rematore inverso | anelli |
+| `rematore-inverso-trx-piedi-rialzati`, `rematore-trx-monobraccio` (archiviati, T-37) | Rematore inverso piedi rialzati · monobraccio | anelli |
 
 Gli slug non si cambiano (sono la chiave dello storico): si dichiara `equipment`
 e si considera lo slug un identificatore opaco.
@@ -91,7 +93,11 @@ comparire. Minimo 1 fotogramma per le isometrie, 2 per i movimenti, 3 quando il
 punto medio è quello che si sbaglia (swing, nordic curl, sissy squat).
 È la scheda tecnica che `exercise-media-lead` riceve: oggi
 `src/data/exercise-art.ts` ha i nomi dei file ma nessuna specifica di cosa la
-figura debba mostrare.
+figura debba mostrare. **Prime schede** (2026-11-21c, figure generate da testo):
+`reports/2026-11-21-training-anelli-figure.md` §5 — pilota `kb-swing`, `apertura-anche`,
+`respirazione-360`, `corda-battaglia-slam`, più il rematore agli anelli; elenco ordinato degli
+altri 31 (§5.6). Ogni scheda: partenza e arrivo, attrezzo e presa, angoli con tolleranza, vista,
+cosa deve vedersi, cosa mai, controllo di training-quality. Nessuna cita immagini d'archivio (RepDB, termine 5).
 
 ## 3. Regole di compilazione
 
@@ -107,3 +113,7 @@ figura debba mostrare.
    la stringa vuota è una scelta da dichiarare, non un campo da saltare.
 5. Chi aggiunge un esercizio compila tutti i campi, immagine compresa. Un
    esercizio a scheda incompleta può stare nel catalogo ma non essere proposto.
+6. **Una scala, un attrezzo** (2026-11-21c). I gradini nominano l'attrezzo e la figura di un
+   gradino lo mostra. Se un esercizio cambia attrezzo con lo stesso slug, il suo **nome non nomina
+   l'attrezzo**: il nome si legge anche sulle sedute vecchie, `variantLabel` invece resta quello
+   scritto quel giorno (rematore inverso: TRX → anelli).
