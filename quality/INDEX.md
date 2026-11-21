@@ -1,13 +1,12 @@
 # /quality/ — indice
-2026-11-21f · atleti **v1** · scenari v1 + §9 (+ P-MAN proposto) · griglia **v3 approvata**, composizione v2 · nucleo **v15**
+2026-11-21g · atleti **v1** · scenari v1 + §9 (+ P-MAN proposto) · griglia **v3 approvata**, composizione v2 · nucleo **v16**
 
-## Ultima misura — 2026-11-21f, commit `9d7b20f` (T-37 anelli, T-38 R23, T-39, T-40, T-41, sopra `22f3d31` in produzione)
-**GO per il push**; app NO-GO. **B9 chiuso** (D-Q3 = a, nucleo 2c-Z), **B19** (già in produzione: ritest migliore lo
-stesso giorno fissava il gradino alzato) aperto e chiuso, L14 e L43 chiusi. Nucleo **v15** 4 · 2 · 2 (casi 2 e 4 PASS);
-`22f3d31` 3 · 3 · 2 (4l d + 4o v15); `85d1dd8` 2c minima su 4 Z1. v14: 3 · 3 · 2 su tutti e due. Criteri conformi salvo
-**23.7 sul `VariantPicker`** (L42). Nuovi **L44** (T-39, scarti non dichiarati), **L45** (SVG «agli anelli» col TRX).
-Bloccanti **3** + 4ᵖ (B6 B8 M4) · Alti 2 · Medi 12 · Bassi 31. verify (984) da me; smoke, offline, browser NON COPERTI.
-v15 **non committata** (domanda 5). Rapporto: `quality/reports/2026-11-21-quality-9d7b20f.md`. Precedente: `…-644bd8c.md`.
+## Ultima misura — 2026-11-21g, commit `3c4a8d7` (L42, selettore, un commit sopra `9c62f84` in produzione)
+**GO per il push**; app NO-GO. **L42 chiuso** (`27` 27.1-27.9). **B20 nuovo, preesistente in produzione**: dopo ogni cambio
+di gradino a 0 kg il campo Peso riparte dalla volta scorsa (altro gradino) e la chiusura scrive `{5, 5 kg}` (S5, R23).
+Nucleo **v15** 4 · 2 · 2 su tutte e due (identico); **v16** (4o vii, viii) 3 · 3 · 2 su tutte e due. Nuovo **L46**.
+Bloccanti **4** + 4ᵖ (B6 B8 M4 B20) · Alti 2 · Medi 12 · Bassi 31. verify (985) da me; smoke, offline, browser NON COPERTI.
+v16 **non committata** (domanda 4). Rapporto: `quality/reports/2026-11-21-quality-3c4a8d7.md`. Precedente: `…-9d7b20f.md`.
 
 ## Soglie
 **Approvate da Alessio il 2026-11-12**: C1-C8, regola di esito, S1-S10, voci v3. B1-B4
@@ -24,14 +23,15 @@ eseguiti da quella radice, **mai dal tree principale** (ci lavora la sessione pr
 fisse (`app.ts:49-50`)**: prima di `20`/`23` niente smoke, offline o emulatori altrui (`ps`). Foto RepDB mai
 guardate (termine 5); SVG nostre lette nella geometria (`svgrow.py`, nessun rasterizzatore installato). Figure: duplicati per hash. Fine seduta mai in W5, 11, 17 (D-21).
 Un fixture che dice «modello da aggiornare» è una v nuova, non un FALLITO da contare. Template literal: niente backtick nei testi.
+Uno stato giusto non basta: guardare anche **cosa precompila il player la seduta dopo** (B20 l'ha mostrato).
 
 ## Cosa contiene ogni file
 - `PERSONAS.md` P1-P11 · `SCENARIOS.md` 30 scenari + §9 · `UNTRUSTED_INPUT.md` U1-U16, proprietà tiene.
-- `GRID.md` gravità, criteri, S1-S10, v3 + proposta v4, D5 · `RESULTS.md` misure, aperte, ultime 10 chiuse, immagini, ricalcoli · `SAFETY_CORE.md` 8 casi v15 · `IMAGES.md` · `ARCHIVE.md`, `ARCHIVE-2.md`, `ARCHIVE-3.md` (pieni) · `ARCHIVE-4.md` (in uso, ~100 righe).
-- `scripts/` (`node --experimental-strip-types quality/scripts/X.mts` dalla radice di una copia): `safety-core` **v15**, `01`, `03`-`11`, `13` v2, `15`-`17`, `18` (riferimento B18 + R23), `19-figure`, `20-ritest-r16.mjs` e `23-r9c-browser.mjs` (browser, `node`), `21-r17`, `22-r9c`, `24-r20-r21` (radici come argomenti), `25-r9b-r9c-b18`, **`26-t37-t38-t39`**. `02`, `12`, `14` obsoleti.
+- `GRID.md` gravità, criteri, S1-S10, v3 + proposta v4, D5 · `RESULTS.md` misure, aperte, ultime 10 chiuse, immagini, ricalcoli · `SAFETY_CORE.md` 8 casi v16 · `IMAGES.md` · `ARCHIVE.md`, `ARCHIVE-2.md`, `ARCHIVE-3.md` (pieni) · `ARCHIVE-4.md` (in uso, ~180 righe).
+- `scripts/` (`node --experimental-strip-types quality/scripts/X.mts` dalla radice di una copia): `safety-core` **v16**, `01`, `03`-`11`, `13` v2, `15`-`17`, `18` (riferimento B18 + R23), `19-figure`, `20-ritest-r16.mjs` e `23-r9c-browser.mjs` (browser, `node`), `21-r17`, `22-r9c`, `24-r20-r21` (radici come argomenti), `25-r9b-r9c-b18`, `26-t37-t38-t39`, **`27-l42-selettore`**. `02`, `12`, `14` obsoleti.
 
 ## Prossimo giro
-Risposte su L44 (designer), L42/23.7 (sessione principale), L45/L35 (media lead), positivo di 21.14. Browser su
-`644bd8c`/`9d7b20f` (`23` con gli attesi nuovi, R9b, «Lascia com'è», L41). M16 (testi T-33). Migrazione Firestore,
+Risposte su B20 e L46 (designer), B20 (sessione principale), v16 (gate), L44 (designer), L45/L35 (media lead), positivo
+di 21.14. Browser su `644bd8c`/`9d7b20f` (`23`, R9b, «Lascia com'è», L41). M16 (testi T-33). Migrazione Firestore,
 `23` fase D, 14.14 Firestore, L26.2s, 20.8, 21.2-21.7, 21.12: NON COPERTI. L30-L32, L40, L41, M3, L27-L29.
 Immagini: mai guardate `burpee`, `hip-thrust-l4/l5`, `posterior-chain-l1`; schede di `horizontal-pull-l1`, `l3`-`l6` in arrivo.

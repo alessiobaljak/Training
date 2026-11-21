@@ -12,6 +12,8 @@
  * Versione v15 (2026-11-21f, `9d7b20f`): 2c riscritto per i blocchi `recordActual` con la lettura di S7 di R21 rev.
  * (D-Q3 = a di Alessio; sei condizioni, cinque positivi); 4o esteso a R23 (salita, leva variante, gradino scritto
  * nel diario); 4l (d) ritest dello stesso giorno della seduta (T-39, 9.31).
+ * Versione v16 (2026-11-21g, `3c4a8d7`): 4o (vii) il selettore di `SessionScreen` (L42, `statoDopoCambioAMano`);
+ * 4o (viii) il peso precompilato nella seduta dopo un cambio di gradino a 0 kg (player guidato e `SessionScreen`).
  *
  * Regola: NON COPERTO non è PASS. Un caso che non si può eseguire perché la
  * funzione non esiste resta NON COPERTO finché la funzione non esiste.
@@ -1003,7 +1005,7 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
        * pausa al massimo (23.5); (vi) la chiusura con un gradino scritto nel diario diverso dallo stato, 6 → 5 con
        * 5 kg e +2″/+2″ (23.7, `syncStatesFromLog`). A 0 kg nessun testo nomina la zavorra. Prima seduta al
        * gradino il 03-02 (R7 aperta). Verdetto o leva diversi ⇒ la fixture non misura. Il `VariantPicker` di
-       * `SessionScreen` (L42) NON è in questo controllo: lo handler salva lo stato da sé (rapporto 2026-11-21f). */
+       * `SessionScreen` (L42) è in (vii), da v16. */
       {
         const tz = 'trazioni-prona-presa-media' as ExerciseSlug;
         const PULL = new Map([['pull-up' as TestId, { testId: 'pull-up' as TestId, date: '2026-02-23', week: 0, value: 12 } as TestResult]]);
@@ -1034,6 +1036,62 @@ function gestoreChiama(file: string, inizio: string, chiamata: string): boolean 
         const dopo = DraftMod13.syncStatesFromLog(scritto, new Map([[tz, { ...stato(tz, 6 as LevelIndex, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }]])).find((x) => x.exercise === tz);
         if (dopo === undefined || dopo.level !== 5) violazioni.push(`4o (v15, 23.7): gradino scritto 5 su uno stato al 6: chiusura ${JSON.stringify(dopo ?? null)}: la fixture non misura`);
         else if (dopo.loadKg !== 0 || dopo.eccentricBonusSeconds !== 0 || dopo.bottomPauseBonusSeconds !== 0) violazioni.push(`S5 (4o, R23 23.7): gradino scritto 5 su uno stato al 6 con 5 kg e +2″/+2″ → {${String(dopo.level)}, ${String(dopo.loadKg)} kg, +${String(dopo.eccentricBonusSeconds)}″/+${String(dopo.bottomPauseBonusSeconds)}″}`);
+        /* v16 (2026-11-21g, `3c4a8d7`): (vii) il selettore di `SessionScreen` (L42): lo handler si legge in modo
+         * statico; con `statoDopoCambioAMano` si chiama la funzione, con `{ ...stato, level }` (prima di 3c4a8d7)
+         * si modella, altrimenti il controllo va riscritto. Atteso: gradino diverso ⇒ tempo, pausa e zavorra a 0
+         * (D-23, R23); stesso gradino o solo etichetta ⇒ invariato. (viii) il peso precompilato dopo un cambio a
+         * 0 kg: stato {5, 0 kg} (come esce da i, vi e vii), la volta scorsa al 6 con 5 kg nello stesso blocco.
+         * Player guidato (`pesoIniziale`, composizione come 4j) e `SessionScreen` (`kgDalloStato > 0 ? … :
+         * kgDalLog`); serie lasciate col peso proposto, poi la chiusura. Atteso: campo a 0 kg e stato {5, 0 kg}
+         * (limiti 1.6: sotto il 6 nessun kg proposto). Positivi: volta scorsa a 0 kg ⇒ 0; al 6 con 7,5 kg
+         * accettati ⇒ 7,5 (A18). Composizione non riconosciuta ⇒ controllo da riscrivere. */
+        {
+          const Dv = (await import('../../src/engine/draft.ts')) as unknown as {
+            statoDopoCambioAMano?: (e: unknown, s: ExerciseState, l: LevelIndex | null) => ExerciseState;
+            pesoIniziale?: (i: boolean, a: number, b: number) => number;
+            lastLoggedByBlock: (s: readonly LoggedSession[], id: string, ex: string, o?: ReadonlyMap<string, ExerciseSlug>) => ReadonlyMap<string, LoggedExercise>;
+            suggestedSetValue: (p: LoggedExercise | undefined, i: number, side: null) => LoggedSet | undefined;
+            statesToSave: (x: readonly ExerciseState[], a: ReadonlyMap<ExerciseSlug, ExerciseState>) => ExerciseState[];
+          };
+          const q = (x: ExerciseState | undefined | null): string => (x == null ? 'null' : `{${String(x.level)}, ${String(x.loadKg)} kg, +${String(x.eccentricBonusSeconds)}″/+${String(x.bottomPauseBonusSeconds)}″}`);
+          const ssx = readFileSync('src/ui/session/SessionScreen.tsx', 'utf8');
+          const h = (/onChange=\{\(level, label\) => \{[\s\S]*?confirmExercise\(([^;]*)\);/.exec(ssx)?.[1] ?? '').trim();
+          const hN = h === 'statoDopoCambioAMano(exercise, exerciseState, level)' && Dv.statoDopoCambioAMano !== undefined
+            && /const exercise = getExercise\(block\.exercise\);/.test(ssx) && /const exerciseState = states\.get\(block\.exercise\);/.test(ssx);
+          const hV = h === '{ ...exerciseState, level: level ?? exerciseState.level }';
+          const ex = getExercise(tz);
+          if (!hN && !hV) violazioni.push(`4o (vii): handler del VariantPicker non riconosciuto («${h}»): controllo da riscrivere`);
+          else {
+            const pk = (s: ExerciseState, l: LevelIndex | null): ExerciseState => (hN ? Dv.statoDopoCambioAMano!(ex, s, l) : { ...s, level: l ?? s.level });
+            const z = (l: number): string => `{${String(l)}, 0 kg, +0″/+0″}`;
+            for (const [prima, l] of [[{ ...stato(tz, 6 as LevelIndex, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }, 5], [{ ...stato(tz, 6 as LevelIndex, 0), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 }, 5], [stato(tz, 3 as LevelIndex, 5), 4], [stato(tz, 5 as LevelIndex, 5), 6]] as const) {
+              const d = pk(prima, l as LevelIndex);
+              if (q(d) !== z(l)) violazioni.push(`${prima.loadKg > 0 ? 'S5' : 'D-23'} (4o vii, R23, L42): selettore ${q(prima)} → ${String(l)} salva ${q(d)} (atteso ${z(l)})`);
+            }
+            const fermo = { ...stato(tz, 6 as LevelIndex, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
+            if (q(pk(fermo, 6 as LevelIndex)) !== q(fermo) || q(pk(fermo, null)) !== q(fermo)) violazioni.push(`4o (vii): selettore sullo stesso gradino o solo etichetta: ${q(pk(fermo, 6 as LevelIndex))} / ${q(pk(fermo, null))} (atteso ${q(fermo)}): la fixture non misura`);
+          }
+          const gsx = readFileSync('src/ui/session/GuidedSession.tsx', 'utf8');
+          const cG = (/const kgDalloStato =\s*contesto\.manubriInAttesa\.get\([^)]*\)\?\.B \?\?\s*contesto\.states\.get\([^)]*\)\?\.loadKg \?\?\s*0;/.test(gsx) || /const kgDalloStato = contesto\.states\.get\([^)]*\)\?\.loadKg \?\? 0;/.test(gsx))
+            && /pesoIniziale\(stazione\?\.esercizio\.loadPolicy === 'inherent', kgDalloStato, suggerito\?\.loadKg \?\? 0\)/.test(gsx)
+            && /const suggerito = suggestedSetValue\(passato, step\.step\.setIndex, perSide \? 'left' : null\);/.test(gsx) && Dv.pesoIniziale !== undefined;
+          const cS = /const kgDalLog = suggestedSetValue\(past, step\.setIndex, step\.perSide \? 'left' : null\)\?\.loadKg \?\? 0;/.test(ssx)
+            && /const kgDalloStato = exerciseState\?\.loadKg \?\? 0;/.test(ssx) && /loadKg: kgDalloStato > 0 \? kgDalloStato : kgDalLog,/.test(ssx);
+          if (!cG || !cS) violazioni.push(`4o (viii): composizione del peso non riconosciuta (player guidato ${String(cG)}, SessionScreen ${String(cS)}): controllo da riscrivere`);
+          else {
+            const oggiC1 = new Map(findCircuitSession('circuito-1')!.blocks.map((b) => [b.code, b.exercise as ExerciseSlug]));
+            const volta = (kg: number) => Dv.lastLoggedByBlock([seduta('o8p', 3, 'circuito-1', [esercizio('A1', tz, sets([5, 5, 5], { kg }), true, 6 as LevelIndex)], null, '2026-03-17')], 'circuito-1', 'o8', oggiC1).get('A1');
+            const kgV = (kg: number): number => Dv.suggestedSetValue(volta(kg), 1, null)?.loadKg ?? 0;
+            const dopo = stato(tz, 5 as LevelIndex, 0);
+            for (const [chi, campo] of [['player guidato', Dv.pesoIniziale!(false, dopo.loadKg, kgV(5))], ['SessionScreen', dopo.loadKg > 0 ? dopo.loadKg : kgV(5)]] as const) {
+              const chiusa = seduta('o8', 4, 'circuito-1', [esercizio('A1', tz, sets([6, 6, 6], { kg: campo }), true, 5 as LevelIndex)], null, '2026-03-24');
+              const fin = Dv.statesToSave(DraftMod13.syncStatesFromLog(chiusa, new Map([[tz, dopo]])), new Map()).find((x) => x.exercise === tz) ?? dopo;
+              if (campo !== 0 || fin.loadKg !== 0) violazioni.push(`S5 (4o viii, R23): ${chi}, stato ${q(dopo)} dopo un cambio di gradino, la volta scorsa al 6 con 5 kg: campo Peso ${String(campo)} kg, serie lasciate così, chiusura ${q(fin)} (atteso 0 kg e ${q(dopo)})`);
+            }
+            if (Dv.pesoIniziale!(false, 0, kgV(0)) !== 0) violazioni.push('4o (viii): positivo mancato, volta scorsa a 0 kg e stato a 0: campo diverso da 0: la fixture non misura');
+            if (Dv.pesoIniziale!(false, 7.5, kgV(5)) !== 7.5) violazioni.push('4o (viii): positivo mancato, al 6 con 7,5 kg accettati il campo non parte dallo stato (A18): la fixture non misura');
+          }
+        }
       }
     }
   }

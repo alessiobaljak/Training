@@ -99,3 +99,80 @@ nucleo 4k non misura. Chiusi **B14**, M22, L25, L26. Nuovi L30, L31, L32. verify
 | B9 | Bloccante (**ridotto** il 2026-11-21d, `4d06a4b`) | Decompressione Z1: dead hang al gradino 2 a chi ha misurato meno di 30" **allo stesso gradino** (P1: 8"), tutte e 4 le sedute. R1 riga 2 esclude i blocchi fuori revisione. **Dal `4d06a4b` (R21)**: bersaglio «30″ o finché la presa regge», «Ho mollato» e «Hai tenuto fino al segnale?», tempo vero nel diario, nota per scendere: la dose e il 30 «da solo» sono chiusi. **Resta il gradino**: con 8" R1 riga 8 (soglia 36") darebbe il gradino 1 («piedi che sfiorano terra»); «finché regge» per chi regge 8" è una tenuta quasi a cedimento a fine seduta, cioè quello che R21 stessa evita sopra i 30". Nucleo 2c FALLITO (il dato resta 30-30). **D-Q3** | G7, caso 2 (2c) | `engine/progression.ts` riga 2 di R1, `data/circuit.ts` Z1 | 2026-11-12 |
 | L14 | Basso | Salita di gradino con la zavorra conservata: `sali-di-livello` e leva `variant` tengono `loadKg` (trazioni al 3 con 5 kg → 4 con 5 kg). Latente: con R6 la zavorra si propone solo al 6, uno stato con kg sotto il 6 viene solo da kg scritti a mano | caso 7 v6 | `engine/review.ts`, `buildSuggestion` `variant` | 2026-11-15 |
 | L43 | Basso | B18 è una regola di progressione nuova (`scendi-di-livello` toglie la zavorra, anche a chi l'ha scritta a mano sotto il 6: push-up al 2 con 10 kg → 1 a 0 kg) scritta senza la specifica di training-designer; PROGRESSION_RULES non la dice. La direzione è quella di S5 e di R9b | `18` (146 casi) | `training/PROGRESSION_RULES.md`, `engine/review.ts` | 2026-11-21e |
+
+## SAFETY_CORE.md, spostato il 2026-11-21g
+
+### Testa della v15
+
+Versione: **v15** · 2026-11-21f · misurata su `src/` al commit `9d7b20f` (T-37, T-38 R23, T-39) e, al contrario,
+su `22f3d31` (produzione) e `85d1dd8` (prima di R21). **v15**: **2c riscritto** per i blocchi `recordActual` con la
+lettura di S7 di R21 rev. (D-Q3 = a di Alessio: sei condizioni, cinque positivi; «2c-Z»); **4o esteso** a R23
+(salita 3 → 4 e 5 → 6 con 5 kg, leva variante a fine seduta, gradino scritto nel diario diverso dallo stato);
+**4l (d)** nuovo (T-39: ritest migliore lo stesso giorno dell'ultima seduta, «Archivia» e migrazione). La v14 su
+`9d7b20f` dà 3 · 3 · 2 per costruzione (2c senza la lettura decisa). Testa della v14: `ARCHIVE-4.md`.
+
+## Lettura dopo le decisioni del 2026-11-12
+
+- **Soglie approvate**: i casi 2 e 4 misurano soglie vincolanti, non più
+  proposte. Una violazione è un difetto Bloccante (GRID.md).
+- **B1-B4 bloccano solo il rilascio pubblico.** Il caso 1 (B1) e i rimandi
+  di B2-B4 si eseguono comunque per intero e si riportano per quello che sono:
+  NON COPERTO o FALLITO, **mai PASS**. Il conteggio del nucleo non cambia per
+  la decisione: cambia solo il peso sull'esito del rilascio a un utente.
+
+## Fixture: la regola del 2026-11-09b (storia in `ARCHIVE-3.md`)
+
+**Regola che ne esce, da applicare a ogni fixture futura**: una fixture si
+puntella sull'**esercizio e sul rapporto con il range** (dentro / al massimo /
+sopra), mai sul codice di blocco da solo. Un codice di blocco è un indirizzo,
+non un'identità.
+
+### Esito del 2026-11-21e (v14, `644bd8c`): 3 PASS · 3 FALLITI · 2 NON COPERTI
+
+Copie `git archive`, mai dal tree principale. **Caso 4 PASS** (14 + 3 controlli: 4l a, b, c; 4n i, ii col
+positivo; 4o ×4 e 9.20). Caso 2 FALLITO solo per **2c** (B9, D-Q3): **2d** 42 controlli, 42 proposte L →
+atteso, positivo 7/7, nessuna proposta alla soglia. Casi 3, 6 FALLITI (B6, B8; 6b: 259 file, 0 approvati);
+1 e 8 NON COPERTI; 5 e 7 PASS. La v13 su `644bd8c`: 2 · 4 · 2 (4n «gestore cambiato», 2d «va esteso»).
+`7863e31` (v14): 2 · 4 · 2, caso 4 = **4l (c)** (migrazione dopo il ritest: fissato a 2) + 4n + 4o, 2d 28.
+`cc95fac`: caso 4 = 4o, 2d 42. Browser (`23`, R9b nella Home): NON COPERTO.
+
+### Storico delle esecuzioni, righe v6-v9
+
+| Data | Versione | PASS | FALLITI | NON COPERTI | Chi |
+|---|---|---|---|---|---|
+| 2026-11-15 | v6 | 2 | 4 | 2 | training-quality (commit `ff42dfb`, R5-R8; caso 4 fallisce solo per 4h) |
+| 2026-11-16 | v7 | 2 | 4 | 2 | training-quality (commit `cf7588a`, R10-R13; 4e su 7 giorni; caso 4 solo 4h; su `a747e09` anche S2 ×2) |
+| 2026-11-20 | v8 | 2 | 4 | 2 | training-quality (commit `4edf751`, rilascio A di R14-R18; 4e sul carico sollevato, D-20 a; caso 4 solo 4h; su `001de30` anche S2, B13) |
+| 2026-11-20b | v9 | 2 | 4 | 2 | training-quality (commit `221b2e8`, rilascio B1; 4e fuori dalla settimana 5 per D-21; caso 4 solo 4h; su `001de30` anche S2) |
+
+## RESULTS.md, spostato il 2026-11-21g
+
+### Riga di misura
+
+| 2026-11-20 | `4edf751` (head locale non pushato, incrementale su `001de30` in produzione): rilascio A di R14-R18 (R18, R16, R17, R15, R14b), progressione 4.0, progressi 3.1, consigli 4.0, programmi 2.2; D-20 (a, b) · catalogo 72 · circuito 52 blocchi · griglia v3 | PERSONAS v1, SCENARIOS v1 | 29% (2/7) | 0% (0/4)ᵖ | 33% (1/3) (A18 chiuso, A19 aperto) | 71% (5/7) | 67% (2/3) | 75% (3/4) | 86% (6/7) | 100% (4/4) (con D5 proposta: 80%) | **5** + 4ᵖ (B13 aperto e chiuso) | 3 | 15 | 19 | 2 PASS / 4 FALLITI / 2 NON COPERTI (v8, caso 4 solo 4h) | `quality/reports/2026-11-20-quality.md` |
+
+### Nota di misura
+
+Misura del 2026-11-21b (commit `c8964ff`): **GO per il push** (nessun Bloccante o Alto
+introdotto o peggiorato); app ancora NO-GO. `20` (nuovo, browser + emulatori): su `c8964ff`
+il riepilogo di un ritest (inizio 10-05, settimana 7) non ha «Quando parte», «Salva e torna
+alla Home» attivo, data invariata; dopo «Azzera tutto» la data è nulla e il primo giro torna
+come prima. Su `6cbb759` la data diventa 11-23 (R-16, **B15**, chiuso). `21` (nuovo): R-17 su
+tutti e due, push-up 1 → 2 (**B16**), 7 esercizi su 39 esposti. Nucleo v12 (4l, 4m). `19`:
+4 posizioni in più senza figura, nient'altro. verify (929) da me.
+
+### Voce aperta chiusa il 2026-11-21g (testo dell'ultima versione aperta)
+
+| L42 | Basso | Gradino cambiato a mano nel `VariantPicker` di `SessionScreen`: `confirmExercise({ ...exerciseState, level })` salva subito zavorra, tempo e pausa (S5, D-23, R23). **2026-11-21f**: R23 corregge la chiusura (`syncStatesFromLog`), non lo handler; modellato in `26` 23.7b: `{6, 5 kg, +2/+2}` → 5 ⇒ `{5, 5 kg, +2″/+2″}` (atteso `{5, 0, 0, 0}`); la prova 23.7 dell'app esercita la chiusura. Latente: `SessionScreen` serve solo le sedute fuori dai circuiti | `26` 23.7b | `ui/session/SessionScreen.tsx` (`onChange` del `VariantPicker`) | 2026-11-21e |
+
+### Voce chiusa
+
+| B15 | Bloccante (preesistente in produzione) | R-16: il riepilogo di un ritest riscriveva la data di inizio (settimana 7 → 0), gli id `revisione-<W>:<slug>` si ripetevano e un verdetto nuovo, anche una discesa, spariva dietro una decisione vecchia | 2026-11-21b (`c8964ff`, T-28) | `20` nel browser: data invariata su `c8964ff`, 10-05 → 11-23 su `6cbb759`; `pendingVerdicts` su `6cbb759` nasconde «scendi» con l'id vecchio; nucleo 4m |
+
+### Ricalcolo
+
+| Nucleo v13 (4l rifatto, 4n, 2d) | `704dbfa`: caso 4 = 4h + 4n, caso 2 = 2c + 2d 14 (positivo 7/7); `c8964ff`: 4h + 4l + 4n, 2d 7 | `safety-core.mts` v13 |
+
+### Ricalcolo
+
+| R9c e domanda 4 sul codice, `704dbfa` contro `c8964ff` | A: `scendi-di-livello` 6 → 5 con 5 kg (S5), su tutti e due. B (9.29, 1500 storie, 4664 test): 0 salite e 0 discese con la chiusura dell'app; 1047 e 329 con quella di prima. C: ritest M=1, 0 su 7 scendono (7 su 7 prima) | `22-r9c.mts` |
