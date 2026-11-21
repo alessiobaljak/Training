@@ -161,10 +161,47 @@ function minWorkSecondsDellaScheda(
 export function isAutoComplete(block: ProgramBlock): boolean {
   const prescription = block.prescription;
   return (
+    /* R21: il dead hang della decompressione scrive il tempo vero, non si chiude da solo. */
+    block.recordActual !== true &&
     block.excludeFromReview === true &&
     prescription.kind === 'seconds' &&
     prescription.min === prescription.max
   );
+}
+
+/* -------------------------------------------------------------------------- */
+/* R21: la tenuta con il tempo vero                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Il valore da scrivere quando l'atleta tocca «Ho mollato».
+ *
+ * Il cronometro intero: 12,4 secondi sono 12. Sotto un secondo è un tocco
+ * sbagliato, non una tenuta, e non si scrive niente (`null`): la stazione
+ * torna a «Via».
+ */
+export function tenutaMollata(secondi: number): number | null {
+  const tenuti = Math.floor(secondi);
+  return tenuti >= 1 ? tenuti : null;
+}
+
+/**
+ * Il valore scritto a mano dopo «No, ho mollato prima».
+ *
+ * Un intero fra 1 e il bersaglio escluso: chi ha tenuto fino al segnale ha
+ * già il suo pulsante, e zero non è una tenuta. Fuori da lì «Registra» resta
+ * spento (`null`).
+ */
+export function tenutaDichiarata(testo: string, bersaglio: number): number | null {
+  const pulito = testo.trim();
+  if (!/^\d+$/.test(pulito)) return null;
+  const tenuti = Number(pulito);
+  return tenuti >= 1 && tenuti < bersaglio ? tenuti : null;
+}
+
+/** Come si legge una tenuta nel riepilogo: «12″ su 30″», oppure «30″» a bersaglio pieno. */
+export function etichettaTenuta(tenuti: number, bersaglio: number): string {
+  return tenuti < bersaglio ? `${String(tenuti)}″ su ${String(bersaglio)}″` : `${String(bersaglio)}″`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -234,6 +271,8 @@ export interface GuidedWorkStep {
    * sensata.
    */
   readonly autoComplete: boolean;
+  /** R21: la stazione scrive il tempo tenuto davvero, con un bersaglio di `workSeconds`. */
+  readonly recordActual: boolean;
 }
 
 export interface GuidedRestStep {
@@ -609,6 +648,7 @@ export function buildGuidedPlan(
       workSeconds:
         block === undefined ? 0 : minWorkSeconds(block, undefined, step.perSide, states.get(step.exercise)),
       autoComplete: block !== undefined && isAutoComplete(block),
+      recordActual: block?.recordActual === true,
     });
 
     const next = work[index + 1];

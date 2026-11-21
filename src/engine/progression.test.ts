@@ -899,7 +899,7 @@ describe('testOutcomes — cosa decide un test nel circuito', () => {
      */
     const otto = testOutcomes('dead-hang', testResultSingle('dead-hang', '2026-11-09', 0, 8));
     expect(otto).toEqual([
-      { where: 'Seduta 1 · Z1', exercise: 'dead-hang', level: 2, notJudged: true },
+      { where: 'Seduta 1 · Z1', exercise: 'dead-hang', level: 2, notJudged: true, bersaglio: 30 },
     ]);
   });
 });

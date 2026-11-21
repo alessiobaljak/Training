@@ -75,9 +75,16 @@ function Riga({ block, contesto }: { readonly block: ProgramBlock; readonly cont
             {titleAtLevel(exercise, gradino)}
           </span>
           <span className="tabular mt-1 block text-xs text-dim">
-            {block.sets} × {range.kind === 'range' ? formatRange(range.range, range.unit) : '—'}
-            {perLato ? ' per lato' : ''}
-            {minimo > 0 && !isAutoComplete(block) ? ` · almeno ${formatClock(minimo)}` : ''}
+            {/* R21: un bersaglio, non un minimo. «almeno 0:30» contraddiceva la regola. */}
+            {block.recordActual === true && block.prescription.kind === 'seconds' ? (
+              `bersaglio ${String(block.prescription.max)}″, o finché la presa regge`
+            ) : (
+              <>
+                {block.sets} × {range.kind === 'range' ? formatRange(range.range, range.unit) : '—'}
+                {perLato ? ' per lato' : ''}
+                {minimo > 0 && !isAutoComplete(block) ? ` · almeno ${formatClock(minimo)}` : ''}
+              </>
+            )}
           </span>
           {riepilogo === null || riepilogo.sets.length === 0 ? null : (
             <span className="tabular mt-0.5 block text-xs text-dim">

@@ -544,6 +544,21 @@ describe('L26 · le note delle sedute', () => {
     expect(findCircuitSession('circuito-2')?.note ?? '').not.toContain('più corta');
   });
 
+  it('21.13 · `recordActual` solo su Z1, e solo dove la regola lo ammette', () => {
+    for (const session of CIRCUIT_SESSIONS) {
+      for (const block of session.blocks) {
+        const id = `${session.id}/${block.code}`;
+        expect(block.recordActual === true, id).toBe(block.code === 'Z1');
+        if (block.recordActual !== true) continue;
+        expect(block.prescription.kind, id).toBe('seconds');
+        if (block.prescription.kind === 'seconds') expect(block.prescription.min, id).toBe(block.prescription.max);
+        expect(block.excludeFromReview, id).toBe(true);
+        expect(block.perSide, id).toBe(false);
+        expect(block.exercise, id).toBe('dead-hang');
+      }
+    }
+  });
+
   it('20.9 · il motivo della deviazione del circuito 2 dice le durate vere, transizione fra i giri compresa', () => {
     /* Prima diceva 36:03 contro 36:40: R20 le ha allungate di 15″, e un numero scritto a mano resta indietro. */
     const mmss = (secondi: number): string =>

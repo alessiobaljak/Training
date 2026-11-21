@@ -157,6 +157,17 @@ export interface ProgramBlock {
    * che non ha nessun problema.
    */
   readonly excludeFromReview?: boolean;
+  /**
+   * R21: la stazione registra il tempo vero, non quello prescritto.
+   *
+   * È il dead hang della decompressione: «30 secondi o finché reggi, ma
+   * minimo 30 se ce la fai». Chi non arriva al segnale scende quando la presa
+   * sta per cedere, e si scrive quello che ha tenuto. Non si chiude mai da
+   * sola. Ammesso solo su blocchi a secondi con minimo uguale al massimo,
+   * esclusi dalla revisione e non per lato: il numero va nel diario e nel
+   * riepilogo, e nessuna regola lo legge.
+   */
+  readonly recordActual?: true;
   /** `true` quando la scheda scrive "per gamba" / "per lato" nella colonna Rip. */
   readonly perSide: boolean;
   /** Precisazione della scheda sulla variante da usare in questo blocco. */

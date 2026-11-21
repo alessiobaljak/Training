@@ -9,7 +9,7 @@ import {
 } from '../../engine/draft.ts';
 import { formatClock } from '../hooks/useTimers.ts';
 import { aumentoRecente, evaluateProgression, livelloVoci, salitaConsentita } from '../../engine/progression.ts';
-import { buildGuidedPlan, estimatedSeconds } from '../../engine/circuit.ts';
+import { buildGuidedPlan, estimatedSeconds, etichettaTenuta } from '../../engine/circuit.ts';
 import { decadenze } from '../../engine/decadenza.ts';
 import { statiDellaChiusura, tettoDelRiepilogo } from '../../engine/tetto.ts';
 import { testBaseline } from '../../data/tests.ts';
@@ -471,7 +471,12 @@ export function SessionSummary({
                     <span className="tabular shrink-0 text-dim">
                       {summary.sets
                         .map((entry) =>
-                          exercise.measurement === 'seconds' ? `${entry.label}″` : entry.label,
+                          /* R21: il dead hang dice quanto hai tenuto rispetto al bersaglio. */
+                          block.recordActual === true && entry.bilateral !== null && block.prescription.kind === 'seconds'
+                            ? etichettaTenuta(entry.bilateral, block.prescription.max)
+                            : exercise.measurement === 'seconds'
+                              ? `${entry.label}″`
+                              : entry.label,
                         )
                         .join(' · ')}
                     </span>

@@ -337,6 +337,9 @@ export function OnboardingScreen() {
                         <span className="mt-0.5 block text-xs font-normal text-dim">
                           Solo nella decompressione, dove non si giudica: il test non cambia il
                           gradino.
+                          {esito.bersaglio === undefined
+                            ? null
+                            : ` Lì il bersaglio è ${String(esito.bersaglio)}″: se la presa cede prima, ti fermi lì.`}
                         </span>
                       ) : null}
                     </li>

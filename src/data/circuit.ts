@@ -239,6 +239,7 @@ const decompressione = (): readonly ProgramBlock[] => [
     perSide: false,
     workSeconds: 30,
     excludeFromReview: true,
+    recordActual: true,
   },
   {
     code: 'Z2',

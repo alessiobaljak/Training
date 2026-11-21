@@ -1400,6 +1400,8 @@ export interface TestOutcome {
    * cambia il suo gradino. Il dead hang della decompressione.
    */
   readonly notJudged: boolean;
+  /** R21: il bersaglio in secondi della stazione che scrive il tempo vero. Assente altrove. */
+  readonly bersaglio?: number;
 }
 
 /**
@@ -1444,6 +1446,9 @@ export function testOutcomes(testId: TestId, result: TestResult | null): TestOut
         exercise: block.exercise,
         level: startingLevel(exercise, prove),
         notJudged: block.excludeFromReview === true,
+        ...(block.recordActual === true && block.prescription.kind === 'seconds'
+          ? { bersaglio: block.prescription.max }
+          : {}),
       });
     }
   }

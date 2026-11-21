@@ -8,6 +8,9 @@ import {
   buildGuidedPlan,
   clockOffsets,
   estimatedSeconds,
+  etichettaTenuta,
+  tenutaDichiarata,
+  tenutaMollata,
   isAutoComplete,
   minWorkSeconds,
   stepSeconds,
@@ -421,8 +424,12 @@ describe('isAutoComplete — le stazioni che si chiudono da sole', () => {
         if (step.group === 'A' || step.group === 'B') {
           expect(step.autoComplete, `${session.id}/${step.blockCode}`).toBe(false);
         }
+        /* 21.1 (R21): Z1 scrive il tempo vero e non si chiude da sola; Z2 e Z3 sì. */
         if (step.group === 'Z') {
-          expect(step.autoComplete, `${session.id}/${step.blockCode}`).toBe(true);
+          const z1 = step.blockCode === 'Z1';
+          expect(step.autoComplete, `${session.id}/${step.blockCode}`).toBe(!z1);
+          expect(step.recordActual, `${session.id}/${step.blockCode}`).toBe(z1);
+          if (z1) expect(step.workSeconds, session.id).toBe(30);
         }
       }
       /* In ogni finitura almeno una stazione scorre e lo swing no. */
@@ -435,6 +442,30 @@ describe('isAutoComplete — le stazioni che si chiudono da sole', () => {
         if (step.exercise === 'kb-swing') expect(step.autoComplete, session.id).toBe(false);
       }
     }
+  });
+});
+
+describe('R21 · la tenuta con il tempo vero (B9)', () => {
+  it('21.4 e 21.5 · «Ho mollato» scrive i secondi interi; sotto il secondo niente', () => {
+    expect(tenutaMollata(12.4)).toBe(12);
+    expect(tenutaMollata(29.9)).toBe(29);
+    expect(tenutaMollata(1)).toBe(1);
+    expect(tenutaMollata(0.6)).toBeNull();
+    expect(tenutaMollata(0)).toBeNull();
+  });
+
+  it('21.6 · il numero scritto a mano vale solo fra 1 e il bersaglio escluso', () => {
+    expect(tenutaDichiarata('18', 30)).toBe(18);
+    expect(tenutaDichiarata(' 1 ', 30)).toBe(1);
+    expect(tenutaDichiarata('29', 30)).toBe(29);
+    for (const fuori of ['', '0', '30', '31', '12.5', '-3', 'abc']) {
+      expect(tenutaDichiarata(fuori, 30), fuori).toBeNull();
+    }
+  });
+
+  it('21.8 · nel riepilogo «12″ su 30″», e «30″» a bersaglio pieno', () => {
+    expect(etichettaTenuta(12, 30)).toBe('12″ su 30″');
+    expect(etichettaTenuta(30, 30)).toBe('30″');
   });
 });
 

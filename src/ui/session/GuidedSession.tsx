@@ -7,6 +7,8 @@ import {
   clockOffsets,
   estimatedSeconds,
   groupLabel,
+  tenutaDichiarata,
+  tenutaMollata,
 } from '../../engine/circuit.ts';
 import type { GuidedRestStep, GuidedStep, GuidedWorkStep } from '../../engine/circuit.ts';
 import {
@@ -1021,10 +1023,15 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
   const raggiunto = minimo === 0 || cronometro.seconds >= minimo;
   useSegnali(rimasti, minimo > 0 && cronometro.running);
 
-  /* Arrivati qui avanzando, la serie è già cominciata. */
+  /*
+   * Arrivati qui avanzando, la serie è già cominciata. La tenuta di R21 no:
+   * dopo la finitura non c'è nessun passo in mezzo, e il conto partiva mentre
+   * si andava alla sbarra. Lì il tempo scritto è quello vero, quindi parte al
+   * tuo via.
+   */
   useEffect(() => {
-    if (autoStart) start();
-  }, [autoStart, start]);
+    if (autoStart && !step.recordActual) start();
+  }, [autoStart, start, step.recordActual]);
 
   const stazione = leggiStazione(step, contesto);
   const etichettaGradino =
@@ -1109,6 +1116,32 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
     );
   }, [autoCompleta, partita, raggiunto, minimo, perSide, step.step.setIndex, onCommit]);
 
+  /*
+   * R21: il dead hang della decompressione scrive il tempo vero. Prima si
+   * chiudeva da solo a 30″, anche per chi era sceso a 12: il diario diceva 30
+   * a tutti. Allo scadere il conto si ferma e si chiede; prima, «Ho mollato»
+   * scrive i secondi tenuti. Niente si scrive da solo, e la domanda vive solo
+   * qui: se l'app si chiude con la domanda aperta, Z1 riparte da «Via».
+   */
+  const tempoVero = step.recordActual && minimo > 0;
+  const [domanda, setDomanda] = useState<'nessuna' | 'segnale' | 'quanti'>('nessuna');
+  const [dichiarati, setDichiarati] = useState('');
+  const { stop } = cronometro;
+  useEffect(() => {
+    if (!tempoVero || !cronometro.running || !raggiunto) return;
+    stop();
+    setDomanda('segnale');
+  }, [tempoVero, cronometro.running, raggiunto, stop]);
+  const scriviTenuta = (tenuti: number): void => {
+    if (chiuso.current) return;
+    chiuso.current = true;
+    onCommit(
+      [{ setIndex: step.step.setIndex, side: null, value: tenuti, rir: null, loadKg: 0, heartRate: null, note: null }],
+      true,
+      null,
+    );
+  };
+
   if (stazione === null || stazione.range.kind !== 'range') {
     return <Notice tone="warn">Blocco {step.blockCode} non trovato nella scheda.</Notice>;
   }
@@ -1130,6 +1163,114 @@ function PassoLavoro({ step, contesto, autoStart, onCommit }: PassoLavoroProps) 
       <Prescrizione stazione={stazione} />
     </>
   );
+
+  /* ---------------------------------------------------------------------- */
+  /* R21: tenuta con il tempo vero                                           */
+  /* ---------------------------------------------------------------------- */
+  if (tempoVero) {
+    const bersaglio = minimo;
+    const scritti = tenutaDichiarata(dichiarati, bersaglio);
+    return (
+      <div className="flex flex-1 flex-col">
+        <div className="flex items-center gap-2">
+          <Badge tone="accent">{step.blockCode}</Badge>
+        </div>
+        <h2 className="mt-3 text-2xl leading-tight font-semibold">{stazione.titolo}</h2>
+        <p className="mt-1 text-sm text-dim">Bersaglio {bersaglio}″, o finché la presa regge</p>
+        {partita ? null : (
+          <>
+            <p className="mt-3 text-sm leading-snug">
+              Se la presa sta per cedere prima del segnale, scendi sui piedi e tocca «Ho mollato»:
+              si scrive il tempo che hai tenuto. Non lasciarti cadere e non dondolare per arrivare
+              a {bersaglio}.
+            </p>
+            <div className="mt-4">
+              <ExerciseArt slug={esercizio.slug} level={stazione.gradino} caption={false} compact />
+            </div>
+          </>
+        )}
+
+        {domanda === 'nessuna' ? (
+          <>
+            <div className="flex items-center justify-center py-6">
+              <Orologio
+                seconds={partita ? rimasti : bersaglio}
+                tone="neutro"
+                caption={partita ? 'Fino al segnale' : 'Parte al tuo via'}
+              />
+            </div>
+            <Azione>
+              {partita ? (
+                <Button
+                  full
+                  size="lg"
+                  variant="secondary"
+                  onClick={() => {
+                    const tenuti = tenutaMollata(cronometro.seconds);
+                    /* Sotto un secondo è un tocco sbagliato: si torna a «Via». */
+                    if (tenuti === null) {
+                      cronometro.reset();
+                      return;
+                    }
+                    scriviTenuta(tenuti);
+                  }}
+                >
+                  Ho mollato
+                </Button>
+              ) : (
+                <Button full size="xl" onClick={() => { primeAudio(); start(); }}>
+                  Via
+                </Button>
+              )}
+            </Azione>
+          </>
+        ) : domanda === 'segnale' ? (
+          <>
+            <p className="py-6 text-center text-xl font-semibold">Hai tenuto fino al segnale?</p>
+            <Azione>
+              <div className="space-y-3">
+                <Button full size="xl" onClick={() => { scriviTenuta(bersaglio); }}>
+                  Sì, {bersaglio}″
+                </Button>
+                <Button full size="lg" variant="secondary" onClick={() => { setDomanda('quanti'); }}>
+                  No, ho mollato prima
+                </Button>
+              </div>
+            </Azione>
+          </>
+        ) : (
+          <>
+            <div className="py-6">
+              <label htmlFor="tenuta-secondi" className="mb-2 block text-sm font-medium text-dim">
+                Quanti secondi hai tenuto?
+              </label>
+              <input
+                id="tenuta-secondi"
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={bersaglio - 1}
+                step={1}
+                value={dichiarati}
+                onChange={(event) => { setDichiarati(event.target.value); }}
+                className="tabular h-16 w-full rounded-full border border-line-strong/70 bg-surface/85 text-center text-3xl font-semibold text-ink"
+              />
+            </div>
+            <Azione>
+              <Button
+                full
+                size="xl"
+                disabled={scritti === null}
+                onClick={() => { if (scritti !== null) scriviTenuta(scritti); }}
+              >
+                Registra
+              </Button>
+            </Azione>
+          </>
+        )}
+      </div>
+    );
+  }
 
   /* ---------------------------------------------------------------------- */
   /* Stazione a tempo fisso: solo il conto                                   */

@@ -2200,6 +2200,185 @@ try {
     );
   }
 
+  /*
+   * R21 (B9): il dead hang della decompressione scrive il tempo vero.
+   *
+   * Arrivarci giocando la seduta vorrebbe dire quaranta minuti di conti: si
+   * apre la Seduta 3, si riempie la bozza nell'emulatore fino alla finitura
+   * compresa, e il player riprende dal primo passo non scritto, cioè Z1. Le
+   * serie finte restano in una seduta che non si chiude.
+   */
+  const valoreDa = (v) => {
+    if (v === undefined || v === null) return undefined;
+    if ('stringValue' in v) return v.stringValue;
+    if ('integerValue' in v) return Number(v.integerValue);
+    if ('doubleValue' in v) return v.doubleValue;
+    if ('booleanValue' in v) return v.booleanValue;
+    if ('nullValue' in v) return null;
+    if ('arrayValue' in v) return (v.arrayValue.values ?? []).map(valoreDa);
+    if ('mapValue' in v) {
+      return Object.fromEntries(Object.entries(v.mapValue.fields ?? {}).map(([k, x]) => [k, valoreDa(x)]));
+    }
+    return undefined;
+  };
+  const valoreA = (x) => {
+    if (x === null || x === undefined) return { nullValue: null };
+    if (typeof x === 'string') return { stringValue: x };
+    if (typeof x === 'boolean') return { booleanValue: x };
+    if (typeof x === 'number') return Number.isInteger(x) ? { integerValue: String(x) } : { doubleValue: x };
+    if (Array.isArray(x)) return { arrayValue: { values: x.map(valoreA) } };
+    return { mapValue: { fields: Object.fromEntries(Object.entries(x).map(([k, v]) => [k, valoreA(v)])) } };
+  };
+
+  await page.goto(`${BASE}/#/seduta/circuito-3`, { waitUntil: 'load' });
+  await page.waitForTimeout(2500);
+  await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+  await page.waitForTimeout(1500);
+  const bozzaZ = (await readFromEmulator('sessions')).find(
+    (doc) =>
+      doc.fields?.sessionId?.stringValue === 'circuito-3' && doc.fields?.status?.stringValue === 'in-progress',
+  );
+  check(bozzaZ !== undefined, 'R21: aperta la Seduta 3, la sua bozza deve essere nell’emulatore.');
+  if (bozzaZ !== undefined) {
+    const voci = valoreDa(bozzaZ.fields.exercises) ?? [];
+    /* L'F4 del secondo giro resta da fare: a Z1 si arriva avanzando, come in palestra. */
+    const piene = voci.map((voce) =>
+      String(voce.blockCode).startsWith('Z')
+        ? voce
+        : {
+            ...voce,
+            sets: (voce.blockCode === 'F4' ? [1] : [1, 2, 3, 4, 5, 6, 7, 8]).flatMap((setIndex) =>
+              [null, 'left', 'right'].map((side) => ({
+                setIndex,
+                side,
+                value: 10,
+                rir: null,
+                loadKg: 0,
+                heartRate: null,
+                note: null,
+              })),
+            ),
+          },
+    );
+    await updateInEmulator(bozzaZ.name, { exercises: valoreA(piene) });
+    await page.waitForTimeout(2500);
+
+    const serieZ1 = async () => {
+      const doc = (await readFromEmulator('sessions')).find((d) => d.name === bozzaZ.name);
+      const voce = (valoreDa(doc?.fields?.exercises) ?? []).find((v) => v.blockCode === 'Z1');
+      return (voce?.sets ?? []).map((set) => set.value);
+    };
+    const testoZ = async () => (await page.locator('main').innerText()).trim();
+    const su = async (codice) => new RegExp(`^${codice}\\b`).test(await testoZ());
+    const via = page.getByRole('button', { name: 'Via', exact: true });
+    const mollato = page.getByRole('button', { name: 'Ho mollato', exact: true });
+    const allaZ1 = async () => {
+      for (let passo = 0; passo < 4 && !(await su('Z1')); passo += 1) {
+        await page.getByRole('button', { name: 'Passo precedente' }).click();
+        await page.waitForTimeout(500);
+      }
+    };
+    const fineDelConto = async () => {
+      await page.waitForTimeout(31_500);
+    };
+
+    await page.goto(`${BASE}/#/seduta/circuito-3`, { waitUntil: 'load' });
+    await page.waitForTimeout(2500);
+    check(await su('F4'), `R21: il player deve riprendere dall'F4 del secondo giro. Legge «${(await testoZ()).slice(0, 80)}».`);
+    /* L'F4 si chiude da sola allo scadere; si avanza a Z1, che non deve partire da sola. */
+    await via.click();
+    await page.waitForTimeout(33_000);
+    const aperta = await testoZ();
+    check(
+      (await su('Z1')) && (await via.count()) === 1 && aperta.includes('Parte al tuo via'),
+      `R21: arrivati a Z1 avanzando, il conto aspetta «Via». Legge «${aperta.slice(0, 200)}».`,
+    );
+    check(
+      aperta.includes('Bersaglio 30″, o finché la presa regge') && aperta.includes('tocca «Ho mollato»'),
+      `R21: Z1 deve dire il bersaglio e la nota prima del via. Legge «${aperta.slice(0, 300)}».`,
+    );
+
+    /* 21.2: allo scadere il conto si ferma e si chiede; non si scrive niente. */
+    await via.click();
+    await fineDelConto();
+    check(
+      (await testoZ()).includes('Hai tenuto fino al segnale?'),
+      `21.2: allo scadere Z1 deve chiedere «Hai tenuto fino al segnale?». Legge «${(await testoZ()).slice(0, 200)}».`,
+    );
+    check((await serieZ1()).length === 0, `21.2: con la domanda aperta non si scrive niente. Serie: ${JSON.stringify(await serieZ1())}.`);
+
+    /* 21.7: chiusa l'app con la domanda aperta, Z1 riparte da «Via» senza serie. */
+    await page.reload({ waitUntil: 'load' });
+    await page.waitForTimeout(2500);
+    check(
+      (await su('Z1')) && (await via.count()) === 1 && (await serieZ1()).length === 0,
+      `21.7: riaperta l'app, Z1 deve ripartire da «Via» senza serie. Legge «${(await testoZ()).slice(0, 120)}», serie ${JSON.stringify(await serieZ1())}.`,
+    );
+
+    /* 21.5: «Ho mollato» sotto il secondo è un tocco sbagliato. */
+    await via.click();
+    await page.waitForTimeout(300);
+    await mollato.click();
+    await page.waitForTimeout(800);
+    check(
+      (await su('Z1')) && (await via.count()) === 1 && (await serieZ1()).length === 0,
+      `21.5: «Ho mollato» sotto il secondo non scrive niente e torna a «Via». Serie ${JSON.stringify(await serieZ1())}.`,
+    );
+
+    /* 21.4: «Ho mollato» a 2,4″ scrive 2, subito, e si passa a Z2. */
+    await via.click();
+    await page.waitForTimeout(2400);
+    await mollato.click();
+    await page.waitForTimeout(2500);
+    const dopoMollato = await serieZ1();
+    check(
+      (await su('Z2')) && dopoMollato.length === 1 && (dopoMollato[0] === 2 || dopoMollato[0] === 3),
+      `21.4: «Ho mollato» a 2,4″ deve scrivere 2 e passare a Z2. Serie ${JSON.stringify(dopoMollato)}, legge «${(await testoZ()).slice(0, 60)}».`,
+    );
+
+    /* 21.6: «No, ho mollato prima» e un numero fra 1 e 29. */
+    await allaZ1();
+    await via.click();
+    await fineDelConto();
+    await page.getByRole('button', { name: 'No, ho mollato prima', exact: true }).click();
+    await page.waitForTimeout(400);
+    const campo = page.getByLabel('Quanti secondi hai tenuto?');
+    const registra = page.getByRole('button', { name: 'Registra', exact: true });
+    await campo.fill('0');
+    const spentoA0 = await registra.isDisabled();
+    await campo.fill('30');
+    const spentoA30 = await registra.isDisabled();
+    await campo.fill('18');
+    const accesoA18 = !(await registra.isDisabled());
+    check(spentoA0 && spentoA30 && accesoA18, `21.6: «Registra» spento a 0 e a 30, acceso a 18. Legge ${JSON.stringify({ spentoA0, spentoA30, accesoA18 })}.`);
+    await registra.click();
+    await page.waitForTimeout(2500);
+    check(
+      (await su('Z2')) && JSON.stringify(await serieZ1()) === '[18]',
+      `21.6: registrati 18 secondi, Z1 vale 18 e si passa a Z2. Serie ${JSON.stringify(await serieZ1())}.`,
+    );
+
+    /* 21.3: «Sì, 30″» scrive 30. */
+    await allaZ1();
+    await via.click();
+    await fineDelConto();
+    await page.getByRole('button', { name: 'Sì, 30″', exact: true }).click();
+    await page.waitForTimeout(2500);
+    check(
+      (await su('Z2')) && JSON.stringify(await serieZ1()) === '[30]',
+      `21.3: «Sì, 30″» scrive 30 e si passa a Z2. Serie ${JSON.stringify(await serieZ1())}.`,
+    );
+
+    /* 21.12: in panoramica un bersaglio, non un minimo. */
+    await page.goto(`${BASE}/#/scheda/circuito-3`, { waitUntil: 'load' });
+    await page.waitForTimeout(1500);
+    check(
+      (await page.locator('main').innerText()).includes('bersaglio 30″, o finché la presa regge'),
+      '21.12: nella panoramica Z1 deve dire «bersaglio 30″, o finché la presa regge».',
+    );
+    console.log(`R21: Z1 ${JSON.stringify(dopoMollato)} → [18] → [30]; domanda, ricarica e tocco corto senza serie.`);
+  }
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();

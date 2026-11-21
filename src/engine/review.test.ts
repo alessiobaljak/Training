@@ -56,6 +56,7 @@ const BLOCCO: Record<string, { sessionId: SessionId; code: string }> = {
   'military-press-manubri': { sessionId: 'circuito-4', code: 'A3' },
   'plank-trascinamento-kb': { sessionId: 'circuito-4', code: 'B3' },
   'hip-thrust-panca-bilaterale': { sessionId: 'circuito-4', code: 'A1' },
+  'dead-hang': { sessionId: 'circuito-3', code: 'Z1' },
 };
 
 let progressivo = 0;
@@ -1123,5 +1124,20 @@ describe('M22 · il tetto di 55 minuti anche in revisione', () => {
     const senza = rivedi(4, [storia(PUSH), p('2026-03-19'), p('2026-03-26')], [stato(PUSH)]);
     const con = rivedi(4, [storia(PUSH), p('2026-03-19'), p('2026-03-26')], [stato(PUSH)], { durata: durataDellaSedutaDi });
     expect(con).toEqual(senza);
+  });
+});
+
+describe('R21 · il dead hang della decompressione resta fuori dalla revisione (B9)', () => {
+  it('21.9 · con Z1 a 8, 12 e 30 il dead hang non compare in verdetti ed elenchi', () => {
+    const sedute = [8, 12, 30].map((secondi, i) =>
+      seduta(`2026-03-${String(9 + i * 2).padStart(2, '0')}`, [voce(PUSH, [19, 19, 19]), voce('dead-hang', [secondi])]),
+    );
+    const senza = rivedi(2, sedute.map((s) => ({ ...s, exercises: s.exercises.filter((v) => v.exercise !== 'dead-hang') })), [stato(PUSH)]);
+    const r = rivedi(2, sedute, [stato(PUSH)]);
+    const nomina = JSON.stringify([r.verdicts, r.inRange, r.alMassimo, r.pocheProve, r.rimandati, r.fermi]);
+    expect(nomina).not.toContain('dead-hang');
+    /* Il resto della revisione è quello di una settimana senza dead hang. */
+    expect(r.verdicts).toEqual(senza.verdicts);
+    expect(r.setsCounted).toBe(senza.setsCounted);
   });
 });
