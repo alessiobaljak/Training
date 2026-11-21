@@ -42,3 +42,18 @@ text, letters, numbers, watermark, logo, brand, label, caption, arrow, diagram, 
 ## Esecuzioni
 | data | Space@sha · modello@sha | seme · passi · guidance (stampati) | esito G0–G11 | file |
 |---|---|---|---|---|
+| 2026-11-21 | `mcp-tools/Qwen-Image`@`bce5b19` · `Qwen/Qwen-Image`@`75e0b4b` | 11 · 50 · 4,0 (true CFG), 16:9 → 1664×928 | **scartata** in prima lettura della sessione principale (checklist G0–G11 non eseguita): pannello sinistro **frontale** e in squat, campana bassa; stativo da studio a destra; riga bianca fra i pannelli; segni sulla campana. Pannello destro (picco, di lato) corretto | grezzo fuori dal repo (S4) |
+| 2026-11-21 | come sopra | 22 · 50 · 4,0, 16:9 (al primo tentativo «GPU task aborted», ripetuto uguale) | **scartata** in prima lettura: pannello sinistro di nuovo **frontale**, cerniera appena accennata, campana fra le ginocchia; riga bianca fra i pannelli; segni sulla campana. Pannello destro corretto | grezzo fuori dal repo (S4) |
+| 2026-11-21 | come sopra | 33 · 50 · 4,0, variante V2 qui sotto | **non eseguita**: quota ZeroGPU gratuita esaurita (si rinnova dopo 24 h) | — |
+
+### Valori eseguiti nei semi 11 e 22
+Modello T2 sopra con: `{KG}` = 20; fotogrammi 2 (caricamento e picco della scheda del designer, 5.1: il designer ne chiede 3, il pilota ne prova 2 per la leggibilità, STYLE_GUIDE §8.5). Pose dalla scheda 5.1, testo eseguito:
+- `{POSE_1}`: «both hands hold the handle of one kettlebell with an overhand grip; the kettlebell is swung back between his thighs, behind the line of his knees, the handle above knee height and close to the groin, the bottom of the bell facing backwards; his forearms touch the inside of his thighs; hips pushed far back behind his heels, shins almost vertical, knees only slightly bent, heels on the floor, feet a little wider than his shoulders; back flat from pelvis to head, head in line with the spine, eyes on the floor two metres ahead.»
+- `{READ_1}`: «a hip hinge, not a squat; the handle high between the thighs; a flat back»
+- `{POSE_2}`: «standing tall like a standing plank, ankles, hips and shoulders on one vertical line, knees straight, glutes squeezed, ribs down, no backward lean; straight arms in front of him just below horizontal, both hands on the handle; the kettlebell at chest height in line with the arms, below shoulder level; shoulders down, eyes forward, whole feet on the floor.»
+- `{READ_2}`: «the body in one straight vertical line; the kettlebell at chest height, not higher»
+- `{MUST_NOT}` nel negativo: «kettlebell above the head, kettlebell above the shoulders, leaning back, arched lower back, rounded back, knees past the toes, heels lifted, bent arms, one-handed grip, two kettlebells, dumbbell, squatting»
+
+### Variante V2 (non eseguita) — per il difetto ricorrente del pannello sinistro frontale
+La vista di profilo detta per prima e ripetuta in ogni metà; nel negativo «front view, facing the camera, looking at the camera, markings on the kettlebell, white gap, light stand, studio equipment, kettlebell near the floor». Testo esatto nel registro della sessione del 2026-11-21; va copiato qui quando si esegue.
+
