@@ -16,6 +16,7 @@ import {
   upsertLoggedSet,
   statesToSave,
   statiDaFissare,
+  statoDopoCambioAMano,
   sessionDecisions,
 } from '../../engine/draft.ts';
 import type { RecordedDecision } from '../../engine/draft.ts';
@@ -658,7 +659,7 @@ export function SessionScreen({ sessionId }: { readonly sessionId: SessionId }) 
             onChange={(level, label) => {
               update((session) => setVariant(session, block.code, label, level));
               // Il cambio si salva subito: non c'è più una conferma a chiuderlo.
-              confirmExercise({ ...exerciseState, level: level ?? exerciseState.level });
+              confirmExercise(statoDopoCambioAMano(exercise, exerciseState, level));
             }}
             onConfirm={(confirmedState) => {
               const level = logged?.level ?? confirmedState.level;

@@ -21,6 +21,7 @@ import {
   setVariant,
   suggestedSetValue,
   syncStatesFromLog,
+  statoDopoCambioAMano,
   upsertLoggedSet,
   variantLabelFor,
 } from './draft.ts';
@@ -422,6 +423,13 @@ describe('quello che scrivi torna nello stato', () => {
     const prima: ExerciseState = { ...stato('trazioni-prona-presa-media', 6, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
     const changed = syncStatesFromLog(session, new Map([['trazioni-prona-presa-media', prima]]));
     expect(changed[0]).toEqual(expect.objectContaining({ level: 5, loadKg: 0, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 }));
+  });
+
+  it('23.7 · il selettore: dal 6 con 5 kg e +2″/+2″ al 5 ⇒ {5, 0, 0, 0 kg}; lo stesso gradino non cambia niente (L42)', () => {
+    const trazioni = getExercise('trazioni-prona-presa-media');
+    const prima: ExerciseState = { ...stato('trazioni-prona-presa-media', 6, 5), eccentricBonusSeconds: 2, bottomPauseBonusSeconds: 2 };
+    expect(statoDopoCambioAMano(trazioni, prima, 5)).toEqual({ ...prima, level: 5, loadKg: 0, eccentricBonusSeconds: 0, bottomPauseBonusSeconds: 0 });
+    expect(statoDopoCambioAMano(trazioni, prima, 6)).toBe(prima);
   });
 
   it('porta nello stato il carico davvero usato', () => {

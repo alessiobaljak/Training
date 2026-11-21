@@ -603,3 +603,28 @@ export function statiDaFissare(
       return stato === undefined ? [] : [stato];
     });
 }
+
+/**
+ * Lo stato dopo un gradino scelto a mano nel selettore (D-23, R23 e L42).
+ *
+ * Un gradino cambiato a mano riporta tempo e pausa a quelli della scheda e
+ * non si porta dietro la zavorra; i manubri restano. Lo stesso gradino non
+ * cambia niente. Prima il selettore salvava `{ ...stato, level }` e la
+ * chiusura non vedeva più il cambio: zavorra e bonus restavano.
+ */
+export function statoDopoCambioAMano(
+  exercise: Exercise,
+  stato: ExerciseState,
+  level: LevelIndex | null,
+): ExerciseState {
+  const nuovo = level ?? stato.level;
+  if (nuovo === stato.level) return stato;
+  return {
+    ...stato,
+    level: nuovo,
+    eccentricBonusSeconds: 0,
+    bottomPauseBonusSeconds: 0,
+    loadKg: zavorraDopoIlCambio(exercise, stato, nuovo).loadKg,
+  };
+}
+
