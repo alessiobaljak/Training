@@ -58,6 +58,10 @@ giorno; E7 36). Residuo latente: L23 (seduta con data futura).
 v7 4e, `14` C). Fino a `a747e09` **era violata** (B12: revisione + fine seduta
 +5 kg in 3 giorni): la mia «S2 rispettata» del 2026-11-12 guardava solo il
 passo della singola proposta. S4 con R12 (date diverse) ha chiuso la riserva L15.
+**Al 2026-11-21d (`4d06a4b`, R20 e R21, non ancora rilasciato): S9 rispettata** (B10 chiuso:
+nucleo 4h, `24` 20.5 su ogni giunzione di 4.392 piani). **S7 sulla decompressione** (B9): R21 toglie
+la dose sopra il misurato, non il gradino (con 8" R1 riga 8 darebbe l'1); la lettura proposta dal
+designer non è accettata da training-quality senza Alessio: **D-Q3**.
 Al 2026-11-15 (`ff42dfb`, R5-R8) rispettate anche **S1, S3, S4, S5** (A4, A2, M1, A3 chiusi:
 `12`, `13`, nucleo 4 v6). Restano violate S6 (M4, R9 rimandata) e S9 (B10).
 Al 2026-11-12 (`90b8b81`) rispettate: S2, S10. Violate: S1, S3, S4, S5, S6,

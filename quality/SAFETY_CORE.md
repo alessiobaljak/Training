@@ -60,6 +60,14 @@ gestori chiamano `statiDaFissare`). Caso 4 fallisce per **4h** (S9, B10) e **4n*
 
 Esiti precedenti: `ARCHIVE-3.md`, `ARCHIVE-2.md`.
 
+## Esito del 2026-11-21d (v13, `4d06a4b`, R20 e R21, ramo **senza** R9c): 2 PASS · 4 FALLITI · 2 NON COPERTI
+
+Eseguito su copia `git archive` (v13 = `69d8c32`), mai dal tree principale. Rispetto a `85d1dd8`
+cambia solo **4h: superato** (7 giunzioni tronco → balistico, tutte 15″; prima `circuito-4` F4 → F1
+giro 2 a 0″). Caso 4 fallisce per 4l ×2 e 4n (R9c assente su questo ramo, come su `c8964ff`); caso 2
+per 2c (4 Z1: il dato resta 30-30, R21 cambia il player, non il minimo; D-Q3) e 2d 7. `64180fa`
+(solo R20) dà già questo esito. **`7863e31` (R9c ricollocato sopra) non è misurato.**
+
 ---
 
 ## Caso 1 — Dolore dichiarato gestito con un rimando
@@ -102,6 +110,10 @@ rilascio pubblico (decisione del 2026-11-12): il caso si esegue lo stesso.
   nelle sedute» ma «solo nella decompressione, non si giudica» (`2d84d87`):
   vero, ma non cambia i 30" prescritti a chi ne regge 8. Il caso resta
   FALLITO per lo stesso motivo.
+- **2026-11-21d (`4d06a4b`, R21).** Il player non chiede più 30" a chi ne regge 8 («bersaglio 30″
+  o finché la presa regge», tempo vero, `recordActual`), ma il dato resta 30-30 al gradino 2: 2c
+  FALLITO per lettura e per costruzione. Per R1 riga 8 (soglia 36") il gradino compatibile con 8" è
+  l'1. Riscrivere 2c per `recordActual` è una decisione (**D-Q3**), non una correzione dello script.
 - **2d (v13, 2026-11-21c) — S7 dopo un test peggiore.** Per i 7 esercizi in cui R1 arriva alla
   riga 8 (trazioni, dip, bulgaro, pike, rematore TRX, push-up, hollow): test di settimana 0 alla
   soglia (→ Lt), una seduta chiusa a Lt come la chiude l'app, ritest di settimana 6 con M =
@@ -136,7 +148,7 @@ metà del caso non è nemmeno verificabile.
   dell'anagrafica (compito di `training-designer`).
 
 ## Caso 4 — Progressione entro le soglie
-**Stato oggi (2026-11-21c, `704dbfa`, v13): FALLITO** — 2 violazioni su 14
+**Stato oggi: FALLITO.** Su `4d06a4b` (2026-11-21d, R20 e R21, senza R9c): 4l ×2 + 4n, **4h superato**. Su `704dbfa` (2026-11-21c, v13): 2 violazioni su 14
 controlli: 4h (S9, B10), 4n (S1/S3, B16 residuo, «Archivia»); 4l e 4m superati. Superano 4a (S3), 4b (S5, R10a), 4c (S1), 4d (S4),
 4e (S2 per proposta, su 7 giorni **e sul carico sollevato**, v8), 4f, 4g (T2), 4i (S10), 4j (R-7, v10), **4k (R-14, v11)**. La revisione
 riceve il registro: vuoto salvo 4c (salite accettate) e 4e (zavorra accettata). Inizio programma 2026-03-02; revisione della settimana W
@@ -153,7 +165,7 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 4e (S2) | (i) chin-up gradino 6, 5 kg, 10-10-10 a RIR 0, **tempo e pausa a fine corsa**, M = 12, settimana 4. **v7, su 7 giorni**: trazioni `circuito-1/A1` al 6, test 12, tempo e pausa esauriti, chiuse 03-12 e 03-19 da 8-8-8 a 0 kg; **v9** (date v8 + 35 giorni, fuori da D-21): chiuse 04-16 e 04-23 da 8-8-8 a 0 kg; (ii) revisione W8 il 04-27 accettata (0 → 2,5, nel registro), fine seduta giovedì 04-30 a 2,5 kg; (iii) fine seduta lunedì 05-04, prima seduta a 2,5 kg; positivo: chiusa il 04-30 a 2,5, fine seduta giovedì 05-07 a 2,5; (iv) due sedute il 04-30, zavorra accettata alla prima | (i) leva `load`, passo +2,5 kg; (ii) nessun altro carico il 04-30; (iii) il 05-04 nessun carico oltre 2,5, e il silenzio è di R13 (D-20 a); il 05-07 `load` 2,5 → 5 kg; (iv) la seconda non propone niente. Se la revisione non propone la zavorra, se il 05-04 tace per un altro motivo o se il 05-07 non la ridà, il controllo fallisce (non misura) | **corretto** su `221b2e8` e `59daf79` in tutti e quattro (v9). Su `001de30` (iii) propone 2,5 → 5 kg il primo giorno a 2,5: **S2 sul carico sollevato violata in produzione** (B13). Su `a747e09` era (ii) e (iv) (B12) |
 | 4f | `kb-swing` della finitura, chiuse 03-04 e 03-11 da 21-21-21 | non compare in nessun elenco, `setsCounted` 0 | **corretto** |
 | 4g (T2) | coppia 03-05 e 03-12 sopra il massimo, revisione W2 il 03-19: trazioni e dip dal 1, pike dal 2, push-up dal 2 | 1→3, 1→3, 2→4, 2→3; senza salita il controllo fallisce | **corretto** |
-| 4h (S9) | `buildGuidedPlan` delle 4 sedute, settimane 1 e 6. Stabilizzazione del tronco: suitcase carry, hollow hold, plank con trascinamento, Pallof press, plank tocco spalla. Balistici carichi: swing, corda slam | ogni giunzione tronco → balistico ha ≥ 15" di passi `rest` in mezzo; se non ne trova nessuna il controllo fallisce (fixture vuota) | **violata**: `circuito-4` sett. 1, F4 plank tocco spalla → F1 corda slam del giro 2, **0"** (finitura: 15" fra stazioni, 0 fra i giri). Le giunzioni B3 → F hanno 15" (R2). In sett. 6 la finitura ha un giro e il caso non si presenta (B10) |
+| 4h (S9) | `buildGuidedPlan` delle 4 sedute, settimane 1 e 6. Stabilizzazione del tronco: suitcase carry, hollow hold, plank con trascinamento, Pallof press, plank tocco spalla. Balistici carichi: swing, corda slam | ogni giunzione tronco → balistico ha ≥ 15" di passi `rest` in mezzo; se non ne trova nessuna il controllo fallisce (fixture vuota) | **corretto** su `4d06a4b` e `64180fa` (R20): 7 giunzioni, tutte 15″. **Violata** fino a `85d1dd8`: `circuito-4` sett. 1, F4 plank tocco spalla → F1 corda slam del giro 2, **0"** (finitura: 15" fra stazioni, 0 fra i giri; B10, chiuso). Le giunzioni B3 → F hanno 15" (R2). In sett. 6 la finitura ha un giro |
 | 4i (S10) | (1) push-up `circuito-3/A2` gradino 2, 18-18-18 su 12-18, `tempoRespected=null`, R7 aperta; (2) controllo statico di `GuidedSession.tsx`, come 5 e 6a | (1) nessuna leva oltre le ripetizioni; (2) ogni `setTempoRespected` del player scrive `false` | **corretto**: nessuna leva; 1 scrittura, `false`. Se il player tornasse a scrivere «sì» da una misura, (2) fallisce e il controllo va riscritto come misura (`07`) |
 | 4j (R-7, v10) | curl a martello `circuito-1/B1`, `{12, +2″, +2″}`, massimo chiuso il 19 (sett. 4): la fine seduta propone il manubrio, accettato (registro, seduta del 19). Seduta del 23: peso come `PassoLavoro` (B del manubrio in attesa, se no lo stato; `pesoIniziale` con volta scorsa 12 e 0 kg), chiusura come `chiudi`; positivo: seduta scritta a T. Statico: composizione del peso in `GuidedSession` | campo ≤ 12 kg e stato salvato ≤ 12 kg in tutti e due i casi; positivo: stato = T. Composizione non riconosciuta ⇒ il controllo va riscritto | **corretto** su `0d85597`. Su `e30cdc6`: campo a 14,5 kg e stato 14,5 con la volta scorsa a 0 (R-7) |
 | 4k (R-14, v11) | circuito 4 a meno di 55′, stati casuali con seme fisso; military press `circuito-4/A3` `{10, +1″, 0}`, dip su panche `B2` al gradino 1 con tempo e pausa liberi, i passi di tempo e pausa di tutti e due oltre 55′; chiuse 03-02, 03-19, 03-26 al massimo, tempo sì; revisione W4 il 03-30 **con `durata: durataDellaSedutaDi`** | military press: `aggiungi-peso` 10 → 12, mai più di 2 kg; dip: nessuna zavorra, `alMassimo` «variante»; se la military press non arriva al manubrio la fixture non misura | **corretto** su `f7f945d`. Su `fb560e7` non misura: la revisione dice «tempo» |
@@ -264,3 +276,4 @@ con `weekEnd = fine(W)` e `today = fine(W) + 1` dove non detto.
 | 2026-11-21 | v11 | 2 | 4 | 2 | training-quality (commit `50793fd`, solo figure; caso 6: 261 file, 0 approvati; identico su `96a90c2` con 265) |
 | 2026-11-21b | v12 | 2 | 4 | 2 | training-quality (commit `c8964ff`, T-28 e figure; 4l R-17 e 4m R-16 nuovi; caso 4: 4h + 4l; su `6cbb759` 4h + 4l + 4m) |
 | 2026-11-21c | v13 | 2 | 4 | 2 | training-quality (commit `704dbfa`, R9c; 4l rifatto e superato; 4n e 2d nuovi; caso 4: 4h + 4n; caso 2: 2c + 2d; su `c8964ff` 4h + 4l + 4n, 2d 7) |
+| 2026-11-21d | v13 | 2 | 4 | 2 | training-quality (commit `4d06a4b`, R20 e R21, ramo senza R9c; **4h superato**; caso 4: 4l ×2 + 4n; caso 2: 2c + 2d 7; su `85d1dd8` 4h + 4l ×2 + 4n) |

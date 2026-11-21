@@ -1,6 +1,6 @@
 # Input non fidato — i campi in cui scrive l'atleta
 
-Aggiornato: 2026-11-16 (U10) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
+Aggiornato: 2026-11-21d (U15) · prima stesura 2026-11-08 su `src/types/log.ts` e sul motore.
 Script: `quality/scripts/04-input-non-fidato.mts`.
 
 ## I quattro campi di testo libero
@@ -203,6 +203,16 @@ incrina.
 `statiDaFissare` e `fissaStatiMancanti` leggono di ogni voce solo `exercise` e `sets.length`, e
 scrivono lo stato calcolato dai campi numerici dei test: nessuna nota né etichetta entra. Caso 7
 del nucleo v13: PASS (6 stringhe ostili × 4 campi, impronta identica). Proprietà: tiene.
+
+## U15 — Verifica del 2026-11-21d (commit `4d06a4b`, R20 e R21)
+
+Campo nuovo, **numerico, non di testo**: «Quanti secondi hai tenuto?» di Z1 (`type="number"`,
+stringa nello stato del componente). `tenutaDichiarata` accetta solo `^\d+$` fra 1 e 29: su 23
+ingressi ostili (vuoto, 0, 30, −1, +5, 5.0, 1e1, 0x1A, cifre arabe, «18abc», 30 nove) nessun valore
+fuori da 1-29 o diverso da quello scritto (`24` 21.6). La serie si scrive con `note null`. Il valore
+non entra in nessun calcolo: revisione e volume identici con Z1 a 8, 12 e 30 (`24` 21.9);
+`syncStatesFromLog` legge solo gradino e peso. Il `Number()` del diff è sul campo numerico, non su
+una nota (regola 1 rispettata). Nucleo caso 7: PASS. Proprietà: tiene.
 
 ## Regole per chi tocca il codice
 1. Nessun `parseInt`, `parseFloat`, `Number()`, `JSON.parse` su `note` o

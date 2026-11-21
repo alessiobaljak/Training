@@ -138,3 +138,18 @@ L24, M21, M19. verify (880) eseguito da me; smoke, offline no (sessione principa
 | B1 dal testo dell'appendice 2026-11-20 + D-21 a, D-22 a, D-23 a, commit `221b2e8` | F 151/153 = atteso (R19.R = M22, Q5 = M18); A 0 su 259.782; B 0; 15.19 0; 16.P 0; C/C2/C2R 18 settimane: 13.P, S2, E7, S1 all'esecuzione, 24.6, leve W5-6 a 0; C3 R19 σ′ 0, S5 0, L25 7, M22 54 + 66. Su `59daf79`: F 26, A 35, B 33, W5-6 2.590 | `16-b1.mts` |
 | Nucleo v9 (4e spostato a W8-W10, fuori da D-21) | `221b2e8` e `59daf79`: solo S9; `001de30`: S2 il 05-04 (la fixture discrimina). Con la v8 su `221b2e8`: «positivo mancato» per D-21 | `safety-core.mts` v9 |
 | R14b, R15, R16, R17, R18 dal testo della specifica 2026-11-18 + D-20, commit `4edf751` | F 106 righe su 107 = atteso (Q5 = M18 resta aperto); A 0 differenze su 259.782 esiti; B 1 (L23); C + C2 800 atleti: 13.P, S1, E7 0, R13 di fine seduta = riferimento; R14b 226 proposte tolte, 0 allo stato; R-6 durate. Su `001de30`: F 41, A 64, E7 36, 237 leve fuori stato | `15-r14-r18.mts` |
+
+## RESULTS.md, spostato il 2026-11-21d
+
+### Voce chiusa
+
+| ID | Grav. | Titolo | Chiusa il | Verifica di chiusura |
+|---|---|---|---|---|
+| L22 | Basso | Scrittura non atomica alla chiusura | 2026-11-20c | stato accettato e `lapsed` solo con `putTogether` (tutte e due le schermate), `statesToSave` esclude le accettate; `17` 14.14 (MemoryStore che rifiuta: né stato né record), smoke. Ramo Firestore non eseguito |
+
+### Ricalcoli
+
+| Metrica | Esito | Script |
+|---|---|---|
+| B2 dal testo delle specifiche 11-18 (R14, rev. 11-20) e 11-21 §1 (D-19 b), commit `0d85597` | F 197/198 (R19.R = M22); A 0 su 259.782; B 0; D19.P 0 su 437; simulazioni con la chiusura dell'app: M18 0, predicato R14 = testo, revisioni = riferimento su 18.430; P14 5.288 tolte, 0 differenze, 55 testi muti (L29); sync = testo su 20.000; B14 37.196. Su `e30cdc6`: F 37, A 302, D19.P 582, M18 7, sync 200 | `17-b2.mts` |
+| Nucleo v10 (4j, R-7) | `0d85597`: solo S9; `e30cdc6`: S9 + 4j ×2 (campo e stato a 14,5 con la volta scorsa a 0) | `safety-core.mts` v10 |
