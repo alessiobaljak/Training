@@ -2379,6 +2379,76 @@ try {
     console.log(`R21: Z1 ${JSON.stringify(dopoMollato)} → [18] → [30]; domanda, ricarica e tocco corto senza serie.`);
   }
 
+  /*
+   * R9b (B17): un ritest peggiore propone di scendere, e non scende da solo.
+   * Le trazioni si portano allo stato salvato 3 (fatte e fissate da R9c), e
+   * il test delle trazioni di oggi diventa un ritest di settimana 6 con 5:
+   * sotto la soglia di 8. La Home deve dirlo, «Decidi» deve aprire la
+   * proposta, «Applica» deve scrivere il gradino 1.
+   */
+  {
+    const statiR9b = await readFromEmulator('exerciseStates');
+    const conUtente = statiR9b[0] ?? (await readFromEmulator('testResults'))[0];
+    const cartella = conUtente?.name.slice(0, conUtente.name.search(/\/(exerciseStates|testResults)\//));
+    const pullUp = (await readFromEmulator('testResults')).find((doc) => doc.fields?.testId?.stringValue === 'pull-up');
+    check(cartella !== undefined && pullUp !== undefined, 'R9b: servono l’utente e il test delle trazioni nell’emulatore.');
+    if (cartella !== undefined && pullUp !== undefined) {
+      const TRAZIONI = 'trazioni-prona-presa-media';
+      const campiTrazioni = {
+        exercise: { stringValue: TRAZIONI },
+        level: { integerValue: '3' },
+        loadKg: { integerValue: '0' },
+        eccentricBonusSeconds: { integerValue: '0' },
+        bottomPauseBonusSeconds: { integerValue: '0' },
+      };
+      const esistente = statiR9b.find((doc) => doc.fields?.exercise?.stringValue === TRAZIONI);
+      if (esistente === undefined) await writeToEmulator(cartella, 'exerciseStates', TRAZIONI, campiTrazioni);
+      else await updateInEmulator(esistente.name, campiTrazioni);
+      await updateInEmulator(pullUp.name, { week: { integerValue: '6' }, value: { integerValue: '5' } });
+      await page.waitForTimeout(2500);
+
+      await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+      await page.waitForTimeout(2000);
+      const home = await page.locator('main').innerText();
+      check(
+        /Dai test (del|dell’) [^:]+: 1 gradino da decidere\./.test(home),
+        `R9b: la Home deve dire «Dai test del …: 1 gradino da decidere.». Legge «${(/Dai test[^\n]*/.exec(home) ?? ['(niente)'])[0]}».`,
+      );
+      const stato = async () =>
+        (await readFromEmulator('exerciseStates')).find((doc) => doc.fields?.exercise?.stringValue === TRAZIONI)?.fields?.level
+          ?.integerValue;
+      check((await stato()) === '3', `R9b: prima di decidere le trazioni restano al 3. Legge ${String(await stato())}.`);
+
+      const decidi = page.getByRole('button', { name: 'Decidi', exact: true });
+      if ((await decidi.count()) > 0) {
+        await decidi.click();
+        await page.waitForTimeout(1500);
+        const scheda = await page.locator('main').innerText();
+        check(
+          scheda.includes('Riparti dal livello 1') && scheda.includes('Test di settimana 6') && scheda.includes('ne servono almeno 8'),
+          `R9b: «Decidi» deve aprire la proposta 3 → 1 con la fonte e la soglia. Legge «${scheda.slice(0, 300)}».`,
+        );
+        await page.getByRole('button', { name: 'Applica', exact: true }).click();
+        await page.waitForTimeout(2500);
+        check((await stato()) === '1', `R9b: «Applica» deve portare le trazioni al gradino 1. Legge ${String(await stato())}.`);
+        const decisione = (await readFromEmulator('suggestions')).find((doc) =>
+          String(doc.fields?.id?.stringValue ?? '').startsWith('ritest-'),
+        );
+        check(
+          decisione?.fields?.decision?.stringValue === 'accepted' && decisione?.fields?.lever?.stringValue === 'variant',
+          `R9b: la traccia deve essere accettata, leva variante. Legge ${JSON.stringify(decisione?.fields?.decision)}.`,
+        );
+        await page.goto(`${BASE}/#/`, { waitUntil: 'load' });
+        await page.waitForTimeout(2000);
+        check(
+          !(await page.locator('main').innerText()).includes('gradino da decidere'),
+          'R9b: decisa la proposta, la scheda in Home sparisce.',
+        );
+        console.log(`R9b: trazioni 3 → ${String(await stato())} con «Applica»; scheda in Home sparita.`);
+      }
+    }
+  }
+
   check(errors.length === 0, `Errori JavaScript in pagina: ${errors.join(' | ')}`);
 } finally {
   await browser?.close();
