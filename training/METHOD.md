@@ -80,6 +80,15 @@ all'ultima chiusa (`src/engine/rotation.ts`). Due avvisi, nessun blocco:
 sovrapposizione muscolare se l'ultima seduta è di ieri o di oggi
 (`OVERLAP_DAYS = 1`), e `IN_A_ROW_WARNING = 3` giorni di fila.
 
+`[PROPOSTA 2026-11-22, R24-R25]` **Abilità a testa in giù.**
+- Dove: in apertura, da fresco, dopo il riscaldamento (come la skill dello Shadow). Oggi una volta a
+  settimana, in S3.
+- Dose bassa: 2 serie, mai a cedere.
+- Tempo a testa in giù limitato dal tetto del range (30″ più 5″ di salita).
+- Si progredisce per gradino, non per tempo. Il gradino più alto in app è il 4: la verticale libera
+  chiede un'uscita che un telefono non insegna.
+- Polsi preparati nella stessa seduta. Controindicazioni: BOUNDARIES L15.
+
 ## 5. Intensità: RIR
 
 `[IN CODICE]` Il RIR è prescritto per blocco (`ProgramBlock.rir`, valori

@@ -98,6 +98,16 @@ figura debba mostrare. **Prime schede** (2026-11-21c, figure generate da testo):
 `respirazione-360`, `corda-battaglia-slam`, più il rematore agli anelli; elenco ordinato degli
 altri 31 (§5.6). Ogni scheda: partenza e arrivo, attrezzo e presa, angoli con tolleranza, vista,
 cosa deve vedersi, cosa mai, controllo di training-quality. Nessuna cita immagini d'archivio (RepDB, termine 5).
+2026-11-22: `handstand-l1` (gradino 1 della verticale, a L con i piedi al muro, 2 fotogrammi) e
+`oscillazioni-polsi`: `reports/2026-11-22-training-verticale.md` §5.1-5.2. La figura di oggi di
+`handstand-l1` è la posa del pike: fuori finché la nuova non è approvata (T-48).
+
+### Proposte collegate alla verticale (2026-11-22, T-46, T-48)
+- `ProgressionStep.headDown`: `handstand` 1-6, `vertical-push` 1-6 (R1 riga 3, BOUNDARIES L15).
+- `contraindications` di `verticale-al-muro`: il testo del rapporto 2026-11-22 §5.
+- Prerequisito: spinta verticale 4 (HSPU al muro) ⇐ verticale ≥ 3 con 6 serie nel range.
+- Cue sbagliato in `verticale-al-muro`: «spalle lontane dalle orecchie»; nella verticale si spingono
+  verso le orecchie. Cinque cue nuovi nel rapporto §4.
 
 ## 3. Regole di compilazione
 
@@ -117,3 +127,6 @@ cosa deve vedersi, cosa mai, controllo di training-quality. Nessuna cita immagin
    gradino lo mostra. Se un esercizio cambia attrezzo con lo stesso slug, il suo **nome non nomina
    l'attrezzo**: il nome si legge anche sulle sedute vecchie, `variantLabel` invece resta quello
    scritto quel giorno (rematore inverso: TRX → anelli).
+7. **Una salita, una misura** (2026-11-22, PROPOSTA, T-49). Nessun blocco sale a un gradino che si
+   misura diversamente dall'esercizio: la scala `core` passa da secondi (1-3) a ripetizioni (4-6), e
+   l'hollow hold S3 B3 oggi salirebbe all'hanging knee raise a 30-45″.

@@ -4,18 +4,14 @@ Versione **programmi 1.0 — PROPOSTA del 2026-11-08, non approvata.**
 Aggiunte del 2026-11-12, `[PROPOSTA, programmi 2.0]`: R1 (§3), R2 (§2), R4 (§3).
 `[programmi 2.4]`: R20 (§2), R21 (§4), R9b, R9c (§8) in produzione `22f3d31`; R9a rev., R22 no.
 `[PROPOSTA 2.5 — 2026-11-21c]`: R21 rev. + S7 su Z1 (§4), rematore agli anelli (§3), `testAllaData` (§8).
+`[PROPOSTA 2.6 — 2026-11-22]`: R24 blocco H1 verticale in S3 (§9), R1 riga 3 rev. e ingresso (§3).
 Programma attivo: `src/data/circuit.ts` (4 circuiti). Archiviato: `src/data/program.ts`.
 
 ## 1. Il programma non si genera: si sceglie
 
-`[IN CODICE]` Oggi l'app **non genera** nessun programma. I quattro circuiti
-sono dati scritti a mano, blocco per blocco, e l'unica cosa che l'app decide è
-quale dei quattro proporre adesso: il successivo all'ultimo chiuso, in ordine
-circolare (`src/engine/rotation.ts`, `CIRCUIT_ORDER`). Niente giorni assegnati.
-
-Questa è la proprietà più forte dell'app e va difesa: nessuna combinazione di
-esercizi nasce a runtime. Qualunque regola di generazione futura sceglie dentro
-un catalogo di blocchi approvati, non compone esercizi liberamente.
+`[IN CODICE]` L'app **non genera** programmi: quattro circuiti scritti a mano; decide solo quale
+proporre, il successivo all'ultimo chiuso (`rotation.ts`, `CIRCUIT_ORDER`), senza giorni. Da
+difendere: nessuna combinazione nasce a runtime; una generazione futura sceglie fra blocchi approvati.
 
 ## 2. Struttura della settimana
 
@@ -76,10 +72,11 @@ Si valuta in ordine; la prima riga che si applica decide.
 1. `pattern` o `P` nulli ⇒ `P`.
 2. Tutti i blocchi in `B` hanno `excludeFromReview` ⇒ `P` (nessun test, nessuna
    progressione: oggi solo `dead-hang` in Z1).
-3. Scala senza test ⇒ `P` se `P ≤ 2`, altrimenti **1**. (Hip thrust S4 A1: `P=2`
-   ⇒ 2, come la scheda. I gradini 1-2 delle scale senza test non sono mai
-   monopodalici né solo eccentrici; resta 1 per hip thrust monopodalico, single-leg
-   RDL, calf, step-up, sissy.)
+3. Scala senza test ⇒ `P` se `P ≤ 2` **e il gradino `P` non è `headDown`** (rev. 2.6),
+   altrimenti **1**. (Hip thrust S4 A1: `P=2` ⇒ 2. Verticale S3 H1: `P=2` a testa in basso ⇒ 1,
+   lo slancio del 2 non lo misura nessun test. I gradini 1-2 delle scale senza test non sono mai
+   monopodalici né solo eccentrici.) **Ingresso** (2.6): finché nessuna seduta chiusa ha una
+   voce di `circuito-3/H1`, vale R1 anche con uno stato salvato (lo Shadow). `headDown`: R24.
 4. `P < Lt` ⇒ `P` (scelta voluta della scheda: dip su panca).
 5. Misura del test diversa da quella dell'esercizio ⇒ `P` (invariato).
 6. Nessun risultato, risultato «non eseguito» (R4), o `M ≤ 0` ⇒ il primo
@@ -109,21 +106,13 @@ Esiti sul circuito:
 | S4 A1 | hip thrust panca | 2 | — | — | 2 (riga 3) | — | — |
 | S4 B2 | dip panche piedi rialzati | 1 | 3 | — | 1 (riga 4) | 1 | 1 |
 | Z1 | dead hang | 2 | 2 | — | 2 (riga 2) | 2 | 2 |
+| S3 H1 (2.6) | verticale al muro | 2 | — | — | 1 (riga 3 rev.) | — | — |
 
-Caso trazioni con `M = 4`: 4 < 8 ⇒ `giù(3)`; il 2 è solo eccentrico ⇒ **1**,
-che la scheda chiama «un piede sul box». Dati collegati `[PROPOSTA, schema 1.1]`:
-- nome del gradino 1 della trazione verticale: «Trazioni assistite: elastico o
-  un piede sul box»;
-- `ProgramBlock.variantNoteLevel` opzionale: la `variantNote` si mostra solo se
-  il gradino attuale coincide. S1 A1 → 1 (la nota parla del box e del
-  «massimo a corpo libero è quattro»); S3 A2 → 3 (parla dei declinati, che il
-  gradino 2 non sono). Oggi la nota mente a chiunque stia su un altro gradino.
-
-Abbandonata la vecchia proposta «serie di prova alla prima seduta»: aggiusta
-dentro la seduta, è difficile da testare e la revisione settimanale fa lo
-stesso con numeri veri. Resta valido il punto: mai un gradino con `minLevel`
-sopra il livello dell'atleta né con `prerequisites` non soddisfatti
-(EXERCISE_SCHEMA §2), quando quei campi esisteranno.
+Caso trazioni con `M = 4`: 4 < 8 ⇒ `giù(3)`; il 2 è solo eccentrico ⇒ **1** («un piede sul
+box»). `variantNoteLevel` in codice (S1 A1 → 1, S3 A2 → 3); resta da fare il nome del gradino 1
+della trazione verticale («Trazioni assistite: elastico o un piede sul box», W-14).
+Abbandonata la «serie di prova alla prima seduta». Resta: mai un gradino sopra `minLevel` o
+senza `prerequisites` (EXERCISE_SCHEMA §2), quando quei campi esisteranno.
 
 ### R4 — Test di settimana 0 del circuito `[PROPOSTA, programmi 2.0]`
 
@@ -203,12 +192,9 @@ box o panca non ha nessuna via.
 `[PROPOSTA]` Regola di sostituzione deterministica, possibile solo dopo il campo
 `equipment` (EXERCISE_SCHEMA §2):
 
-1. L'atleta dichiara la sua attrezzatura all'onboarding. Il dato è una lista di
-   `Equipment`, modificabile dalle impostazioni.
-2. Un blocco il cui esercizio richiede un attrezzo mancante viene sostituito con
-   il **primo** candidato di una lista ordinata, scritta e approvata per quel
-   blocco. La lista è un dato, non un calcolo: ogni candidato dichiara attrezzo,
-   schema motorio e gradino equivalente.
+1. L'atleta dichiara la sua attrezzatura (lista di `Equipment`, modificabile).
+2. Un blocco con un attrezzo mancante prende il **primo** candidato di una lista ordinata,
+   scritta e approvata per quel blocco (dato, non calcolo: attrezzo, schema, gradino).
 3. Un candidato è ammesso solo se: stesso schema motorio **o** stessi
    `primaryMuscles`; `minLevel` ≤ livello dell'atleta; prerequisiti soddisfatti;
    attrezzatura disponibile.
@@ -295,3 +281,17 @@ non capacità). Nelle ridotte non ci sono leve. Seduta in corso o abbandonata:
 non interrompe la pausa e non conta fra le 4. Bozza: si giudica su `draft.date`.
 
 Prove 9.1-9.11 e 9.16 (base: ultima chiusa `circuito-2` il 2026-03-02): `ARCHIVE.md`.
+
+## 9. R24 — Blocco H1 «Abilità», verticale al muro `[PROPOSTA 2.6 — 2026-11-22, D-24…D-26 aperte]`
+
+Richiesta di Alessio 2026-11-22. **S3, primo blocco** dopo il riscaldamento, da fresco (come la skill
+dello Shadow). `verticale-al-muro`, **2 × 20-30″**, `isometrico`, RIR 1-2, `superset` giro **60″**,
+blocco **45″**, niente `workSeconds` (stima 25″ a serie = 5″ «Sali» + 20″), `maxLevel` 4,
+`cappedHold` (PROGRESSION R25), note per gradino 1-4, `pauseTasks.H` «in ginocchio, poi in piedi».
+Riscaldamento S3: + «Oscillazioni dei polsi in quadrupedia» 10 in 20″ dopo le circonduzioni.
+**Durate**: S3 +185″ ⇒ 39:23 (massimo R20 52:35); S2 torna la più corta (la nota della scheda torna
+vera, via la sua `DeviazioneNota`), S4 la più lunga di 20″. Volume: spalle 15,5, core 17,5.
+**`headDown`** (`ProgressionStep`): `handstand` 1-6, `vertical-push` 1-6 (R1 riga 3, BOUNDARIES L15).
+Deviazioni: `BLOCCHI_AGGIUNTI` (S3 H1, minuti 35 → 39), `DEVIAZIONI_RISCALDAMENTO`, gradino 1 se D-25.
+Scartate: S2 (40:00, 55:03 oltre R19, prima del pike), riscaldamento ×4, pausa di blocco. T-42…T-48 in
+un push solo. Testi, prove H.1-H.12: `reports/2026-11-22-training-verticale.md`.

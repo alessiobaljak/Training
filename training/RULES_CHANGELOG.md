@@ -12,6 +12,26 @@ Voci chiuse più vecchie delle ultime 10 ⇒ `ARCHIVE.md`.
 
 ## Voci aperte
 
+### programmi 2.6 · progressione 4.4 · consigli 4.4 · limiti 1.7 · catalogo (2026-11-22)
+- **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-22-training-verticale.md`, T-42…T-49).
+  D-24, D-25, D-26 aperte per Alessio.
+- **Cosa.**
+  - R24: blocco H1 «Abilità» in apertura della S3, `verticale-al-muro` 2 × 20-30″, 60″/45″, polsi
+    nel riscaldamento della S3; S3 39:23.
+  - R1 riga 3 rev. (`headDown` ⇒ 1) e ingresso a 1.
+  - R25: tenuta con tetto (conto fermo a 30, «al tetto» = «sopra» in revisione, `maxLevel` 4).
+  - L15: posizioni a testa in basso.
+  - Catalogo: cue della verticale corretti, `oscillazioni-polsi`, gradino 1 rinominato (se D-25).
+  - T-49: salita bloccata dove la scala cambia misura (hollow hold → hanging knee raise).
+- **Perché.** Richiesta di Alessio del 2026-11-22. Il difetto latente della scala `core` è
+  trovato leggendo `progressions.ts` e `review.ts`.
+- **Limiti.** Stringono: tetto di tenuta, tetto di gradino, partenza dal gradino 1, L15. Allenta
+  solo «al tetto» = «sopra» sui blocchi `cappedHold`, che senza non salirebbero mai. Nessuna soglia
+  esistente cambia. Campi nuovi: `cappedHold`, `maxLevel`, note per gradino, `headDown`,
+  `BLOCCHI_AGGIUNTI`, `DEVIAZIONI_RISCALDAMENTO`, la decisione `inversioni:<data>`. Nessuna
+  migrazione.
+- **Esito training-quality.** Non ancora valutato.
+
 ### programmi 2.5 · progressione 4.3 · consigli 4.3 · limiti 1.6 (2026-11-21c)
 - **Stato.** PROPOSTA, specifica pronta (`reports/2026-11-21-training-anelli-figure.md`, T-37…T-41).
 - **Cosa.** R21 rev.: S7 su `recordActual` = «nessuna dose sopra il misurato», sei condizioni; Z1

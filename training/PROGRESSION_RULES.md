@@ -1,6 +1,6 @@
 # PROGRESSION_RULES.md — soglie di progressione
 
-**In produzione `22f3d31` (rilascio F): progressione 4.1 + parte della 4.2** — R5-R7 §9, R10 R13 §10, R14 R15 R17 §11, D-19 b, R19 (PROGRAM_RULES §5), D-21 a, D-23 a, **R9b, R9c, B18**; R8 R11 R12 R16 in PROGRESS_REVIEW §6. Non ancora: R9, L30 (a), L32, `LEVA_MANUBRIO` + goblet, stacco rumeno, estensione tricipiti (T-32, T-34…T-36, rapporto `2026-11-21-training-b9-b10-m4.md`). **PROPOSTA 4.3 (2026-11-21c): R23** (§8, rapporto `2026-11-21-training-anelli-figure.md`). Motore: `engine/progression.ts`, `review.ts`, `ritest.ts`, `loading.ts`.
+**In produzione `22f3d31` (rilascio F): progressione 4.1 + parte della 4.2** — R5-R7 §9, R10 R13 §10, R14 R15 R17 §11, D-19 b, R19 (PROGRAM_RULES §5), D-21 a, D-23 a, **R9b, R9c, B18**; R8 R11 R12 R16 in PROGRESS_REVIEW §6. Non ancora: R9, L30 (a), L32, `LEVA_MANUBRIO` + goblet, stacco rumeno, estensione tricipiti (T-32, T-34…T-36, rapporto `2026-11-21-training-b9-b10-m4.md`). **PROPOSTA 4.3 (2026-11-21c): R23** (§8, rapporto `2026-11-21-training-anelli-figure.md`). **PROPOSTA 4.4 (2026-11-22): R25** (§12). Motore: `engine/progression.ts`, `review.ts`, `ritest.ts`, `loading.ts`.
 
 Ogni soglia è un numero, non un giudizio; `[PROPOSTA]` = la regola oggi non c'è.
 
@@ -82,8 +82,7 @@ TUT 3-0-1-0 non sono eseguibili. Fuori dai range fissi ±1 resta letterale.
 `[IN CODICE]` eccentrica ≤ 5" · pausa in allungamento ≤ 2" · gradino ≤ 6 ·
 passo zavorra 2,5 kg · zavorra solo da settimana 3 e solo in whitelist.
 
-T1-T4 della 1.0 **sostituiti**: gradini → R7, T3 → R5, T4 → R9 (14 giorni),
-T1 sulle altre leve → **R13** (§10, D-4 a). In discesa non c'è tetto.
+T1-T4 della 1.0 sostituiti da R7, R5, R9, **R13** (§10, D-4 a). In discesa non c'è tetto. Tenute con tetto: R25 (§12).
 
 ## 7. Quando si tiene fermo
 
@@ -140,14 +139,10 @@ strutturale, R7 non la rende vera. `scarico(w)` ⇔ `DELOAD_WEEKS.includes(w)`.
 - **E5** fine seduta: la seduta non è ridotta. Revisione: nessuna voce utile
   viene da una seduta ridotta.
 
-Vale per **ogni aumento** (gradino, tempo, pausa, zavorra, manubrio) in
-`reviewWeek` e in `evaluateProgression`, con una funzione condivisa. La discesa
-non passa dal cancello. `cautelaTempo` di `review.ts` sparisce.
-Ordine nella revisione, per esercizio: R8 (revisione aperta, chi compare,
-`rimandati`, coppia) → tutte sotto il minimo (discesa, in codice) → tutte ≥ max:
-E4/E5 → E2 → R7, R6 → altrimenti `inRange`. In codice: la revisione chiama
-`motivoBlocco` con `tempo` delle due voci, `serieVere` della coppia, `scarico`
-come in E4, `rientro` come in E5; la funzione non cambia.
+Vale per **ogni aumento** (gradino, tempo, pausa, zavorra, manubrio), revisione e fine seduta,
+con una funzione condivisa (`motivoBlocco`: tempo delle due voci, serie vere della coppia, E4, E5).
+La discesa non passa dal cancello. Ordine nella revisione: R8 → tutte sotto il minimo (discesa) →
+tutte ≥ max: E4/E5 → E2 → R7, R6 → altrimenti `inRange`.
 
 | esito, con E1 vero | revisione | fine seduta |
 |---|---|---|
@@ -173,13 +168,9 @@ Un aumento di carico (`aggiungi-peso`, leva `load`) si propone **solo se tutte**
   `SessionSummary` passa `null` fuori da `reps-from-test`, cioè su tutto il
   circuito, e la soglia non è mai letta.
 
-`inherent` (manubri, kettlebell; oggi tutti `pattern: null`): Z2 vera per
-costruzione, Z4 non si applica. Revisione con Z1 vera e il resto no ⇒ elenco
-`alMassimo` con un motivo: `tempo` (tutte ≥ max ma non tutte sopra, variante
-non esaurita), `settimana` (Z3), `soglia` o `nessun-test` (Z4), `leve-finite`.
-Fine seduta: `load.available = false` con lo stesso motivo; se la variante è
-in attesa e non resta altra leva, `blockedReason` è il testo di R7, non «hai
-esaurito tutte le leve».
+`inherent` (manubri, kettlebell, `pattern: null`): Z2 vera, Z4 non si applica. Revisione con Z1 vera
+e il resto no ⇒ `alMassimo` con motivo `tempo`, `settimana` (Z3), `soglia`/`nessun-test` (Z4),
+`leve-finite`; fine seduta: `load.available = false` con lo stesso motivo (variante in attesa ⇒ R7).
 
 *Casi limite* e tabella 6.1-6.11 (con le righe che R10 cambia): `ARCHIVE.md`.
 
@@ -192,13 +183,10 @@ Ingressi: `e`, `L`, `oggi`, `chiuse` (la seduta in corso no).
 - **Salita consentita ⇔ `inizio ≠ null` e `daysBetween(inizio, oggi) ≥ 14`**;
   `dal = addDays(inizio, 14)`.
 
-La salita resta di **un** gradino eseguibile (`adjacentLevel(…, 1,
-isFixedRange)`): 1→3 sui range fissi è una salita (lettura di S1 approvata).
-Vale per `sali-di-livello` e per la leva `variant`. Mai per scendere; non tocca
-tempo, pausa e carico. Effetti voluti: un gradino accettato e non ancora
-eseguito blocca ogni altra salita (seconda difesa su B11 Q2); dopo una discesa
-si risale solo dopo 14 giorni al gradino più basso (assorbe W-18, ping-pong
-1↔3); con i soli stati di R1 non si sale.
+Salita di **un** gradino eseguibile (`adjacentLevel(…, 1, isFixedRange)`; 1→3 sui range fissi è
+una salita), per `sali-di-livello` e `variant`; mai per scendere; non tocca tempo, pausa, carico.
+Effetti: un gradino accettato e non eseguito blocca le altre salite; dopo una discesa si risale dopo
+14 giorni al gradino più basso (W-18); con i soli stati di R1 non si sale.
 Esiti: revisione ⇒ elenco `inAttesa` (L, `inizio`, `dal`), nessuna zavorra al
 suo posto; si valuta solo su una coppia valida di R8 e con `oggi` nella
 settimana W+1: aprirla più tardi può solo raggiungere un `dal`, mai scavalcarlo
@@ -294,6 +282,18 @@ R13, con il testo della regola che la fissa (fine seduta; revisione R10a 1, 2-3,
 (2) carico fermo per settimana o test ⇒ il suo motivo; (3) manubrio mai scritto o fuori elenco ⇒
 il suo motivo; (4) tempo o pausa fermi per R19 ⇒ testo «tetto»; (5) cima ⇒ «leve finite» con i kg; (6) «leve finite».
 
+L30 (a): «(6) fuori elenco» = `inherent` fuori da `LEVA_MANUBRIO` ⇒ `tetto`; dentro, peso mai scritto o fuori elenco ⇒ `manubrio` anche col tetto.
+
+## 12. R25 — Tenuta con tetto (S3 H1, verticale) `[PROPOSTA 4.4 — 2026-11-22]`
+Blocco `cappedHold`: parte al «Via», 5″ «Sali», bip a min e a max, conto fermo al **max**; valore
+**mai > max** («Ho mollato» = cronometro intero; dopo il segnale «Sì» = max, «No» = 1…max−1);
+`tempoRespected` ⇔ valore ≥ min. **Revisione**: «sopra il massimo» (R10a 1) si legge **«tutte al
+tetto»**, con R5 (coppia, ≥ 3 serie vere), R7, R13: senza, il blocco non sale mai. Fine seduta: 2 serie
+⇒ nessuna leva, testo suo. Discesa: tutte < min ⇒ `scendi-di-livello`; al gradino 1 testo suo, stato
+invariato. **`maxLevel` 4**: `adjacentLevel`, `varianteEsaurita`, `VariantPicker` del blocco si fermano
+al 4 ⇒ `leve-finite` con testo suo. Nessuna leva di tempo. **Difetto latente** (T-49): la scala `core`
+passa da secondi (1-3) a ripetizioni (4-6), e l'hollow hold S3 B3 salirebbe all'hanging knee raise a
+30-45″: `adjacentLevel` non attraversa un cambio di misura. Prove H.1-H.12: rapporto 2026-11-22.
+
 ### Ordine di implementazione
-A-F in produzione (`22f3d31`: fino a T-27, T-28, T-29, T-30, R9b, R9c, B18). Resta (11-21b): T-31 → T-32 → resto di T-33; T-34…T-36 liberi. Poi (11-21c): T-37 (con il media lead), T-38, T-39, T-40, T-41 liberi.
-L30 (a): «(6) fuori elenco» = esercizio `inherent` fuori da `LEVA_MANUBRIO` ⇒ `tetto`; in `LEVA_MANUBRIO` peso mai scritto o fuori elenco ⇒ `manubrio` anche col tetto.
+A-F in produzione (`22f3d31`). Resta: T-31 → T-32 → resto di T-33; T-34…T-36, T-37 (media lead), T-38…T-41 liberi; T-42…T-48 in un push solo; T-49 libero.

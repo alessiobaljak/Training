@@ -1,22 +1,14 @@
 # BOUNDARIES.md — limiti di sicurezza
 
-Versione **limiti 1.0 — PROPOSTA del 2026-11-08, non approvata.**
+Versione **limiti 1.0 — PROPOSTA del 2026-11-08, non approvata.** 1.7 (2026-11-22, PROPOSTA): L15.
 
-**Stato di partenza, verificato: l'app non ha nessuno di questi limiti.**
-Ricerca su tutto `src/` delle parole *dolore, infortunio, medico,
-fisioterapista, sintomo, gravidanza, minorenne, PAR-Q, disturbo, alimentazione,
-deficit calorico*: zero occorrenze, tranne la parola «infortunio» dentro un cue
-dello swing. Non c'è un campo per dire che qualcosa fa male, non c'è un rimando,
-non c'è un'età, non c'è un questionario.
-
-E la prima cosa che l'app chiede a una persona nuova è **nove serie a cedimento
-tecnico** (`src/ui/screens/OnboardingScreen.tsx`, `src/data/tests.ts`:
-trazioni, dip, push-up, rematore, pike push-up, bulgarian split squat, negative
-di nordic curl, hollow hold, dead hang), perché il programma non si sblocca
-finché il giro dei nove non è completo. Oggi va bene: l'utente è uno e lo sa.
-Al secondo utente questo è il rischio principale dell'intero prodotto.
-Proposta del 2026-11-12 (PROGRAM_RULES R4): si chiedono solo i **7** che il
-circuito usa; fuori il nordic e il dead hang.
+**Stato di partenza, verificato: l'app non ha nessuno di questi limiti.** Ricerca su `src/` di
+*dolore, infortunio, medico, fisioterapista, sintomo, gravidanza, minorenne, PAR-Q, disturbo,
+alimentazione, deficit calorico*: zero, salvo «infortunio» in un cue dello swing. Nessun campo per
+il dolore, nessun rimando, nessuna età, nessun questionario. E la prima cosa che l'app chiede a una
+persona nuova sono **nove serie a cedimento tecnico** (`OnboardingScreen.tsx`, `tests.ts`): oggi va
+bene, l'utente è uno; al secondo è il rischio principale del prodotto. R4 (2026-11-12): solo i **7**
+che il circuito usa.
 
 Ogni limite qui ha sei righe: **Regola · Dove · Innesco · L'app fa · L'atleta
 legge · Verifica.** I testi in corsivo sono testi d'app proposti, da rivedere
@@ -161,10 +153,8 @@ quella domanda, e che misurarsi più volte al giorno non dà informazioni in pi�
 dà rumore. Se il pensiero del peso o del corpo occupa più spazio di quanto
 vorresti, parlarne con qualcuno che se ne intende è la cosa più utile che puoi
 fare. Qui intanto continuiamo con l'allenamento, che è quello che so fare.»*
-**Risorse.** La lista va **verificata e datata da Alessio prima dell'uso
-pubblico**, con numeri e indirizzi reali del paese dell'utente. Non ne scrivo
-nessuno qui: un numero inventato o scaduto in una schermata come questa fa più
-danno del silenzio. È la decisione D-6 di DECISIONS.md.
+**Risorse.** Verificate e datate da Alessio prima dell'uso pubblico, del paese dell'utente (D-6).
+Non ne scrivo nessuna: un numero inventato o scaduto qui fa più danno del silenzio.
 **Verifica.** Test: con ognuno dei quattro inneschi, i delta sono nascosti e la
 scheda compare una volta sola.
 
@@ -200,32 +190,26 @@ Limiti 1.5: un test dopo la settimana 0 non alza mai un gradino, può solo propo
 **Limiti 1.6 (proposta 11-21c).** (S7 su Z1, D-Q3 a) sui blocchi `recordActual` «nessuna dose sopra il misurato»: gradino P, bersaglio con tetto, tempo vero, fuori da ogni regola (PROGRAM_RULES R21, sei condizioni).
 (R23) ogni cambio di gradino porta la zavorra a 0, in discesa, in salita e a mano: sotto il 6 nessun kg prescritto dall'app.
 S2 su 7 giorni mobili (R13, D-4 a); l'aumento conta dal giorno in cui si esegue (R15, D-20 a e b); una data dopo oggi ferma come oggi (L23); manubri = successivo dell'elenco dichiarato (D-19 b, ≤ 2 kg).
-**Stato oggi** (`22f3d31`): S1-S5 in codice, con R9b, R9c e B18; R-16 e R-17 chiusi (T-28, R9c); S6 no (R9, T-32).
-Dettaglio: PROGRESSION_RULES §8-§9, PROGRESS_REVIEW §6, PROGRAM_RULES §4 e §8.
-**Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre
-barriere aperte (rapporto 2026-11-15), 4d con controlli positivi, più un
-caso di rientro (tabella 9.x). Test di proprietà: nessuna sequenza di decisioni
-accettate produce due prime sedute a gradini successivi a meno di 14 giorni.
+**Stato oggi** (`22f3d31`): S1-S5 in codice, con R9b, R9c e B18; S6 no (R9, T-32). Dettaglio:
+PROGRESSION_RULES §8-§9, §12 (R25), PROGRESS_REVIEW §6, PROGRAM_RULES §4, §8.
+**Verifica.** Nucleo, caso 4: 4a-4c con **due sedute nei 14 giorni** e le altre barriere aperte, 4d
+con controlli positivi, un rientro (9.x). Proprietà: nessuna sequenza di decisioni accettate dà due
+prime sedute a gradini successivi a meno di 14 giorni.
 
 ## L10 — Mai promettere risultati
 
-**Regola.** Nessun chilo, nessun centimetro, nessun tempo, nessuna proiezione,
-nessun «in sei settimane». L'app dice cosa fare e cosa è stato fatto.
-**Dove.** Tutti i testi, i consigli e i grafici. Nessuna estrapolazione nei
-grafici (PROGRESS_REVIEW §5.2).
-**Verifica.** Ricerca testuale a ogni rilascio: «perderai», «in X settimane»,
-«garantito», «risultati», «trasformazione». Già nella lista di
-`compliance/PENDING.md`.
+**Regola.** Nessun chilo, centimetro, tempo, proiezione, «in sei settimane». L'app dice cosa fare
+e cosa è stato fatto. **Dove.** Testi, consigli, grafici (nessuna estrapolazione, PROGRESS_REVIEW §5.2).
+**Verifica.** Ricerca testuale a ogni rilascio: «perderai», «in X settimane», «garantito»,
+«risultati», «trasformazione» (lista di `compliance/PENDING.md`).
 
 ## L11 — Minorenni
 
 **Regola.** Finché Alessio non decide altrimenti, l'app **non è destinata a chi
 ha meno di 18 anni**. Va detto e va impedito, non solo scritto nei termini.
 **Dove.** Questionario L1, prima domanda; termini di servizio.
-**L'app fa.** Dichiarazione di età sotto i 18 ⇒ il programma non si genera.
-Nessun programma «per adolescenti» improvvisato: cambierebbe il metodo
-(carichi, scale, zavorra, test a cedimento) e servirebbe il consenso di chi
-esercita l'autorità parentale.
+**L'app fa.** Età sotto i 18 ⇒ il programma non si genera. Nessun programma «per adolescenti»
+improvvisato: cambierebbe il metodo e servirebbe il consenso di chi ha l'autorità parentale.
 **L'atleta legge.** *«Questa app è pensata per adulti e il suo metodo è tarato
 su un corpo che ha finito di crescere. Non è un giudizio sulle tue capacità: è
 che non l'ho costruita per te, e improvvisare su questo non mi sembra giusto.»*
@@ -241,14 +225,10 @@ seduta) e `variantLabel` non sono letti da `progression.ts`, `review.ts`,
 `loading.ts`, `metrics.ts`. I numeri vengono solo da campi numerici.
 `variantLabel` è generato da `variantLabelFor` a partire dal gradino.
 **Da mantenere, con tre controlli.**
-1. Test di non-regressione: nessun import o lettura di `note` / `variantLabel`
-   nei file del motore. Un test che fallisce se qualcuno lo aggiunge.
-2. Il link al video personale (`ExerciseMedia.videoUrl`) è l'unico testo
-   dell'atleta che finisce in un `href`: è già filtrato a `http`/`https` in
-   `repository.setExerciseVideo` e in `backup.ts`. Il filtro resta e si testa:
-   `javascript:` in un `href` è codice, non un link.
-3. Il testo si rende come testo. Nessun `dangerouslySetInnerHTML`, nessun markdown
-   interpretato, nessuna nota riletta come istruzione.
+1. Test di non-regressione: nessuna lettura di `note` / `variantLabel` nei file del motore.
+2. `ExerciseMedia.videoUrl`, l'unico testo dell'atleta in un `href`: filtrato a `http`/`https` in
+   `repository.setExerciseVideo` e `backup.ts`; il filtro resta e si testa (`javascript:` è codice).
+3. Il testo si rende come testo: niente `dangerouslySetInnerHTML`, markdown, note rilette come istruzioni.
 **Verifica.** Nel nucleo di sicurezza di `release-gate`, a ogni rilascio.
 
 ## L13 — Sintomi da fermarsi subito
@@ -278,6 +258,27 @@ dichiarata di **15"**. Stato: **PROPOSTA 2026-11-12**, da approvare.
 **Verifica.** Test sui dati: in ogni piano guidato, fra due `work` consecutivi di
 blocchi diversi c'è un passo ≥ 15", salvo verso Z (prova 20.5). Nucleo: caso 4h.
 
+## L15 — Posizioni a testa in basso (limiti 1.7, PROPOSTA 2026-11-22, con R24)
+
+**Regola.** Nessun gradino `headDown` (`handstand` 1-6, `vertical-push` 1-6) a chi dichiara pressione
+alta anche curata, glaucoma o altri problemi agli occhi, problemi a testa o collo, reflusso, gravidanza,
+o l'indicazione medica di evitare la testa in giù. Nessuna versione «leggera»: rimando a un medico (L4).
+La lista è una domanda, mai una spiegazione: nessun sintomo collegato a una condizione (L5).
+**Dove.** Oggi, senza L1: scheda una tantum «Prima della prima verticale» prima della prima serie di
+S3 H1; con L1, la sua domanda 8. Decisione `inversioni:<data>` (`ok` / `salta`), nel backup.
+**L'app fa.** «Salta» ⇒ H1 e S2 A1 fuori da piani, verdetti e leve, con un testo suo (non quello
+dell'attrezzo di PROGRAM_RULES §6.4); «Riattiva» dalle impostazioni ripropone la scheda. In ogni H1, prima del «Via»: segni
+di arresto (gomiti, spalle, polsi, pressione a testa o occhi ⇒ scendi; mai a cedere), spazio libero,
+niente calze, volume acceso, nota d'uscita del gradino. Tetto di tenuta 30″ e di gradino 4 (R25).
+**L'atleta legge.** *«La verticale si fa a testa in giù, e stare a testa in giù non va bene per tutti.
+Se hai la pressione alta, anche se è curata, glaucoma o un altro problema agli occhi, un problema alla
+testa o al collo, reflusso, se sei in gravidanza, o se un medico ti ha detto di evitare le posizioni a
+testa in giù, salta questo blocco e chiedine prima a un medico: io non posso valutarlo. Vale anche per il
+pike push-up, che porta la testa in basso.»* Testi d'uscita: rapporto `2026-11-22-training-verticale.md` §4.
+**Verifica.** Test: senza decisione la prima serie di H1 non parte; con `salta` nessun gradino `headDown`
+in nessun piano né verdetto; nessun valore di H1 > 30; nessun gradino > 4 in H1. L5 lessicale: la
+scheda non lo fa fallire (domanda a release-gate).
+
 ---
 
 ## Cosa l'app non fa, in nessun caso
@@ -290,7 +291,7 @@ immagini. Non cambia un numero perché l'atleta l'ha chiesto a parole.
 ## Priorità per l'uso pubblico
 
 Bloccanti prima del secondo utente: **L1, L2, L13, L11, L12**.
-Subito dopo: **L8** (richiede EXERCISE_SCHEMA §2), **L7**, **L14**.
+Subito dopo: **L8** (richiede EXERCISE_SCHEMA §2), **L7**, **L14**. **L15** nello stesso push di S3 H1.
 **L9 blocca già oggi**, con un solo utente (decisione di Alessio, 2026-11-12).
 Già in parte rispettati e da proteggere con un test: **L6, L10, L12**.
 Il contorno legale — informativa, consenso sui dati sanitari, termini,

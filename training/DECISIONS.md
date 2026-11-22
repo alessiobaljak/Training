@@ -99,6 +99,22 @@ R1 si parte al massimo dal gradino del test (2) e si sale alla prima settimana
 con tutte le serie sopra 18. Ti va bene, o vuoi un gradino prescritto per
 blocco che permetta di partire dal 3?
 
+**D-24 · Dove va la verticale (2026-11-22).**
+- Opzioni:
+  - (a) apertura della Seduta 3, 2 serie, che arriva a 39:23;
+  - (b) apertura della Seduta 2, prima del pike, che arriva a 40:00 e a 55:03 al massimo, oltre
+    R19;
+  - (c) tutte e due.
+- **Raccomando (a).** Va detto prima: «salta» sulla scheda L15 toglie anche il pike push-up.
+
+**D-25 · Gradino 1 della verticale.**
+- «Plank a mani alte contro il muro» = mani a terra, piedi al muro all'altezza delle anche,
+  corpo a L?
+- **Raccomando sì**, e il nome «Verticale a L, piedi al muro» (deviazione dichiarata).
+
+**D-26 · Verticale libera fuori dall'app.** Il blocco H1 si ferma al gradino 4; i gradini 5-6 non si
+propongono né si scelgono a mano. **Raccomando sì.**
+
 **D-11 · Testi che parlano della forma del corpo.** Due `variantNote` collegano
 un esercizio alla silhouette e alla «vita sottile» (ADVICE D-06). Li riscrivo in
 termini di funzione, o restano come sono finché l'utente sei solo tu?

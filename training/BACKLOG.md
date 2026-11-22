@@ -14,6 +14,8 @@ W-19…W-22 (R5-R8) chiusi in codice, in produzione `a747e09`: `ARCHIVE.md`.
 | W-23 | R9 rientro con R9a rev. «prima i test» (T-32), resto di T-33 (giorno di test, testi dei ritest, M16), R22 settimane (T-31) — M4, D-04, M16. R9b e R9c in produzione `22f3d31` | `rotation.ts`, `schedule.ts`, `rest.ts`, `circuit.ts`, `HomeScreen`, `OnboardingScreen` | sessione principale |
 | W-51 | **T-37** rematore S2 A3 agli anelli: nomi, cue, gradini 1-2-3-5, test, deviazioni; figura TRX fuori nello stesso commit (rapporto 11-21c §2) | `exercises.ts`, `progressions.ts`, `tests.ts`, `deviations.ts`, `exercise-art.ts` | sessione principale + exercise-media-lead |
 | W-52 | **T-38** R23 zavorra a 0 a ogni cambio di gradino (L43, L14, L42) · **T-39** `testAllaData` `<` con ripiego · **T-40** prova 21.14 (Z1 al via) · **T-41** `videoQuery` apertura anche | `review.ts`, `ritest.ts`, `progression.ts`, `VariantPicker`, `repository.ts`, test | sessione principale |
+| W-55 | **T-42…T-48** verticale S3 H1 (R24, R25, R1 riga 3 rev., L15, catalogo), **in un push solo**, dopo D-24…D-26 e training-quality (rapporto 11-22) | `circuit.ts`, `deviations.ts`, `exercises.ts`, `progressions.ts`, `review.ts`, `progression.ts`, `GuidedSession`, `VariantPicker`, impostazioni | sessione principale + exercise-media-lead (figura 5.1) |
+| W-56 | **T-49** nessuna salita a un gradino con un'altra misura (hollow hold S3 B3 → hanging knee raise a 30-45″), Medio latente | `progressions.ts`, `progression.ts`, `review.ts`, `VariantPicker` | sessione principale |
 
 W-24…W-31 (giro 2026-11-16, R10-R13): in produzione `fe85203`, `ARCHIVE.md`.
 

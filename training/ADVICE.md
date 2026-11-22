@@ -287,12 +287,14 @@ Ogni `<…>` viene dal calcolo della regola; nessun altro numero nel testo (§4.
   `tetto` e `manubrio` (rev. 11-21, M22): testi esatti nel rapporto 2026-11-21 §1-§2.
 
 **Rientro (R9) — Home e player.**
-- Prima della seduta: «Sono passati <g> giorni dall'ultima seduta.[ Riprendi dalla
-  settimana <W>: le settimane senza sedute non contano.] Le prossime <4> sedute sono
-  ridotte: stessi esercizi, stesso ordine, <2> giri invece di <3> nei tri-set e <1>
-  invece di <2> nella finitura. Niente aumenti finché non torni al volume pieno.»
-  (giri letti dal piano; la parentesi solo con R22 attiva). Etichetta «Rientro · seduta <k> di <4>».
-- **Consigli 4.2** (testi nel rapporto `2026-11-21-training-b9-b10-m4.md`; R9b, Z1 e R20 in produzione
-  `22f3d31`): ancora da fare «Prima i test di rientro», giorno di test, settimane 6/12 e `RETEST_BANNER`
-  (M16, D-04), Progressi (R22), L29, L32. **Consigli 4.3 (11-21c, PROPOSTA)**: clausola della zavorra di
-  R23 su ogni cambio di gradino (quattro testi), nomi del rematore: rapporto `2026-11-21-training-anelli-figure.md` §2-§3.
+- Prima della seduta: «Sono passati <g> giorni dall'ultima seduta.[ Riprendi dalla settimana <W>: le
+  settimane senza sedute non contano.] Le prossime <4> sedute sono ridotte: stessi esercizi, stesso
+  ordine, <2> giri invece di <3> nei tri-set e <1> invece di <2> nella finitura. Niente aumenti finché non
+  torni al volume pieno.» (giri dal piano; parentesi con R22). Etichetta «Rientro · seduta <k> di <4>».
+- **Consigli 4.2** (rapporto `2026-11-21-training-b9-b10-m4.md`; R9b, Z1, R20 in produzione `22f3d31`):
+  da fare «Prima i test di rientro», giorno di test, settimane 6/12 e `RETEST_BANNER` (M16, D-04),
+  Progressi (R22), L29, L32. **Consigli 4.3 (11-21c, PROPOSTA)**: zavorra di R23, nomi del rematore.
+- **Consigli 4.4 (11-22, PROPOSTA)**, verticale S3 H1: scheda «Prima della prima verticale» (L15), nota
+  prima del «Via», note d'uscita dei gradini 1-4, gradino 1 sotto il minimo (niente test da rifare),
+  gradino 4 al tetto, cautela di salita sui blocchi in secondi, fine seduta a 2 serie; T-49 hollow hold
+  al tetto della misura. Testi esatti: rapporto `2026-11-22-training-verticale.md` §4, T-49.

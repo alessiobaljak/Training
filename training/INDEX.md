@@ -4,10 +4,11 @@
 11-21 rilasci D, E, F. **In produzione `22f3d31` (rilascio F)**: progressione 4.1, più R9b, R9c,
 B18, R20, R21, T-28. Da fare dal rapporto 11-21b: T-31 R22, T-32 R9, resto di T-33, T-34…T-36.
 **PROPOSTA 2026-11-21c** (`reports/2026-11-21-training-anelli-figure.md`): T-37 rematore S2 A3
-agli anelli (stesso slug, nome senza attrezzo, scala agli anelli; con il media lead) · T-38 R23
-zavorra a 0 a ogni cambio di gradino · T-39 `testAllaData` `<` con ripiego · T-40 Z1 al via ·
-T-41 `videoQuery`. Schede delle figure: pilota fatto (§5), altri 31 in ordine (§5.6). Nessuna
-decisione aperta per Alessio. `src/` mai toccato.
+agli anelli (con il media lead) · T-38 R23 zavorra a 0 · T-39 `testAllaData` · T-40 Z1 al via ·
+T-41 `videoQuery`. Figure: pilota fatto (§5), altri 31 in ordine (§5.6).
+**PROPOSTA 2026-11-22** (`reports/2026-11-22-training-verticale.md`): verticale S3 H1 (R24, R25,
+R1 riga 3 rev., L15, catalogo), T-42…T-48 in un push solo; T-49 hollow hold → knee raise (Medio).
+Aperte per Alessio: **D-24, D-25, D-26**. `src/` mai toccato.
 
 **Decisioni chiave.** Nessuna AI nel prodotto: i consigli sono verdetti deterministici di
 `engine/progression.ts`, `review.ts`, `ritest.ts`. ADVICE.md descrive quelli, non prompt.
@@ -18,12 +19,12 @@ attrezzo. **L'app non ha nessun limite di sicurezza** per il pubblico (L1-L7, L1
 ## File di memoria — cosa contiene, quando leggerlo
 - `METHOD.md` — leve, range, volume, frequenza, RIR, recupero, riscaldamento, deload, livelli. Leggi se tocchi un principio o un livello.
 - `EXERCISE_SCHEMA.md` — campi della scheda: 9 esistono, 7 mancano; slug che mentono; **regola 6 «una scala, un attrezzo»**; puntatore alle prime schede delle figure. Leggi se tocchi un esercizio o prepari una figura.
-- `PROGRAM_RULES.md` — circuito, R20 (§2), R1 e R4 (§3), **R21 rev. + S7 su Z1 (§4)**, R19 (§5), sostituzioni, R9, R9b, R9c + `testAllaData`, R22 (§8). Leggi se tocchi un blocco, un test, la durata o le settimane. 297 righe: condensa prima di aggiungere.
-- `PROGRESSION_RULES.md` — soglie, leve (§2), verdetti (§5), **R23 (§8)**, R5-R7, R9 (§9), R10, R13 (§10), R14, R15, R17 (§11). Leggi prima di cambiare un numero. 299 righe: condensa prima di aggiungere.
+- `PROGRAM_RULES.md` — circuito, R20 (§2), R1 (riga 3 rev.) e R4 (§3), R21 + S7 su Z1 (§4), R19 (§5), sostituzioni, R9, R9b, R9c, R22 (§8), **R24 verticale H1 (§9)**. Leggi se tocchi un blocco, un test, la durata o le settimane. 297 righe: condensa prima di aggiungere.
+- `PROGRESSION_RULES.md` — soglie, leve (§2), verdetti (§5), R23 (§8), R5-R7, R9 (§9), R10, R13 (§10), R14, R15, R17 (§11), **R25 tenuta con tetto (§12)**. Leggi prima di cambiare un numero. 299 righe: condensa prima di aggiungere.
 - `PROGRESS_REVIEW.md` — metriche, massimale, record, stallo, presentazione, R8, R11 (con R16), R12, R10b, R22 in R8 (§6).
-- `ADVICE.md` — sorgenti, verdetti, difetti, testi di R5-R9, consigli 3.0-4.3 (§7, puntatori). 298 righe: condensa prima di aggiungere.
-- `BOUNDARIES.md` — **il file che vale di più.** 14 limiti; L9 = S1-S6 + limiti 1.5 e **1.6 (S7 su Z1, R23)**; L14 con R20. Leggi sempre. 297 righe.
-- `RULES_CHANGELOG.md` (voce aperta 2.5/4.3, 11-21c) · `DECISIONS.md` (D-Q3, P-14 anelli, L43 il 2026-11-21; aperte D-1…D-15) · `BACKLOG.md` (W-23, W-51 T-37, W-52 T-38…T-41, W-53 figure) · `ARCHIVE.md` (voci chiuse, casi limite, tabelle) · `reports/`.
+- `ADVICE.md` — sorgenti, verdetti, difetti, testi di R5-R9, consigli 3.0-4.4 (§7, puntatori). 300 righe: condensa prima di aggiungere.
+- `BOUNDARIES.md` — **il file che vale di più.** 15 limiti; L9 = S1-S6 + limiti 1.5 e 1.6 (S7 su Z1, R23); L14 con R20; **L15 testa in basso (1.7)**. Leggi sempre. 298 righe.
+- `RULES_CHANGELOG.md` (voci aperte 2.6/4.4 11-22, 2.5/4.3 11-21c) · `DECISIONS.md` (aperte D-1…D-15, **D-24…D-26**) · `BACKLOG.md` (W-23, W-51, W-52, W-53 figure, **W-55 T-42…T-48, W-56 T-49**) · `ARCHIVE.md` · `reports/`.
 
 ## Percorsi del catalogo e delle regole (modificabili da me)
 - Catalogo: `src/data/exercises.ts` (56) · `src/data/exercise-art.ts` (figure: `REPDB_ART`, `REPDB_STEP_ART`, `FIGURE_SENZA_IMMAGINE`) · scelta della figura: `engine/media.ts` (`artFor`)
