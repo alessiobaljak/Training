@@ -1,6 +1,6 @@
 # release-gate INDEX
-Ultimo rilascio: 2026-11-21e, feb0ed9 (codice bcb9e5e, L42+B20), L. Prod 9c62f84.
-Esito: GO per regressioni; nucleo v17 4 PASS, 2 FALLITI (3, 6), 2 NON COPERTI (1, 8); verify (986), build, smoke (5m57), offline (39 s) verdi. Rapporto reports/2026-11-21e-relH-feb0ed9.md.
+Ultimo rilascio: 2026-11-22, b287d19 (S, icona ingranaggio). Prod 9b2f777.
+Esito: GO per regressioni; nucleo v17 4 PASS, 2 FALLITI (3, 6), 2 NON COPERTI (1, 8); verify (986), smoke (5m57), offline (39 s) verdi. Rapporto reports/2026-11-22-relI-b287d19.md. Clic sul pulsante NON TESTATO in browser (solo statico).
 - 2026-11-21e: L42/B20 in browser, persone fittizie, UAT, rollback Vercel NON eseguiti.
 - 2026-11-21d: persone fittizie, UAT, rollback Vercel (solo per lettura) NON eseguiti. Aperti L42, L44, L45.
 - 2026-11-21c: persone fittizie, UAT, rollback Vercel, giro di test con proposte, Lascia com'è, Applica con zavorra NON eseguiti in browser da me.
