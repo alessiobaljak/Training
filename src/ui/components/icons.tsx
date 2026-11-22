@@ -87,8 +87,9 @@ export function IconaEsercizi() {
 export function IconaImpostazioni() {
   return (
     <Icona>
+      {/* Un ingranaggio, non un sole: il sole si scambiava per l'interruttore chiaro/scuro (Alessio, 2026-11-22). */}
+      <path d="M19.19 12.34 L21.14 13.01 L20.83 14.57 L18.77 14.44 L16.85 17.33 L17.75 19.18 L16.43 20.06 L15.07 18.51 L11.66 19.19 L10.99 21.14 L9.43 20.83 L9.56 18.77 L6.67 16.85 L4.82 17.75 L3.94 16.43 L5.49 15.07 L4.81 11.66 L2.86 10.99 L3.17 9.43 L5.23 9.56 L7.15 6.67 L6.25 4.82 L7.57 3.94 L8.93 5.49 L12.34 4.81 L13.01 2.86 L14.57 3.17 L14.44 5.23 L17.33 7.15 L19.18 6.25 L20.06 7.57 L18.51 8.93 Z" strokeLinejoin="round" />
       <circle cx="12" cy="12" r="3" />
-      <path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4L18 18M18 6l-1.6 1.6M7.6 16.4L6 18" />
     </Icona>
   );
 }
